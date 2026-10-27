@@ -4009,15 +4009,18 @@ $(function(){
     public static function courseHeadingTitle() {
         global $CFG, $PDOX;
 
-        $title = U::get($_SESSION, 'context_title');
-        if ( is_string($title) && trim($title) !== '' ) {
-            return trim($title);
-        }
         $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
-        if ( isset($_SESSION[$ltiKey]['context_title']) ) {
-            $fromLti = $_SESSION[$ltiKey]['context_title'];
-            if ( is_string($fromLti) && trim($fromLti) !== '' ) {
-                return trim($fromLti);
+        $lti = (isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey])) ? $_SESSION[$ltiKey] : null;
+        if ( LTIX::launchContextApplies($lti) ) {
+            $title = U::get($_SESSION, 'context_title');
+            if ( is_string($title) && trim($title) !== '' ) {
+                return trim($title);
+            }
+            if ( is_array($lti) && isset($lti['context_title']) ) {
+                $fromLti = $lti['context_title'];
+                if ( is_string($fromLti) && trim($fromLti) !== '' ) {
+                    return trim($fromLti);
+                }
             }
         }
         $context_id = ReqScope::currentContextId();

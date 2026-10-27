@@ -148,6 +148,49 @@ class Courses extends Tool {
     }
 
     /**
+     * A site URL is not the launch course. Drop the top-level course fields.
+     *
+     * The LTI row stays, so /courses/{id} for that launch can match it again.
+     * Google site login keeps its own course. A course-mounted URL is that course.
+     */
+    public static function releaseUnmountedCourse() {
+        if ( ! defined('COOKIE_SESSION') ) {
+            return false;
+        }
+        if ( self::isCourseMountedRequest() ) {
+            return false;
+        }
+        if ( Settings::isCartridgeUploadRequest() ) {
+            return false;
+        }
+        if ( self::isGoogleLoginSession() ) {
+            return false;
+        }
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        $ltiContext = 0;
+        if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+            $ltiContext = (int) ($_SESSION[$ltiKey]['context_id'] ?? 0);
+        }
+        $top = (int) ($_SESSION['context_id'] ?? 0);
+        if ( $ltiContext < 1 && $top < 1 && Manifest::activeId() < 1
+                && ! isset($_SESSION['context_title']) ) {
+            return false;
+        }
+        unset(
+            $_SESSION['context_id'],
+            $_SESSION['context_key'],
+            $_SESSION['context_title'],
+            $_SESSION['membership_id'],
+            $_SESSION['isinstructor']
+        );
+        Manifest::rememberInSession(0);
+        Cache::clearAllSessionCaches();
+        Output::clearTopNavSession();
+        ReqScope::resetIdentity();
+        return true;
+    }
+
+    /**
      * Google site-login context id, or 0.
      */
     public static function siteLoginContextId() {
@@ -1177,6 +1220,39 @@ class Courses extends Tool {
      */
     private static function switchFailedResponse($message) {
         $status = ($message === 'You are not a member of that course.') ? 403 : 400;
-        return new Response($message, $status);
+        $copy = self::courseSwitchErrorCopy($message);
+        $response = new Response(self::renderCourseSwitchError($copy), $status);
+        $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+        return $response;
+    }
+
+    /**
+     * @param string $message
+     * @return array{title: string, paragraphs: array<int, string>, home: string}
+     */
+    private static function courseSwitchErrorCopy($message) {
+        $home = self::appHomeUrl();
+        if ( $message === 'You are not a member of that course.' ) {
+            return array(
+                'title' => __('This session cannot open this course'),
+                'paragraphs' => array(
+                    __('This session may have been logged in or logged out on another tab, and the new session no longer has access to this course.'),
+                ),
+                'home' => $home,
+            );
+        }
+        $text = is_string($message) && $message !== '' ? $message : __('Cannot open this course.');
+        return array(
+            'title' => __('Cannot open this course'),
+            'paragraphs' => array($text),
+            'home' => $home,
+        );
+    }
+
+    /**
+     * @param array{title: string, paragraphs: array<int, string>, home: string} $copy
+     */
+    private static function renderCourseSwitchError(array $copy) {
+        return self::renderLeavePage($copy);
     }
 }

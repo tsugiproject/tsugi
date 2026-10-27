@@ -40,6 +40,7 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
             }
             public function exposeIsAdmin(): bool { return $this->isAdmin(); }
             public function exposeRequireAuth(): void { $this->requireAuth(); }
+            public function exposeCourseRequiredHtml(): string { return $this->courseRequiredHtml(); }
             public function exposeLmsAnalyticsPath(): string { return $this->lmsAnalyticsPath(); }
             public function exposeLmsAnalyticsKey(?string $path = null): string { return $this->lmsAnalyticsKey($path); }
             public function exposeStaticUrl(string $filename, ?string $controllerName = null): string {
@@ -473,6 +474,21 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
         $tool = $this->createAnnouncementsStub();
         $tool->exposeRequireAuth();
         $this->assertTrue(true); // if we get here, requireAuth didn't die
+    }
+
+    public function testCourseRequiredPageOffersContinue(): void
+    {
+        if ( ! function_exists('__') ) {
+            require_once __DIR__.'/../../include/setup_i18n.php';
+        }
+        $tool = $this->createAnnouncementsStub();
+        $html = $tool->exposeCourseRequiredHtml();
+        $this->assertStringContainsString('This page needs a course', $html);
+        $this->assertStringContainsString('This session does not have a course, so this page cannot open.', $html);
+        $this->assertStringContainsString('Close Tab', $html);
+        $this->assertStringContainsString('>Continue<', $html);
+        $this->assertStringContainsString('launch_presentation_error_return_url', $html);
+        $this->assertStringContainsString('https://local.ca4e.com', $html);
     }
 
     // --- lmsAnalyticsPath tests ---

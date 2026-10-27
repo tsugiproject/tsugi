@@ -83,14 +83,18 @@ class Grades extends Tool {
     }
 
     /**
-     * Get context title from session or database
-     * 
+     * Course title for a grade-book page. Course 0 is the absence of a course.
+     *
      * @param int $context_id
      * @return string
      */
     private function getContextTitle($context_id) {
         global $CFG, $PDOX;
-        
+
+        if ( (int) $context_id < 1 ) {
+            return '';
+        }
+
         $context_title = U::get($_SESSION, 'context_title');
         if ( ! $context_title ) {
             $context_info = $PDOX->rowDie(
@@ -100,6 +104,17 @@ class Grades extends Tool {
             $context_title = $context_info ? $context_info['title'] : 'Unknown Context';
         }
         return $context_title;
+    }
+
+    /**
+     * @param string $context_title
+     * @return string
+     */
+    private function classHeading($context_title) {
+        if ( ! is_string($context_title) || trim($context_title) === '' ) {
+            return '';
+        }
+        return '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
     }
 
     /**
@@ -600,7 +615,7 @@ class Grades extends Tool {
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
-        <p>Class: <?= htmlspecialchars($context_title) ?></p>
+        <?= $this->classHeading($context_title) ?>
         <?php
         $this->printGradeCategoryStyles();
         $outline_url = $this->outlineTabUrl($view_user_id);
@@ -694,7 +709,7 @@ class Grades extends Tool {
         $this->printGradeStateIconStyles();
         echo '<main class="container" id="main-content">'."\n";
         echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
-        echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
+        echo $this->classHeading($context_title);
         $this->printGradeCategoryStyles();
         $this->renderGradeNav(array(
             'active' => 'outline',
@@ -808,7 +823,7 @@ class Grades extends Tool {
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
-        <p>Class: <?= htmlspecialchars($context_title) ?></p>
+        <?= $this->classHeading($context_title) ?>
         <?php
         $this->printGradeCategoryStyles();
         $lesson_urls = $this->lessonGradeUrls();
@@ -3713,7 +3728,7 @@ JS;
         $this->printGradeStateIconStyles();
         echo '<main class="container" id="main-content">'."\n";
         echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
-        echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
+        echo $this->classHeading($context_title);
         $this->renderGradeBookChrome($active, $resend_user_id);
     }
 

@@ -11,6 +11,7 @@ use Tsugi\Core\Membership;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Tsugi\Core\Manifest;
@@ -224,13 +225,17 @@ abstract class Tool {
      */
     public static function outboundContextTitle() {
         global $CFG;
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        $lti = (isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey])) ? $_SESSION[$ltiKey] : null;
+        if ( ! LTIX::launchContextApplies($lti) ) {
+            return isset($CFG->context_title) ? $CFG->context_title : '';
+        }
         $title = U::get($_SESSION, 'context_title');
         if ( is_string($title) && trim($title) !== '' ) {
             return $title;
         }
-        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
-        if ( isset($_SESSION[$ltiKey]['context_title']) ) {
-            $title = $_SESSION[$ltiKey]['context_title'];
+        if ( is_array($lti) && isset($lti['context_title']) ) {
+            $title = $lti['context_title'];
             if ( is_string($title) && trim($title) !== '' ) {
                 return $title;
             }
@@ -946,8 +951,48 @@ abstract class Tool {
             die('Must be logged in');
         }
         if ( ! ReqScope::currentContextId() ) {
-            die('Context required');
+            $this->exitCourseRequired();
         }
+    }
+
+    /**
+     * A site tool such as grades was opened with no course.
+     *
+     * Continue uses this tab's LTI return URL when one is stored, and the
+     * app home when it is not.
+     */
+    protected function exitCourseRequired() {
+        $response = new Response($this->courseRequiredHtml(), 403);
+        $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+        $response->send();
+        exit;
+    }
+
+    /**
+     * @return string
+     */
+    protected function courseRequiredHtml() {
+        return self::renderLeavePage(array(
+            'title' => __('This page needs a course'),
+            'paragraphs' => array(
+                __('This session does not have a course, so this page cannot open.'),
+            ),
+            'home' => self::appHomeUrl(),
+        ));
+    }
+
+    /**
+     * App home (home_path, else apphome, else wwwroot).
+     *
+     * @return string
+     */
+    protected static function appHomeUrl() {
+        global $CFG;
+        if ( ! isset($CFG) || ! is_object($CFG) || ! method_exists($CFG, 'getHomeUrl') ) {
+            return '';
+        }
+        $url = $CFG->getHomeUrl();
+        return is_string($url) ? $url : '';
     }
 
     /**
@@ -1283,5 +1328,103 @@ abstract class Tool {
     protected function assetUrl($filename, $controllerName = null)
     {
         return $this->staticUrl($filename, $controllerName);
+    }
+
+    /**
+     * Error page with Close Tab and Continue.
+     *
+     * Continue starts at the app home. The page script points it at this
+     * tab's launch return when session storage has one.
+     *
+     * @param array{title: string, paragraphs: array<int, string>, home: string} $copy
+     * @return string
+     */
+    protected static function renderLeavePage(array $copy) {
+        global $OUTPUT;
+
+        $inner = '<main class="container" id="main-content">';
+        $inner .= '<h1>'.htmlspecialchars($copy['title']).'</h1>';
+        foreach ( $copy['paragraphs'] as $paragraph ) {
+            $inner .= '<p>'.htmlspecialchars($paragraph).'</p>';
+        }
+        $continueHidden = ($copy['home'] === '') ? ' style="display:none"' : '';
+        $inner .= '<p id="course-switch-actions">';
+        $inner .= '<button type="button" class="btn btn-default" id="course-switch-close">'
+            .htmlspecialchars(__('Close Tab')).'</button> ';
+        $inner .= '<a class="btn btn-primary" id="course-switch-home" href="'.htmlspecialchars($copy['home']).'"'.$continueHidden.'>'
+            .htmlspecialchars(__('Continue')).'</a>';
+        $inner .= '</p>';
+        $detail = isset($copy['paragraphs'][0]) ? $copy['paragraphs'][0] : $copy['title'];
+        $inner .= self::leavePageReturnScript($detail);
+        $inner .= '</main>';
+
+        if ( isset($OUTPUT) && is_object($OUTPUT) && method_exists($OUTPUT, 'header') ) {
+            $was = $OUTPUT->buffer;
+            $OUTPUT->buffer = true;
+            try {
+                $html = $OUTPUT->header();
+                $html .= $OUTPUT->bodyStart(false);
+                $html .= $OUTPUT->topNav();
+                $html .= $inner;
+                $html .= $OUTPUT->footer();
+                $OUTPUT->buffer = $was;
+                if ( is_string($html) && $html !== '' ) {
+                    return $html;
+                }
+            } catch ( \Throwable $e ) {
+                $OUTPUT->buffer = $was;
+            }
+        }
+
+        return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'
+            .htmlspecialchars($copy['title']).'</title></head><body>'.$inner.'</body></html>';
+    }
+
+    /**
+     * Point Continue at this tab's launch return before footer scripts
+     * replace TSUGI_SESSION_DATA with the current page.
+     *
+     * Same read and preference as Output::htmlError: error return, then return URL.
+     *
+     * @param string $detail
+     * @return string
+     */
+    protected static function leavePageReturnScript($detail) {
+        $detail = is_string($detail) ? $detail : '';
+        $err = json_encode($detail);
+        return '<script>
+(function () {
+  var closeBtn = document.getElementById("course-switch-close");
+  if (closeBtn) {
+    closeBtn.onclick = function () {
+      if (typeof window_close === "function") window_close();
+      else window.close();
+    };
+  }
+  var link = document.getElementById("course-switch-home");
+  if (!link) return;
+  var sess = null;
+  try {
+    if (window.sessionStorage) {
+      var stored = window.sessionStorage.getItem("TSUGI_SESSION_DATA");
+      if (stored && typeof stored === "string") {
+        var parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) sess = parsed;
+      }
+    }
+  } catch (e) {
+    sess = null;
+  }
+  var ltiErrorReturn = sess && sess.launch_presentation_error_return_url ? sess.launch_presentation_error_return_url : null;
+  var ltiReturn = sess && sess.launch_presentation_return_url ? sess.launch_presentation_return_url : null;
+  var ltiUrl = (ltiErrorReturn && ltiErrorReturn.length > 0) ? ltiErrorReturn : ltiReturn;
+  if (!ltiUrl || typeof ltiUrl !== "string" || !/^https?:\\/\\//i.test(ltiUrl)) {
+    return;
+  }
+  var errMsg = '.$err.';
+  link.href = ltiUrl + (ltiUrl.indexOf("?") >= 0 ? "&" : "?") + "lti_errormsg=" + encodeURIComponent(errMsg);
+  link.style.display = "";
+})();
+</script>';
     }
 }
