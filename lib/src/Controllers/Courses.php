@@ -348,16 +348,7 @@ class Courses extends Tool {
      * True when this session is a Google site login (not an LMS LTI launch).
      */
     public static function isGoogleLoginSession() {
-        $postKey = defined('TSUGI_SESSION_LTI_POST') ? TSUGI_SESSION_LTI_POST : 'lti_post';
-        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
-        if ( ! empty($_SESSION[$postKey]) ) {
-            return false;
-        }
-        $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : null;
-        if ( $key === null && isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
-            $key = isset($_SESSION[$ltiKey]['key_key']) ? $_SESSION[$ltiKey]['key_key'] : null;
-        }
-        return $key === self::GOOGLE_KEY;
+        return ReqScope::isGoogleSession();
     }
 
     /**

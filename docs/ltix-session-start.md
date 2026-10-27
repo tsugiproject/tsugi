@@ -55,7 +55,7 @@ How the session id was chosen:
 `ReqScope` origin follows the transport. `COOKIE_SESSION` defined means origin `site`. `COOKIE_SESSION` undefined means origin `lti`. A Google login stores `$_SESSION['lti']` inside a cookie session, and that origin is still `site`.
 
 - Cookieless session. The user, the course, and the link come from `$_SESSION['lti']`. The link is included when that row has a `link_id`.
-- Cookie session. The user comes from `$_SESSION['id']`. The course comes from `$_SESSION['context_id']`. The link is included when `$_SESSION['lti']` names that same course. When `$_SESSION['id']` is missing and `$_SESSION['lti']` has a user, that row supplies the user, the course, and the link.
+- Cookie session. The user comes from `$_SESSION['id']`. When that id is missing and `$_SESSION['lti']` has a user, the row supplies the user. The course and the link are copied only when `launchContextApplies()` is true: the request course is the row's `context_id`. A site URL whose course id is 0 does not copy them. See `docs/session-kinds.md`.
 
 A missing user is stored as null. A missing course is stored as null. A user with no course is a valid `ReqScope`. A load failure is logged, and the request keeps the part that did load.
 
@@ -70,7 +70,7 @@ A missing user is stored as null. A missing course is stored as null. A user wit
 After the session is open, `LTIX::session_start()` reads `$_SESSION['lti']`.
 
 - The `$_SESSION['lti']` row is missing. `$USER`, `$CONTEXT`, `$LINK`, and `$RESULT` stay null. The returned Launch is the empty Launch built at the start. An empty Launch is the same for a cookie session and a cookieless session.
-- The `$_SESSION['lti']` row is present. `buildLaunch()` fills the Launch from the `$_SESSION['lti']` row and sets the globals that the row contains: `$USER` when `user_id` is set, `$CONTEXT` when `context_id` is set, `$LINK` when `link_id` is set, `$RESULT` when `result_id` is set. The return value is that same Launch.
+- The `$_SESSION['lti']` row is present. `buildLaunch()` fills `$USER` when `user_id` is set. `$CONTEXT`, `$LINK`, `$RESULT`, and the roster are filled from that row only when `launchContextApplies()` is true. The return value is that same Launch.
 
 The `$_SESSION['lti']` row is the stored launch. The stored launch is not the transport. A cookie session can hold the `$_SESSION['lti']` row. A cookieless session can hold the `$_SESSION['lti']` row. Site login writes the `$_SESSION['lti']` row into the cookie session. A tool launch writes the `$_SESSION['lti']` row into whichever transport that tool's entry file selected.
 
