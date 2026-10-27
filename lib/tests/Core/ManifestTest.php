@@ -114,6 +114,9 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
     public function testResolvedIdUsesSession()
     {
         $this->assertSame(0, Manifest::resolvedId());
+        $_SESSION['id'] = 1;
+        $_SESSION['context_id'] = 42;
+        \Tsugi\Core\ReqScope::resetIdentity();
         Manifest::rememberInSession(12);
         $this->assertSame(12, Manifest::resolvedId());
     }
@@ -164,6 +167,9 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
             'title' => 'Electric Course',
         );
         Manifest::setMCache($fake);
+        $_SESSION['id'] = 1;
+        $_SESSION['context_id'] = 42;
+        \Tsugi\Core\ReqScope::resetIdentity();
         Manifest::rememberInSession(77);
 
         $this->assertSame($json, Manifest::loadJson(77));
@@ -191,6 +197,9 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $fake->enabled = true;
         $fake->store[Manifest::cacheKey(99)] = $json;
         Manifest::setMCache($fake);
+        $_SESSION['id'] = 1;
+        $_SESSION['context_id'] = 42;
+        \Tsugi\Core\ReqScope::resetIdentity();
         Manifest::rememberInSession(99);
 
         $l = Manifest::currentLessons();
@@ -209,29 +218,15 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Python for Everybody (PY4E)', $l->lessons->title);
     }
 
-    public function testSiteLessonsIgnoresManifestWhenNotGoogleLogin()
+    public function testResolvedIdClearsManifestWhenContextIsZero()
     {
-        global $CFG;
         $previous = $_SERVER['REQUEST_URI'] ?? null;
         $_SERVER['REQUEST_URI'] = '/lessons';
-        $CFG->lessons = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
-        $_SESSION['lti_post'] = array('oauth_nonce' => 'plus');
-        $_SESSION['oauth_consumer_key'] = 'sakai.plus';
         Manifest::rememberInSession(99);
 
         $this->assertSame(99, Manifest::activeId());
         $this->assertSame(0, Manifest::resolvedId());
-        $l = Manifest::currentLessons();
-        $this->assertInstanceOf(\Tsugi\Services\Lessons\LessonsService::class, $l);
-        $this->assertSame('Python for Everybody (PY4E)', $l->lessons->title);
-
-        $_SERVER['REQUEST_URI'] = '/courses/42/lessons';
-        $this->assertSame(99, Manifest::resolvedId());
-
-        $_SERVER['REQUEST_URI'] = '/lessons';
-        unset($_SESSION['lti_post']);
-        $_SESSION['oauth_consumer_key'] = 'google.com';
-        $this->assertSame(99, Manifest::resolvedId());
+        $this->assertSame(0, Manifest::activeId());
 
         if ( $previous === null ) {
             unset($_SERVER['REQUEST_URI']);

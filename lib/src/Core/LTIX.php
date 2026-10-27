@@ -2047,12 +2047,17 @@ class LTIX {
         $_SESSION['HEARTBEAT_COUNT'] = 0;
 
         // Site URLs (buildmenu): leave leftover /courses/{id} sandbox, use Google-login course.
+        // A non-Google site URL is not the stored launch course. Drop the top-level
+        // course fields. The launch row stays for a later /courses/{id} match.
         if ( class_exists('\Tsugi\Controllers\Courses') ) {
             \Tsugi\Controllers\Courses::restoreSiteLoginContext();
+            \Tsugi\Controllers\Courses::releaseUnmountedCourse();
         }
 
         $LTI = $_SESSION[TSUGI_SESSION_LTI] ?? null;
-        self::rejectDeletedContext($PDOX, $LTI);
+        if ( self::launchContextApplies(is_array($LTI) ? $LTI : null) ) {
+            self::rejectDeletedContext($PDOX, $LTI);
+        }
         if ( count($needed) == 0 && $LTI === null ) {
             self::provisionReqScope(null);
             return $TSUGI_LAUNCH;
@@ -2068,6 +2073,34 @@ class LTIX {
         $launch = self::buildLaunch($LTI);
         self::provisionReqScope($LTI);
         return $launch;
+    }
+
+    /**
+     * True when this request's course is the course stored on the launch row.
+     *
+     * A cookieless tool launch is that row. A cookie /courses/{id} request
+     * matches when the URL id is the row's context_id. Any other cookie URL
+     * matches only when $_SESSION['context_id'] is that same id. A request
+     * course of 0 does not match.
+     *
+     * @param mixed $LTI
+     */
+    public static function launchContextApplies($LTI) {
+        $ltiContext = is_array($LTI) ? (int) ($LTI['context_id'] ?? 0) : 0;
+        if ( ! defined('COOKIE_SESSION') ) {
+            return $ltiContext > 0;
+        }
+        $requestContext = 0;
+        if ( class_exists('\Tsugi\Controllers\Courses')
+                && \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
+            $requestContext = \Tsugi\Controllers\Courses::courseIdFromRequest();
+        } else {
+            $requestContext = (int) ($_SESSION['context_id'] ?? 0);
+        }
+        if ( $ltiContext < 1 ) {
+            return $requestContext > 0;
+        }
+        return $requestContext === $ltiContext;
     }
 
     /**
@@ -2105,17 +2138,19 @@ class LTIX {
             if ( isset($_SESSION['id']) ) {
                 $user_id = (int) $_SESSION['id'];
             }
-            if ( isset($_SESSION['context_id']) ) {
-                $context_id = (int) $_SESSION['context_id'];
-            }
             if ( $user_id < 1 && $lti_user > 0 ) {
                 $user_id = $lti_user;
-                $context_id = $lti_context;
-                if ( $lti_link > 0 ) {
+            }
+            if ( self::launchContextApplies($LTI) ) {
+                if ( class_exists('\Tsugi\Controllers\Courses')
+                        && \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
+                    $context_id = \Tsugi\Controllers\Courses::courseIdFromRequest();
+                } else if ( isset($_SESSION['context_id']) ) {
+                    $context_id = (int) $_SESSION['context_id'];
+                }
+                if ( $lti_link > 0 && $lti_context > 0 && $lti_context === $context_id ) {
                     $link_id = $lti_link;
                 }
-            } else if ( $lti_link > 0 && $lti_context > 0 && $lti_context === $context_id ) {
-                $link_id = $lti_link;
             }
         }
         $post = $_SESSION[TSUGI_SESSION_LTI_POST] ?? null;
@@ -2245,7 +2280,9 @@ class LTIX {
             $TSUGI_LAUNCH->key = $TSUGI_KEY;
         }
 
-        if ( isset($LTI['context_id']) && ! is_object($CONTEXT) ) {
+        $courseApplies = self::launchContextApplies(is_array($LTI) ? $LTI : null);
+
+        if ( $courseApplies && isset($LTI['context_id']) && ! is_object($CONTEXT) ) {
             $CONTEXT = new \Tsugi\Core\Context();
             $CONTEXT->launch = $TSUGI_LAUNCH;
             $CONTEXT->id = $LTI['context_id'];
@@ -2256,7 +2293,7 @@ class LTIX {
             $TSUGI_LAUNCH->context = $CONTEXT;
         }
 
-        if ( isset($LTI['link_id']) && ! is_object($LINK) ) {
+        if ( $courseApplies && isset($LTI['link_id']) && ! is_object($LINK) ) {
             $LINK = new \Tsugi\Core\Link();
             $LINK->launch = $TSUGI_LAUNCH;
             $LINK->id = $LTI['link_id'];
@@ -2288,7 +2325,7 @@ class LTIX {
             $TSUGI_LAUNCH->link = $LINK;
         }
 
-        if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
+        if ( $courseApplies && isset($LTI['result_id']) && ! is_object($RESULT) ) {
             $RESULT = new \Tsugi\Core\Result();
             $RESULT->launch = $TSUGI_LAUNCH;
             $RESULT->id = $LTI['result_id'];
@@ -2296,7 +2333,7 @@ class LTIX {
             $TSUGI_LAUNCH->result = $RESULT;
         }
 
-        if ( $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_ID) && ! is_object($ROSTER)) {
+        if ( $courseApplies && $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_ID) && ! is_object($ROSTER)) {
             $ROSTER = new \Tsugi\Core\Roster();
             $ROSTER->id = $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_ID);
             $ROSTER->url = $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_URL);

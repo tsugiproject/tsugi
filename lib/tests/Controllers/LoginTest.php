@@ -249,4 +249,15 @@ class LoginTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('name="secret"', $html);
         $this->assertFalse(DemoLogin::secretMatches('wrong'));
     }
+
+    public function testSuccessfulLoginClearsStoredLaunch()
+    {
+        $method = new \ReflectionMethod(Login::class, 'redirectClearingBrowserSession');
+        $response = $method->invoke(null, 'http://localhost/app/');
+        $this->assertSame(200, $response->getStatusCode());
+        $body = $response->getContent();
+        $this->assertStringContainsString('sessionStorage.removeItem("TSUGI_SESSION_DATA")', $body);
+        $this->assertStringContainsString('localStorage.removeItem("TSUGI_SESSION_DATA")', $body);
+        $this->assertStringContainsString('window.location.replace("http:\\/\\/localhost\\/app\\/")', $body);
+    }
 }

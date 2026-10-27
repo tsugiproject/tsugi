@@ -8,6 +8,11 @@ require_once "src/Lumos/Application.php";
 require_once "src/Lumos/Router.php";
 require_once "src/Util/U.php";
 
+$rootAutoload = dirname(__DIR__, 3) . '/vendor/autoload.php';
+if ( file_exists($rootAutoload) ) {
+    require_once $rootAutoload;
+}
+
 use \Tsugi\Controllers\Courses;
 use \Tsugi\Core\Manifest;
 use \Tsugi\Core\ReqScope;
@@ -561,5 +566,91 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayNotHasKey('context_title', $_SESSION);
         $this->assertArrayNotHasKey('context_id', $_SESSION['lti']);
         $this->assertArrayNotHasKey('manifest_id', $_SESSION['lti']);
+    }
+
+    public function testReleaseUnmountedCourseKeepsLaunchRow()
+    {
+        if ( ! defined('COOKIE_SESSION') ) {
+            define('COOKIE_SESSION', true);
+        }
+        $previous = $_SERVER['REQUEST_URI'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/grades';
+        $_SESSION['context_id'] = 10;
+        $_SESSION['context_title'] = 'Tsugi Plus 01';
+        $_SESSION['context_key'] = 'abc';
+        $_SESSION['isinstructor'] = true;
+        $_SESSION['manifest_id'] = 299;
+        $_SESSION['lti_post'] = array('user_id' => 'x');
+        $_SESSION['lti'] = array(
+            'context_id' => 10,
+            'context_title' => 'Tsugi Plus 01',
+            'manifest_id' => 299,
+            'user_id' => 5,
+        );
+
+        $this->assertTrue(Courses::releaseUnmountedCourse());
+        $this->assertArrayNotHasKey('context_id', $_SESSION);
+        $this->assertArrayNotHasKey('context_title', $_SESSION);
+        $this->assertArrayNotHasKey('isinstructor', $_SESSION);
+        $this->assertSame(10, $_SESSION['lti']['context_id']);
+        $this->assertSame('Tsugi Plus 01', $_SESSION['lti']['context_title']);
+        $this->assertSame(5, $_SESSION['lti']['user_id']);
+        $this->assertSame(0, Manifest::activeId());
+        $this->assertFalse(\Tsugi\Core\LTIX::launchContextApplies($_SESSION['lti']));
+
+        $_SERVER['REQUEST_URI'] = '/courses/10/lessons';
+        $this->assertTrue(\Tsugi\Core\LTIX::launchContextApplies($_SESSION['lti']));
+        $this->assertFalse(Courses::releaseUnmountedCourse());
+
+        $_SERVER['REQUEST_URI'] = '/grades';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        unset($_SESSION['lti_post']);
+        $_SESSION['context_id'] = 36;
+        $_SESSION['context_title'] = 'Site';
+        $_SESSION['lti']['context_id'] = 36;
+        $_SESSION['lti']['key_key'] = 'google.com';
+        $this->assertFalse(Courses::releaseUnmountedCourse());
+        $this->assertSame(36, $_SESSION['context_id']);
+        $this->assertSame('Site', $_SESSION['context_title']);
+
+        if ( $previous === null ) {
+            unset($_SERVER['REQUEST_URI']);
+        } else {
+            $_SERVER['REQUEST_URI'] = $previous;
+        }
+    }
+
+    public function testMembershipFailureExplainsSessionChanged()
+    {
+        if ( ! function_exists('__') ) {
+            require_once __DIR__.'/../../include/setup_i18n.php';
+        }
+        $method = new \ReflectionMethod(Courses::class, 'switchFailedResponse');
+        $response = $method->invoke(null, 'You are not a member of that course.');
+        $this->assertSame(403, $response->getStatusCode());
+        $body = $response->getContent();
+        $this->assertStringContainsString('This session cannot open this course', $body);
+        $this->assertStringContainsString(
+            'This session may have been logged in or logged out on another tab, and the new session no longer has access to this course.',
+            $body
+        );
+        $this->assertStringContainsString('TSUGI_SESSION_DATA', $body);
+        $this->assertStringContainsString('launch_presentation_error_return_url', $body);
+        $this->assertStringContainsString('Close Tab', $body);
+        $this->assertStringContainsString('>Continue<', $body);
+        $this->assertStringNotContainsString('You are not a member of that course.', $body);
+    }
+
+    public function testCourseSwitchFailureRendersTheMessage()
+    {
+        if ( ! function_exists('__') ) {
+            require_once __DIR__.'/../../include/setup_i18n.php';
+        }
+        $method = new \ReflectionMethod(Courses::class, 'switchFailedResponse');
+        $response = $method->invoke(null, 'Course not found.');
+        $this->assertSame(400, $response->getStatusCode());
+        $body = $response->getContent();
+        $this->assertStringContainsString('Cannot open this course', $body);
+        $this->assertStringContainsString('Course not found.', $body);
     }
 }

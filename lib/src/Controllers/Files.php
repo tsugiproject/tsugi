@@ -924,7 +924,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
         LTIX::getConnection();
         $context_id = ReqScope::currentContextId();
         if ( ! $context_id ) {
-            die('Context required');
+            $this->exitCourseRequired();
         }
 
         $link_id = FileRepository::ensureLink($context_id);
