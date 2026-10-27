@@ -41,6 +41,7 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
             public function exposeIsAdmin(): bool { return $this->isAdmin(); }
             public function exposeRequireAuth(): void { $this->requireAuth(); }
             public function exposeCourseRequiredHtml(): string { return $this->courseRequiredHtml(); }
+            public function exposePlusLeftCourseHtml(): string { return $this->plusLeftCourseHtml(); }
             public function exposeLmsAnalyticsPath(): string { return $this->lmsAnalyticsPath(); }
             public function exposeLmsAnalyticsKey(?string $path = null): string { return $this->lmsAnalyticsKey($path); }
             public function exposeStaticUrl(string $filename, ?string $controllerName = null): string {
@@ -489,6 +490,47 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('>Continue<', $html);
         $this->assertStringContainsString('launch_presentation_error_return_url', $html);
         $this->assertStringContainsString('https://local.ca4e.com', $html);
+    }
+
+    public function testPlusLeftCoursePageOffersReturn(): void
+    {
+        if ( ! function_exists('__') ) {
+            require_once __DIR__.'/../../include/setup_i18n.php';
+        }
+        \Tsugi\Core\ReqScope::reset();
+        $_SERVER['REQUEST_URI'] = '/lessons';
+        $_SESSION = array(
+            'lti_post' => array('user_id' => 'lms-user'),
+            'lti' => array(
+                'key_id' => 4,
+                'key_key' => 'sakai.example.edu',
+                'context_id' => 42,
+                'context_title' => 'XYZ ABC',
+                'plus_context_launch' => 1,
+            ),
+        );
+        $this->assertTrue(\Tsugi\Controllers\Tool::plusLeftCourseApplies());
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/lessons';
+        $this->assertFalse(\Tsugi\Controllers\Tool::plusLeftCourseApplies());
+
+        $_SERVER['REQUEST_URI'] = '/grades';
+        $tool = $this->createAnnouncementsStub();
+        $html = $tool->exposePlusLeftCourseHtml();
+        $this->assertStringContainsString('This session is a direct launch', $html);
+        $this->assertStringContainsString('You are currently logged into a single course titled XYZ ABC. This URL does not serve that course.', $html);
+        $this->assertStringContainsString('Go back to course', $html);
+        $this->assertStringContainsString('https://local.ca4e.com/courses/42', $html);
+        $this->assertStringContainsString('Close Tab', $html);
+        $this->assertStringContainsString('Log out', $html);
+        $this->assertStringContainsString('https://local.ca4e.com/logout', $html);
+        $this->assertStringContainsString('Could not close this browser tab.', $html);
+        $this->assertStringContainsString('fa-spinner', $html);
+        $this->assertStringContainsString('3000', $html);
+        $this->assertStringNotContainsString('Plus', $html);
+        $this->assertLessThan(strpos($html, 'Close Tab'), strpos($html, 'Log out'));
+        $this->assertStringNotContainsString('window_close', $html);
+        $this->assertStringNotContainsString('launch_presentation_error_return_url', $html);
     }
 
     // --- lmsAnalyticsPath tests ---

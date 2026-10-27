@@ -257,7 +257,19 @@ class Application implements \ArrayAccess
             throw new NotFoundHttpException("Method {$method} not found on {$controller}");
         }
 
+        $this->beforeControllerAction($instance, $method);
+
         return $this->call([$instance, $method], $parameters);
+    }
+
+    /**
+     * Run before a controller method. Tsugi uses this for session gates.
+     *
+     * @param object $instance
+     * @param string $method
+     * @return void
+     */
+    protected function beforeControllerAction($instance, $method) {
     }
 
     /**

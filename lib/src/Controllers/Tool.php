@@ -959,7 +959,8 @@ abstract class Tool {
      * A site tool such as grades was opened with no course.
      *
      * Continue uses this tab's LTI return URL when one is stored, and the
-     * app home when it is not.
+     * app home when it is not. A Plus launch never reaches this: the router
+     * stops it before the tool action.
      */
     protected function exitCourseRequired() {
         $response = new Response($this->courseRequiredHtml(), 403);
@@ -1331,6 +1332,147 @@ abstract class Tool {
     }
 
     /**
+     * True when this request is a Plus launch on a site URL.
+     *
+     * /courses/{id}/… still belongs to the launch. The course id stays in the
+     * session. A site tool that needs a course does not use it.
+     */
+    public static function plusLeftCourseApplies() {
+        if ( ! ReqScope::isPlusSession() ) {
+            return false;
+        }
+        if ( Courses::isCourseMountedRequest() ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Stop a Plus launch that opened a site tool.
+     *
+     * The Tsugi router calls this before every Tool action. A route that
+     * is a closure has to call it itself. The page offers the launch course,
+     * Log out, and Close Tab.
+     * Close Tab is disabled while the browser tries to close the window.
+     * If the tab is still open after three seconds, that button is removed
+     * and the page says it could not close.
+     */
+    public static function exitPlusLeftCourse() {
+        if ( ! self::plusLeftCourseApplies() ) {
+            return;
+        }
+        $response = new Response(self::plusLeftCourseHtml(), 403);
+        $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+        $response->send();
+        exit;
+    }
+
+    /**
+     * Course id stored on the Plus launch row, or 0.
+     */
+    private static function plusLaunchContextId() {
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( ! isset($_SESSION[$ltiKey]) || ! is_array($_SESSION[$ltiKey]) ) {
+            return 0;
+        }
+        return (int) ($_SESSION[$ltiKey]['context_id'] ?? 0);
+    }
+
+    /**
+     * Course title stored on the Plus launch row, or an empty string.
+     */
+    private static function plusLaunchContextTitle() {
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( ! isset($_SESSION[$ltiKey]) || ! is_array($_SESSION[$ltiKey]) ) {
+            return '';
+        }
+        $title = $_SESSION[$ltiKey]['context_title'] ?? '';
+        return is_string($title) ? trim($title) : '';
+    }
+
+    /**
+     * @return string
+     */
+    protected static function plusLeftCourseHtml() {
+        $title = self::plusLaunchContextTitle();
+        $contextId = self::plusLaunchContextId();
+        if ( $title !== '' ) {
+            $paragraph = str_replace(
+                '%s',
+                $title,
+                __('You are currently logged into a single course titled %s. This URL does not serve that course.')
+            );
+        } else {
+            $paragraph = __('You are currently logged into a single course. This URL does not serve that course.');
+        }
+        $courseUrl = $contextId > 0 ? Courses::courseUrlPrefix($contextId) : '';
+        $logoutUrl = self::plusLogoutUrl();
+
+        $inner = '<main class="container" id="main-content">';
+        $inner .= '<h1>'.htmlspecialchars(__('This session is a direct launch')).'</h1>';
+        $inner .= '<p>'.htmlspecialchars($paragraph).'</p>';
+        $inner .= '<p id="course-switch-actions">';
+        if ( $courseUrl !== '' ) {
+            $inner .= '<a class="btn btn-primary" id="course-plus-return" href="'
+                .htmlspecialchars($courseUrl).'">'
+                .htmlspecialchars(__('Go back to course')).'</a> ';
+        }
+        if ( $logoutUrl !== '' ) {
+            $inner .= '<a class="btn btn-default" id="course-plus-logout" href="'
+                .htmlspecialchars($logoutUrl).'">'
+                .htmlspecialchars(__('Log out')).'</a> ';
+        }
+        $inner .= '<button type="button" class="btn btn-default" id="course-switch-close">'
+            .'<span id="course-plus-close-spin" style="display:none" aria-hidden="true">'
+            .'<i class="fa fa-spinner fa-spin"></i> </span>'
+            .htmlspecialchars(__('Close Tab')).'</button>';
+        $inner .= '</p>';
+        $inner .= '<div id="course-plus-close-failed" class="alert alert-warning" role="alert" style="display:none">'
+            .htmlspecialchars(__('Could not close this browser tab.')).'</div>';
+        $inner .= '<script>
+(function () {
+  var closeBtn = document.getElementById("course-switch-close");
+  if (!closeBtn) return;
+  closeBtn.onclick = function () {
+    if (closeBtn.disabled) return;
+    closeBtn.disabled = true;
+    var spin = document.getElementById("course-plus-close-spin");
+    if (spin) spin.style.display = "inline";
+    window.close();
+    setTimeout(function () {
+      if (window.closed) return;
+      closeBtn.style.display = "none";
+      var note = document.getElementById("course-plus-close-failed");
+      if (note) note.style.display = "block";
+    }, 3000);
+  };
+})();
+</script>';
+        $inner .= '</main>';
+        return self::wrapLeaveHtml($inner, __('This session is a direct launch'));
+    }
+
+    /**
+     * Site logout for the Plus leave page.
+     */
+    private static function plusLogoutUrl() {
+        global $CFG;
+        if ( ! isset($CFG) || ! is_object($CFG) ) {
+            return '';
+        }
+        $home = '';
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome !== '' ) {
+            $home = rtrim($CFG->apphome, '/');
+        } else if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) ) {
+            $home = rtrim($CFG->wwwroot, '/');
+        }
+        if ( $home === '' ) {
+            return '';
+        }
+        return $home.'/logout';
+    }
+
+    /**
      * Error page with Close Tab and Continue.
      *
      * Continue starts at the app home. The page script points it at this
@@ -1357,6 +1499,16 @@ abstract class Tool {
         $detail = isset($copy['paragraphs'][0]) ? $copy['paragraphs'][0] : $copy['title'];
         $inner .= self::leavePageReturnScript($detail);
         $inner .= '</main>';
+        return self::wrapLeaveHtml($inner, $copy['title']);
+    }
+
+    /**
+     * @param string $inner
+     * @param string $title
+     * @return string
+     */
+    private static function wrapLeaveHtml($inner, $title) {
+        global $OUTPUT;
 
         if ( isset($OUTPUT) && is_object($OUTPUT) && method_exists($OUTPUT, 'header') ) {
             $was = $OUTPUT->buffer;
@@ -1377,7 +1529,7 @@ abstract class Tool {
         }
 
         return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'
-            .htmlspecialchars($copy['title']).'</title></head><body>'.$inner.'</body></html>';
+            .htmlspecialchars($title).'</title></head><body>'.$inner.'</body></html>';
     }
 
     /**

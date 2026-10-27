@@ -1184,6 +1184,7 @@ class Lessons extends Tool {
         $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
         if ( $redirect_path == '') $redirect_path = '/';
 
+        self::exitPlusLeftCourse();
         $l = Manifest::currentLessons();
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons) or an active course manifest'));

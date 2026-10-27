@@ -151,7 +151,9 @@ class Courses extends Tool {
      * A site URL is not the launch course. Drop the top-level course fields.
      *
      * The LTI row stays, so /courses/{id} for that launch can match it again.
-     * Google site login keeps its own course. A course-mounted URL is that course.
+     * Google site login keeps its own course. A Plus session keeps its course
+     * too; a site tool asks isPlusSession() and sends the launch back.
+     * A course-mounted URL is that course.
      */
     public static function releaseUnmountedCourse() {
         if ( ! defined('COOKIE_SESSION') ) {
@@ -164,6 +166,9 @@ class Courses extends Tool {
             return false;
         }
         if ( self::isGoogleLoginSession() ) {
+            return false;
+        }
+        if ( ReqScope::isPlusSession() ) {
             return false;
         }
         $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
@@ -348,16 +353,7 @@ class Courses extends Tool {
      * True when this session is a Google site login (not an LMS LTI launch).
      */
     public static function isGoogleLoginSession() {
-        $postKey = defined('TSUGI_SESSION_LTI_POST') ? TSUGI_SESSION_LTI_POST : 'lti_post';
-        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
-        if ( ! empty($_SESSION[$postKey]) ) {
-            return false;
-        }
-        $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : null;
-        if ( $key === null && isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
-            $key = isset($_SESSION[$ltiKey]['key_key']) ? $_SESSION[$ltiKey]['key_key'] : null;
-        }
-        return $key === self::GOOGLE_KEY;
+        return ReqScope::isGoogleSession();
     }
 
     /**

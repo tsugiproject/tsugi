@@ -2047,8 +2047,9 @@ class LTIX {
         $_SESSION['HEARTBEAT_COUNT'] = 0;
 
         // Site URLs (buildmenu): leave leftover /courses/{id} sandbox, use Google-login course.
-        // A non-Google site URL is not the stored launch course. Drop the top-level
-        // course fields. The launch row stays for a later /courses/{id} match.
+        // A non-Google, non-Plus site URL is not the stored launch course. Drop the
+        // top-level course fields. A Plus session keeps its course. The launch row
+        // stays for a later /courses/{id} match.
         if ( class_exists('\Tsugi\Controllers\Courses') ) {
             \Tsugi\Controllers\Courses::restoreSiteLoginContext();
             \Tsugi\Controllers\Courses::releaseUnmountedCourse();

@@ -170,6 +170,7 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // Legacy: $CFG->setExtension('home_path', $CFG->apphome);
 
 // Temporary ReqScope dump at /reqscope and tool/reqscope. Remove around December 2026.
+// /admin lists this with the QA settings when it is on.
 // $CFG->setExtension('reqscope_debug', true);
 
 // If we are going to use the lessons tool and/or badges, we need to

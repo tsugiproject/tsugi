@@ -319,6 +319,14 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
             $this->assertSame(array(), $CFG->enabledQaSettings());
             $this->assertSame('', \Tsugi\Controllers\Admin::qaNotice());
 
+            $CFG->setExtension('reqscope_debug', true);
+            $this->assertSame(array('reqscope_debug'), $CFG->enabledQaSettings());
+            $notice = \Tsugi\Controllers\Admin::qaNotice();
+            $this->assertStringContainsString('reqscope_debug', $notice);
+            $this->assertStringContainsString('not suitable for production systems', $notice);
+            $CFG->setExtension('reqscope_debug', false);
+            $this->assertSame(array(), $CFG->enabledQaSettings());
+
             $CFG->qa_allow_local_jwks = true;
             $CFG->qa_demo_login = false;
             $CFG->qa_demo_secret = '';
@@ -326,8 +334,9 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
 
             $CFG->qa_demo_login = true;
             $CFG->qa_demo_secret = 's3cret';
+            $CFG->setExtension('reqscope_debug', true);
             $this->assertSame(
-                array('qa_allow_local_jwks', 'qa_demo_login', 'qa_demo_secret'),
+                array('qa_allow_local_jwks', 'qa_demo_login', 'qa_demo_secret', 'reqscope_debug'),
                 $CFG->enabledQaSettings()
             );
             $notice = \Tsugi\Controllers\Admin::qaNotice();
@@ -335,6 +344,7 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
             $this->assertStringContainsString('qa_allow_local_jwks', $notice);
             $this->assertStringContainsString('qa_demo_login', $notice);
             $this->assertStringContainsString('qa_demo_secret', $notice);
+            $this->assertStringContainsString('reqscope_debug', $notice);
             $this->assertStringNotContainsString('s3cret', $notice);
         } finally {
             $CFG = $previous;

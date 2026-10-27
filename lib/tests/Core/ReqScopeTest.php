@@ -761,6 +761,56 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
     /**
      * @return \Tsugi\Util\PDOX|null
      */
+    public function testSessionReadersForTheThreeLogins() {
+        $this->assertSame(0, ReqScope::keyId());
+        $this->assertSame(ReqScope::SESSION_NONE, ReqScope::sessionType());
+        $this->assertFalse(ReqScope::isGoogleSession());
+        $this->assertFalse(ReqScope::isPlusSession());
+        $this->assertFalse(ReqScope::isLtiSession());
+
+        $_SESSION = array(
+            'id' => 7,
+            'oauth_consumer_key' => 'google.com',
+            'lti' => array('key_id' => 9, 'key_key' => 'google.com', 'user_id' => 7),
+        );
+        $this->assertTrue(ReqScope::isGoogleSession());
+        $this->assertFalse(ReqScope::isPlusSession());
+        $this->assertFalse(ReqScope::isLtiSession());
+        $this->assertSame(ReqScope::SESSION_GOOGLE, ReqScope::sessionType());
+        $this->assertSame(9, ReqScope::keyId());
+
+        $_SESSION = array(
+            'lti_post' => array('user_id' => 'lms-user'),
+            'lti' => array(
+                'key_id' => 4,
+                'key_key' => 'sakai.example.edu',
+                'user_id' => 5,
+                'context_id' => 10,
+                'plus_course' => 1,
+                'plus_context_launch' => 1,
+            ),
+        );
+        $this->assertTrue(ReqScope::isPlusSession());
+        $this->assertFalse(ReqScope::isGoogleSession());
+        $this->assertFalse(ReqScope::isLtiSession());
+        $this->assertSame(ReqScope::SESSION_PLUS, ReqScope::sessionType());
+        $this->assertSame(4, ReqScope::keyId());
+
+        unset($_SESSION['context_id'], $_SESSION['context_title']);
+        $this->assertSame(ReqScope::SESSION_PLUS, ReqScope::sessionType());
+        $this->assertSame(4, ReqScope::keyId());
+
+        $_SESSION = array(
+            'lti_post' => array('user_id' => 'lms-user'),
+            'lti' => array('key_id' => 7, 'key_key' => 'sakai.example.edu', 'context_id' => 3),
+        );
+        $this->assertTrue(ReqScope::isLtiSession());
+        $this->assertFalse(ReqScope::isGoogleSession());
+        $this->assertFalse(ReqScope::isPlusSession());
+        $this->assertSame(ReqScope::SESSION_LTI, ReqScope::sessionType());
+        $this->assertSame(7, ReqScope::keyId());
+    }
+
     private function beginFixtureTransaction() {
         global $CFG, $PDOX;
         $config = dirname(__DIR__, 3) . '/config.php';

@@ -98,6 +98,11 @@ class ReqScopeDebug extends Tool {
         }
         echo("<h2>Readers</h2>\n");
         echo(self::pre(self::export(array(
+            'sessionType' => ReqScope::sessionType(),
+            'keyId' => ReqScope::keyId(),
+            'isGoogleSession' => ReqScope::isGoogleSession(),
+            'isPlusSession' => ReqScope::isPlusSession(),
+            'isLtiSession' => ReqScope::isLtiSession(),
             'isLoggedIn' => ReqScope::isLoggedIn(),
             'loggedInUserId' => ReqScope::loggedInUserId(),
             'currentContextId' => ReqScope::currentContextId(),

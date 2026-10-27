@@ -57,4 +57,17 @@ class Tsugi extends \Tsugi\Lumos\Application {
             \Tsugi\Controllers\ReqScopeDebug::routes($this);
         });
     }
+
+    /**
+     * A Plus launch on a site URL stops before the tool action runs.
+     *
+     * @param object $instance
+     * @param string $method
+     * @return void
+     */
+    protected function beforeControllerAction($instance, $method) {
+        if ( $instance instanceof Tool ) {
+            Tool::exitPlusLeftCourse();
+        }
+    }
 }

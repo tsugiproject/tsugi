@@ -861,6 +861,7 @@ class ConfigInfo {
      *
      * Boolean true counts. A non-empty string counts, so a QA secret is listed
      * without its value. False, null, and an empty string do not.
+     * reqscope_debug is included when that extension is true.
      *
      * @return array<int, string>
      */
@@ -873,6 +874,9 @@ class ConfigInfo {
             if ( $value === true || (is_string($value) && $value !== '') ) {
                 $enabled[] = $name;
             }
+        }
+        if ( $this->getExtension('reqscope_debug') === true ) {
+            $enabled[] = 'reqscope_debug';
         }
         sort($enabled, SORT_STRING);
         return $enabled;
