@@ -613,6 +613,20 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(36, $_SESSION['context_id']);
         $this->assertSame('Site', $_SESSION['context_title']);
 
+        $_SERVER['REQUEST_URI'] = '/grades';
+        unset($_SESSION['oauth_consumer_key']);
+        $_SESSION['lti_post'] = array('user_id' => 'x');
+        $_SESSION['context_id'] = 10;
+        $_SESSION['context_title'] = 'Tsugi Plus 01';
+        $_SESSION['lti']['context_id'] = 10;
+        $_SESSION['lti']['context_title'] = 'Tsugi Plus 01';
+        $_SESSION['lti']['plus_context_launch'] = 1;
+        unset($_SESSION['lti']['key_key']);
+        $this->assertFalse(Courses::releaseUnmountedCourse());
+        $this->assertSame(10, $_SESSION['context_id']);
+        $this->assertSame('Tsugi Plus 01', $_SESSION['context_title']);
+        $this->assertSame(10, $_SESSION['lti']['context_id']);
+
         if ( $previous === null ) {
             unset($_SERVER['REQUEST_URI']);
         } else {

@@ -51,6 +51,7 @@ class LaunchController extends Tool {
             $redirect_path = '/';
         }
 
+        Tool::exitPlusLeftCourse();
         $l = Manifest::currentLessons();
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons) or an active course manifest'));
