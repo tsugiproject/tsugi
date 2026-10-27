@@ -16,6 +16,7 @@ their code (for example `tool/`, `admin/`).
 | [lessons-json-v2.md](lessons-json-v2.md) | Lessons foundational types, subtypes, and JSON v2 export |
 | [quiz1.md](quiz1.md) | Native Quiz1 editor, semantic model, and CC QTI 1.2.1 export |
 | [tsugi-plus-design.md](tsugi-plus-design.md) | Tsugi Plus as built: one LMS course, one manifest, launch and course navigation |
+| [google-classroom-assessment.md](google-classroom-assessment.md) | Existing Google Classroom integration, and the teacher control panel to build next |
 | [session-kinds.md](session-kinds.md) | Google login, Plus launch, and a cookieless tool launch: how each session is stored and how behavior follows |
 | [panther-qa.md](panther-qa.md) | What each Panther browser test walks through |
 

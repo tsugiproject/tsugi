@@ -33,14 +33,19 @@ class GoogleClassroomControllerTest extends \PHPUnit\Framework\TestCase
 
         $uris = array();
         foreach ( $app->router->getRoutes() as $route ) {
-            $uris[] = $route['uri'];
-            $this->assertSame('GET', $route['method']);
+            $uris[$route['method'].' '.$route['uri']] = true;
         }
 
-        $this->assertContains('/gclass/login', $uris);
-        $this->assertContains('/gclass/assign', $uris);
-        $this->assertContains('/gclass/share', $uris);
-        $this->assertContains('/gclass/launch', $uris);
-        $this->assertContains('/gclass/launch/{resource}', $uris);
+        $this->assertArrayHasKey('GET /gclass/login', $uris);
+        $this->assertArrayHasKey('GET /gclass/assign', $uris);
+        $this->assertArrayHasKey('GET /gclass/share', $uris);
+        $this->assertArrayHasKey('GET /gclass/launch', $uris);
+        $this->assertArrayHasKey('GET /gclass/launch/{resource}', $uris);
+        $this->assertArrayHasKey('GET /gclass/courses', $uris);
+        $this->assertArrayHasKey('GET /gclass/course/{context}', $uris);
+        $this->assertArrayHasKey('POST /gclass/course/{context}/send', $uris);
+        $this->assertArrayHasKey('POST /gclass/course/{context}/reset', $uris);
+        $this->assertArrayHasKey('GET /gclass/course/{context}/reconnect', $uris);
+        $this->assertArrayHasKey('GET /gclass/use-account', $uris);
     }
 }

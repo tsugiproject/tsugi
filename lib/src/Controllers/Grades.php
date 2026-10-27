@@ -3276,7 +3276,44 @@ JS;
                 $nav['active'] === 'log'
             );
         }
+        $classroom = $this->classroomPanelUrl();
+        if ( $classroom !== '' ) {
+            $this->renderHrefTab(
+                'classroom-tab',
+                __('Classroom'),
+                $classroom,
+                false
+            );
+        }
         echo "</ul>\n";
+    }
+
+    /**
+     * Classroom queue for this course, when the current user teaches it.
+     */
+    private function classroomPanelUrl() {
+        global $CFG, $PDOX;
+        if ( ! $this->isInstructor() ) {
+            return '';
+        }
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId < 1 ) {
+            return '';
+        }
+        $row = $PDOX->rowDie(
+            "SELECT gc_secret FROM {$CFG->dbprefix}lti_context
+             WHERE context_id = :CID AND user_id = :UID
+               AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $contextId, ':UID' => (int) ReqScope::loggedInUserIdLegacy())
+        );
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        $secret = trim((string) ($row['gc_secret'] ?? ''));
+        if ( $secret === '' ) {
+            return '';
+        }
+        return $CFG->wwwroot.'/gclass/course/'.$contextId;
     }
 
     private function renderHrefTab($id, $label, $href, $active)

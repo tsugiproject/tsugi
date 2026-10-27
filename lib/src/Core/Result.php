@@ -428,7 +428,7 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = "Using Google Classroom";
             $GradeSendTransport = "Google";
             // TODO: Need to send to the user from $row
-            $status = GoogleClassroom::gradeSend(intval($grade*100));
+            $status = GoogleClassroom::gradeSend($grade);
             error_log("Sending Classroom grade of $grade ");
 
         // LTI 1.3 grade passback - Prefer if available

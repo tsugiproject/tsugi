@@ -417,24 +417,17 @@ class Topics {
     }
 
     /*
-     * A Nostyle URL Link with title
+     * Classroom install view for one topic.
      */
 
     public function renderSingle($buffer=false) {
         global $CFG, $OUTPUT;
         ob_start();
-        if ( isset($_GET['nostyle']) ) {
-            if ( $_GET['nostyle'] == 'yes' ) {
-                $_SESSION['nostyle'] = 'yes';
-            } else {
-                unset($_SESSION['nostyle']);
-            }
-        }
-        $nostyle = isset($_SESSION['nostyle']);
+        $gclass = \Tsugi\Controllers\Lessons::classroomInstallView();
 
         $topic = $this->topic;
 
-        if ( $nostyle && isset($_SESSION['gc_count']) ) {
+        if ( $gclass && isset($_SESSION['gc_count']) ) {
             ?>
             <script src="https://apis.google.com/js/platform.js" async defer></script>
             <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
@@ -453,8 +446,8 @@ class Topics {
         echo ('<div class="container-fluid" style="padding-bottom: 60px;">');
         echo('<h1 property="oer:name" style="margin:0;font-weight:500;line-height: 2.64rem;margin: .795rem 0;"><small class="text-muted" style="font-weight:300;">'.$topic->category.'</small><br />'.$topic->title."</h1>\n");
         $topicnurl = $CFG->apphome . U::get_rest_path();
-        if ( $nostyle ) {
-            self::nostyleUrl($topic->title, $topicnurl);
+        if ( $gclass ) {
+            self::classroomUrl($topic->title, $topicnurl);
             echo("<hr/>\n");
         }
         if (isset($topic->author)) {
@@ -471,10 +464,10 @@ class Topics {
                     $videos = $topic->videos;
                     foreach($videos as $video ) {
                         if (isset($video->youtube)) {
-                            if ( $nostyle ) {
+                            if ( $gclass ) {
                                 echo(htmlentities($video->title)."<br/>");
                                 $yurl = U::youtubeWatchUrl($video->youtube);
-                                self::nostyleUrl($video->title, $yurl);
+                                self::classroomUrl($video->title, $yurl);
                             } else {
                                 $OUTPUT->embedYouTube($video->youtube, $video->title);
                             }
@@ -523,10 +516,10 @@ class Topics {
         <?php
         echo('</div>');
 
-        if ( $nostyle ) {
-            $styleoff = U::get_rest_path() . '?nostyle=no';
+        if ( $gclass ) {
+            $styleoff = U::get_rest_path() . '?gclass=no';
             echo('<p><a href="'.$styleoff.'">');
-            echo(__('Turn styling back on'));
+            echo(__('Hide Google Classroom Install Links'));
             echo("</a>\n");
         }
 
@@ -542,7 +535,7 @@ class Topics {
      * render a topic
      */
 
-    public static function nostyleUrl($title, $url) {
+    public static function classroomUrl($title, $url) {
         echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');

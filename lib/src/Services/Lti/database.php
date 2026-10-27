@@ -22,6 +22,8 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_org",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment",
 "drop table if exists {$CFG->dbprefix}lti_tool_registration",
+"drop table if exists {$CFG->dbprefix}lti_gclass_queue",
+"drop table if exists {$CFG->dbprefix}lti_gclass_log",
 "drop table if exists {$CFG->dbprefix}lti_context_plus_log",
 "drop table if exists {$CFG->dbprefix}lti_result",
 "drop table if exists {$CFG->dbprefix}lti_service",
@@ -188,8 +190,11 @@ array( "{$CFG->dbprefix}lti_user",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    -- Google classroom token for this user
+    -- Google classroom token for this user. gc_status is the last
+    -- refresh or call error. Null means the last check succeeded.
     gc_token            TEXT NULL,
+    gc_status           VARCHAR(512) NULL,
+    gc_checked_at       TIMESTAMP NULL,
 
     ipaddr              VARCHAR(64),
     entity_version      INTEGER NOT NULL DEFAULT 0,
@@ -753,6 +758,106 @@ array( "{$CFG->dbprefix}lti_result",
     -- Indexes for performance optimization (grades queries)
     KEY `{$CFG->dbprefix}lti_result_indx_link_deleted_grade` (link_id, deleted, grade),
     KEY `{$CFG->dbprefix}lti_result_indx_link_user_grade` (link_id, user_id, grade, deleted)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One waiting Classroom grade per result. A successful send deletes the row.
+// Reset clears the error and leaves the row. It does not call Google.
+array( "{$CFG->dbprefix}lti_gclass_queue",
+"create table {$CFG->dbprefix}lti_gclass_queue (
+    gclass_queue_id     INTEGER NOT NULL AUTO_INCREMENT,
+    context_id          INTEGER NOT NULL,
+    link_id             INTEGER NULL,
+    user_id             INTEGER NULL,
+    result_id           INTEGER NOT NULL,
+    owner_id            INTEGER NOT NULL,
+
+    grade               DOUBLE NULL,
+    gc_course           VARCHAR(64) NULL,
+    gc_coursework       TEXT NULL,
+    gc_submit_id        TEXT NULL,
+
+    -- pending, or error after a send that did not reach Classroom
+    state               VARCHAR(16) NOT NULL DEFAULT 'pending',
+    detail              VARCHAR(512) NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_const_pk` PRIMARY KEY (gclass_queue_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_const_1` UNIQUE (result_id),
+
+    INDEX `{$CFG->dbprefix}lti_gclass_queue_indx_1` (context_id, state),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_ibfk_2`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_ibfk_3`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_ibfk_4`
+        FOREIGN KEY (`result_id`)
+        REFERENCES `{$CFG->dbprefix}lti_result` (`result_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_queue_ibfk_5`
+        FOREIGN KEY (`owner_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One row per Classroom attempt. Reset does not delete these.
+array( "{$CFG->dbprefix}lti_gclass_log",
+"create table {$CFG->dbprefix}lti_gclass_log (
+    gclass_log_id       INTEGER NOT NULL AUTO_INCREMENT,
+    context_id          INTEGER NOT NULL,
+    link_id             INTEGER NULL,
+    user_id             INTEGER NULL,
+    result_id           INTEGER NULL,
+
+    -- score, coursework_create, reconnect
+    kind                VARCHAR(32) NOT NULL,
+    success             TINYINT(1) NOT NULL DEFAULT 0,
+    http_response       INTEGER NULL,
+    url                 TEXT NULL,
+    request             MEDIUMTEXT NULL,
+    detail              MEDIUMTEXT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_log_const_pk` PRIMARY KEY (gclass_log_id),
+
+    INDEX `{$CFG->dbprefix}lti_gclass_log_indx_1` (context_id, created_at),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_log_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_log_ibfk_2`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_log_ibfk_3`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_gclass_log_ibfk_4`
+        FOREIGN KEY (`result_id`)
+        REFERENCES `{$CFG->dbprefix}lti_result` (`result_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Nonce is not connected using foreign key for performance
@@ -1617,6 +1722,10 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-10-26 Last Plus score or line-item error shown in the grade book.
         array('lti_result', 'server_status', 'VARCHAR(512) NULL'),
+
+        // 2026-10-27 Last Classroom refresh error, and the last successful check.
+        array('lti_user', 'gc_status', 'VARCHAR(512) NULL'),
+        array('lti_user', 'gc_checked_at', 'TIMESTAMP NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
