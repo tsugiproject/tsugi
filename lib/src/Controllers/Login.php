@@ -157,7 +157,7 @@ class Login extends Tool {
         // Handle successful login redirect
         if ( $result->success && $result->redirect_url ) {
             error_log('Login.get() successful redirect to: '.$result->redirect_url.' session_id='.session_id());
-            return self::redirectClearingBrowserSession($result->redirect_url);
+            return new RedirectResponse($result->redirect_url);
         }
 
         // Display login form
@@ -209,36 +209,6 @@ information with <?= htmlspecialchars($CFG->servicename) ?>.
 <?php
         $OUTPUT->footerStart();
         $OUTPUT->footerEnd();
-    }
-
-    /**
-     * Leave this tab's stored launch behind, then continue to $url.
-     *
-     * A Plus launch keeps its return URL in sessionStorage for this tab.
-     * Google login replaces the PHP session. The stored launch must not
-     * still be here when the next page loads.
-     *
-     * @param string $url
-     * @return Response
-     */
-    private static function redirectClearingBrowserSession($url) {
-        $url = is_string($url) && $url !== '' ? $url : self::defaultHomeUrl();
-        $jsonUrl = json_encode($url);
-        $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
-            .'<meta http-equiv="refresh" content="0;url='.htmlspecialchars($url, ENT_QUOTES, 'UTF-8').'">'
-            .'<title>'.htmlspecialchars(__('Login')).'</title></head><body>'
-            .'<script>
-(function () {
-  try {
-    if (window.sessionStorage) window.sessionStorage.removeItem("TSUGI_SESSION_DATA");
-    if (window.localStorage) window.localStorage.removeItem("TSUGI_SESSION_DATA");
-  } catch (e) {}
-  window.location.replace('.$jsonUrl.');
-})();
-</script></body></html>';
-        $response = new Response($html, 200);
-        $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
-        return $response;
     }
 
     /**
@@ -305,7 +275,7 @@ information with <?= htmlspecialchars($CFG->servicename) ?>.
             session_regenerate_id(true);
             $url = $result->redirect_url ? $result->redirect_url : self::defaultHomeUrl();
             error_log('Login.simulate() '.$persona['id'].' user_id='.$result->user_id);
-            return self::redirectClearingBrowserSession($url);
+            return new RedirectResponse($url);
         }
 
         U::flashError(__('Could not log you in.'));
