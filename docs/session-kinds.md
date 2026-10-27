@@ -17,7 +17,7 @@ A cookie is shared by every tab. A Plus launch and a Google login in the same br
 `LTIX::session_start()` runs these checks, in order, on a cookie request:
 
 1. `Courses::restoreSiteLoginContext()` runs only for a Google login. On a site URL it puts the Google home course back.
-2. `Courses::releaseUnmountedCourse()` runs for every other cookie session. On a site URL it drops the top-level course fields. The launch row stays.
+2. `Courses::releaseUnmountedCourse()` runs for every other cookie session. On a site URL it drops the top-level course fields. A Plus session is the exception: `ReqScope::isPlusSession()` keeps those fields. The launch row stays either way.
 3. `LTIX::launchContextApplies()` decides whether course-shaped data on `$_SESSION['lti']` is used for this request.
 
 | Check | Google | Plus | Cookieless tool |
@@ -93,12 +93,11 @@ On `/courses/{that id}/…`:
 
 On a site URL in the same cookie (`/grades`, `/lessons`, `/`):
 
-- `restoreSiteLoginContext()` does nothing. This is not a Google login, and `$_SESSION['id']` is absent, so `isLoggedInLegacy()` is still false at that moment (`$USER` has not been built yet).
-- `releaseUnmountedCourse()` removes `context_id`, `context_key`, `context_title`, `membership_id`, and `isinstructor`, and clears the session manifest. It does not delete `$_SESSION['lti']` or `$_SESSION['lti_post']`.
-- `launchContextApplies()` is false. The request course is 0. `$CONTEXT`, `$LINK`, and `$RESULT` stay empty. `$USER` is still built, and `ReqScope` still has that user and no course.
-- `Manifest::resolvedId()` sees course 0 and returns 0, so `/lessons` uses `$CFG->lessons` when a file is configured.
-- The grade book has no class title. A tool that calls `requireAuth()` returns "This page needs a course."
-- Opening `/courses/{the plus id}` again matches the row that was left in place. That URL is logged into the Plus course.
+- `restoreSiteLoginContext()` does nothing. This is not a Google login.
+- `releaseUnmountedCourse()` does nothing. The session is Plus, so `context_id`, `context_title`, membership, `isinstructor`, and the session manifest stay. `$_SESSION['lti']` and `$_SESSION['lti_post']` stay too.
+- `launchContextApplies()` is true while `$_SESSION['context_id']` is still that course. The tool does not get to use it.
+- The router calls `Tool::exitPlusLeftCourse()` before a `Tool` action. The page says this session is a direct launch of the course titled in the launch row. **Go back to course** opens `/courses/{that id}`. **Log out** ends the cookie session. **Close Tab** asks the browser to close the tab, and after three seconds says it could not close this browser tab. `/login` is a `Tool`, so it gets this same page. Logout is not a `Tool`, so the Log out link still runs.
+- Opening `/courses/{the plus id}` again is that same course. Nothing on the session was cleared to make the site URL stop.
 
 Google login in this same browser calls `resetSessionToEmpty()` and writes a Google session over the Plus row. The Plus course URL then fails the membership check, because the Google user is the user on the session.
 
@@ -126,14 +125,14 @@ Both use `PHPSESSID` and `ReqScope` origin `site`. The split is whether the sess
 
 | | Google, site URL | Plus, site URL | Google, `/courses/{id}` | Plus, `/courses/{its id}` |
 | --- | --- | --- | --- | --- |
-| Active course | The Google home course | None | That course, when the user is a member | The Plus course |
-| Launch row used for the course | Yes, it is the home course | No | Only when the URL id is the home course id | Yes |
-| Manifest | The home course, else `$CFG->lessons` | `$CFG->lessons` | The course being opened | The Plus course |
-| `/grades` | The home course grade book | "This page needs a course" | That course, when allowed | That course |
+| Active course | The Google home course | The Plus course stays in the session. The tool does not open it. | That course, when the user is a member | The Plus course |
+| Launch row used for the course | Yes, it is the home course | Yes. The router stops the tool before the row is used. | Only when the URL id is the home course id | Yes |
+| Manifest | The home course, else `$CFG->lessons` | The Plus manifest stays. The tool does not render it. | The course being opened | The Plus course |
+| `/grades` | The home course grade book | The direct-launch page | That course, when allowed | That course |
 | Course list and create | Allowed | Refused | Allowed | Refused |
 | Another course's URL | Membership check | Refused | Membership check | Refused |
 
-Returning from a Plus site URL to `/courses/{its id}` is the same login again. The row was never removed. A Google login in that cookie removes it.
+Returning from a Plus site URL to `/courses/{its id}` is the same login again. The course fields and the launch row were both left in place. A Google login in that cookie removes the Plus row.
 
 ## Reading the kind and the key
 
