@@ -1015,7 +1015,9 @@ class GoogleClassroom {
         $detail = $parts === null ? 'Due date cleared' : 'Due date set';
 
         $accessTokenStr = self::retrieve_instructor_token($ownerId);
-        $client = $accessTokenStr ? self::getClient($accessTokenStr, $ownerId) : false;
+        $client = $accessTokenStr
+            ? self::getClient($accessTokenStr, $ownerId, false, 15, self::GRADE_HTTP_TIMEOUT)
+            : false;
         if ( ! $client ) {
             ClassroomQueue::note($contextId, $linkId, $ownerId, ClassroomQueue::KIND_DUE, false, 'Not connected to Google Classroom.', null, $url, $request);
             return array(
