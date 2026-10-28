@@ -64,8 +64,8 @@ class Quiz1 extends Tool {
 
     /**
      * The quiz for this take. In the course, the link is in the session course.
-     * A Classroom launch session is a different course, so the quiz is loaded
-     * from the link in the URL when that link is the one this assignment mirrors.
+     * A Classroom launch may load that quiz from another course only when the
+     * launch link is the quiz, or the install recorded that course and link.
      *
      * @param int $linkId
      * @return \Tsugi\Services\Quiz1\Quiz1|null
@@ -74,6 +74,9 @@ class Quiz1 extends Tool {
         $linkId = (int) $linkId;
         $quiz = Quiz1Repository::loadByLink($linkId, $this->contextId());
         if ( $quiz ) {
+            if ( $this->isClassroomLaunch() && ! $this->classroomLaunchOwnsQuiz($quiz) ) {
+                return null;
+            }
             return $quiz;
         }
         if ( ! $this->isClassroomLaunch() ) {
@@ -109,17 +112,29 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * The stored assignment path names this quiz's course and link.
-     * inherit alone is not enough: the same key can exist in another course.
+     * The launch link is this quiz, or its stored path names this quiz's
+     * course and link. A matching inherit key is not authorization.
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      */
     private function classroomLaunchOwnsQuiz($quiz) {
-        global $CFG, $PDOX;
-        $sessionLink = (int) ($_SESSION[TSUGI_SESSION_LTI]['link_id'] ?? 0);
+        $lti = $_SESSION[TSUGI_SESSION_LTI] ?? null;
+        if ( ! is_array($lti) ) {
+            return false;
+        }
+        $sessionLink = (int) ($lti['link_id'] ?? 0);
+        $sessionContext = (int) ($lti['context_id'] ?? 0);
+        if ( $sessionContext < 1 ) {
+            $sessionContext = $this->contextId();
+        }
+        if ( $sessionLink > 0 && $sessionLink === (int) $quiz->link_id
+            && $sessionContext === (int) $quiz->context_id ) {
+            return true;
+        }
         if ( $sessionLink < 1 ) {
             return false;
         }
+        global $CFG, $PDOX;
         $row = $PDOX->rowDie(
             "SELECT path FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
             array(':LID' => $sessionLink)
@@ -133,15 +148,9 @@ class Quiz1 extends Tool {
         parse_str($query, $params);
         $srcContext = is_scalar($params['gc_context'] ?? null) ? (int) $params['gc_context'] : 0;
         $srcLink = is_scalar($params['gc_link'] ?? null) ? (int) $params['gc_link'] : 0;
-        if ( $srcContext < 1 || $srcLink < 1 ) {
-            return false;
-        }
-        if ( $srcContext !== (int) $quiz->context_id || $srcLink !== (int) $quiz->link_id ) {
-            return false;
-        }
-        $inherit = isset($params['inherit']) && is_string($params['inherit']) ? $params['inherit'] : '';
-        $key = is_string($quiz->link_key) ? $quiz->link_key : '';
-        return $inherit !== '' && $key !== '' && hash_equals($key, $inherit);
+        return $srcContext > 0 && $srcLink > 0
+            && $srcContext === (int) $quiz->context_id
+            && $srcLink === (int) $quiz->link_id;
     }
 
     /**
