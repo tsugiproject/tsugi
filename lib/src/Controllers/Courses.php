@@ -359,9 +359,13 @@ class Courses extends Tool {
     /**
      * Switch the Google-login session to $context_id when needed.
      *
+     * $recordAccess is for /courses/{id} navigation. It refreshes the course
+     * login_at when the stored time is older than five minutes.
+     *
+     * @param bool $recordAccess
      * @return true|string true on success, error message otherwise
      */
-    public static function ensureActiveContext($context_id) {
+    public static function ensureActiveContext($context_id, $recordAccess = false) {
         global $CFG, $PDOX, $CONTEXT, $LAUNCH, $TSUGI_LAUNCH;
 
         $cid = (int) $context_id;
@@ -375,7 +379,9 @@ class Courses extends Tool {
         $p = $CFG->dbprefix;
 
         $context_row = $PDOX->rowDie(
-            "SELECT context_id, context_key, title, manifest_id FROM {$p}lti_context
+            "SELECT context_id, context_key, title, manifest_id,
+                    (login_at IS NULL OR login_at < DATE_SUB(NOW(), INTERVAL 5 MINUTE)) AS login_stale
+             FROM {$p}lti_context
              WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
             array(':CID' => $cid)
         );
@@ -386,6 +392,9 @@ class Courses extends Tool {
         // Session pair. restoreSiteLoginContext() calls this before ReqScope is filled.
         $current = ReqScope::currentContextIdLegacy();
         if ( $current === $cid ) {
+            if ( $recordAccess ) {
+                self::noteCourseLogin($cid, $context_row);
+            }
             self::wireLaunchConnection();
             // Pages/Files only need context_id. Lessons reads the session
             // manifest_id, which Google login never set for this course.
@@ -474,8 +483,35 @@ class Courses extends Tool {
         LTIX::buildLaunch($lti);
         self::wireLaunchConnection();
         self::establishReqScope($cid);
+        if ( $recordAccess ) {
+            self::noteCourseLogin($cid, $context_row);
+        }
 
         return true;
+    }
+
+    /**
+     * Last access for this course. A visit inside five minutes leaves the stamp.
+     *
+     * @param int $context_id
+     * @param array<string,mixed> $context_row
+     */
+    private static function noteCourseLogin($context_id, array $context_row) {
+        if ( empty($context_row['login_stale']) ) {
+            return;
+        }
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return;
+        }
+        global $CFG, $PDOX;
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_context SET login_at = NOW() WHERE context_id = :CID",
+            array(':CID' => $cid)
+        );
     }
 
     /**
@@ -706,7 +742,7 @@ class Courses extends Tool {
             return $siteHome;
         }
 
-        $result = self::ensureActiveContext($id);
+        $result = self::ensureActiveContext($id, true);
         if ( $result !== true ) {
             return self::switchFailedResponse($result);
         }
@@ -884,7 +920,7 @@ class Courses extends Tool {
             return new RedirectResponse(U::addSession(self::joinToolHome($home, 'create')));
         }
 
-        $switch = self::ensureActiveContext($result['context_id']);
+        $switch = self::ensureActiveContext($result['context_id'], true);
         if ( $switch !== true ) {
             return self::switchFailedResponse($switch);
         }
@@ -935,7 +971,7 @@ class Courses extends Tool {
         }
 
         $before = ReqScope::currentContextId();
-        $result = self::ensureActiveContext($id);
+        $result = self::ensureActiveContext($id, true);
         if ( $result !== true ) {
             return self::switchFailedResponse($result);
         }

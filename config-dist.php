@@ -181,6 +181,11 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // Set true in dev to send those links through an LTI launch of tool/tdiscus instead.
 // $CFG->setExtension('discussion_lti_launch', true);
 
+// Classroom icons on file-based lessons ($CFG->lessons, no course manifest).
+// False hides the link and assignment install icons. Manifest courses are unchanged.
+// Course and module install icons are only shown on a manifest course.
+// $CFG->setExtension('lessons_global_classroom', false);
+
 // If we are going to use the Topics section, we need to create and
 // point to the topics.json file
 // $CFG->topics = $CFG->dirroot.'/../topics.json';

@@ -455,6 +455,7 @@ class GoogleLoginService {
         $_SESSION[TSUGI_SESSION_LTI] = $lti;
         LTIX::ensureCsrfToken(true);
         LTIX::noteLoggedIn($lti);
+        \Tsugi\Controllers\GoogleClassroom::rememberCourseCount((int) $user_id);
 
         $result->success = true;
         $result->user_id = $user_id;

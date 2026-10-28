@@ -369,9 +369,9 @@ You can import this content into an LMS like Sakai, Canvas, Blackboard, D2L or M
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><p>(Experimental) <a href="<?= htmlspecialchars($this->pageUrl('gclass_login'), ENT_QUOTES, 'UTF-8') ?>" aria-label="Connect to Google Classroom">Connect to Google Classroom</a>
 <?php
-        $count = U::get($_SESSION,'gc_count');
-        if ( $count ) {
-            echo('(Connected to ' . (int)$count . ' classroom(s))');
+        $label = $this->classroomConnectionLabel();
+        if ( $label ) {
+            echo('('.htmlentities($label).')');
         } else {
             echo('(Not connected)');
         }
@@ -386,6 +386,10 @@ These
         }
         ?>
  can be used in Google Classroom courses.
+</p>
+<p><a href="<?= htmlspecialchars($CFG->wwwroot.'/gclass/courses', ENT_QUOTES, 'UTF-8') ?>" aria-label="Classroom courses">Classroom courses</a>
+<br/>
+Classes the connected Google account teaches, and the queue for ones already installed.
 </p>
 </li>
 <li>
@@ -518,7 +522,35 @@ can visit the administrator dashboard.
     {
         global $CFG;
         Login::setReturnUrl(self::settingsUrl());
-        return new RedirectResponse($CFG->wwwroot . '/gclass/login');
+        return new RedirectResponse($CFG->wwwroot . '/gclass/login?consent=1');
+    }
+
+    /**
+     * Account and class names for the settings line. Null when Classroom is not connected.
+     */
+    private function classroomConnectionLabel() {
+        try {
+            $token = \Tsugi\Google\GoogleClassroom::retrieve_instructor_token();
+            if ( ! $token ) {
+                return null;
+            }
+            $client = \Tsugi\Google\GoogleClassroom::getClient($token);
+            if ( ! $client ) {
+                return null;
+            }
+            $service = new \Google_Service_Classroom($client);
+            $courses = GoogleClassroom::teacherCourses($service);
+            $email = GoogleClassroom::googleEmail($service);
+            $_SESSION['gc_count'] = count($courses);
+            return GoogleClassroom::courseSummary($email, $courses);
+        } catch (\Throwable $e) {
+            $count = (int) U::get($_SESSION, 'gc_count');
+            if ( $count < 1 ) {
+                return null;
+            }
+            $word = $count === 1 ? 'class' : 'classes';
+            return 'Connected to '.$count.' '.$word;
+        }
     }
 
     public function recent(Request $request)

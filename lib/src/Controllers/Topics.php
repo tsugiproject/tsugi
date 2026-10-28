@@ -33,14 +33,7 @@ class Topics extends Tool {
             die_with_error_log('Cannot find topics.json ($CFG->topics)');
         }
 
-        // Turning on and off styling
-        if ( isset($_GET['nostyle']) ) {
-            if ( $_GET['nostyle'] == 'yes' ) {
-                $_SESSION['nostyle'] = 'yes';
-            } else {
-                unset($_SESSION['nostyle']);
-            }
-        }
+        Lessons::applyClassroomViewQuery();
 
         // Load the Topic
         $t = new \Tsugi\UI\Topics($CFG->topics,$anchor);
