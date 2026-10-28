@@ -47,33 +47,18 @@ class Lessons extends Tool {
     }
 
     /**
-     * Turn the Classroom install view on or off.
-     * gclass=yes shows install links. gclass=no hides them.
-     * An older nostyle query or session value is accepted once.
+     * Drop the old on/off switch. Install links follow the Classroom connection.
      */
     public static function applyClassroomViewQuery() {
-        $flag = null;
-        if ( isset($_GET['gclass']) ) {
-            $flag = $_GET['gclass'];
-        } else if ( isset($_GET['nostyle']) ) {
-            $flag = $_GET['nostyle'];
-        }
-        if ( $flag === 'yes' ) {
-            $_SESSION['gclass'] = 'yes';
-        } else if ( $flag !== null ) {
-            unset($_SESSION['gclass']);
-        } else if ( isset($_SESSION['nostyle']) && ! isset($_SESSION['gclass']) ) {
-            $_SESSION['gclass'] = 'yes';
-        }
-        unset($_SESSION['nostyle']);
+        unset($_SESSION['gclass'], $_SESSION['nostyle']);
     }
 
     /**
-     * True while this lesson should show Classroom install links.
+     * A connected Classroom teacher sees install links.
      */
     public static function classroomInstallView() {
         self::applyClassroomViewQuery();
-        return isset($_SESSION['gclass']);
+        return isset($_SESSION['gc_count']) && (int) $_SESSION['gc_count'] > 0;
     }
 
     public function get(Request $request, $anchor=null)
@@ -1552,6 +1537,9 @@ $(function(){
         $title_line = $lessons->position . ': ' . $module->title;
         echo(htmlentities($title_line));
         self::echoModuleAggregateProgressBadge($lessons, $possible_points, $actual_points, $rlids, $allgrades, $duedates);
+        if ( isset($module->anchor) ) {
+            self::echoClassroomModuleInstall((string) $module->anchor, (string) $module->title);
+        }
         echo("</h1>\n");
         if ( isset($module->image) ) {
             echo('<div class="tsugi-lessons-module-title-clearfix" style="clear:both;"></div>'."\n");
@@ -1592,43 +1580,8 @@ $(function(){
         $lessons->setModuleProgressContext($allgrades, $moduleDueDates);
 
 	if ( $gclass && isset($_SESSION['gc_count']) ) {
-?>
-<script src="https://apis.google.com/js/platform.js" async defer></script>
-<style>
-.ui-dialog:has(#iframe-dialog) {
-    width: 440px !important;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 8px 28px rgba(32,33,36,.28);
-}
-.ui-dialog:has(#iframe-dialog) .ui-dialog-titlebar {
-    background: #fff;
-    border: 0;
-    color: #3c4043;
-    font-family: Roboto, Arial, sans-serif;
-    font-weight: 500;
-    padding: 14px 16px 0;
-}
-.ui-dialog:has(#iframe-dialog) .ui-dialog-titlebar-close {
-    background: transparent;
-    border: 0;
-}
-.ui-dialog:has(#iframe-dialog) .ui-dialog-content {
-    padding: 0;
-    overflow: hidden;
-}
-#iframe-frame {
-    display: block;
-    width: 100%;
-    height: 480px !important;
-    border: 0;
-}
-</style>
-<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" id="iframe-frame" title="Install in Classroom"
-    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
-</div>
-<?php
+            echo('<script src="https://apis.google.com/js/platform.js" async defer></script>'."\n");
+            self::echoClassroomInstallDialog();
         }
             if ( $lessons->getSetting('prev-next') == "right" ) {
                 echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
@@ -1727,13 +1680,6 @@ $(function(){
                 
                 // If debug is off or no legacy format, return early (only render items)
                 if ( !$debug_conversion || !$has_legacy ) {
-                    if ( $gclass ) {
-                        $styleoff = U::get_rest_path() . '?gclass=no';
-                        echo('<p><a href="'.$styleoff.'">');
-                        echo(__('Hide Google Classroom Install Links'));
-                        echo("</a>\n");
-                    }
-                    
                     $ob_output = ob_get_contents();
                     ob_end_clean();
                     if ( $buffer ) return $ob_output;
@@ -2093,13 +2039,6 @@ $(function(){
             echo('</div>');
         }
 
-        if ( $gclass ) {
-            $styleoff = U::get_rest_path() . '?gclass=no';
-            echo('<p><a href="'.$styleoff.'">');
-            echo(__('Hide Google Classroom Install Links'));
-            echo("</a>\n");
-        }
-
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;
@@ -2122,8 +2061,16 @@ $(function(){
             $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
 
+        $gclass = self::classroomInstallView();
+        if ( $gclass ) {
+            self::echoClassroomInstallDialog();
+        }
         echo('<div typeof="Course">'."\n");
-        echo('<h1>'.$lessons->lessons->title."</h1>\n");
+        echo('<h1>'.$lessons->lessons->title);
+        if ( $gclass ) {
+            self::echoClassroomCourseInstall((string) ($lessons->lessons->title ?? ''));
+        }
+        echo("</h1>\n");
         echo('<p property="description">'.$lessons->lessons->description."</p>\n");
         echo('<div id="box">'."\n");
         $count = 0;
@@ -2163,12 +2110,18 @@ $(function(){
             }
             echo($link_label);
             self::echoModuleAggregateProgressBadge($lessons, $possible_points, $actual_points, $rlids, $allgrades, $duedates, false);
+            echo("</a>\n");
+            if ( $gclass && isset($module->anchor) ) {
+                self::echoClassroomModuleInstall((string) $module->anchor, (string) ($module->title ?? ''));
+            }
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
+                echo('<a class="tsugi-lessons-module-card-link" href="'.$href.'">'."\n");
                 echo('<br clear="all"><p class="tsugi-card-description">'.$desc."</p>\n");
+                echo("</a>\n");
             }
-            echo("</a></div></article>\n");
+            echo("</div></article>\n");
             echo("<!--\n");
             print_r($allgrades);
             print_r($rlids);
@@ -2357,10 +2310,119 @@ $(function(){
         if ( ! is_string($resource_link_id) || $resource_link_id === '' ) {
             return;
         }
-        $href = $CFG->wwwroot.'/gclass/assign?rlid='.rawurlencode($resource_link_id);
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId < 1 ) {
+            $contextId = (int) ReqScope::currentContextIdLegacy();
+        }
+        $href = $CFG->wwwroot.'/gclass/assign?'.http_build_query(array(
+            'rlid' => $resource_link_id,
+            'context' => $contextId,
+        ));
         $safeHref = htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
         echo('<a href="'.$safeHref.'"');
         echo(' title="Install in Classroom" target="iframe-frame"'."\n");
+        echo('onclick="showModalIframeUrl(this.title, \'iframe-dialog\', \'iframe-frame\', this.href, _TSUGI.spinnerUrl, true); return false;">'."\n");
+        echo('<img height="16" width="16" alt="" src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+    }
+
+    /**
+     * Classroom material for this lesson page. It signs the course and
+     * does not create a resource link.
+     *
+     * @param string $anchor
+     * @param string $title
+     */
+    private static function echoClassroomInstallDialog() {
+        global $OUTPUT;
+        if ( ! isset($_SESSION['gc_count']) ) {
+            return;
+        }
+        $src = htmlspecialchars((string) $OUTPUT->getSpinnerUrl(), ENT_QUOTES, 'UTF-8');
+        echo('<style>
+.ui-dialog:has(#iframe-dialog) {
+    width: 440px !important;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(32,33,36,.28);
+}
+.ui-dialog:has(#iframe-dialog) .ui-dialog-titlebar {
+    background: #fff;
+    border: 0;
+    color: #3c4043;
+    font-family: Roboto, Arial, sans-serif;
+    font-weight: 500;
+    padding: 14px 16px 0;
+}
+.ui-dialog:has(#iframe-dialog) .ui-dialog-titlebar-close {
+    background: transparent;
+    border: 0;
+}
+.ui-dialog:has(#iframe-dialog) .ui-dialog-content {
+    padding: 0;
+    overflow: hidden;
+}
+#iframe-frame {
+    display: block;
+    width: 100%;
+    height: 480px !important;
+    border: 0;
+}
+</style>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <iframe name="iframe-frame" id="iframe-frame" title="Install in Classroom" src="'.$src.'"></iframe>
+</div>'."\n");
+    }
+
+    /**
+     * Classroom material for the whole course. Opening it joins the course.
+     *
+     * @param string $title
+     */
+    private static function echoClassroomCourseInstall($title) {
+        global $CFG;
+        if ( ! isset($_SESSION['gc_count']) ) {
+            return;
+        }
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId < 1 ) {
+            $contextId = (int) ReqScope::currentContextIdLegacy();
+        }
+        if ( $contextId < 1 ) {
+            return;
+        }
+        $href = $CFG->wwwroot.'/gclass/assign?'.http_build_query(array(
+            'join' => 'course',
+            'title' => $title,
+            'context' => $contextId,
+        ));
+        $safeHref = htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
+        echo(' <a href="'.$safeHref.'"');
+        echo(' title="Install this course in Classroom" target="iframe-frame"'."\n");
+        echo('onclick="showModalIframeUrl(this.title, \'iframe-dialog\', \'iframe-frame\', this.href, _TSUGI.spinnerUrl, true); return false;">'."\n");
+        echo('<img height="16" width="16" alt="" src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+    }
+
+    private static function echoClassroomModuleInstall($anchor, $title) {
+        global $CFG;
+        if ( ! isset($_SESSION['gc_count']) ) {
+            return;
+        }
+        $anchor = trim($anchor);
+        if ( $anchor === '' ) {
+            return;
+        }
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId < 1 ) {
+            $contextId = (int) ReqScope::currentContextIdLegacy();
+        }
+        $href = $CFG->wwwroot.'/gclass/assign?'.http_build_query(array(
+            'module' => $anchor,
+            'title' => $title,
+            'context' => $contextId,
+        ));
+        $safeHref = htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
+        echo('<a href="'.$safeHref.'"');
+        echo(' title="Install this lesson in Classroom" target="iframe-frame"'."\n");
         echo('onclick="showModalIframeUrl(this.title, \'iframe-dialog\', \'iframe-frame\', this.href, _TSUGI.spinnerUrl, true); return false;">'."\n");
         echo('<img height="16" width="16" alt="" src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
     }
@@ -2382,7 +2444,7 @@ $(function(){
         $safeTitle = htmlspecialchars((string) $title, ENT_QUOTES, 'UTF-8');
         echo('<span class="tsugi-classroom-share" style="display:inline-flex;align-items:center;">');
         echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$safeUrl.'" ');
-        echo(' data-title="'.$safeTitle.'"></div>');
+        echo(' data-itemtype="material" data-title="'.$safeTitle.'"></div>');
         echo('</span>');
     }
 
@@ -3599,6 +3661,10 @@ $(function(){
         }
 
         echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1">');
+        $quizLinkKey = Quiz1Repository::resourceLinkId($quiz_id, ReqScope::currentContextIdLegacy());
+        if ( $gclass ) {
+            echo('<span style="display:inline-flex;align-items:center;gap:6px;">');
+        }
         if ( $href !== '' ) {
             echo('<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
@@ -3609,16 +3675,20 @@ $(function(){
             echo(htmlentities($title).htmlentities($suffix));
             echo('</span>');
         }
-        if ( ! $gclass ) {
-            $linkKey = Quiz1Repository::resourceLinkId($quiz_id, ReqScope::currentContextIdLegacy());
+        if ( $gclass ) {
+            if ( $quizLinkKey !== '' && (int) $lessons->quiz1LinkId($quiz_id) > 0 ) {
+                self::echoClassroomInstall($quizLinkKey);
+            }
+            echo('</span>');
+        } else {
             echo('<span class="tsugi-lti-link-meta">');
             self::echoDueDateBadgeForResourceLink(
-                $linkKey,
+                $quizLinkKey,
                 $lessons->moduleProgressGrades(),
                 $lessons->moduleProgressDueDates(),
                 true
             );
-            self::echoItemDue($item, $linkKey, $lessons->moduleProgressDueDates());
+            self::echoItemDue($item, $quizLinkKey, $lessons->moduleProgressDueDates());
             echo('</span>');
         }
         echo("</li>\n");

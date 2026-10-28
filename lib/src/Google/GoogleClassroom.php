@@ -136,10 +136,12 @@ class GoogleClassroom {
             \Google_Service_Classroom::CLASSROOM_ROSTERS_READONLY,
             \Google_Service_Classroom::CLASSROOM_PROFILE_EMAILS,
             \Google_Service_Classroom::CLASSROOM_PROFILE_PHOTOS,
-            \Google_Service_Classroom::CLASSROOM_COURSEWORK_STUDENTS
+            \Google_Service_Classroom::CLASSROOM_COURSEWORK_STUDENTS,
+            \Google_Service_Classroom::CLASSROOM_COURSEWORKMATERIALS
             ))
         );
         $client->setAccessType('offline');
+        $client->setIncludeGrantedScopes(true);
 
         $accessToken = false;
         if ( isset($_GET['code']) ) {
@@ -294,6 +296,34 @@ class GoogleClassroom {
     }
 
 
+    /**
+     * Whether this stored token lists a scope. Null when the token has no
+     * scope list, so the caller has to try the call.
+     *
+     * @param string|false $accessTokenStr
+     * @param string $scope
+     * @return bool|null
+     */
+    public static function grantsScope($accessTokenStr, $scope) {
+        if ( ! is_string($accessTokenStr) || $accessTokenStr === '' ) {
+            return null;
+        }
+        $decoded = json_decode($accessTokenStr, true);
+        if ( ! is_array($decoded) ) {
+            return null;
+        }
+        $granted = trim((string) ($decoded['scope'] ?? ''));
+        if ( $granted === '' ) {
+            return null;
+        }
+        foreach ( preg_split('/\s+/', $granted) as $one ) {
+            if ( $one === $scope ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function retrieve_instructor_token($user_id=false) {
         if ( ! $user_id ) $user_id = ReqScope::loggedInUserIdLegacy();
         $accessTokenStr = self::readStoredToken($user_id);
@@ -355,6 +385,69 @@ class GoogleClassroom {
      * @param float $fraction
      * @return true|string
      */
+    /**
+     * Send a stored result when the quiz page is the site login.
+     * Null means this result has no Classroom submission.
+     *
+     * @param int $resultId
+     * @param float $fraction
+     * @return true|string|null
+     */
+    public static function deliverStored($resultId, $fraction) {
+        $target = self::storedTarget((int) $resultId);
+        if ( $target === null ) {
+            return null;
+        }
+        $target['grade'] = $fraction;
+        return self::deliver($target);
+    }
+
+    /**
+     * @param int $resultId
+     * @return array<string,mixed>|null
+     */
+    private static function storedTarget($resultId) {
+        if ( $resultId < 1 ) {
+            return null;
+        }
+        global $CFG;
+        $PDOX = LTIX::getConnection();
+        $row = $PDOX->rowDie(
+            "SELECT R.result_id AS result_id, R.user_id AS user_id, R.link_id AS link_id,
+                    R.gc_submit_id AS gc_submit_id,
+                    L.gc_coursework AS gc_coursework, L.gc_course AS gc_course, L.link_key AS link_key,
+                    C.context_id AS context_id, C.user_id AS owner_id
+             FROM {$CFG->dbprefix}lti_result AS R
+             JOIN {$CFG->dbprefix}lti_link AS L ON L.link_id = R.link_id
+             JOIN {$CFG->dbprefix}lti_context AS C ON C.context_id = L.context_id
+             WHERE R.result_id = :RID AND (R.deleted IS NULL OR R.deleted = 0)
+             LIMIT 1",
+            array(':RID' => $resultId)
+        );
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $submit = trim((string) ($row['gc_submit_id'] ?? ''));
+        if ( $submit === '' ) {
+            return null;
+        }
+        $work = trim((string) ($row['gc_coursework'] ?? ''));
+        $key = trim((string) ($row['link_key'] ?? ''));
+        if ( $work === '' && $key !== '' && ctype_digit($key) ) {
+            $work = $key;
+        }
+        return array(
+            'context_id' => (int) ($row['context_id'] ?? 0),
+            'link_id' => (int) ($row['link_id'] ?? 0),
+            'user_id' => (int) ($row['user_id'] ?? 0),
+            'result_id' => (int) ($row['result_id'] ?? 0),
+            'owner_id' => (int) ($row['owner_id'] ?? 0),
+            'gc_course' => trim((string) ($row['gc_course'] ?? '')),
+            'gc_coursework' => $work,
+            'gc_submit_id' => $submit,
+        );
+    }
+
     public static function gradeSend($fraction) {
         $lti = U::get($_SESSION, TSUGI_SESSION_LTI);
         if ( ! is_array($lti) ) {
@@ -440,6 +533,337 @@ class GoogleClassroom {
 
         ClassroomQueue::succeed($row, 200, $url, $request);
         return true;
+    }
+
+    /**
+     * Send grades already stored on this link to a coursework just created.
+     * A student with no Classroom submission yet is left for their first open.
+     *
+     * @param int $contextId
+     * @param int $linkId
+     * @param int $ownerId
+     * @param string $course
+     * @param string $coursework
+     * @return array{sent:int,queued:int,waiting:int}
+     */
+    public static function pushStoredGrades($contextId, $linkId, $ownerId, $course, $coursework) {
+        $counts = array('sent' => 0, 'queued' => 0, 'waiting' => 0);
+        $contextId = (int) $contextId;
+        $linkId = (int) $linkId;
+        $ownerId = (int) $ownerId;
+        $course = trim((string) $course);
+        $coursework = trim((string) $coursework);
+        if ( $contextId < 1 || $linkId < 1 || $ownerId < 1 || $course === '' || $coursework === '' ) {
+            return $counts;
+        }
+        $grades = self::storedGrades($linkId);
+        if ( count($grades) < 1 ) {
+            return $counts;
+        }
+
+        $accessTokenStr = self::retrieve_instructor_token($ownerId);
+        $client = $accessTokenStr ? self::getClient($accessTokenStr, $ownerId) : false;
+        if ( ! $client ) {
+            error_log('Classroom stored grades not sent; teacher not connected owner='.$ownerId);
+            $counts['waiting'] = count($grades);
+            return $counts;
+        }
+
+        try {
+            $service = new \Google_Service_Classroom($client);
+            $byEmail = self::classroomStudentsByEmail($service, $course);
+            $byUser = self::classroomSubmissionsByUser($service, $course, $coursework);
+            if ( count($byEmail) > 0 && count($byUser) < 1 ) {
+                sleep(1);
+                $byUser = self::classroomSubmissionsByUser($service, $course, $coursework);
+            }
+        } catch ( \Throwable $e ) {
+            error_log('Classroom stored grades list failed owner='.$ownerId);
+            $counts['waiting'] = count($grades);
+            return $counts;
+        }
+
+        foreach ( $grades as $grade ) {
+            $email = strtolower(trim((string) ($grade['email'] ?? '')));
+            $googleUser = ($email !== '' && isset($byEmail[$email])) ? $byEmail[$email] : '';
+            $submitId = ($googleUser !== '' && isset($byUser[$googleUser])) ? $byUser[$googleUser] : '';
+            if ( $submitId === '' ) {
+                $counts['waiting']++;
+                continue;
+            }
+            self::storeSubmitId((int) $grade['result_id'], $submitId);
+            $status = self::deliver(array(
+                'context_id' => $contextId,
+                'link_id' => $linkId,
+                'user_id' => (int) ($grade['user_id'] ?? 0),
+                'result_id' => (int) ($grade['result_id'] ?? 0),
+                'owner_id' => $ownerId,
+                'gc_course' => $course,
+                'gc_coursework' => $coursework,
+                'gc_submit_id' => $submitId,
+                'grade' => (float) ($grade['grade'] ?? 0),
+            ));
+            if ( $status === true ) {
+                $counts['sent']++;
+            } else {
+                $counts['queued']++;
+            }
+        }
+        return $counts;
+    }
+
+    /**
+     * @param int $linkId
+     * @return array<int,array<string,mixed>>
+     */
+    private static function storedGrades($linkId) {
+        global $CFG;
+        $PDOX = LTIX::getConnection();
+        $rows = $PDOX->allRowsDie(
+            "SELECT R.result_id AS result_id, R.user_id AS user_id, R.grade AS grade, U.email AS email
+             FROM {$CFG->dbprefix}lti_result AS R
+             JOIN {$CFG->dbprefix}lti_user AS U ON U.user_id = R.user_id
+             WHERE R.link_id = :LID AND R.grade IS NOT NULL
+               AND (R.deleted IS NULL OR R.deleted = 0)",
+            array(':LID' => (int) $linkId)
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * @param int $resultId
+     * @param string $submitId
+     */
+    private static function storeSubmitId($resultId, $submitId) {
+        if ( $resultId < 1 || $submitId === '' ) {
+            return;
+        }
+        global $CFG;
+        $PDOX = LTIX::getConnection();
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_result
+             SET gc_submit_id = :SUB, updated_at = NOW()
+             WHERE result_id = :RID",
+            array(':SUB' => $submitId, ':RID' => $resultId)
+        );
+    }
+
+    /**
+     * @param \Google_Service_Classroom $service
+     * @param string $course
+     * @return array<string,string> lowercase email to Classroom user id
+     */
+    private static function classroomStudentsByEmail($service, $course) {
+        $found = array();
+        $token = '';
+        do {
+            $opt = array('pageSize' => 100);
+            if ( $token !== '' ) {
+                $opt['pageToken'] = $token;
+            }
+            $page = $service->courses_students->listCoursesStudents($course, $opt);
+            $students = $page->getStudents();
+            if ( is_array($students) ) {
+                foreach ( $students as $student ) {
+                    $profile = $student->getProfile();
+                    $email = is_object($profile) ? strtolower(trim((string) $profile->getEmailAddress())) : '';
+                    $uid = trim((string) $student->getUserId());
+                    if ( $email !== '' && $uid !== '' ) {
+                        $found[$email] = $uid;
+                    }
+                }
+            }
+            $token = trim((string) $page->getNextPageToken());
+        } while ( $token !== '' );
+        return $found;
+    }
+
+    /**
+     * @param \Google_Service_Classroom $service
+     * @param string $course
+     * @param string $coursework
+     * @return array<string,string> Classroom user id to submission id
+     */
+    private static function classroomSubmissionsByUser($service, $course, $coursework) {
+        $found = array();
+        $token = '';
+        do {
+            $opt = array('pageSize' => 100);
+            if ( $token !== '' ) {
+                $opt['pageToken'] = $token;
+            }
+            $page = $service->courses_courseWork_studentSubmissions->listCoursesCourseWorkStudentSubmissions(
+                $course,
+                $coursework,
+                $opt
+            );
+            $subs = $page->getStudentSubmissions();
+            if ( is_array($subs) ) {
+                foreach ( $subs as $sub ) {
+                    $uid = trim((string) $sub->getUserId());
+                    $sid = trim((string) $sub->getId());
+                    if ( $uid !== '' && $sid !== '' && ! isset($found[$uid]) ) {
+                        $found[$uid] = $sid;
+                    }
+                }
+            }
+            $token = trim((string) $page->getNextPageToken());
+        } while ( $token !== '' );
+        return $found;
+    }
+
+    /**
+     * Copy a Tsugi end-of-day due onto a Classroom assignment.
+     * An empty value leaves the assignment without a due date.
+     *
+     * @param \Google_Service_Classroom_CourseWork $courseWork
+     * @param mixed $mysql
+     */
+    public static function fillDueDate($courseWork, $mysql) {
+        $parts = self::dueParts($mysql);
+        if ( $parts === null ) {
+            return;
+        }
+        $date = new \Google_Service_Classroom_Date();
+        $date->setYear($parts['year']);
+        $date->setMonth($parts['month']);
+        $date->setDay($parts['day']);
+        $time = new \Google_Service_Classroom_TimeOfDay();
+        $time->setHours($parts['hours']);
+        $time->setMinutes($parts['minutes']);
+        $time->setSeconds($parts['seconds']);
+        $courseWork->setDueDate($date);
+        $courseWork->setDueTime($time);
+    }
+
+    /**
+     * Patch the Classroom assignment for this link after a due date save.
+     * A link that is not mirrored is left alone.
+     *
+     * @param int $contextId
+     * @param string $linkKey
+     * @return array{ok:bool,status:string,message?:string}
+     */
+    public static function pushDueDateForKey($contextId, $linkKey) {
+        $contextId = (int) $contextId;
+        $linkKey = trim((string) $linkKey);
+        if ( $contextId < 1 || $linkKey === '' ) {
+            return array('ok' => true, 'status' => 'not_classroom');
+        }
+        global $CFG;
+        $PDOX = LTIX::getConnection();
+        $row = $PDOX->rowDie(
+            "SELECT L.link_id AS link_id, L.gc_course AS gc_course, L.gc_coursework AS gc_coursework,
+                    L.link_key AS link_key, L.end_datetime AS end_datetime,
+                    C.user_id AS owner_id
+             FROM {$CFG->dbprefix}lti_link AS L
+             JOIN {$CFG->dbprefix}lti_context AS C ON C.context_id = L.context_id
+             WHERE L.context_id = :CID AND L.link_key = :LK
+               AND (L.deleted IS NULL OR L.deleted = 0)
+             LIMIT 1",
+            array(':CID' => $contextId, ':LK' => $linkKey)
+        );
+        if ( ! is_array($row) ) {
+            return array('ok' => true, 'status' => 'not_classroom');
+        }
+        $course = trim((string) ($row['gc_course'] ?? ''));
+        $work = trim((string) ($row['gc_coursework'] ?? ''));
+        $key = trim((string) ($row['link_key'] ?? ''));
+        if ( $work === '' && $course !== '' && $key !== '' && ctype_digit($key) ) {
+            $work = $key;
+        }
+        $ownerId = (int) ($row['owner_id'] ?? 0);
+        if ( $course === '' || $work === '' || $ownerId < 1 ) {
+            return array('ok' => true, 'status' => 'not_classroom');
+        }
+
+        $linkId = (int) ($row['link_id'] ?? 0);
+        $parts = self::dueParts($row['end_datetime'] ?? null);
+        $url = 'courses/'.$course.'/courseWork/'.$work;
+        $request = json_encode(array(
+            'updateMask' => 'dueDate,dueTime',
+            'dueDate' => $parts === null ? null : array(
+                'year' => $parts['year'],
+                'month' => $parts['month'],
+                'day' => $parts['day'],
+            ),
+            'dueTime' => $parts === null ? null : array(
+                'hours' => $parts['hours'],
+                'minutes' => $parts['minutes'],
+                'seconds' => $parts['seconds'],
+            ),
+        ));
+        $detail = $parts === null ? 'Due date cleared' : 'Due date set';
+
+        $accessTokenStr = self::retrieve_instructor_token($ownerId);
+        $client = $accessTokenStr ? self::getClient($accessTokenStr, $ownerId) : false;
+        if ( ! $client ) {
+            ClassroomQueue::note($contextId, $linkId, $ownerId, ClassroomQueue::KIND_DUE, false, 'Not connected to Google Classroom.', null, $url, $request);
+            return array(
+                'ok' => false,
+                'status' => 'error',
+                'message' => 'Not connected to Google Classroom.',
+            );
+        }
+
+        try {
+            $service = new \Google_Service_Classroom($client);
+            $cw = new \Google_Service_Classroom_CourseWork();
+            self::fillDueDate($cw, $row['end_datetime'] ?? null);
+            $service->courses_courseWork->patch(
+                $course,
+                $work,
+                $cw,
+                array('updateMask' => 'dueDate,dueTime')
+            );
+        } catch ( \Throwable $e ) {
+            $message = ClassroomQueue::scrub($e->getMessage());
+            if ( strlen($message) > 400 ) {
+                $message = substr($message, 0, 400);
+            }
+            if ( $message === '' ) {
+                $message = 'A due date was not updated in Google Classroom.';
+            }
+            $http = $e instanceof \Google\Service\Exception ? (int) $e->getCode() : null;
+            ClassroomQueue::note($contextId, $linkId, $ownerId, ClassroomQueue::KIND_DUE, false, $message, $http, $url, $request);
+            error_log('Classroom due date not updated owner='.$ownerId.' link='.$linkKey);
+            return array('ok' => false, 'status' => 'error', 'message' => $message);
+        }
+        ClassroomQueue::note($contextId, $linkId, $ownerId, ClassroomQueue::KIND_DUE, true, $detail, 200, $url, $request);
+        return array('ok' => true, 'status' => 'updated');
+    }
+
+    /**
+     * Calendar day and clock time Classroom should show.
+     *
+     * The stored value is 23:59:59 on the day the teacher picked. The site
+     * zone is west of the teacher, so converting that instant to UTC makes
+     * Classroom show the next morning. These fields are the calendar day
+     * and 23:59:59 themselves.
+     *
+     * @param mixed $mysql
+     * @return array{year:int,month:int,day:int,hours:int,minutes:int,seconds:int}|null
+     */
+    private static function dueParts($mysql) {
+        $raw = trim((string) $mysql);
+        if ( $raw === '' || strpos($raw, '0000-00-00') === 0 ) {
+            return null;
+        }
+        $raw = str_replace('T', ' ', $raw);
+        if ( ! preg_match('/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/', $raw, $match) ) {
+            return null;
+        }
+        if ( ! checkdate((int) $match[2], (int) $match[3], (int) $match[1]) ) {
+            return null;
+        }
+        return array(
+            'year' => (int) $match[1],
+            'month' => (int) $match[2],
+            'day' => (int) $match[3],
+            'hours' => (int) $match[4],
+            'minutes' => (int) $match[5],
+            'seconds' => (int) $match[6],
+        );
     }
 
 }

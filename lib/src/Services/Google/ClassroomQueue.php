@@ -19,6 +19,7 @@ class ClassroomQueue {
     const KIND_SCORE = 'score';
     const KIND_COURSEWORK = 'coursework_create';
     const KIND_RECONNECT = 'reconnect';
+    const KIND_DUE = 'due_date';
 
     /**
      * Record a score that did not reach Classroom. The local grade stays.
@@ -63,14 +64,17 @@ class ClassroomQueue {
      * @param string $kind
      * @param bool $success
      * @param string $detail
+     * @param int|null $http
+     * @param string $url
+     * @param string|null $request
      */
-    public static function note($contextId, $linkId, $userId, $kind, $success, $detail) {
+    public static function note($contextId, $linkId, $userId, $kind, $success, $detail, $http = null, $url = '', $request = null) {
         self::writeLog(array(
             'context_id' => (int) $contextId,
             'link_id' => (int) $linkId,
             'user_id' => (int) $userId,
             'result_id' => 0,
-        ), $kind, $success, null, '', null, $detail);
+        ), $kind, $success, $http, $url, $request, $detail);
     }
 
     /**
@@ -246,14 +250,14 @@ class ClassroomQueue {
             $PDOX = LTIX::getConnection();
             $p = $CFG->dbprefix;
             $rows = $PDOX->allRowsDie(
-                "SELECT C.context_id, C.title, C.context_key,
+                "SELECT C.context_id, C.title, C.context_key, C.login_at,
                         (SELECT COUNT(*) FROM {$p}lti_gclass_queue AS Q
                          WHERE Q.context_id = C.context_id) AS waiting
                  FROM {$p}lti_context AS C
                  WHERE C.user_id = :UID
                    AND C.gc_secret IS NOT NULL AND C.gc_secret <> ''
                    AND (C.deleted IS NULL OR C.deleted = 0)
-                 ORDER BY C.context_id",
+                 ORDER BY C.login_at DESC, C.context_id DESC",
                 array(':UID' => (int) $userId)
             );
         } catch ( \Throwable $e ) {
@@ -453,8 +457,78 @@ class ClassroomQueue {
     }
 
     /**
-     * @param string $text
+     * Resource ids in this course that already have a Classroom link.
+     * The mirror link lives in the same course. Its key is the coursework id,
+     * and its path points at the lesson resource.
+     *
+     * @param int $contextId
+     * @return array<string,string>
      */
+    public static function installsInCourse($contextId) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        if ( (int) $contextId < 1 ) {
+            return array();
+        }
+        $rows = $PDOX->allRowsDie(
+            "SELECT L.path AS path, L.link_key AS link_key, L.gc_coursework AS gc_coursework
+             FROM {$CFG->dbprefix}lti_link L
+             WHERE L.context_id = :CID
+               AND L.deleted = 0
+               AND L.path IS NOT NULL AND L.path <> ''",
+            array(':CID' => (int) $contextId)
+        );
+        $found = array();
+        if ( ! is_array($rows) ) {
+            return $found;
+        }
+        foreach ( $rows as $row ) {
+            $path = (string) ($row['path'] ?? '');
+            $key = (string) ($row['link_key'] ?? '');
+            $work = trim((string) ($row['gc_coursework'] ?? ''));
+            if ( $work !== '' && $key !== '' ) {
+                $found[$key] = '';
+            }
+            $id = self::inheritId($path);
+            if ( $id === '' ) {
+                $id = self::launchResourceId($path);
+            }
+            if ( $id === '' || $id === $key ) {
+                continue;
+            }
+            $found[$id] = '';
+        }
+        return $found;
+    }
+
+    /**
+     * Resource id at the end of a course discussion or lessons launch path.
+     */
+    private static function launchResourceId($path) {
+        $pathOnly = parse_url($path, PHP_URL_PATH);
+        if ( ! is_string($pathOnly) || $pathOnly === '' ) {
+            $pathOnly = $path;
+        }
+        if ( ! preg_match('#/(?:lessons_launch|discussions)/([^/]+)/?$#', $pathOnly, $match) ) {
+            return '';
+        }
+        return rawurldecode($match[1]);
+    }
+
+    /**
+     * inherit= on a Classroom launch path is the lesson resource id.
+     */
+    private static function inheritId($path) {
+        $query = parse_url($path, PHP_URL_QUERY);
+        if ( ! is_string($query) || $query === '' ) {
+            return '';
+        }
+        $params = array();
+        parse_str($query, $params);
+        $id = $params['inherit'] ?? '';
+        return is_string($id) ? $id : '';
+    }
+
     public static function scrub($text) {
         if ( ! is_string($text) || $text === '' ) {
             return '';

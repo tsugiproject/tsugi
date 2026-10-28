@@ -508,6 +508,14 @@ array( "{$CFG->dbprefix}lti_link",
     ags_resource_id     VARCHAR(256) NULL,
     ags_tag             VARCHAR(256) NULL,
 
+    -- Google coursework id when this column is mirrored. The link_key stays
+    -- the lesson resource id. File-based Classroom courses leave this empty
+    -- and keep the coursework id in link_key.
+    gc_coursework       VARCHAR(64) NULL,
+    -- Google course id for that coursework. The launch URL is not a course page,
+    -- so a later grade send reads the course from here.
+    gc_course           VARCHAR(64) NULL,
+
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
@@ -824,7 +832,7 @@ array( "{$CFG->dbprefix}lti_gclass_log",
     user_id             INTEGER NULL,
     result_id           INTEGER NULL,
 
-    -- score, coursework_create, reconnect
+    -- score, coursework_create, reconnect, due_date
     kind                VARCHAR(32) NOT NULL,
     success             TINYINT(1) NOT NULL DEFAULT 0,
     http_response       INTEGER NULL,
@@ -1694,6 +1702,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-10-18 LTI 1.1 outcome flag. Existing links stay 0 until a launch
         // stores service_id and a sourcedid. Old results are not scanned.
         array('lti_link', 'upward', 'TINYINT(1) NOT NULL DEFAULT 0'),
+
+        // 2026-10-28 Classroom coursework id for a manifest course column.
+        // The resource link id stays in link_key.
+        array('lti_link', 'gc_coursework', 'VARCHAR(64) NULL'),
+        array('lti_link', 'gc_course', 'VARCHAR(64) NULL'),
 
         // 2026-10-13 Extra credit is outside the 100. Existing categories stay regular.
         array('lti_category', 'extra_credit', 'TINYINT(1) NOT NULL DEFAULT 0'),

@@ -29,6 +29,15 @@ $kindLabel = function ($kind) {
     if ( $kind === 'reconnect' ) {
         return 'Reconnect';
     }
+    if ( $kind === 'due_date' ) {
+        return 'Due date';
+    }
+    if ( $kind === 'lesson_link' ) {
+        return 'Lesson';
+    }
+    if ( $kind === 'course_link' ) {
+        return 'Course';
+    }
     return (string) $kind;
 };
 $percent = function ($grade) {
@@ -94,7 +103,7 @@ $percent = function ($grade) {
 <?php } ?>
 
 <h2>Log</h2>
-<p>Each send, assignment install, and reconnect is kept here. Reset does not erase this list.</p>
+<p>Each send, due date, assignment install, and reconnect is kept here. Reset does not erase this list.</p>
 <?php
 $sections = array(
     array('title' => 'Recent errors', 'rows' => $log['failures'] ?? array(), 'empty' => 'No recent errors.'),

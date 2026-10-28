@@ -516,13 +516,6 @@ class Topics {
         <?php
         echo('</div>');
 
-        if ( $gclass ) {
-            $styleoff = U::get_rest_path() . '?gclass=no';
-            echo('<p><a href="'.$styleoff.'">');
-            echo(__('Hide Google Classroom Install Links'));
-            echo("</a>\n");
-        }
-
         if ( !isset($topic->anchor) ) $topic->anchor = $this->topicposition;
 
         $ob_output = ob_get_contents();
@@ -539,7 +532,7 @@ class Topics {
         echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
-            echo(' data-title="'.htmlentities($title).'" ');
+            echo(' data-itemtype="material" data-title="'.htmlentities($title).'" ');
             echo('></div>');
         }
     } // End of renderSingle

@@ -20,6 +20,7 @@ use Tsugi\Core\ReqScope;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Grades\GradeCategoryRepository;
 use Tsugi\Services\Plus\GradeSync;
+use Tsugi\Services\Google\ClassroomQueue;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Grades extends Tool {
@@ -36,6 +37,9 @@ class Grades extends Tool {
 
     /** @var array<string,bool>|null */
     private $linkHiddenCache = null;
+
+    /** @var array<string,string>|null */
+    private $classroomMirrored = null;
 
     /** @var array<int,array{link_key:string,link_id:int}>|null */
     private $publishedQuizById = null;
@@ -1068,6 +1072,11 @@ class Grades extends Tool {
         $context_id = ReqScope::currentContextId();
         $manifest = $this->manifestCourse();
         $plus = $this->plusManageState($context_id);
+        $courseIsClassroom = $this->courseIsClassroom($context_id);
+        $showClassroom = $manifest && ! $plus['plus'] && $this->teacherHasClassroomToken();
+        $mirrored = $showClassroom
+            ? ClassroomQueue::installsInCourse($context_id)
+            : array();
         $items = $this->manageCatalog($context_id);
         $dueMap = GradeUtil::loadDueDatesForContext($context_id);
         $post_url = $this->dueDatesUrl();
@@ -1117,6 +1126,8 @@ class Grades extends Tool {
         echo('<thead><tr><th>'.__('Source').'</th><th>'.__('Name').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th><th>'.__('Category').'</th>');
         if ( $plus['plus'] ) {
             echo('<th>'.__('Line item').'</th>');
+        } else if ( $showClassroom ) {
+            echo('<th>'.__('Classroom').'</th>');
         }
         echo '<th><span class="sr-only">'.htmlspecialchars(__('Published and hidden')).'</span></th>';
         echo "</tr></thead>\n";
@@ -1155,6 +1166,9 @@ class Grades extends Tool {
                 echo('<span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('No LTI link row yet').'</span>');
             }
             echo('</td>');
+            $linkId = (int) ($it['link_id'] ?? 0);
+            $dueShown = '';
+            $dueCopy = $linkId > 0 ? $this->dueFieldCopy($linkId) : '';
             echo('<td>');
             if ( $hasRow ) {
                 $dueAria = sprintf(
@@ -1162,7 +1176,9 @@ class Grades extends Tool {
                     $it['item_title'],
                     $rlid
                 );
-                echo('<input type="date" class="form-control" form="due-dates" name="end[]" value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
+                $dueShown = $endVal;
+                $dueId = $linkId > 0 ? ' id="due-link-'.$linkId.'"' : '';
+                echo('<input type="date" class="form-control" form="due-dates" name="end[]"'.$dueId.$dueCopy.' value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
                 echo('<input type="hidden" form="due-dates" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
             } else if ( $unprovisionedTool && $rlid !== '' ) {
                 $lessonDue = GradeUtil::dueDay((string) ($it['due'] ?? ''));
@@ -1171,27 +1187,33 @@ class Grades extends Tool {
                     $it['item_title'],
                     $rlid
                 );
-                echo('<input type="date" class="form-control" form="due-dates" name="end[]" value="'.htmlspecialchars($lessonDue ?? '').'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
+                $dueShown = $lessonDue ?? '';
+                $dueId = $linkId > 0 ? ' id="due-link-'.$linkId.'"' : '';
+                echo('<input type="date" class="form-control" form="due-dates" name="end[]"'.$dueId.$dueCopy.' value="'.htmlspecialchars($dueShown).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
                 echo('<input type="hidden" form="due-dates" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
             } else {
                 echo('<span class="text-muted">—</span>');
             }
             echo('</td>');
             echo('<td>');
-            $linkId = (int) ($it['link_id'] ?? 0);
             if ( $linkId > 0 ) {
-                $this->echoCategoryForm($home, $linkId, $it['category_id'] ?? null, $categories, (string) $it['item_title']);
+                $hasDue = $hasRow || ($unprovisionedTool && $rlid !== '');
+                $this->echoCategoryForm($home, $linkId, $it['category_id'] ?? null, $categories, (string) $it['item_title'], $hasDue ? $rlid : '', $hasDue ? $dueShown : '');
             } else {
                 echo('<span class="text-muted">—</span>');
             }
             echo('</td>');
+            $published = $this->assignmentIsPublished($it, $linkFlags, $contentPublished);
+            $link = ($rlid !== '' && isset($linkFlags[$rlid])) ? $linkFlags[$rlid] : null;
             if ( $plus['plus'] ) {
                 echo('<td>');
                 $this->echoLineItemCell($home, $linkId, $it, (int) $plus['shell_link_id']);
                 echo('</td>');
+            } else if ( $showClassroom ) {
+                echo('<td>');
+                $this->echoClassroomGradeCell($rlid, (string) $it['item_title'], $courseIsClassroom, $mirrored, $linkId > 0, $published);
+                echo('</td>');
             }
-            $published = $this->assignmentIsPublished($it, $linkFlags, $contentPublished);
-            $link = ($rlid !== '' && isset($linkFlags[$rlid])) ? $linkFlags[$rlid] : null;
             $unprovisioned = empty($it['quiz_id'])
                 && (int) ($it['content_id'] ?? 0) < 1
                 && (int) ($it['tool_deployment_id'] ?? 0) < 1
@@ -1206,6 +1228,10 @@ class Grades extends Tool {
             }
             if ( ! empty($it['module_hidden']) ) {
                 echo($this->hiddenStatusIcon());
+            }
+            $mirroredHere = $rlid !== '' && isset($mirrored[$rlid]);
+            if ( ($courseIsClassroom && $linkId > 0) || $mirroredHere ) {
+                echo($this->classroomStatusIcon($mirroredHere ? (string) $mirrored[$rlid] : ''));
             }
             echo('</div></td>');
             echo("</tr>\n");
@@ -1363,7 +1389,14 @@ class Grades extends Tool {
      */
     private function emptyDuePush()
     {
-        return array('updated' => 0, 'failed' => 0, 'message' => '');
+        return array(
+            'updated' => 0,
+            'failed' => 0,
+            'message' => '',
+            'classroom' => 0,
+            'classroom_failed' => 0,
+            'classroom_message' => '',
+        );
     }
 
     /**
@@ -1414,14 +1447,24 @@ class Grades extends Tool {
         $status = (string) ($result['status'] ?? '');
         if ( ! empty($result['ok']) && $status === 'updated' ) {
             $tally['updated']++;
+        } else if ( ! in_array($status, array('no_lineitem', 'not_plus', 'shell', 'not_found'), true) ) {
+            $tally['failed']++;
+            if ( $tally['message'] === '' && isset($result['message']) ) {
+                $tally['message'] = (string) $result['message'];
+            }
+        }
+        $gc = \Tsugi\Google\GoogleClassroom::pushDueDateForKey($context_id, $link_key);
+        $gcStatus = (string) ($gc['status'] ?? '');
+        if ( ! empty($gc['ok']) && $gcStatus === 'updated' ) {
+            $tally['classroom']++;
             return;
         }
-        if ( in_array($status, array('no_lineitem', 'not_plus', 'shell', 'not_found'), true) ) {
+        if ( $gcStatus === 'not_classroom' ) {
             return;
         }
-        $tally['failed']++;
-        if ( $tally['message'] === '' && isset($result['message']) ) {
-            $tally['message'] = (string) $result['message'];
+        $tally['classroom_failed']++;
+        if ( ($tally['classroom_message'] ?? '') === '' && isset($gc['message']) ) {
+            $tally['classroom_message'] = (string) $gc['message'];
         }
     }
 
@@ -1430,10 +1473,14 @@ class Grades extends Tool {
      */
     private function duePushSentence(array $tally)
     {
-        if ( (int) $tally['updated'] < 1 ) {
-            return '';
+        $sentence = '';
+        if ( (int) $tally['updated'] > 0 ) {
+            $sentence .= ' '.sprintf(__('Updated %d line item(s) in the LMS.'), (int) $tally['updated']);
         }
-        return ' '.sprintf(__('Updated %d line item(s) in the LMS.'), (int) $tally['updated']);
+        if ( (int) ($tally['classroom'] ?? 0) > 0 ) {
+            $sentence .= ' '.sprintf(__('Updated %d due date(s) in Google Classroom.'), (int) $tally['classroom']);
+        }
+        return $sentence;
     }
 
     /**
@@ -1441,11 +1488,14 @@ class Grades extends Tool {
      */
     private function flashDuePushFailure(array $tally)
     {
-        if ( (int) $tally['failed'] < 1 ) {
-            return;
+        if ( (int) $tally['failed'] > 0 ) {
+            $message = trim((string) $tally['message']);
+            U::flashError($message !== '' ? $message : __('A line item due date was not updated in the LMS.'));
         }
-        $message = trim((string) $tally['message']);
-        U::flashError($message !== '' ? $message : __('A line item due date was not updated in the LMS.'));
+        if ( (int) ($tally['classroom_failed'] ?? 0) > 0 ) {
+            $message = trim((string) ($tally['classroom_message'] ?? ''));
+            U::flashError($message !== '' ? $message : __('A due date was not updated in Google Classroom.'));
+        }
     }
 
     /**
@@ -2134,13 +2184,25 @@ JS;
      * @param mixed $category_id
      * @param array<int,array<string,mixed>> $categories
      * @param string $title
+     * @param string $rlid Resource link id, so this Save can also write the row's due date.
+     * @param string $dueDay Current due day, YYYY-MM-DD, so a save without a new pick keeps it.
      */
-    private function echoCategoryForm($home, $link_id, $category_id, $categories, $title)
+    private function echoCategoryForm($home, $link_id, $category_id, $categories, $title, $rlid = '', $dueDay = '')
     {
         $selected = ($category_id === null || $category_id === '') ? 0 : (int) $category_id;
         $action = $home.'/links/'.$link_id;
-        echo '<form method="post" action="'.htmlspecialchars($action).'" class="form-inline">';
+        $dueId = 'due-link-'.$link_id;
+        $copyId = 'due-copy-'.$link_id;
+        $copyDue = $rlid !== ''
+            ? 'var d=document.getElementById('.json_encode($dueId).'); var h=document.getElementById('.json_encode($copyId).'); if(d&&h){h.value=d.value;}'
+            : '';
+        echo '<form method="post" action="'.htmlspecialchars($action).'" class="form-inline"'.($copyDue !== '' ? ' onsubmit="'.htmlspecialchars($copyDue, ENT_QUOTES, 'UTF-8').'"' : '').'>';
         echo self::csrfField();
+        if ( $rlid !== '' ) {
+            echo '<input type="hidden" name="save_due" value="1">';
+            echo '<input type="hidden" name="due_on" id="'.htmlspecialchars($copyId, ENT_QUOTES, 'UTF-8').'" value="'.htmlspecialchars($dueDay, ENT_QUOTES, 'UTF-8').'">';
+            echo '<input type="hidden" name="rlid" value="'.htmlspecialchars($rlid, ENT_QUOTES, 'UTF-8').'">';
+        }
         echo '<label class="sr-only" for="link-category-'.$link_id.'">'.htmlspecialchars(__('Category for').' '.$title).'</label>';
         echo '<select class="form-control" id="link-category-'.$link_id.'" name="category_id">';
         echo '<option value=""'.($selected === 0 ? ' selected' : '').'>'.htmlspecialchars(__('Uncategorized')).'</option>';
@@ -2152,6 +2214,20 @@ JS;
         echo '</select> ';
         echo '<button type="submit" class="btn btn-default" name="action" value="category">'.htmlspecialchars(__('Save')).'</button>';
         echo '</form>';
+    }
+
+    /**
+     * Keep the row form's hidden due day in step with the visible date field.
+     * That field belongs to the page-level due-date form, not this row.
+     *
+     * @param int $link_id
+     */
+    private function dueFieldCopy($link_id)
+    {
+        $copyId = 'due-copy-'.(int) $link_id;
+        $script = 'var h=document.getElementById('.json_encode($copyId).'); if(h){h.value=this.value;}';
+        $attr = htmlspecialchars($script, ENT_QUOTES, 'UTF-8');
+        return ' oninput="'.$attr.'" onchange="'.$attr.'"';
     }
 
     /**
@@ -2881,6 +2957,92 @@ JS;
     }
 
     /**
+     * This course was created by installing into a Google class.
+     */
+    private function courseIsClassroom($context_id) {
+        global $CFG, $PDOX;
+        $row = $PDOX->rowDie(
+            "SELECT context_key FROM {$CFG->dbprefix}lti_context
+             WHERE context_id = :CID",
+            array(':CID' => (int) $context_id)
+        );
+        $key = is_array($row) ? (string) ($row['context_key'] ?? '') : '';
+        return str_starts_with($key, 'gclass:');
+    }
+
+    /**
+     * The signed-in teacher has a stored Classroom token.
+     */
+    private function teacherHasClassroomToken() {
+        global $CFG, $PDOX;
+        $uid = (int) ReqScope::loggedInUserIdLegacy();
+        if ( $uid < 1 ) {
+            return false;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT gc_token FROM {$CFG->dbprefix}lti_user
+             WHERE user_id = :UID",
+            array(':UID' => $uid)
+        );
+        $token = is_array($row) ? trim((string) ($row['gc_token'] ?? '')) : '';
+        return $token !== '';
+    }
+
+    /**
+     * Non-clickable mark that this column is already a Classroom assignment.
+     *
+     * @param string $classNames
+     */
+    private function classroomStatusIcon($classNames) {
+        $tip = __('In Google Classroom');
+        if ( $classNames !== '' ) {
+            $tip .= ': '.$classNames;
+        }
+        $safe = htmlspecialchars($tip, ENT_QUOTES, 'UTF-8');
+        return '<img height="16" width="16" alt="" title="'.$safe.'" aria-label="'.$safe.'"'
+            .' style="margin-left:6px;vertical-align:middle;"'
+            .' src="https://www.gstatic.com/classroom/logo_square_48.svg">';
+    }
+
+    /**
+     * Classroom column: the class names, or a button that creates the assignment.
+     *
+     * @param array<string,string> $mirrored
+     */
+    private function echoClassroomGradeCell($rlid, $title, $courseIsClassroom, array $mirrored, $hasLink, $published) {
+        if ( $courseIsClassroom ) {
+            if ( $hasLink ) {
+                echo('<span class="text-muted">'.htmlspecialchars(__('In this class')).'</span>');
+            } else {
+                echo('<span class="text-muted">—</span>');
+            }
+            return;
+        }
+        if ( $rlid !== '' && isset($mirrored[$rlid]) ) {
+            $names = (string) $mirrored[$rlid];
+            echo('<span class="text-muted">'.htmlspecialchars($names !== '' ? $names : __('In Google Classroom')).'</span>');
+            return;
+        }
+        if ( $rlid === '' || ! $published ) {
+            echo('<span class="text-muted">—</span>');
+            return;
+        }
+        global $CFG;
+        $href = $CFG->wwwroot.'/gclass/assign?'.http_build_query(array(
+            'rlid' => $rlid,
+            'title' => $title,
+            'context' => (int) ReqScope::currentContextId(),
+        ));
+        $label = __('Send to GC');
+        $tip = __('Mirrors this grade in Google Classroom');
+        echo('<a class="btn btn-default btn-xs" href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'"');
+        echo(' title="'.htmlspecialchars($tip, ENT_QUOTES, 'UTF-8').'"');
+        echo(' aria-label="'.htmlspecialchars($tip.': '.$title, ENT_QUOTES, 'UTF-8').'">');
+        echo(htmlspecialchars($label));
+        echo('</a>');
+    }
+
+    /**
      * @param string $home
      * @param int $linkId
      * @param array<string,mixed> $it
@@ -2970,16 +3132,85 @@ JS;
             $error = __('Unknown grade action.');
         }
 
+        $dueNote = '';
+        if ( $error === null && U::get($_POST, 'save_due', '') === '1' ) {
+            $dueError = $this->saveRowDueDate($context_id, (int) $id, U::get($_POST, 'rlid', ''), U::get($_POST, 'due_on', ''), $dueNote);
+            if ( $dueError !== null ) {
+                $error = $dueError;
+            }
+        }
+
         if ( $error !== null ) {
             U::flashError($error);
         } else if ( $action === 'hide' ) {
             U::flashSuccess(__('Grade hidden from students.'));
         } else if ( $action === 'unhide' ) {
             U::flashSuccess(__('Grade unhidden.'));
+        } else if ( $dueNote !== '' ) {
+            U::flashSuccess(__('Grade category and due date saved.').$dueNote);
         } else {
             U::flashSuccess(__('Grade category saved.'));
         }
         return new RedirectResponse($this->configurationUrl());
+    }
+
+    /**
+     * Write the due date from one Manage grade book row.
+     *
+     * @param int $context_id
+     * @param int $link_id
+     * @param mixed $rlid
+     * @param mixed $endRaw
+     * @param string $note Classroom or LMS sentence when the date changed.
+     * @return string|null An error, or null when the date was saved.
+     */
+    private function saveRowDueDate($context_id, $link_id, $rlid, $endRaw, &$note)
+    {
+        global $CFG, $PDOX;
+        $note = '';
+        $rlid = trim((string) $rlid);
+        $endRaw = trim((string) $endRaw);
+        if ( $rlid === '' ) {
+            return __('Invalid form submission.');
+        }
+        $endSql = self::parseDueDateEndOfDay($endRaw);
+        if ( $endRaw !== '' && $endSql === null ) {
+            return __('Invalid due date.');
+        }
+        $row = $PDOX->rowDie(
+            "SELECT link_key FROM {$CFG->dbprefix}lti_link
+             WHERE link_id = :LID AND context_id = :CID AND link_key = :LK
+               AND (deleted IS NULL OR deleted = 0)
+             LIMIT 1",
+            array(':LID' => (int) $link_id, ':CID' => (int) $context_id, ':LK' => $rlid)
+        );
+        if ( ! is_array($row) ) {
+            return __('This link was not found.');
+        }
+        $before = $this->storedDueInstant($context_id, $rlid);
+        $stmt = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_link SET end_datetime = :E, updated_at = NOW()
+             WHERE link_id = :LID AND context_id = :CID AND link_key = :LK
+               AND (deleted IS NULL OR deleted = 0)",
+            array(
+                ':E' => $endSql,
+                ':LID' => (int) $link_id,
+                ':CID' => (int) $context_id,
+                ':LK' => $rlid,
+            )
+        );
+        if ( ! $stmt->success ) {
+            return __('Could not save due dates. Please try again.');
+        }
+        $this->invalidateDueDatesSessionCache();
+        if ( $this->dueInstant($endSql) === $before ) {
+            return null;
+        }
+        $tally = $this->emptyDuePush();
+        $this->noteDuePush($context_id, $rlid, $tally);
+        $this->flashDuePushFailure($tally);
+        $note = $this->duePushSentence($tally);
+        return null;
     }
 
     /**
@@ -3616,10 +3847,35 @@ JS;
      */
     private function stateIconsHtml($linkKey, $published, $hidden, $returnUrl)
     {
-        return '<div class="grade-state-icons">'
+        $html = '<div class="grade-state-icons">'
             .$this->publishButtonHtml($linkKey, $published, $returnUrl)
-            .$this->hiddenButtonHtml($linkKey, $hidden, $returnUrl)
-            .'</div>';
+            .$this->hiddenButtonHtml($linkKey, $hidden, $returnUrl);
+        $mirrored = $this->classroomMirroredMap();
+        if ( isset($mirrored[$linkKey]) ) {
+            $html .= $this->classroomStatusIcon((string) $mirrored[$linkKey]);
+        }
+        return $html.'</div>';
+    }
+
+    /**
+     * Resource link ids in this course that already send grades to Classroom.
+     *
+     * @return array<string,string>
+     */
+    private function classroomMirroredMap()
+    {
+        if ( is_array($this->classroomMirrored) ) {
+            return $this->classroomMirrored;
+        }
+        $this->classroomMirrored = array();
+        if ( ! $this->manifestCourse() ) {
+            return $this->classroomMirrored;
+        }
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId > 0 ) {
+            $this->classroomMirrored = ClassroomQueue::installsInCourse($contextId);
+        }
+        return $this->classroomMirrored;
     }
 
     /**

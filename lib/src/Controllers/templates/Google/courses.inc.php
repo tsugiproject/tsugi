@@ -63,13 +63,13 @@ $h = function ($value) {
 <?php if ( count($taught) < 1 && count($other) > 0 ) { ?>
 <table class="table">
 <thead>
-<tr><th>Course</th><th>Waiting</th></tr>
+<tr><th>Course</th><th>Last access</th><th>Waiting</th></tr>
 </thead>
 <tbody>
 <?php } else if ( count($other) > 0 ) { ?>
 <table class="table">
 <thead>
-<tr><th>Course</th><th>Waiting</th></tr>
+<tr><th>Course</th><th>Last access</th><th>Waiting</th></tr>
 </thead>
 <tbody>
 <?php }
@@ -83,8 +83,18 @@ if ( count($other) > 0 ) {
         if ( $title === '' ) {
             $title = 'Course '.$id;
         }
-        $href = $CFG->wwwroot.'/gclass/course/'.$id;
-        echo '<tr><td><a href="'.$h($href).'">'.$h($title).'</a></td>';
+        $logHref = $CFG->wwwroot.'/gclass/course/'.$id;
+        $courseHref = \Tsugi\Controllers\Courses::courseUrlPrefix($id);
+        echo '<tr><td>'.$h($title);
+        echo ' <a href="'.$h($logHref).'">View log</a>';
+        echo ' · <a href="'.$h($courseHref).'">Go to course</a></td>';
+        $access = trim((string) ($course['login_at'] ?? ''));
+        if ( $access === '' || strpos($access, '0000-00-00') === 0 ) {
+            $access = '—';
+        } else {
+            $access = substr($access, 0, 16);
+        }
+        echo '<td>'.$h($access).'</td>';
         echo '<td>'.(int) ($course['waiting'] ?? 0).'</td></tr>';
     }
     echo '</tbody></table>';

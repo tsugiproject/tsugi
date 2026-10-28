@@ -17,6 +17,7 @@ $action = $viewing ? $home.'/'.$quiz->id.'/view' : $home.'/link/'.$quiz->link_id
 if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
     $action .= (str_contains($action, '?') ? '&' : '?').'from='.rawurlencode($from_module);
 }
+$action = \Tsugi\Util\U::addSession($action);
 ?>
 <style>
 .quiz1-take .quiz1-q { margin: 1.5em 0; padding: 1em; border: 1px solid #ddd; border-radius: 4px; }

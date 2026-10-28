@@ -132,6 +132,9 @@ h1 {
 <input type="hidden" name="rlid" value="<?= $h(\Tsugi\Util\U::get($_GET,'rlid') ?? '') ?>">
 <input type="hidden" name="lti" value="<?= $h(\Tsugi\Util\U::get($_GET,'lti') ?? '') ?>">
 <input type="hidden" name="title" value="<?= $h(\Tsugi\Util\U::get($_GET,'title') ?? '') ?>">
+<input type="hidden" name="context" value="<?= $h(\Tsugi\Util\U::get($_GET,'context') ?? '') ?>">
+<input type="hidden" name="module" value="<?= $h(\Tsugi\Util\U::get($_GET,'module') ?? '') ?>">
+<input type="hidden" name="join" value="<?= $h(\Tsugi\Util\U::get($_GET,'join') ?? '') ?>">
 <div class="menu">
 <?php if ( count($courses) < 1 ) { ?>
 <p class="empty">No active classes for this account.</p>

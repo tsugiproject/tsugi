@@ -62,6 +62,85 @@ class Quiz1 extends Tool {
         return (int) $this->requireRc()->context->id;
     }
 
+    /**
+     * The quiz for this take. In the course, the link is in the session course.
+     * A Classroom launch session is a different course, so the quiz is loaded
+     * from the link in the URL when that link is the one this assignment mirrors.
+     *
+     * @param int $linkId
+     * @return \Tsugi\Services\Quiz1\Quiz1|null
+     */
+    private function quizForThisTake($linkId) {
+        $linkId = (int) $linkId;
+        $quiz = Quiz1Repository::loadByLink($linkId, $this->contextId());
+        if ( $quiz ) {
+            return $quiz;
+        }
+        if ( ! isset($_SESSION[TSUGI_SESSION_LTI]['gc_submit_id']) ) {
+            return null;
+        }
+        global $CFG, $PDOX;
+        $row = $PDOX->rowDie(
+            "SELECT context_id FROM {$CFG->dbprefix}lti_link
+             WHERE link_id = :LID AND (deleted IS NULL OR deleted = 0)",
+            array(':LID' => $linkId)
+        );
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $quiz = Quiz1Repository::loadByLink($linkId, (int) $row['context_id']);
+        if ( ! $quiz || ! $this->classroomLaunchOwnsQuiz($quiz) ) {
+            return null;
+        }
+        return $quiz;
+    }
+
+    /**
+     * The Classroom assignment's inherit id is the course resource this quiz belongs to.
+     *
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     */
+    private function classroomLaunchOwnsQuiz($quiz) {
+        global $CFG, $PDOX;
+        $sessionLink = (int) ($_SESSION[TSUGI_SESSION_LTI]['link_id'] ?? 0);
+        if ( $sessionLink < 1 ) {
+            return false;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT path FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
+            array(':LID' => $sessionLink)
+        );
+        $path = is_array($row) ? (string) ($row['path'] ?? '') : '';
+        $query = parse_url($path, PHP_URL_QUERY);
+        if ( ! is_string($query) || $query === '' ) {
+            return false;
+        }
+        $params = array();
+        parse_str($query, $params);
+        $inherit = isset($params['inherit']) && is_string($params['inherit']) ? $params['inherit'] : '';
+        $key = is_string($quiz->link_key) ? $quiz->link_key : '';
+        return $inherit !== '' && $key !== '' && hash_equals($key, $inherit);
+    }
+
+    /**
+     * A Classroom take keeps the launch link, which is where the score is sent.
+     * A course take attaches the quiz's own link.
+     *
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     * @return ReqScope
+     * @throws ReqScopeException
+     */
+    private function gradeScopeForTake($quiz) {
+        if ( isset($_SESSION[TSUGI_SESSION_LTI]['gc_submit_id']) ) {
+            $rc = ReqScope::current();
+            if ( ! $rc || ! $rc->result || ! $rc->link ) {
+                throw new ReqScopeException('Request scope is not established.', 500);
+            }
+            return $rc;
+        }
+        return self::requestContextForQuiz($quiz, true);
+    }
+
     private function userId() {
         return (int) $this->requireRc()->user->id;
     }
@@ -393,7 +472,7 @@ class Quiz1 extends Tool {
             return $csrf;
         }
         LTIX::getConnection();
-        $quiz = Quiz1Repository::loadByLink((int) $id, $this->contextId());
+        $quiz = $this->quizForThisTake((int) $id);
         if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
             if ( $quiz && $this->instructor() ) {
                 U::flashError(__('This quiz is not published.'));
@@ -419,7 +498,7 @@ class Quiz1 extends Tool {
         $this->requireRc();
         LTIX::getConnection();
         if ( $quiz === null ) {
-            $quiz = Quiz1Repository::loadByLink((int) $id, $this->contextId());
+            $quiz = $this->quizForThisTake((int) $id);
         }
         if ( ! $quiz || ( ! $viewing && ! $this->studentMayTake($quiz) ) ) {
             if ( $quiz && $this->instructor() ) {
@@ -537,7 +616,7 @@ class Quiz1 extends Tool {
      */
     private function recordTakeGrade($quiz, array $graded) {
         try {
-            $rc = self::requestContextForQuiz($quiz, true);
+            $rc = $this->gradeScopeForTake($quiz);
         } catch ( ReqScopeException $ex ) {
             return;
         }

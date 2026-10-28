@@ -422,13 +422,18 @@ class Result extends Entity {
             }
         }
 
-        // Check is this is a Google Classroom Launch
+        // Check is this is a Google Classroom Launch.
+        // The quiz page is the site login, so the Classroom ids live on the result.
         $GradeSendTransport = false;
-        if ( isset($_SESSION[TSUGI_SESSION_LTI]) && isset($_SESSION[TSUGI_SESSION_LTI]['gc_submit_id']) ) {
+        $sessionSubmit = $_SESSION[TSUGI_SESSION_LTI]['gc_submit_id'] ?? null;
+        $storedStatus = null;
+        if ( ! (is_string($sessionSubmit) && $sessionSubmit !== '') && ! empty($result_id) ) {
+            $storedStatus = GoogleClassroom::deliverStored((int) $result_id, $grade);
+        }
+        if ( (is_string($sessionSubmit) && $sessionSubmit !== '') || $storedStatus !== null ) {
             if ( is_array($debug_log) )  $debug_log[] = "Using Google Classroom";
             $GradeSendTransport = "Google";
-            // TODO: Need to send to the user from $row
-            $status = GoogleClassroom::gradeSend($grade);
+            $status = $storedStatus !== null ? $storedStatus : GoogleClassroom::gradeSend($grade);
             error_log("Sending Classroom grade of $grade ");
 
         // LTI 1.3 grade passback - Prefer if available
