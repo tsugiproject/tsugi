@@ -44,7 +44,7 @@ $percent = function ($grade) {
     if ( $grade === null || $grade === '' ) {
         return '—';
     }
-    return (string) (int) ((float) $grade * 100);
+    return (string) (int) round((float) $grade * 100);
 };
 ?>
 <p><a href="<?= $h($coursesUrl) ?>">Classroom courses</a></p>

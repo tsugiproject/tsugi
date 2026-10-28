@@ -423,7 +423,8 @@ class Topics {
     public function renderSingle($buffer=false) {
         global $CFG, $OUTPUT;
         ob_start();
-        $gclass = \Tsugi\Controllers\Lessons::classroomInstallView();
+        $gclass = \Tsugi\Controllers\Lessons::classroomInstallView()
+            && \Tsugi\Controllers\Lessons::viewerIsCourseInstructor();
 
         $topic = $this->topic;
 
@@ -530,7 +531,8 @@ class Topics {
 
     public static function classroomUrl($title, $url) {
         echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
-        if ( isset($_SESSION['gc_count']) ) {
+        if ( \Tsugi\Controllers\Lessons::classroomInstallView()
+            && \Tsugi\Controllers\Lessons::viewerIsCourseInstructor() ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
             echo(' data-itemtype="material" data-title="'.htmlentities($title).'" ');
             echo('></div>');

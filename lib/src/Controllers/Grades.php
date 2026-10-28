@@ -163,14 +163,17 @@ class Grades extends Tool {
             unset($newrow['subject_key']);
             $passed_upward = $this->resultPassedUpward($row);
             $plus = $this->rowIsPlus($row);
+            $classroom = $this->resultIsClassroom($row);
             $newrow['_upward'] = $passed_upward ? 1 : 0;
             $newrow['_plus'] = $plus ? 1 : 0;
+            $newrow['_classroom'] = $classroom ? 1 : 0;
             unset($newrow['plus_course']);
-            if ( ! $passed_upward && ! $plus ) {
+            unset($newrow['_gc_course'], $newrow['_gc_submit_id']);
+            if ( ! $passed_upward && ! $plus && ! $classroom ) {
                 unset($newrow['server_grade']);
                 unset($newrow['retrieved_at']);
                 unset($newrow['server_status']);
-            } else if ( ! $plus ) {
+            } else if ( ! $plus && ! $classroom ) {
                 $newrow['server_status'] = '';
             }
             $newrows[] = $newrow;
@@ -185,6 +188,7 @@ class Grades extends Tool {
             $this->attachGradeMenu($row);
             unset($row['server_grade']);
             $this->formatResultGrade($row);
+            $this->markClassroomGrade($row);
             if ( array_key_exists('due_date', $row) ) {
                 $row['due_date'] = $this->dueDateLabel($row['due_date']);
             }
@@ -407,11 +411,19 @@ class Grades extends Tool {
             if ( $error !== '' ) {
                 $items[] = array(__('Server error'), $error);
             }
-        } else if ( $this->rowIsUpward($row) ) {
+        } else if ( $this->rowIsUpward($row) || $this->rowIsClassroom($row) ) {
             $server_status = trim((string) U::get($row, 'server_status', ''));
             $retrieved = trim((string) U::get($row, 'retrieved_at', ''));
-            $items[] = array(__('Server status'), $server_status === '' ? '—' : $server_status);
-            $items[] = array(__('Server updated at'), $retrieved === '' ? '—' : $retrieved);
+            if ( $this->rowIsClassroom($row) && ($server_status !== '' || $retrieved !== '') ) {
+                if ( $server_status === '' ) {
+                    $server_status = __('Sent');
+                }
+                $items[] = array(__('Server status'), $server_status);
+                $items[] = array(__('Server updated at'), $retrieved === '' ? '—' : $retrieved);
+            } else if ( $this->rowIsUpward($row) ) {
+                $items[] = array(__('Server status'), $server_status === '' ? '—' : $server_status);
+                $items[] = array(__('Server updated at'), $retrieved === '' ? '—' : $retrieved);
+            }
         }
         $id = 'grade-kebab-'.self::$gradeKebabSeq;
         self::$gradeKebabSeq++;
@@ -486,6 +498,26 @@ class Grades extends Tool {
             return (int) $row['_plus'] === 1;
         }
         return (int) ($row['plus_course'] ?? 0) === 1;
+    }
+
+    /**
+     * This grade is mirrored to Google Classroom.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function resultIsClassroom($row)
+    {
+        $course = trim((string) ($row['_gc_course'] ?? ''));
+        $submit = trim((string) ($row['_gc_submit_id'] ?? ''));
+        return $course !== '' || $submit !== '';
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private function rowIsClassroom($row)
+    {
+        return (int) ($row['_classroom'] ?? 0) === 1;
     }
 
     /**
@@ -2989,14 +3021,36 @@ JS;
     }
 
     /**
+     * Classroom logo beside a student's grade. Not a link and not an install control.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function markClassroomGrade(&$row) {
+        if ( $this->isInstructor() ) {
+            return;
+        }
+        $key = trim((string) ($row['_link_key'] ?? ''));
+        if ( $key === '' || ! isset($this->classroomMirroredMap()[$key]) ) {
+            return;
+        }
+        $label = htmlspecialchars((string) ($row['grade'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $row['_html_grade'] = $label.$this->classroomStatusIcon('', true);
+    }
+
+    /**
      * Non-clickable mark that this column is already a Classroom assignment.
      *
      * @param string $classNames
+     * @param bool $sent Grade-book mark for a learner
      */
-    private function classroomStatusIcon($classNames) {
-        $tip = __('In Google Classroom');
-        if ( $classNames !== '' ) {
-            $tip .= ': '.$classNames;
+    private function classroomStatusIcon($classNames, $sent = false) {
+        if ( $sent ) {
+            $tip = __('This grade is sent to Google Classroom.');
+        } else {
+            $tip = __('In Google Classroom');
+            if ( $classNames !== '' ) {
+                $tip .= ': '.$classNames;
+            }
         }
         $safe = htmlspecialchars($tip, ENT_QUOTES, 'UTF-8');
         return '<img height="16" width="16" alt="" title="'.$safe.'" aria-label="'.$safe.'"'
@@ -3203,6 +3257,7 @@ JS;
             return __('Could not save due dates. Please try again.');
         }
         $this->invalidateDueDatesSessionCache();
+        LessonDue::pullPublished($context_id, array($rlid));
         if ( $this->dueInstant($endSql) === $before ) {
             return null;
         }
@@ -4074,6 +4129,7 @@ JS;
                 CTX.plus_course AS plus_course,
                 TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now,
                 L.link_key AS _link_key, L.published AS _link_published,
+                L.gc_course AS _gc_course, R.gc_submit_id AS _gc_submit_id,
                 C.category_id AS _category_id, C.position AS _position
             FROM {$p}lti_result AS R
             JOIN {$p}lti_link as L ON R.link_id = L.link_id

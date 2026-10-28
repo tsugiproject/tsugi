@@ -41,7 +41,8 @@ class ClassroomQueue {
     }
 
     /**
-     * The patch was accepted. Drop the queue row and clear the result error.
+     * The patch was accepted. Stamp the result Sent and the server time,
+     * then drop the queue row.
      *
      * @param array<string,mixed> $row
      * @param int|null $http
@@ -50,7 +51,7 @@ class ClassroomQueue {
      */
     public static function succeed(array $row, $http, $url, $request) {
         $grade = isset($row['grade']) ? (float) $row['grade'] : null;
-        self::markResult($row, $grade, null);
+        self::markResult($row, $grade, 'Sent');
         self::deleteQueueRow($row);
         self::writeLog($row, self::KIND_SCORE, true, $http, $url, $request, 'Sent');
     }

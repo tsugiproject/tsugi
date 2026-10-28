@@ -62,14 +62,34 @@ class Lessons extends Tool {
     }
 
     /**
-     * Lessons install view. File-based lessons hide it unless
-     * lessons_global_classroom is on.
+     * A connected Classroom teacher on a lessons page that shows install links.
+     * A learner in this course is never this, even if they teach classes of their own.
+     * File-based lessons stay off unless lessons_global_classroom is on.
      */
-    private static function lessonClassroomInstallView() {
-        if ( ! self::classroomInstallView() ) {
+    private static function isGoogleClassroomInstructor() {
+        if ( ! self::classroomInstallView() || ! self::viewerIsCourseInstructor() ) {
             return false;
         }
         return self::showFileClassroomLinks();
+    }
+
+    /**
+     * Instructor or administrator of the course on screen.
+     */
+    public static function viewerIsCourseInstructor() {
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId < 1 ) {
+            $contextId = (int) ReqScope::currentContextIdLegacy();
+        }
+        $userId = (int) ReqScope::loggedInUserIdLegacy();
+        if ( $contextId < 1 || $userId < 1 ) {
+            return false;
+        }
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
+        $member = \Tsugi\Core\Membership::ensureInSession($contextId, $userId);
+        return $member && $member->isInstructor();
     }
 
     /**
@@ -1595,7 +1615,7 @@ $(function(){
     public static function renderSingle(\Tsugi\Services\Lessons\LessonsService $lessons, $buffer=false) {
         global $CFG, $OUTPUT;
         ob_start();
-        $gclass = self::lessonClassroomInstallView();
+        $gclass = self::isGoogleClassroomInstructor();
 
         $module = $lessons->module;
         
@@ -1982,14 +2002,13 @@ $(function(){
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
 
                     if ( $gclass ) {
-                        if ( self::discussionUsesLtiLaunch() ) {
-                            $discussionurl = U::add_url_parm(LessonsNormalize::launchUrlForItem($discussion), 'inherit', $discussion->resource_link_id);
-                        } else {
-                            $discussionurl = self::discussionControllerPath($discussion->resource_link_id ?? '');
-                        }
+                        $discussionId = $discussion->resource_link_id ?? '';
+                        $discussionurl = self::discussionHref($lessons, $discussionId);
                         echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
                         self::echoClassroomTitle($resource_link_title, $discussionurl, null, false);
-                        self::echoClassroomInstall($discussion->resource_link_id ?? '');
+                        if ( $lessons->resourceLinkPublished($discussionId) !== false ) {
+                            self::echoClassroomInstall($discussionId);
+                        }
                         echo("</li>\n");
                         continue;
                     }
@@ -2048,10 +2067,12 @@ $(function(){
                     }
 
                     if ( $gclass ) {
-                        $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
+                        $ltiurl = $lessons->lessonsLaunchPath($lti->resource_link_id);
                         echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
                         self::echoClassroomTitle($resource_link_title, $ltiurl, null, false);
-                        self::echoClassroomInstall($lti->resource_link_id ?? '');
+                        if ( $lessons->resourceLinkPublished($legacy_rlid) !== false ) {
+                            self::echoClassroomInstall($lti->resource_link_id ?? '');
+                        }
                         echo("</li>\n");
                         continue;
                     }
@@ -2104,7 +2125,7 @@ $(function(){
             $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
 
-        $gclass = self::lessonClassroomInstallView();
+        $gclass = self::isGoogleClassroomInstructor();
         if ( $gclass ) {
             self::echoClassroomInstallDialog();
         }
@@ -2347,7 +2368,7 @@ $(function(){
      */
     private static function echoClassroomInstall($resource_link_id) {
         global $CFG;
-        if ( ! isset($_SESSION['gc_count']) ) {
+        if ( ! self::isGoogleClassroomInstructor() ) {
             return;
         }
         if ( ! is_string($resource_link_id) || $resource_link_id === '' ) {
@@ -2377,7 +2398,7 @@ $(function(){
      */
     private static function echoClassroomInstallDialog() {
         global $OUTPUT;
-        if ( ! isset($_SESSION['gc_count']) ) {
+        if ( ! self::isGoogleClassroomInstructor() ) {
             return;
         }
         $src = htmlspecialchars((string) $OUTPUT->getSpinnerUrl(), ENT_QUOTES, 'UTF-8');
@@ -2426,7 +2447,7 @@ $(function(){
         if ( ! self::lessonsUseManifest() ) {
             return;
         }
-        if ( ! isset($_SESSION['gc_count']) ) {
+        if ( ! self::isGoogleClassroomInstructor() ) {
             return;
         }
         $contextId = (int) ReqScope::currentContextId();
@@ -2453,7 +2474,7 @@ $(function(){
         if ( ! self::lessonsUseManifest() ) {
             return;
         }
-        if ( ! isset($_SESSION['gc_count']) ) {
+        if ( ! self::isGoogleClassroomInstructor() ) {
             return;
         }
         $anchor = trim($anchor);
@@ -2483,7 +2504,7 @@ $(function(){
      * @param string $url Already expanded
      */
     private static function echoClassroomShare($title, $url) {
-        if ( ! isset($_SESSION['gc_count']) ) {
+        if ( ! self::isGoogleClassroomInstructor() ) {
             return;
         }
         if ( ! is_string($url) || $url === '' ) {
@@ -3327,7 +3348,9 @@ $(function(){
                     self::renderItemIcon(LessonsNormalize::iconKey($item));
                     echo(htmlentities($resource_link_title).'</span>');
                 }
-                self::echoClassroomInstall($resource_link_id);
+                if ( $lessons->resourceLinkPublished($resource_link_id) !== false ) {
+                    self::echoClassroomInstall($resource_link_id);
+                }
                 echo("</span></li>\n");
                 return;
             }
@@ -3551,7 +3574,9 @@ $(function(){
         if ( $gclass ) {
             echo('<span style="display:inline-flex;align-items:center;gap:6px;">');
             self::echoClassroomTitle($shown, $launch_path, LessonsNormalize::iconKey($item), false);
-            self::echoClassroomInstall($resource_link_id);
+            if ( $visible === true ) {
+                self::echoClassroomInstall($resource_link_id);
+            }
             echo('</span>'."\n");
         } else {
             self::renderRegisteredLtiOpen($view, $launch_path, $shown);
@@ -3565,15 +3590,12 @@ $(function(){
      * Render an LTI item
      */
     private static function renderItemLti($lessons, $item, $module, $gclass=false) {
-        global $CFG;
-        
         $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
         if ( $content_id > 0 ) {
             self::renderContentLti($lessons, $item, $module, $content_id, $gclass);
             return;
         }
         $resource_link_title = isset($item->title) ? $item->title : $module->title;
-        $launch = isset($item->launch) ? $item->launch : '';
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         $target = isset($item->target) ? $item->target : false;
         $tool_deployment_id = self::lessonDeploymentId($item);
@@ -3619,15 +3641,13 @@ $(function(){
             && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
         {
             if ( $gclass ) {
-                if ( $tool_deployment_id > 0 ) {
-                    $ltiurl = $lessons->lessonsLaunchPath($resource_link_id);
-                } else {
-                    $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
-                }
+                $ltiurl = $lessons->lessonsLaunchPath($resource_link_id);
                 echo('<li class="tsugi-lessons-module-lti">');
                 echo('<span style="display:inline-flex;align-items:center;gap:6px;">');
                 self::echoClassroomTitle($resource_link_title.$unpublished_suffix, $ltiurl, LessonsNormalize::iconKey($item), false);
-                self::echoClassroomInstall($resource_link_id);
+                if ( $lessons->resourceLinkPublished($resource_link_id) !== false ) {
+                    self::echoClassroomInstall($resource_link_id);
+                }
                 echo("</span></li>\n");
                 return;
             }

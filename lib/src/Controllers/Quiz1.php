@@ -76,7 +76,7 @@ class Quiz1 extends Tool {
         if ( $quiz ) {
             return $quiz;
         }
-        if ( ! isset($_SESSION[TSUGI_SESSION_LTI]['gc_submit_id']) ) {
+        if ( ! $this->isClassroomLaunch() ) {
             return null;
         }
         global $CFG, $PDOX;
@@ -96,7 +96,21 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * The Classroom assignment's inherit id is the course resource this quiz belongs to.
+     * A Classroom launch is the session Google course, including an instructor
+     * open that has no submission yet.
+     */
+    private function isClassroomLaunch() {
+        $lti = $_SESSION[TSUGI_SESSION_LTI] ?? null;
+        if ( ! is_array($lti) ) {
+            return false;
+        }
+        $course = $lti['gc_course'] ?? '';
+        return is_string($course) && $course !== '';
+    }
+
+    /**
+     * The stored assignment path names this quiz's course and link.
+     * inherit alone is not enough: the same key can exist in another course.
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      */
@@ -117,6 +131,14 @@ class Quiz1 extends Tool {
         }
         $params = array();
         parse_str($query, $params);
+        $srcContext = is_scalar($params['gc_context'] ?? null) ? (int) $params['gc_context'] : 0;
+        $srcLink = is_scalar($params['gc_link'] ?? null) ? (int) $params['gc_link'] : 0;
+        if ( $srcContext < 1 || $srcLink < 1 ) {
+            return false;
+        }
+        if ( $srcContext !== (int) $quiz->context_id || $srcLink !== (int) $quiz->link_id ) {
+            return false;
+        }
         $inherit = isset($params['inherit']) && is_string($params['inherit']) ? $params['inherit'] : '';
         $key = is_string($quiz->link_key) ? $quiz->link_key : '';
         return $inherit !== '' && $key !== '' && hash_equals($key, $inherit);
@@ -131,7 +153,7 @@ class Quiz1 extends Tool {
      * @throws ReqScopeException
      */
     private function gradeScopeForTake($quiz) {
-        if ( isset($_SESSION[TSUGI_SESSION_LTI]['gc_submit_id']) ) {
+        if ( $this->isClassroomLaunch() ) {
             $rc = ReqScope::current();
             if ( ! $rc || ! $rc->result || ! $rc->link ) {
                 throw new ReqScopeException('Request scope is not established.', 500);

@@ -144,6 +144,11 @@ class GoogleClassroom extends Tool {
             return $gate;
         }
         $this->reenterCourseFromQuery();
+        if ( ! \Tsugi\Controllers\Lessons::classroomInstallView()
+            || ! \Tsugi\Controllers\Lessons::viewerIsCourseInstructor() ) {
+            U::flashError('Only a Classroom instructor can install into Google Classroom.');
+            return new RedirectResponse($CFG->apphome);
+        }
 
         if ( (string) U::get($_GET, 'join', '') === 'course' ) {
             return $this->assignCourse();
@@ -211,6 +216,20 @@ class GoogleClassroom extends Tool {
             if ( is_string($placed) ) {
                 $installError = $placed;
                 $gc_course = false;
+            }
+        }
+
+        if ( $gc_course ) {
+            $sourceContext = (int) ReqScope::currentContextId();
+            if ( $sourceContext < 1 ) {
+                $sourceContext = (int) ReqScope::currentContextIdLegacy();
+            }
+            $bound = $this->bindQuizEndpoint($endpoint, $sourceContext);
+            if ( $bound === null ) {
+                $installError = 'That quiz is not in this course.';
+                $gc_course = false;
+            } else {
+                $endpoint = $bound;
             }
         }
 
@@ -285,15 +304,23 @@ class GoogleClassroom extends Tool {
             try {
                 $courseWorkObject = $courseWorkService->create($gc_course, $cw);
             } catch (\Throwable $e) {
+                $installError = ClassroomQueue::scrub($e->getMessage());
+                if ( strlen($installError) > 400 ) {
+                    $installError = substr($installError, 0, 400);
+                }
+                ClassroomQueue::note(
+                    (int) $context_id,
+                    (int) $link_id,
+                    (int) $user_id,
+                    ClassroomQueue::KIND_COURSEWORK,
+                    false,
+                    $installError
+                );
                 if ( $createdLink ) {
                     $PDOX->queryDie(
                         "DELETE FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
                         array(':LID' => $link_id)
                     );
-                }
-                $installError = ClassroomQueue::scrub($e->getMessage());
-                if ( strlen($installError) > 400 ) {
-                    $installError = substr($installError, 0, 400);
                 }
                 $gc_course = false;
             }
@@ -735,7 +762,7 @@ class GoogleClassroom extends Tool {
             return new RedirectResponse($CFG->apphome);
         }
 
-        $gc_secret = $row['gc_secret'];
+        $gc_secret = trim((string) ($row['gc_secret'] ?? ''));
         $path = $row['path'];
         $owner_id = $row['owner_id'];
         $storedWork = trim((string) ($row['gc_coursework'] ?? ''));
@@ -763,7 +790,9 @@ class GoogleClassroom extends Tool {
         $link_mini_check = lti_sha256($plain);
         $link_mini_check = substr($link_mini_check,0,6);
 
-        if ( $link_mini_check != $link_mini_sig || $user_mini_check != $user_mini_sig ) {
+        if ( $gc_secret === ''
+            || ! $this->sameSig($link_mini_check, $link_mini_sig)
+            || ! $this->sameSig($user_mini_check, $user_mini_sig) ) {
             U::flashError('Could not validate resource id');
             return new RedirectResponse($CFG->apphome);
         }
@@ -1078,11 +1107,13 @@ Get:
         }
 
         $owner_id = (int) ($row['owner_id'] ?? 0);
-        $gc_secret = (string) ($row['gc_secret'] ?? '');
+        $gc_secret = trim((string) ($row['gc_secret'] ?? ''));
         $user_check = substr(lti_sha256($CFG->google_classroom_secret.$gc_course.$owner_id.$CFG->google_classroom_secret), 0, 6);
         $bound = $joining ? 'course' : $anchor;
         $mod_check = substr(lti_sha256($gc_secret.$context_id.$bound.$gc_secret), 0, 6);
-        if ( $user_check !== $user_mini_sig || $mod_check !== $mod_sig || $gc_secret === '' ) {
+        if ( $gc_secret === ''
+            || ! $this->sameSig($user_check, $user_mini_sig)
+            || ! $this->sameSig($mod_check, $mod_sig) ) {
             U::flashError('Could not validate resource id');
             return new RedirectResponse($CFG->apphome);
         }
@@ -1705,6 +1736,9 @@ Install in Google Classroom
             return 'This course could not be used for Classroom.';
         }
         $sigUser = (int) ($row['user_id'] ?? 0);
+        if ( $sigUser > 0 && $sigUser !== (int) $userId ) {
+            return 'Only the course owner can install into Google Classroom.';
+        }
         if ( $sigUser < 1 ) {
             $sigUser = (int) $userId;
             $PDOX->queryDie(
@@ -2172,6 +2206,64 @@ Install in Google Classroom
             array(':CID' => $contextId, ':UID' => $userId, ':ROLE' => $role)
         );
         return true;
+    }
+
+    /**
+     * A Quiz1 take URL has to name a link in the course being installed.
+     * The stored path records that course and link. Other tools are unchanged.
+     *
+     * @param string $endpoint
+     * @param int $contextId
+     * @return string|null
+     */
+    private function bindQuizEndpoint($endpoint, $contextId) {
+        global $CFG, $PDOX;
+        if ( ! preg_match('#/quiz1/link/(\d+)#', $endpoint, $match) ) {
+            return $endpoint;
+        }
+        if ( preg_match('#^https?://#i', $endpoint) ) {
+            $host = parse_url($endpoint, PHP_URL_HOST);
+            $ours = array();
+            foreach ( array($CFG->wwwroot ?? '', $CFG->apphome ?? '') as $base ) {
+                $known = parse_url((string) $base, PHP_URL_HOST);
+                if ( is_string($known) && $known !== '' ) {
+                    $ours[] = strtolower($known);
+                }
+            }
+            if ( ! is_string($host) || ! in_array(strtolower($host), $ours, true) ) {
+                return null;
+            }
+        }
+        $linkId = (int) $match[1];
+        if ( $linkId < 1 || $contextId < 1 ) {
+            return null;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT context_id FROM {$CFG->dbprefix}lti_link
+             WHERE link_id = :LID AND (deleted IS NULL OR deleted = 0)
+             LIMIT 1",
+            array(':LID' => $linkId)
+        );
+        if ( ! is_array($row) || (int) ($row['context_id'] ?? 0) !== (int) $contextId ) {
+            return null;
+        }
+        $endpoint = U::add_url_parm($endpoint, 'gc_context', (string) (int) $contextId);
+        return U::add_url_parm($endpoint, 'gc_link', (string) $linkId);
+    }
+
+    /**
+     * Constant-time compare for the 6-character Classroom signatures.
+     *
+     * @param mixed $expected
+     * @param mixed $given
+     */
+    private function sameSig($expected, $given) {
+        $expected = (string) $expected;
+        $given = (string) $given;
+        if ( $expected === '' || strlen($expected) !== strlen($given) ) {
+            return false;
+        }
+        return hash_equals($expected, $given);
     }
 
     private function launchPieces($resource) {

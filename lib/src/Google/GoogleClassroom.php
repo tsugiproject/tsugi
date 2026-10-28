@@ -26,14 +26,6 @@ class GoogleClassroom {
     public static $redirectError = null;
 
     /**
-     * Returns an authorized Clasroom API client.
-     *
-     * On failure, returns false and sets $redirectUrl (and sometimes $redirectError).
-     * The caller sends the browser there. This method does not send a response.
-     *
-     * @return \Google_Client|false
-     */
-    /**
      * JSON to store after a code exchange or a refresh, or null when the
      * blob must not replace the stored refresh token.
      *
@@ -81,6 +73,19 @@ class GoogleClassroom {
         return $error;
     }
 
+    /**
+     * Returns an authorized Classroom API client.
+     *
+     * On failure, returns false and sets $redirectUrl (and sometimes $redirectError).
+     * The caller sends the browser there. This method does not send a response.
+     *
+     * @param string|false $accessTokenStr
+     * @param int|false $user_id
+     * @param bool $useAuthCode Exchange a code only on /gclass/login
+     * @param int $lockWait Seconds to wait for the per-user token lock. 0 does not wait.
+     * @param float|null $httpTimeout Seconds for this client's HTTP calls. Null keeps the default client.
+     * @return \Google_Client|false
+     */
     public static function getClient($accessTokenStr, $user_id=false, $useAuthCode=true, $lockWait=15, $httpTimeout=null) {
         global $CFG;
 
@@ -223,9 +228,6 @@ class GoogleClassroom {
         return $client;
     }
 
-    /**
-     * @param \Google_Client $client
-     */
     /**
      * Send the browser to Google. There is no stored refresh token yet, so
      * consent is required or Google returns an access token and nothing else.
@@ -451,12 +453,6 @@ class GoogleClassroom {
     }
 
     /**
-     * Send the current launch's 0–1 grade. A failure is queued for the teacher.
-     *
-     * @param float $fraction
-     * @return true|string
-     */
-    /**
      * Send a stored result when the quiz page is the site login.
      * Null means this result has no Classroom submission.
      *
@@ -519,6 +515,12 @@ class GoogleClassroom {
         );
     }
 
+    /**
+     * Send the current launch's 0–1 grade. A failure is queued for the teacher.
+     *
+     * @param float $fraction
+     * @return true|string
+     */
     public static function gradeSend($fraction) {
         $lti = U::get($_SESSION, TSUGI_SESSION_LTI);
         if ( ! is_array($lti) ) {
@@ -549,7 +551,7 @@ class GoogleClassroom {
         $coursework = trim((string) ($row['gc_coursework'] ?? ''));
         $submitId = trim((string) ($row['gc_submit_id'] ?? ''));
         $fraction = (float) ($row['grade'] ?? 0);
-        $points = (int) ($fraction * 100);
+        $points = (int) round($fraction * 100);
         if ( $points < 0 ) {
             $points = 0;
         }
