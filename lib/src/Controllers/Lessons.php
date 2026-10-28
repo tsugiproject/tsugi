@@ -75,12 +75,21 @@ class Lessons extends Tool {
     /**
      * The lessons on screen belong to a manifest course.
      */
+    private static $manifestLessons = null;
+
+    private static $manifestContext = null;
+
     private static function lessonsUseManifest() {
         $contextId = (int) ReqScope::currentContextId();
         if ( $contextId < 1 ) {
             $contextId = (int) ReqScope::currentContextIdLegacy();
         }
-        return $contextId > 0 && \Tsugi\Core\Manifest::idForContext($contextId) > 0;
+        if ( self::$manifestContext === $contextId && self::$manifestLessons !== null ) {
+            return self::$manifestLessons;
+        }
+        self::$manifestContext = $contextId;
+        self::$manifestLessons = $contextId > 0 && \Tsugi\Core\Manifest::idForContext($contextId) > 0;
+        return self::$manifestLessons;
     }
 
     /**

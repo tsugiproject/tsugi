@@ -81,7 +81,7 @@ class GoogleClassroom {
         return $error;
     }
 
-    public static function getClient($accessTokenStr, $user_id=false, $useAuthCode=true) {
+    public static function getClient($accessTokenStr, $user_id=false, $useAuthCode=true, $lockWait=15, $httpTimeout=null) {
         global $CFG;
 
         self::$redirectUrl = null;
@@ -89,7 +89,7 @@ class GoogleClassroom {
 
         if ( ! $user_id ) $user_id = ReqScope::loggedInUserIdLegacy();
 
-        $held = self::lockUser($user_id);
+        $held = self::lockUser($user_id, $lockWait);
         try {
             if ( $held === false ) {
                 self::$redirectError = 'Google Classroom is busy. Try again in a moment.';
@@ -108,7 +108,7 @@ class GoogleClassroom {
                     }
                 }
             }
-            return self::clientFromToken($accessTokenStr, $user_id, $useAuthCode);
+            return self::clientFromToken($accessTokenStr, $user_id, $useAuthCode, $httpTimeout);
         } finally {
             if ( $held === true ) {
                 self::unlockUser($user_id);
@@ -121,7 +121,7 @@ class GoogleClassroom {
      * @param int $user_id
      * @return \Google_Client|false
      */
-    private static function clientFromToken($accessTokenStr, $user_id, $useAuthCode=true) {
+    private static function clientFromToken($accessTokenStr, $user_id, $useAuthCode=true, $httpTimeout=null) {
         global $CFG;
 
         $options = array(
@@ -142,10 +142,18 @@ class GoogleClassroom {
         );
         $client->setAccessType('offline');
         $client->setIncludeGrantedScopes(true);
+        if ( is_numeric($httpTimeout) && (float) $httpTimeout > 0 ) {
+            $seconds = (float) $httpTimeout;
+            $client->setHttpClient(new \GuzzleHttp\Client(array(
+                'timeout' => $seconds,
+                'connect_timeout' => min(2, $seconds),
+            )));
+        }
 
         $accessToken = false;
-        if ( $useAuthCode && isset($_GET['code']) ) {
-            $accessToken = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+        $code = $useAuthCode ? self::classroomLoginCode($user_id) : false;
+        if ( is_string($code) ) {
+            $accessToken = $client->fetchAccessTokenWithAuthCode($code);
             $store = self::storedToken(is_string($accessTokenStr) ? $accessTokenStr : null, $accessToken);
             if ( $store === null ) {
                 $message = self::refreshError($accessToken);
@@ -185,14 +193,18 @@ class GoogleClassroom {
             try {
                 $creds = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
             } catch ( \Throwable $e ) {
-                ClassroomQueue::connection($user_id, $e->getMessage());
-                self::$redirectError = 'Google Classroom needs to be reconnected.';
-                self::authRedirect($client);
+                error_log('Classroom token refresh unavailable user='.$user_id);
+                self::$redirectError = 'Google Classroom is temporarily unavailable.';
                 return false;
             }
             $store = self::storedToken($accessTokenStr, $creds);
             if ( $store === null ) {
                 $message = self::refreshError($creds);
+                if ( ! self::credentialRejected($creds) ) {
+                    error_log('Classroom token refresh unavailable user='.$user_id);
+                    self::$redirectError = 'Google Classroom is temporarily unavailable.';
+                    return false;
+                }
                 ClassroomQueue::connection($user_id, $message);
                 self::$redirectError = 'Google Classroom needs to be reconnected. '.$message;
                 self::authRedirect($client);
@@ -223,8 +235,63 @@ class GoogleClassroom {
     private static function authRedirect($client) {
         // select_account or Google reuses whichever account last approved this
         // client. That account is not always the one signed in to Classroom.
+        if ( session_id() == '' ) {
+            session_start();
+        }
+        $state = bin2hex(random_bytes(16));
+        $_SESSION['gc_oauth_state'] = $state;
+        $_SESSION['gc_oauth_user'] = (int) ReqScope::loggedInUserIdLegacy();
+        $client->setState($state);
         $client->setPrompt('select_account consent');
         self::$redirectUrl = $client->createAuthUrl();
+    }
+
+    /**
+     * Authorization codes are exchanged only on /gclass/login, and only for
+     * the browser session that started that connect.
+     *
+     * @param int $user_id
+     * @return string|false
+     */
+    private static function classroomLoginCode($user_id) {
+        if ( ! self::isClassroomLoginRequest() ) {
+            return false;
+        }
+        $state = (string) ($_GET['state'] ?? '');
+        $saved = (string) ($_SESSION['gc_oauth_state'] ?? '');
+        $savedUser = (int) ($_SESSION['gc_oauth_user'] ?? 0);
+        unset($_SESSION['gc_oauth_state'], $_SESSION['gc_oauth_user']);
+        if ( $state === '' || $saved === '' || ! hash_equals($saved, $state) ) {
+            return false;
+        }
+        if ( $savedUser < 1 || $savedUser !== (int) $user_id ) {
+            return false;
+        }
+        $code = $_GET['code'] ?? '';
+        return is_string($code) && $code !== '' ? $code : false;
+    }
+
+    private static function isClassroomLoginRequest() {
+        global $CFG;
+        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        $expected = parse_url(rtrim((string) $CFG->wwwroot, '/').'/gclass/login', PHP_URL_PATH);
+        if ( ! is_string($path) || ! is_string($expected) ) {
+            return false;
+        }
+        return rtrim($path, '/') === rtrim($expected, '/');
+    }
+
+    /**
+     * Google refused the stored refresh token. A network failure is not this.
+     *
+     * @param mixed $creds
+     */
+    private static function credentialRejected($creds) {
+        if ( ! is_array($creds) ) {
+            return false;
+        }
+        $error = (string) ($creds['error'] ?? '');
+        return $error === 'invalid_grant' || $error === 'invalid_client' || $error === 'unauthorized_client';
     }
 
     /**
@@ -260,14 +327,18 @@ class GoogleClassroom {
      * @param int $user_id
      * @return bool|null
      */
-    private static function lockUser($user_id) {
+    private static function lockUser($user_id, $wait=15) {
         if ( (int) $user_id < 1 ) {
             return null;
+        }
+        $wait = (int) $wait;
+        if ( $wait < 0 ) {
+            $wait = 0;
         }
         try {
             $PDOX = LTIX::getConnection();
             $row = $PDOX->rowDie(
-                "SELECT GET_LOCK(:NAME, 15) AS locked",
+                "SELECT GET_LOCK(:NAME, ".$wait.") AS locked",
                 array(':NAME' => 'tsugi_gclass_'.(int) $user_id)
             );
         } catch ( \Throwable $e ) {

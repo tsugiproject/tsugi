@@ -1430,12 +1430,6 @@ Install in Google Classroom
     }
 
     /**
-     * Active classes the connected Google account teaches.
-     *
-     * @param \Google_Service_Classroom $service
-     * @return array<int,\Google_Service_Classroom_Course>
-     */
-    /**
      * After a site login, a stored Classroom token means this person already
      * connected. Count the classes they teach and remember it for this session.
      *
@@ -1453,20 +1447,28 @@ Install in Google Classroom
             return;
         }
         try {
-            $client = ClassroomApi::getClient(false, $userId, false);
+            $client = ClassroomApi::getClient(false, $userId, false, 0, 2);
             if ( ! $client ) {
                 return;
             }
-            $courses = self::teacherCourses(new \Google_Service_Classroom($client));
+            $courses = self::teacherCourses(new \Google_Service_Classroom($client), 1);
             $_SESSION['gc_count'] = count($courses);
         } catch ( \Throwable $e ) {
             error_log('Classroom course count skipped user='.$userId);
         }
     }
 
-    public static function teacherCourses($service) {
+    /**
+     * Active classes the connected Google account teaches.
+     *
+     * @param \Google_Service_Classroom $service
+     * @param int $maxPages 0 reads every page
+     * @return array<int,\Google_Service_Classroom_Course>
+     */
+    public static function teacherCourses($service, $maxPages=0) {
         $found = array();
         $page = null;
+        $pages = 0;
         do {
             $params = array(
                 'pageSize' => 100,
@@ -1483,7 +1485,11 @@ Install in Google Classroom
                     $found[] = $course;
                 }
             }
+            $pages++;
             $page = $list->getNextPageToken();
+            if ( $maxPages > 0 && $pages >= $maxPages ) {
+                break;
+            }
         } while ( is_string($page) && $page !== '' );
         return $found;
     }
