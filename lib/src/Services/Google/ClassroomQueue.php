@@ -57,6 +57,25 @@ class ClassroomQueue {
     }
 
     /**
+     * A newer grade arrived while this send was in flight. Keep that grade
+     * queued and do not mark the older send as Sent.
+     *
+     * @param array<string,mixed> $row
+     */
+    public static function keepCurrent(array $row) {
+        self::upsert($row, self::STATE_PENDING, '');
+    }
+
+    /**
+     * The result row is gone. Drop the queue row and do not write a status.
+     *
+     * @param array<string,mixed> $row
+     */
+    public static function drop(array $row) {
+        self::deleteQueueRow($row);
+    }
+
+    /**
      * Coursework create, reconnect, or any non-score attempt.
      *
      * @param int $contextId

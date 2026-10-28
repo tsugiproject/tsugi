@@ -440,7 +440,7 @@ class GoogleClassroom extends Tool {
             function ($gcCourse, $contextId, $gcSecret, $sigUser) use ($anchor) {
                 global $CFG;
                 $userSig = substr(lti_sha256($CFG->google_classroom_secret.$gcCourse.$sigUser.$CFG->google_classroom_secret), 0, 6);
-                $modSig = substr(lti_sha256($gcSecret.$contextId.$anchor.$gcSecret), 0, 6);
+                $modSig = $this->courseMaterialSig($gcSecret, $gcCourse, $contextId, $anchor);
                 return $CFG->wwwroot.'/gclass/launch/lesson/'
                     .$gcCourse.':'.$userSig.':'.$contextId.':'.$modSig
                     .'/'.rawurlencode($anchor);
@@ -473,7 +473,7 @@ class GoogleClassroom extends Tool {
             function ($gcCourse, $contextId, $gcSecret, $sigUser) {
                 global $CFG;
                 $userSig = substr(lti_sha256($CFG->google_classroom_secret.$gcCourse.$sigUser.$CFG->google_classroom_secret), 0, 6);
-                $courseSig = substr(lti_sha256($gcSecret.$contextId.'course'.$gcSecret), 0, 6);
+                $courseSig = $this->courseMaterialSig($gcSecret, $gcCourse, $contextId, 'course');
                 return $CFG->wwwroot.'/gclass/launch/course/'
                     .$gcCourse.':'.$userSig.':'.$contextId.':'.$courseSig;
             },
@@ -1110,7 +1110,7 @@ Get:
         $gc_secret = trim((string) ($row['gc_secret'] ?? ''));
         $user_check = substr(lti_sha256($CFG->google_classroom_secret.$gc_course.$owner_id.$CFG->google_classroom_secret), 0, 6);
         $bound = $joining ? 'course' : $anchor;
-        $mod_check = substr(lti_sha256($gc_secret.$context_id.$bound.$gc_secret), 0, 6);
+        $mod_check = $this->courseMaterialSig($gc_secret, $gc_course, $context_id, $bound);
         if ( $gc_secret === ''
             || ! $this->sameSig($user_check, $user_mini_sig)
             || ! $this->sameSig($mod_check, $mod_sig) ) {
@@ -2249,6 +2249,20 @@ Install in Google Classroom
         }
         $endpoint = U::add_url_parm($endpoint, 'gc_context', (string) (int) $contextId);
         return U::add_url_parm($endpoint, 'gc_link', (string) $linkId);
+    }
+
+    /**
+     * Signature for a lesson or course material. The Google class is part of
+     * the signature so one class cannot be paired with another course.
+     *
+     * @param string $gcSecret
+     * @param string $gcCourse
+     * @param int|string $contextId
+     * @param string $bound Lesson anchor, or course
+     */
+    private function courseMaterialSig($gcSecret, $gcCourse, $contextId, $bound) {
+        $plain = $gcSecret.'|'.$gcCourse.'|'.$contextId.'|'.$bound.'|'.$gcSecret;
+        return substr(lti_sha256($plain), 0, 6);
     }
 
     /**

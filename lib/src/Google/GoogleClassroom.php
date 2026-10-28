@@ -15,6 +15,12 @@ class GoogleClassroom {
     const QUEUED_MESSAGE = 'Your score is saved here. It will be sent to Google Classroom when your instructor sends the queue.';
 
     /**
+     * Seconds for token refresh and the grade patch. The per-user lock is held
+     * during refresh, so this cannot be left at the client default of forever.
+     */
+    const GRADE_HTTP_TIMEOUT = 20;
+
+    /**
      * Where the Classroom controller should send the browser when getClient cannot
      * return a client. Empty when there is nothing to redirect.
      */
@@ -368,6 +374,98 @@ class GoogleClassroom {
         }
     }
 
+    /**
+     * One send at a time for this result. Null when there is no result to lock.
+     *
+     * @param int $resultId
+     * @return bool|null
+     */
+    private static function lockResult($resultId) {
+        if ( (int) $resultId < 1 ) {
+            return null;
+        }
+        try {
+            $PDOX = LTIX::getConnection();
+            $row = $PDOX->rowDie(
+                "SELECT GET_LOCK(:NAME, ".self::GRADE_HTTP_TIMEOUT.") AS locked",
+                array(':NAME' => 'tsugi_gclass_result_'.(int) $resultId)
+            );
+        } catch ( \Throwable $e ) {
+            error_log('Classroom result lock result='.(int) $resultId.' '.$e->getMessage());
+            return null;
+        }
+        if ( ! is_array($row) || ! array_key_exists('locked', $row) || $row['locked'] === null ) {
+            return null;
+        }
+        return (int) $row['locked'] === 1;
+    }
+
+    /**
+     * @param int $resultId
+     */
+    private static function unlockResult($resultId) {
+        try {
+            $PDOX = LTIX::getConnection();
+            $PDOX->rowDie(
+                "SELECT RELEASE_LOCK(:NAME) AS released",
+                array(':NAME' => 'tsugi_gclass_result_'.(int) $resultId)
+            );
+        } catch ( \Throwable $e ) {
+            error_log('Classroom result unlock result='.(int) $resultId.' '.$e->getMessage());
+        }
+    }
+
+    /**
+     * The grade stored now. Null when the result is gone. False when it
+     * could not be read, so the caller keeps the grade it already has.
+     *
+     * @param int $resultId
+     * @return float|false|null
+     */
+    private static function currentResultGrade($resultId) {
+        $resultId = (int) $resultId;
+        if ( $resultId < 1 ) {
+            return false;
+        }
+        global $CFG;
+        try {
+            $PDOX = LTIX::getConnection();
+            $row = $PDOX->rowDie(
+                "SELECT grade FROM {$CFG->dbprefix}lti_result
+                 WHERE result_id = :RID AND (deleted IS NULL OR deleted = 0)
+                 LIMIT 1",
+                array(':RID' => $resultId)
+            );
+        } catch ( \Throwable $e ) {
+            error_log('Classroom grade read result='.$resultId.' '.$e->getMessage());
+            return false;
+        }
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        if ( ! is_numeric($row['grade'] ?? null) ) {
+            return null;
+        }
+        return (float) $row['grade'];
+    }
+
+    /**
+     * Another send holds this result. Queue the grade stored now.
+     *
+     * @param array<string,mixed> $row
+     */
+    private static function queueLiveGrade(array $row) {
+        $live = self::currentResultGrade((int) ($row['result_id'] ?? 0));
+        if ( is_float($live) ) {
+            $row['grade'] = $live;
+        }
+        if ( $live === null ) {
+            ClassroomQueue::drop($row);
+            return;
+        }
+        ClassroomQueue::keepCurrent($row);
+    }
+
 
     /**
      * Whether this stored token lists a scope. Null when the token has no
@@ -571,7 +669,9 @@ class GoogleClassroom {
         }
 
         $accessTokenStr = self::retrieve_instructor_token($ownerId);
-        $client = $accessTokenStr ? self::getClient($accessTokenStr, $ownerId) : false;
+        $client = $accessTokenStr
+            ? self::getClient($accessTokenStr, $ownerId, true, 15, self::GRADE_HTTP_TIMEOUT)
+            : false;
         if ( ! $client ) {
             $detail = self::$redirectError;
             if ( ! is_string($detail) || $detail === '' ) {
@@ -582,30 +682,74 @@ class GoogleClassroom {
             return self::QUEUED_MESSAGE;
         }
 
+        $resultId = (int) ($row['result_id'] ?? 0);
+        $held = self::lockResult($resultId);
         try {
-            $service = new \Google_Service_Classroom($client);
-            $sub = new \Google_Service_Classroom_StudentSubmission();
-            $sub->setAssignedGrade($points);
-            $sub->setDraftGrade($points);
-            $service->courses_courseWork_studentSubmissions->patch(
-                $course,
-                $coursework,
-                $submitId,
-                $sub,
-                array('updateMask' => 'assignedGrade,draftGrade')
-            );
-        } catch ( \Throwable $e ) {
-            $http = $e instanceof \Google\Service\Exception ? (int) $e->getCode() : null;
-            if ( $http === 401 || $http === 403 ) {
-                ClassroomQueue::connection($ownerId, $e->getMessage());
+            if ( $held === false ) {
+                self::queueLiveGrade($row);
+                return self::QUEUED_MESSAGE;
             }
-            ClassroomQueue::fail($row, $e->getMessage(), $http, $url, $request);
-            error_log('Classroom grade queued owner='.$ownerId.' result='.(int) ($row['result_id'] ?? 0));
-            return self::QUEUED_MESSAGE;
-        }
+            $live = self::currentResultGrade($resultId);
+            if ( $live === null && $resultId > 0 ) {
+                ClassroomQueue::drop($row);
+                return 'That grade is no longer stored.';
+            }
+            if ( is_float($live) ) {
+                $row['grade'] = $live;
+                $fraction = $live;
+                $points = (int) round($fraction * 100);
+                if ( $points < 0 ) {
+                    $points = 0;
+                }
+                if ( $points > 100 ) {
+                    $points = 100;
+                }
+                $request = json_encode(array(
+                    'assignedGrade' => $points,
+                    'draftGrade' => $points,
+                ));
+            }
 
-        ClassroomQueue::succeed($row, 200, $url, $request);
-        return true;
+            try {
+                $service = new \Google_Service_Classroom($client);
+                $sub = new \Google_Service_Classroom_StudentSubmission();
+                $sub->setAssignedGrade($points);
+                $sub->setDraftGrade($points);
+                $service->courses_courseWork_studentSubmissions->patch(
+                    $course,
+                    $coursework,
+                    $submitId,
+                    $sub,
+                    array('updateMask' => 'assignedGrade,draftGrade')
+                );
+            } catch ( \Throwable $e ) {
+                $http = $e instanceof \Google\Service\Exception ? (int) $e->getCode() : null;
+                if ( $http === 401 || $http === 403 ) {
+                    ClassroomQueue::connection($ownerId, $e->getMessage());
+                }
+                ClassroomQueue::fail($row, $e->getMessage(), $http, $url, $request);
+                error_log('Classroom grade queued owner='.$ownerId.' result='.$resultId);
+                return self::QUEUED_MESSAGE;
+            }
+
+            $after = self::currentResultGrade($resultId);
+            if ( $after === null && $resultId > 0 ) {
+                ClassroomQueue::drop($row);
+                return 'That grade is no longer stored.';
+            }
+            if ( is_float($live) && is_float($after) && abs($after - $live) >= 0.0000005 ) {
+                $row['grade'] = $after;
+                ClassroomQueue::keepCurrent($row);
+                return self::QUEUED_MESSAGE;
+            }
+
+            ClassroomQueue::succeed($row, 200, $url, $request);
+            return true;
+        } finally {
+            if ( $held === true ) {
+                self::unlockResult($resultId);
+            }
+        }
     }
 
     /**
@@ -635,7 +779,9 @@ class GoogleClassroom {
         }
 
         $accessTokenStr = self::retrieve_instructor_token($ownerId);
-        $client = $accessTokenStr ? self::getClient($accessTokenStr, $ownerId) : false;
+        $client = $accessTokenStr
+            ? self::getClient($accessTokenStr, $ownerId, true, 15, self::GRADE_HTTP_TIMEOUT)
+            : false;
         if ( ! $client ) {
             error_log('Classroom stored grades not sent; teacher not connected owner='.$ownerId);
             $counts['waiting'] = count($grades);

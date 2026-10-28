@@ -167,6 +167,7 @@ class Grades extends Tool {
             $newrow['_upward'] = $passed_upward ? 1 : 0;
             $newrow['_plus'] = $plus ? 1 : 0;
             $newrow['_classroom'] = $classroom ? 1 : 0;
+            $newrow['_gc_sent'] = ($classroom && $this->classroomGradeWasSent($newrow)) ? 1 : 0;
             unset($newrow['plus_course']);
             unset($newrow['_gc_course'], $newrow['_gc_submit_id']);
             if ( ! $passed_upward && ! $plus && ! $classroom ) {
@@ -521,6 +522,38 @@ class Grades extends Tool {
     }
 
     /**
+     * The score reached Classroom. An error status, including a queued
+     * failure, is not sent. An older success stored the time and no status.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function classroomGradeWasSent($row)
+    {
+        $status = trim((string) ($row['server_status'] ?? ''));
+        if ( $status === 'Sent' ) {
+            return true;
+        }
+        if ( $status !== '' ) {
+            return false;
+        }
+        return trim((string) ($row['retrieved_at'] ?? '')) !== '';
+    }
+
+    /**
+     * Activity detail rows did not come through processGradeRows.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function markClassRowsClassroom(&$rows)
+    {
+        foreach ( $rows as &$row ) {
+            $row['_classroom'] = $this->resultIsClassroom($row) ? 1 : 0;
+            unset($row['_gc_course'], $row['_gc_submit_id']);
+        }
+        unset($row);
+    }
+
+    /**
      * The live due date is lti_link.end_datetime, stored as 11:59 PM that day.
      *
      * @param mixed $mysql
@@ -814,7 +847,8 @@ class Grades extends Tool {
                     L.end_datetime AS due_date,
                     R.updated_at as updated_at, R.server_grade, R.retrieved_at, R.server_status,
                     R.sourcedid AS sourcedid, S.service_key AS service, L.lti13_lineitem AS lti13_lineitem,
-                    CTX.plus_course AS plus_course
+                    CTX.plus_course AS plus_course,
+                    L.gc_course AS _gc_course, R.gc_submit_id AS _gc_submit_id
                 FROM {$p}lti_result AS R
                 INNER JOIN {$p}lti_user as U ON R.user_id = U.user_id
                 INNER JOIN {$p}lti_link AS L ON R.link_id = L.link_id
@@ -894,6 +928,7 @@ class Grades extends Tool {
             $newsql = Table::pagedQuery($class_sql, $query_parms, $searchfields, $searchfields, $params);
             $class_rows = $PDOX->allRowsDie($newsql, $query_parms);
             $this->addClassViewCodeColumn($class_rows, $link_info);
+            $this->markClassRowsClassroom($class_rows);
             $this->attachGradeMenus($class_rows, false);
             $this->attachGradeOverrides($class_rows, $tool_home.'/class?link_id='.(int) $link_id);
             $this->formatResultGrades($class_rows);
@@ -3029,8 +3064,7 @@ JS;
         if ( $this->isInstructor() ) {
             return;
         }
-        $key = trim((string) ($row['_link_key'] ?? ''));
-        if ( $key === '' || ! isset($this->classroomMirroredMap()[$key]) ) {
+        if ( (int) ($row['_gc_sent'] ?? 0) !== 1 ) {
             return;
         }
         $label = htmlspecialchars((string) ($row['grade'] ?? ''), ENT_QUOTES, 'UTF-8');
