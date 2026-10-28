@@ -61,6 +61,40 @@ class Lessons extends Tool {
         return isset($_SESSION['gc_count']) && (int) $_SESSION['gc_count'] > 0;
     }
 
+    /**
+     * Lessons install view. File-based lessons hide it unless
+     * lessons_global_classroom is on.
+     */
+    private static function lessonClassroomInstallView() {
+        if ( ! self::classroomInstallView() ) {
+            return false;
+        }
+        return self::showFileClassroomLinks();
+    }
+
+    /**
+     * The lessons on screen belong to a manifest course.
+     */
+    private static function lessonsUseManifest() {
+        $contextId = (int) ReqScope::currentContextId();
+        if ( $contextId < 1 ) {
+            $contextId = (int) ReqScope::currentContextIdLegacy();
+        }
+        return $contextId > 0 && \Tsugi\Core\Manifest::idForContext($contextId) > 0;
+    }
+
+    /**
+     * Manifest courses always show Classroom links. File-based lessons
+     * show link and assignment icons only when the extension is on.
+     */
+    private static function showFileClassroomLinks() {
+        if ( self::lessonsUseManifest() ) {
+            return true;
+        }
+        global $CFG;
+        return (bool) $CFG->getExtension('lessons_global_classroom', false);
+    }
+
     public function get(Request $request, $anchor=null)
     {
         global $OUTPUT;
@@ -1552,7 +1586,7 @@ $(function(){
     public static function renderSingle(\Tsugi\Services\Lessons\LessonsService $lessons, $buffer=false) {
         global $CFG, $OUTPUT;
         ob_start();
-        $gclass = self::classroomInstallView();
+        $gclass = self::lessonClassroomInstallView();
 
         $module = $lessons->module;
         
@@ -2061,7 +2095,7 @@ $(function(){
             $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
 
-        $gclass = self::classroomInstallView();
+        $gclass = self::lessonClassroomInstallView();
         if ( $gclass ) {
             self::echoClassroomInstallDialog();
         }
@@ -2380,6 +2414,9 @@ $(function(){
      */
     private static function echoClassroomCourseInstall($title) {
         global $CFG;
+        if ( ! self::lessonsUseManifest() ) {
+            return;
+        }
         if ( ! isset($_SESSION['gc_count']) ) {
             return;
         }
@@ -2404,6 +2441,9 @@ $(function(){
 
     private static function echoClassroomModuleInstall($anchor, $title) {
         global $CFG;
+        if ( ! self::lessonsUseManifest() ) {
+            return;
+        }
         if ( ! isset($_SESSION['gc_count']) ) {
             return;
         }

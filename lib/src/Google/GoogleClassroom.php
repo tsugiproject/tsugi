@@ -81,7 +81,7 @@ class GoogleClassroom {
         return $error;
     }
 
-    public static function getClient($accessTokenStr, $user_id=false) {
+    public static function getClient($accessTokenStr, $user_id=false, $useAuthCode=true) {
         global $CFG;
 
         self::$redirectUrl = null;
@@ -95,8 +95,8 @@ class GoogleClassroom {
                 self::$redirectError = 'Google Classroom is busy. Try again in a moment.';
                 return false;
             }
-            if ( ! isset($_GET['code']) ) {
-                $force = isset($_GET['consent']) && (string) $_GET['consent'] === '1';
+            if ( ! $useAuthCode || ! isset($_GET['code']) ) {
+                $force = $useAuthCode && isset($_GET['consent']) && (string) $_GET['consent'] === '1';
                 if ( $force ) {
                     // Reconnect must ask which Google account. The stored token
                     // may be a different person than the browser Classroom session.
@@ -108,7 +108,7 @@ class GoogleClassroom {
                     }
                 }
             }
-            return self::clientFromToken($accessTokenStr, $user_id);
+            return self::clientFromToken($accessTokenStr, $user_id, $useAuthCode);
         } finally {
             if ( $held === true ) {
                 self::unlockUser($user_id);
@@ -121,7 +121,7 @@ class GoogleClassroom {
      * @param int $user_id
      * @return \Google_Client|false
      */
-    private static function clientFromToken($accessTokenStr, $user_id) {
+    private static function clientFromToken($accessTokenStr, $user_id, $useAuthCode=true) {
         global $CFG;
 
         $options = array(
@@ -144,7 +144,7 @@ class GoogleClassroom {
         $client->setIncludeGrantedScopes(true);
 
         $accessToken = false;
-        if ( isset($_GET['code']) ) {
+        if ( $useAuthCode && isset($_GET['code']) ) {
             $accessToken = $client->fetchAccessTokenWithAuthCode($_GET['code']);
             $store = self::storedToken(is_string($accessTokenStr) ? $accessTokenStr : null, $accessToken);
             if ( $store === null ) {

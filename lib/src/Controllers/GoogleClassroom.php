@@ -1435,6 +1435,35 @@ Install in Google Classroom
      * @param \Google_Service_Classroom $service
      * @return array<int,\Google_Service_Classroom_Course>
      */
+    /**
+     * After a site login, a stored Classroom token means this person already
+     * connected. Count the classes they teach and remember it for this session.
+     *
+     * @param int $userId
+     */
+    public static function rememberCourseCount($userId) {
+        global $CFG;
+        unset($_SESSION['gc_count']);
+        if ( ! isset($CFG->google_classroom_secret) || ! is_string($CFG->google_classroom_secret)
+            || $CFG->google_classroom_secret === '' ) {
+            return;
+        }
+        $userId = (int) $userId;
+        if ( $userId < 1 || ! ClassroomApi::retrieve_instructor_token($userId) ) {
+            return;
+        }
+        try {
+            $client = ClassroomApi::getClient(false, $userId, false);
+            if ( ! $client ) {
+                return;
+            }
+            $courses = self::teacherCourses(new \Google_Service_Classroom($client));
+            $_SESSION['gc_count'] = count($courses);
+        } catch ( \Throwable $e ) {
+            error_log('Classroom course count skipped user='.$userId);
+        }
+    }
+
     public static function teacherCourses($service) {
         $found = array();
         $page = null;
