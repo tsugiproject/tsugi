@@ -3,6 +3,7 @@
 use Tsugi\Core\Keyset;
 use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
+use Tsugi\Services\Ims\PnpConnector;
 use Tsugi\Services\Outbound\Lti13TestLaunch;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
 use Tsugi\Services\Outbound\ToolRegistrationDocument;
@@ -460,10 +461,97 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertTrue($rejected);
     }
 
+    public function testPnpClaimFollowsThePlatformSetting(): void
+    {
+        global $CFG;
+        $hadBase = is_object($CFG) && property_exists($CFG, 'lti_pnp_baseurl');
+        $hadEmail = is_object($CFG) && property_exists($CFG, 'lti_pnp_use_email');
+        $oldBase = $hadBase ? $CFG->lti_pnp_baseurl : null;
+        $oldEmail = $hadEmail ? $CFG->lti_pnp_use_email : null;
+        $base = 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/@/activities/default/afapnprecords';
+
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $raw = json_encode($this->payload(true, true, 'PNP Garden'));
+        $this->assertIsString($raw);
+        $stored = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(200, $stored['status']);
+        $registrationId = $this->registrationId('PNP Garden');
+
+        try {
+            $CFG->lti_pnp_baseurl = false;
+            $CFG->lti_pnp_use_email = false;
+            $off = $this->completedLaunch($registrationId, 424242, 'LtiResourceLinkRequest');
+            $this->assertObjectNotHasProperty(LTI13::PNP_CLAIM, $off);
+
+            $CFG->lti_pnp_baseurl = $base;
+            foreach ( array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest') as $type ) {
+                $body = $this->completedLaunch($registrationId, 424242, $type);
+                $this->assertSame($type, $body->{LTI13::MESSAGE_TYPE_CLAIM});
+                $pnp = $body->{LTI13::PNP_CLAIM};
+                $this->assertSame(
+                    'https://pnp.amp-up.io/ims/afapnp/v1p0/users/424242/activities/default/afapnprecords',
+                    $pnp->afapnp_endpoint_url
+                );
+                $this->assertSame(array(PnpConnector::SCOPE_PNP_READONLY), $pnp->scopes);
+                $this->assertObjectNotHasProperty('afapnp_endpoint_hosturl', $pnp);
+            }
+
+            $CFG->lti_pnp_use_email = true;
+            $withEmail = $this->completedLaunch($registrationId, 424242, 'LtiResourceLinkRequest');
+            $url = $withEmail->{LTI13::PNP_CLAIM}->afapnp_endpoint_url;
+            if ( isset($withEmail->email) && is_string($withEmail->email) && $withEmail->email !== '' ) {
+                $this->assertSame(str_replace('@', $withEmail->email, $base), $url);
+            } else {
+                $this->assertSame(str_replace('@', '424242', $base), $url);
+            }
+        } finally {
+            if ( $hadBase ) {
+                $CFG->lti_pnp_baseurl = $oldBase;
+            } else {
+                unset($CFG->lti_pnp_baseurl);
+            }
+            if ( $hadEmail ) {
+                $CFG->lti_pnp_use_email = $oldEmail;
+            } else {
+                unset($CFG->lti_pnp_use_email);
+            }
+        }
+    }
+
+    private function completedLaunch(int $registrationId, int $userId, string $messageType): object
+    {
+        $started = Lti13TestLaunch::launch(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            $messageType,
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Learner'
+        );
+        $done = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'response_mode' => 'form_post',
+            'client_id' => $started['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $started['parameters']['login_hint'],
+            'lti_message_hint' => $started['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-pnp',
+            'state' => 'pnp-state',
+        ));
+        $jwt = LTI13::parse_jwt($done['id_token'], false);
+        $this->assertIsObject($jwt);
+        return $jwt->body;
+    }
+
     /**
      * @return array<string, mixed>
      */
-    private function payload(bool $resourceLink = false, bool $privacy = false): array
+    private function payload(bool $resourceLink = false, bool $privacy = false, ?string $title = null): array
     {
         $messages = array(
             array(
@@ -487,11 +575,13 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
                 'label' => 'Privacy',
             );
         }
-        $title = 'Virtual Garden';
-        if ( $resourceLink ) {
-            $title = 'Resource Garden';
-        } else if ( $privacy ) {
-            $title = 'Privacy Garden';
+        if ( $title === null || $title === '' ) {
+            $title = 'Virtual Garden';
+            if ( $resourceLink ) {
+                $title = 'Resource Garden';
+            } else if ( $privacy ) {
+                $title = 'Privacy Garden';
+            }
         }
         return array(
             'application_type' => 'web',

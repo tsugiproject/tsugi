@@ -390,6 +390,20 @@ $CFG->certification = false;
 // to use for the gradeSend service.  The LTI 1 method is more established...
 $CFG->prefer_lti1_for_grade_send = true;
 
+// 1EdTech Personal Needs & Preferences (PNP) on LTI 1.3 launches.
+// The @ sign is a placeholder for the launch user id, or the email (see below).
+// When this is empty, launches omit the PNP claim.
+// $CFG->lti_pnp_baseurl = 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/@/activities/default/afapnprecords';
+$CFG->lti_pnp_baseurl = false;
+
+// Normally @ is the user id from the LTI launch. For a dev or test server it
+// can be simpler to use the email, so a tester can recreate a user on an
+// empty system. Leave this false in production. If the launch does not
+// release an email, @ stays the user id. Has no effect when lti_pnp_baseurl
+// is empty.
+// $CFG->lti_pnp_use_email = true;
+$CFG->lti_pnp_use_email = false;
+
 // On a Mac localhost, if you have git installed, you should be able to
 // use the auto-install with no further configuration.
 

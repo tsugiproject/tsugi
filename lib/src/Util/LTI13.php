@@ -45,6 +45,9 @@ class LTI13 {
     const CUSTOM_CLAIM =        'https://purl.imsglobal.org/spec/lti/claim/custom';
     const GROUPS_CLAIM =        'https://purl.imsglobal.org/spec/lti-gs/claim/groupsservice';
 
+    // Present when $CFG->lti_pnp_baseurl is set. Body is afapnp_endpoint_url plus the readonly scope.
+    const PNP_CLAIM =           'https://purl.imsglobal.org/spec/lti-afapnp/claim/afapnp-endpoint-service';
+
     const MEDIA_TYPE_MEMBERSHIPS = 'application/vnd.ims.lti-nrps.v2.membershipcontainer+json';
     const MEDIA_TYPE_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
     const MEDIA_TYPE_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';

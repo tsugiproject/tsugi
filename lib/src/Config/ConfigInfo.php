@@ -815,6 +815,24 @@ class ConfigInfo {
     public $prefer_lti1_for_grade_send = false;
 
     /*
+     * Personal Needs and Preferences base URL for LTI 1.3 launches.
+     * False leaves the claim off. A URL is sent as afapnp_endpoint_url.
+     * @ in the URL is the launch user id, or the email when lti_pnp_use_email is true.
+     *
+     * $CFG->lti_pnp_baseurl = 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/@/activities/default/afapnprecords';
+     */
+    public $lti_pnp_baseurl = false;
+
+    /*
+     * When true, @ in lti_pnp_baseurl is the launch email if this launch
+     * releases one, otherwise the user id. False always uses the user id.
+     * Has no effect when lti_pnp_baseurl is empty.
+     *
+     * $CFG->lti_pnp_use_email = false;
+     */
+    public $lti_pnp_use_email = false;
+
+    /*
      * Legacy: Link Accounts feature (unify) - no longer implemented.
      * Previously allowed linking LTI-launched users to site-wide login.
      * Kept for config compatibility only.

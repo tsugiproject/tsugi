@@ -8,6 +8,7 @@ use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
 use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
+use Tsugi\Services\Ims\PnpConnector;
 use Tsugi\Util\LTI13;
 
 /**
@@ -556,7 +557,7 @@ class Lti13TestLaunch {
                 'service_versions' => array('2.0'),
             );
         }
-        return $claims;
+        return self::withPnpClaim($claims);
     }
 
     /**
@@ -661,7 +662,7 @@ class Lti13TestLaunch {
                 $claims[LTI13::ENDPOINT_CLAIM] = $grade;
             }
         }
-        return $claims;
+        return self::withPnpClaim($claims);
     }
 
     /**
@@ -947,6 +948,23 @@ class Lti13TestLaunch {
             $forUser['email'] = $user['email'];
         }
         $claims[LTI13::FOR_USER_CLAIM] = $forUser;
+        return self::withPnpClaim($claims);
+    }
+
+    /**
+     * Attach the PNP endpoint claim when $CFG->lti_pnp_baseurl is set.
+     * The email is the one this launch actually releases, matching Sakai.
+     *
+     * @param array<string, mixed> $claims
+     * @return array<string, mixed>
+     */
+    private static function withPnpClaim(array $claims) {
+        $userId = isset($claims['sub']) ? (string) $claims['sub'] : '';
+        $email = (isset($claims['email']) && is_string($claims['email'])) ? $claims['email'] : '';
+        $pnp = PnpConnector::launchClaim($userId, $email);
+        if ( $pnp !== null ) {
+            $claims[LTI13::PNP_CLAIM] = $pnp;
+        }
         return $claims;
     }
 
