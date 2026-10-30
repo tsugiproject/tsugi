@@ -43,15 +43,19 @@ class LtiLessonPlacement {
         }
         $deepLink = false;
         $out = array();
+        $fallback = ToolRegistrationDocument::registrationLaunchUrl((int) $deployment['registration_id']);
         foreach ( self::messages($deployment['registration_id']) as $message ) {
             if ( ! self::fitsLesson($message['placements']) ) {
                 continue;
             }
             $target = trim((string) $message['target_link_uri']);
             if ( $target === '' ) {
+                $target = $fallback;
+            }
+            if ( $target === '' ) {
                 continue;
             }
-            $type = $message['message_type'];
+            $type = ToolRegistrationDocument::canonicalMessageType($message['message_type']);
             if ( $type === 'LtiDeepLinkingRequest' ) {
                 if ( $deepLink ) {
                     continue;

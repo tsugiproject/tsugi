@@ -1119,13 +1119,19 @@ class Lti13TestLaunch {
         if ( $target === '' ) {
             return false;
         }
+        $fallback = self::toolTarget($tool);
+        $saw = false;
         foreach ( $tool['messages'] as $message ) {
-            if ( $message['message_type'] !== $messageType ) {
+            if ( ! self::sameMessageType($message['message_type'], $messageType) ) {
                 continue;
             }
-            if ( trim((string) $message['target_link_uri']) === $target ) {
+            $saw = true;
+            if ( self::effectiveTarget($message['target_link_uri'], $fallback) === $target ) {
                 return true;
             }
+        }
+        if ( ! $saw && $messageType === 'LtiResourceLinkRequest' && $fallback === $target && ! self::launchUrlIsContentItem($tool) ) {
+            return true;
         }
         return false;
     }
@@ -1165,7 +1171,11 @@ class Lti13TestLaunch {
     }
 
     /**
-     * Target of the first message of this type. A registration launch URL is not a message target.
+     * Target of the first message of this type.
+     *
+     * A message with no target link uses the registration target link.
+     * A resource link is implicit when the registration has a target link
+     * and that address is not a content-item message's own target.
      *
      * @param array<string, mixed> $tool
      * @param string $messageType
@@ -1175,16 +1185,53 @@ class Lti13TestLaunch {
         if ( $messageType !== 'LtiResourceLinkRequest' && $messageType !== 'LtiDataPrivacyLaunchRequest' && $messageType !== 'LtiDeepLinkingRequest' ) {
             return '';
         }
+        $fallback = self::toolTarget($tool);
+        $saw = false;
         foreach ( $tool['messages'] as $message ) {
-            if ( $message['message_type'] !== $messageType ) {
+            if ( ! self::sameMessageType($message['message_type'], $messageType) ) {
                 continue;
             }
-            $target = trim((string) $message['target_link_uri']);
+            $saw = true;
+            $target = self::effectiveTarget($message['target_link_uri'], $fallback);
             if ( $target !== '' ) {
                 return $target;
             }
         }
+        if ( ! $saw && $messageType === 'LtiResourceLinkRequest' && $fallback !== '' && ! self::launchUrlIsContentItem($tool) ) {
+            return $fallback;
+        }
         return '';
+    }
+
+    /**
+     * @param array<string, mixed> $tool
+     * @return string
+     */
+    private static function toolTarget(array $tool) {
+        return trim((string) $tool['launch_url']);
+    }
+
+    /**
+     * @param mixed $stored
+     * @param string $fallback
+     * @return string
+     */
+    private static function effectiveTarget($stored, $fallback) {
+        $stored = trim((string) $stored);
+        if ( $stored !== '' ) {
+            return $stored;
+        }
+        return trim((string) $fallback);
+    }
+
+    /**
+     * @param mixed $left
+     * @param string $right
+     * @return bool
+     */
+    private static function sameMessageType($left, $right) {
+        return ToolRegistrationDocument::canonicalMessageType((string) $left)
+            === ToolRegistrationDocument::canonicalMessageType($right);
     }
 
     /**

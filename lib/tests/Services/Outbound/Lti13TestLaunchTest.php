@@ -65,6 +65,66 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('', $started['jwt_signed']);
     }
 
+    public function testMessagesInheritTheRegistrationTargetLink(): void
+    {
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $body = $this->payload();
+        $body['client_name'] = 'Amp Shape';
+        $config = ToolRegistrationDocument::TOOL_CONFIGURATION;
+        $body[$config]['target_link_uri'] = 'https://lti.example/app';
+        $body[$config]['custom_parameters'] = array('pid' => '43894675');
+        $body[$config]['messages'] = array(
+            array('type' => 'LtiDeepLinkingRequest'),
+            array('type' => 'LtiResourceLink'),
+        );
+        $raw = json_encode($body);
+        $this->assertIsString($raw);
+        $stored = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(200, $stored['status']);
+        $registrationId = $this->registrationId('Amp Shape');
+
+        $choices = Lti13TestLaunch::choices($this->id['eecs280'], $registrationId);
+        $ready = array();
+        foreach ( $choices as $choice ) {
+            $ready[$choice['type']] = $choice['ready'];
+        }
+        $this->assertTrue($ready['LtiResourceLinkRequest']);
+        $this->assertTrue($ready['LtiDeepLinkingRequest']);
+
+        foreach ( array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest') as $messageType ) {
+            $started = Lti13TestLaunch::launch(
+                $this->id['eecs280'],
+                $registrationId,
+                424242,
+                $messageType,
+                'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+                'Instructor'
+            );
+            $this->assertTrue($started['ready'], $messageType);
+            $this->assertFalse($started['missing_resource_link']);
+            $this->assertSame('https://lti.example/app', $started['endpoint']);
+            $done = Lti13TestLaunch::complete(array(
+                'scope' => 'openid',
+                'response_type' => 'id_token',
+                'client_id' => $started['parameters']['client_id'],
+                'redirect_uri' => 'https://client.example.org/callback',
+                'login_hint' => $started['parameters']['login_hint'],
+                'lti_message_hint' => $started['parameters']['lti_message_hint'],
+                'nonce' => 'nonce-inherit',
+                'state' => 'inherit-state',
+            ));
+            $jwt = LTI13::parse_jwt($done['id_token'], false);
+            $this->assertIsObject($jwt);
+            $this->assertSame($messageType, $jwt->body->{LTI13::MESSAGE_TYPE_CLAIM});
+            $this->assertSame('https://lti.example/app', $jwt->body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
+            $this->assertSame('43894675', $jwt->body->{LTI13::CUSTOM_CLAIM}->pid);
+        }
+    }
+
     public function testResourceLinkMessageIsSigned(): void
     {
         $token = PlatformDynamicRegistration::startForCourse(

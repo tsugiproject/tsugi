@@ -249,6 +249,42 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * Message type used for a launch.
+     *
+     * The resource-link type in the specification is LtiResourceLinkRequest.
+     * A registration that says LtiResourceLink is that same message.
+     *
+     * @param string $type
+     * @return string
+     */
+    public static function canonicalMessageType($type) {
+        $type = trim((string) $type);
+        if ( $type === 'LtiResourceLink' ) {
+            return 'LtiResourceLinkRequest';
+        }
+        return $type;
+    }
+
+    /**
+     * The tool configuration target link. A message with none of its own uses this.
+     *
+     * @param int $registrationId
+     * @return string
+     */
+    public static function registrationLaunchUrl($registrationId) {
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT lti13_launch_url FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => (int) $registrationId)
+        );
+        if ( ! is_array($row) || $row['lti13_launch_url'] === null ) {
+            return '';
+        }
+        return trim((string) $row['lti13_launch_url']);
+    }
+
+    /**
      * Claim name for one stored custom parameter.
      *
      * Lower case. A character that is not a letter or number becomes an underscore.
@@ -288,7 +324,8 @@ class ToolRegistrationDocument {
         $message = self::messageForLaunch(
             self::messagesForRegistration($registrationId),
             (string) $messageType,
-            (string) $targetLinkUri
+            (string) $targetLinkUri,
+            self::registrationLaunchUrl($registrationId)
         );
         $own = array();
         if ( is_array($message) ) {
@@ -312,12 +349,15 @@ class ToolRegistrationDocument {
      * @param array<int, array<string, mixed>> $messages
      * @param string $messageType
      * @param string $targetLinkUri
+     * @param string $fallback Target link of the registration. A message with none of its own uses it.
      * @return array<string, mixed>|null
      */
-    private static function messageForLaunch(array $messages, $messageType, $targetLinkUri) {
+    private static function messageForLaunch(array $messages, $messageType, $targetLinkUri, $fallback = '') {
+        $messageType = self::canonicalMessageType($messageType);
+        $fallback = trim((string) $fallback);
         $typed = array();
         foreach ( $messages as $message ) {
-            if ( isset($message['message_type']) && $message['message_type'] === $messageType ) {
+            if ( isset($message['message_type']) && self::canonicalMessageType($message['message_type']) === $messageType ) {
                 $typed[] = $message;
             }
         }
@@ -330,7 +370,10 @@ class ToolRegistrationDocument {
         $targetLinkUri = trim($targetLinkUri);
         foreach ( $typed as $message ) {
             $uri = isset($message['target_link_uri']) ? trim((string) $message['target_link_uri']) : '';
-            if ( $uri === $targetLinkUri ) {
+            if ( $uri === '' ) {
+                $uri = $fallback;
+            }
+            if ( $uri !== '' && $uri === $targetLinkUri ) {
                 return $message;
             }
         }
