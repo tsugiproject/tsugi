@@ -728,7 +728,7 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('registration_request', $edit['registration_logs'][0]['phase']);
         $this->assertNotSame('', $edit['registration_json']);
 
-        $this->rememberLaunchUser();
+        $userId = $this->rememberLaunchUser();
         ToolDeploymentService::assignContext((int) $view['deployments'][0]['tool_deployment_id'], $this->id['eecs281']);
         $shared = ToolRegistrationService::visibleLti13($this->id['eecs281'], $registrationId);
         $this->assertSame('', $shared['registration_json']);
@@ -738,7 +738,7 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $started = Lti13TestLaunch::launch(
             $this->id['eecs280'],
             $registrationId,
-            424242,
+            $userId,
             'LtiResourceLinkRequest',
             'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
             'Learner'
@@ -760,7 +760,7 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame($jwt->body->{LTI13::CONTEXT_ID_CLAIM}->id, $custom->chapter);
         $this->assertSame('$Context.id.history', $custom->context_history);
         $this->assertSame('kept', $custom->plain);
-        $this->assertSame('424242', $custom->who);
+        $this->assertSame((string) $userId, $custom->who);
         $this->assertSame($jwt->body->email, $custom->mail);
         $this->assertSame($jwt->body->name, $custom->label);
         $this->assertSame('1.2', $custom->review_chapter);

@@ -187,10 +187,12 @@ abstract class PlatformSchemaCase extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * The launch tests address user 424242. Give that user a name and email
-     * in this tenant when the row is ours to write.
+     * A learner in this tenant, with a name and email.
+     *
+     * User 424242 is used when that row is free or already in this tenant.
+     * When it belongs to another tenant, a new row is created and its id returned.
      */
-    protected function rememberLaunchUser(): void
+    protected function rememberLaunchUser(): int
     {
         global $PDOX;
         $p = $this->p();
@@ -198,30 +200,43 @@ abstract class PlatformSchemaCase extends \PHPUnit\Framework\TestCase
             "SELECT key_id FROM {$p}lti_user WHERE user_id = 424242",
             array()
         );
-        if ( is_array($row) && (int) $row['key_id'] !== $this->id['keyA'] ) {
-            return;
-        }
-        if ( is_array($row) ) {
+        if ( is_array($row) && (int) $row['key_id'] === $this->id['keyA'] ) {
             $PDOX->queryDie(
                 "UPDATE {$p}lti_user
                  SET displayname = 'Pat Student', email = 'pat@example.test'
                  WHERE user_id = 424242",
                 array()
             );
-            return;
+            return 424242;
         }
-        $userKey = 'pat-424242';
+        if ( ! is_array($row) ) {
+            $userKey = 'pat-424242';
+            $PDOX->queryDie(
+                "INSERT INTO {$p}lti_user
+                    (user_id, user_key, user_sha256, displayname, email, key_id, created_at, updated_at)
+                 VALUES
+                    (424242, :user_key, :user_sha256, 'Pat Student', 'pat@example.test', :key_id, NOW(), NOW())",
+                array(
+                    ':user_key' => $userKey,
+                    ':user_sha256' => \Tsugi\Util\U::lti_sha256($userKey),
+                    ':key_id' => $this->id['keyA'],
+                )
+            );
+            return 424242;
+        }
+        $userKey = 'pat-'.bin2hex(random_bytes(8));
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_user
-                (user_id, user_key, user_sha256, displayname, email, key_id, created_at, updated_at)
+                (user_key, user_sha256, displayname, email, key_id, created_at, updated_at)
              VALUES
-                (424242, :user_key, :user_sha256, 'Pat Student', 'pat@example.test', :key_id, NOW(), NOW())",
+                (:user_key, :user_sha256, 'Pat Student', 'pat@example.test', :key_id, NOW(), NOW())",
             array(
                 ':user_key' => $userKey,
                 ':user_sha256' => \Tsugi\Util\U::lti_sha256($userKey),
                 ':key_id' => $this->id['keyA'],
             )
         );
+        return (int) $PDOX->lastInsertId();
     }
 
     protected function p(): string

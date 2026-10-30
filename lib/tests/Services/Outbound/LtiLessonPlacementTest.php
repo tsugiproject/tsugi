@@ -271,7 +271,7 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
             'who' => '$Person.name.full',
         );
         ToolRegistrationDocument::persistDocument($registrationId, $document);
-        $this->rememberLaunchUser();
+        $userId = $this->rememberLaunchUser();
 
         $placed = LtiContentService::placeAt(
             $this->id['eecs280'],
@@ -282,7 +282,7 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         $started = Lti13TestLaunch::courseResourceLink(
             $this->id['eecs280'],
             $deploymentId,
-            424242,
+            $userId,
             $placed['resource_link_id'],
             $placed['title'],
             'https://local.dj4e.com/tsugi/lessons',
