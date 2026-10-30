@@ -150,6 +150,10 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
                 'type' => 'ltiResourceLink',
                 'title' => 'Chosen page',
                 'url' => 'https://tool.example/chosen',
+                'custom' => array(
+                    'garden' => 'roses',
+                    'spot' => '$Context.id',
+                ),
             ),
         ));
         $picked = LtiLessonPlacement::returnedTarget(
@@ -162,18 +166,58 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         $this->assertNull($picked['items']);
         $this->assertSame('https://tool.example/chosen', $picked['url']);
         $this->assertSame('Chosen page', $picked['title']);
-        $placed = LtiContentService::placeAt($this->id['eecs280'], $deploymentId, '', $picked['url']);
+        $this->assertSame(array('garden' => 'roses', 'spot' => '$Context.id'), $picked['custom']);
+        $placed = LtiContentService::placeAt($this->id['eecs280'], $deploymentId, '', $picked['url'], '', $picked['custom']);
         $this->assertSame('https://tool.example/chosen', $placed['launch_url']);
         $this->assertSame('PY4E', $placed['title']);
+        $stored = LtiContentService::customForResourceLink($this->id['eecs280'], $placed['resource_link_id']);
+        $this->assertSame('roses', $stored['garden']);
+        $this->assertSame('$Context.id', $stored['spot']);
+
+        $startedLink = Lti13TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $deploymentId,
+            424242,
+            $placed['resource_link_id'],
+            $placed['title'],
+            'https://local.dj4e.com/tsugi/lessons',
+            'Learner',
+            '',
+            null,
+            null,
+            $placed['launch_url']
+        );
+        $linkDone = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'response_mode' => 'form_post',
+            'client_id' => $startedLink['parameters']['client_id'],
+            'redirect_uri' => 'https://tool.example/callback',
+            'login_hint' => $startedLink['parameters']['login_hint'],
+            'lti_message_hint' => $startedLink['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-chosen',
+            'state' => 'chosen-state',
+        ));
+        $linkJwt = LTI13::parse_jwt($linkDone['id_token'], false);
+        $this->assertIsObject($linkJwt);
+        $this->assertSame('roses', $linkJwt->body->{LTI13::CUSTOM_CLAIM}->garden);
+        $this->assertSame((string) $this->id['eecs280'], $linkJwt->body->{LTI13::CUSTOM_CLAIM}->spot);
 
         $many = $this->returnJwt($private, $started['parameters']['client_id'], $started['parameters']['lti_deployment_id'], $settings->data, array(
             array('type' => 'ltiResourceLink', 'title' => 'First', 'url' => 'https://tool.example/first'),
-            array('type' => 'ltiResourceLink', 'title' => 'Second', 'url' => 'https://tool.example/second'),
+            array(
+                'type' => 'ltiResourceLink',
+                'title' => 'Second',
+                'url' => 'https://tool.example/second',
+                'custom' => array('bed' => 'tulips'),
+            ),
         ));
         $choose = LtiLessonPlacement::returnedTarget($this->id['eecs280'], $deploymentId, $many, null, $details['key']);
         $this->assertSame('https://tool.example/second', $choose['items'][1]['url']);
+        $this->assertSame(array(), $choose['items'][0]['custom']);
         $second = LtiLessonPlacement::returnedTarget($this->id['eecs280'], $deploymentId, $many, 1, $details['key']);
         $this->assertSame('https://tool.example/second', $second['url']);
+        $this->assertSame('tulips', $second['custom']['bed']);
 
         try {
             LtiLessonPlacement::returnedTarget($this->id['eecs281'], $deploymentId, $one, null, $details['key']);
@@ -257,6 +301,7 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         $body = $jwt->body;
         $this->assertSame('LtiResourceLinkRequest', $body->{LTI13::MESSAGE_TYPE_CLAIM});
         $this->assertSame('https://tool.example/privacy.php', $body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
+        $this->assertObjectNotHasProperty(LTI13::CUSTOM_CLAIM, $body);
         $this->assertSame($placed['resource_link_id'], $body->{LTI13::RESOURCE_LINK_CLAIM}->id);
         $this->assertSame('PY4E Privacy', $body->{LTI13::RESOURCE_LINK_CLAIM}->title);
         $this->assertFalse(isset($body->{LTI13::RESOURCE_LINK_CLAIM}->description));

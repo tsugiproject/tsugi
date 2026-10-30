@@ -508,11 +508,13 @@ class ToolRegistrationService {
      *   jwks_url:string,
      *   launch_url:string,
      *   redirect_uris:array<int, string>,
-     *   messages:array<int, array{message_type:string, label:?string, target_link_uri:?string, placements:array<int, string>}>,
+     *   custom_parameters:array<string, string>,
+     *   messages:array<int, array{message_type:string, label:?string, target_link_uri:?string, placements:array<int, string>, custom_parameters:array<string, string>}>,
      *   requested_claims:array<int, string>,
      *   requested_scopes:array<int, string>,
      *   deployments:array<int, array{tool_deployment_id:int, deployment_id:string, allowed_claims:array<int, string>, allowed_scopes:array<int, string>, enabled_placements:array<int, string>}>,
-     *   registration_json:string
+     *   registration_json:string,
+     *   registration_logs:array<int, array<string, mixed>>
      * }
      */
     public static function visibleLti13($contextId, $registrationId) {
@@ -568,6 +570,9 @@ class ToolRegistrationService {
                 'label' => $message['label'] === null ? null : (string) $message['label'],
                 'target_link_uri' => $message['target_link_uri'] === null ? null : (string) $message['target_link_uri'],
                 'placements' => $placements,
+                'custom_parameters' => ToolRegistrationDocument::customParameterMap(
+                    isset($message['message_json']['custom_parameters']) ? $message['message_json']['custom_parameters'] : null
+                ),
             );
         }
 
@@ -595,6 +600,11 @@ class ToolRegistrationService {
             $encoded = json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $json = is_string($encoded) ? $encoded : '';
         }
+        $toolCustom = null;
+        $configKey = ToolRegistrationDocument::TOOL_CONFIGURATION;
+        if ( is_array($document) && isset($document[$configKey]) && is_array($document[$configKey]) && ! array_is_list($document[$configKey]) ) {
+            $toolCustom = isset($document[$configKey]['custom_parameters']) ? $document[$configKey]['custom_parameters'] : null;
+        }
 
         return array(
             'registration_id' => (int) $row['registration_id'],
@@ -605,11 +615,13 @@ class ToolRegistrationService {
             'jwks_url' => $row['lti13_jwks_url'] === null ? '' : (string) $row['lti13_jwks_url'],
             'launch_url' => $row['lti13_launch_url'] === null ? '' : (string) $row['lti13_launch_url'],
             'redirect_uris' => $redirects,
+            'custom_parameters' => ToolRegistrationDocument::customParameterMap($toolCustom),
             'messages' => $messages,
             'requested_claims' => is_array($document) ? ToolRegistrationDocument::requestedClaims($document) : array(),
             'requested_scopes' => is_array($document) ? ToolRegistrationDocument::requestedScopes($document) : array(),
             'deployments' => $deployments,
             'registration_json' => $json,
+            'registration_logs' => ToolRegistrationDocument::logsForRegistration($registrationId),
         );
     }
 

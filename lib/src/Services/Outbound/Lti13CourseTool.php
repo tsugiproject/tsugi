@@ -11,7 +11,7 @@ use Tsugi\Core\LTIX;
  * A grant or an enabled placement is the on switch. Delete removes the item
  * from the registration. Add puts a known vocabulary value on the tool and
  * turns it on. A placement string that is not in the menu is stored as typed.
- * Messages and redirect URLs are added, changed, and removed.
+ * Messages, redirect URLs, and custom parameters are added, changed, and removed.
  */
 class Lti13CourseTool {
 
@@ -70,6 +70,9 @@ class Lti13CourseTool {
                 'type_label' => self::messageLabel($message['message_type']),
                 'label' => $message['label'] === null ? '' : (string) $message['label'],
                 'target_link_uri' => $message['target_link_uri'] === null ? '' : (string) $message['target_link_uri'],
+                'custom_parameters' => ToolRegistrationDocument::customParameterMap(
+                    isset($message['message_json']['custom_parameters']) ? $message['message_json']['custom_parameters'] : null
+                ),
                 'placements' => $placements,
                 'placement_groups' => self::placementChoices($message['message_type'], $have),
             );
@@ -91,6 +94,9 @@ class Lti13CourseTool {
             'jwks_url' => self::column($registrationId, 'lti13_jwks_url'),
             'launch_url' => self::column($registrationId, 'lti13_launch_url'),
             'redirect_uris' => $redirects,
+            'custom_parameters' => self::documentCustom($document),
+            'registration_json' => self::prettyDocument($document),
+            'registration_logs' => ToolRegistrationDocument::logsForRegistration($registrationId),
             'deployments' => $grantRows,
             'scopes' => self::presentRows(self::scopeCatalog(), $requestedScopes, $grantRows, 'scopes'),
             'scope_available' => self::missingRows(self::scopeCatalog(), $requestedScopes),
@@ -267,6 +273,14 @@ class Lti13CourseTool {
                 $action === 'placement_on'
             );
             return $action === 'placement_on' ? __('Turned on.') : __('Turned off.');
+        }
+        if ( $action === 'add_custom' ) {
+            self::addCustom($registrationId, $post);
+            return __('Added.');
+        }
+        if ( $action === 'delete_custom' ) {
+            self::deleteCustom($registrationId, $post);
+            return __('Removed.');
         }
         throw new \InvalidArgumentException('That edit is not available.');
     }
@@ -598,6 +612,176 @@ class Lti13CourseTool {
             return;
         }
         ToolPlacementService::disablePlacementForDeployment((int) $deployment['tool_deployment_id'], (int) $placement['message_placement_id']);
+    }
+
+    /**
+     * @param int $registrationId
+     * @param array<string, mixed> $post
+     * @return void
+     */
+    private static function addCustom($registrationId, array $post) {
+        $name = self::customName(self::posted($post, 'custom_name'));
+        $value = self::customValue(self::posted($post, 'custom_value'));
+        $messageId = self::postedMessageId($post);
+        if ( $messageId === null ) {
+            $document = self::document($registrationId);
+            $custom = self::rawCustom(self::configCustom($document));
+            $custom[$name] = $value;
+            self::writeConfigCustom($registrationId, $document, $custom);
+            return;
+        }
+        $message = self::requireMessage($registrationId, $messageId);
+        $object = self::messageObject($message);
+        $custom = self::rawCustom(isset($object['custom_parameters']) ? $object['custom_parameters'] : null);
+        $custom[$name] = $value;
+        self::writeMessageCustom($registrationId, $message, $custom);
+    }
+
+    /**
+     * @param int $registrationId
+     * @param array<string, mixed> $post
+     * @return void
+     */
+    private static function deleteCustom($registrationId, array $post) {
+        $name = trim(self::posted($post, 'custom_name'));
+        if ( $name === '' || strlen($name) > 255 ) {
+            throw new \InvalidArgumentException('That custom parameter is not on this tool.');
+        }
+        $messageId = self::postedMessageId($post);
+        if ( $messageId === null ) {
+            $document = self::document($registrationId);
+            $custom = self::rawCustom(self::configCustom($document));
+            if ( ! array_key_exists($name, $custom) ) {
+                throw new \InvalidArgumentException('That custom parameter is not on this tool.');
+            }
+            unset($custom[$name]);
+            self::writeConfigCustom($registrationId, $document, $custom);
+            return;
+        }
+        $message = self::requireMessage($registrationId, $messageId);
+        $object = self::messageObject($message);
+        $custom = self::rawCustom(isset($object['custom_parameters']) ? $object['custom_parameters'] : null);
+        if ( ! array_key_exists($name, $custom) ) {
+            throw new \InvalidArgumentException('That custom parameter is not on this message.');
+        }
+        unset($custom[$name]);
+        self::writeMessageCustom($registrationId, $message, $custom);
+    }
+
+    /**
+     * @param array<string, mixed> $post
+     * @return int|null
+     */
+    private static function postedMessageId(array $post) {
+        if ( ! array_key_exists('message_id', $post) ) {
+            return null;
+        }
+        $text = trim((string) $post['message_id']);
+        if ( $text === '' ) {
+            return null;
+        }
+        $messageId = self::postedInt($post, 'message_id');
+        if ( $messageId < 1 ) {
+            throw new \InvalidArgumentException('That message is not on this tool.');
+        }
+        return $messageId;
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    private static function customName($name) {
+        $name = trim($name);
+        if ( $name === '' || strlen($name) > 255 || ! preg_match('/^[A-Za-z][A-Za-z0-9_.:-]*$/', $name) ) {
+            throw new \InvalidArgumentException('Custom parameter name is not valid.');
+        }
+        return $name;
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     */
+    private static function customValue($value) {
+        if ( strlen($value) > 2048 || strpos($value, "\0") !== false ) {
+            throw new \InvalidArgumentException('Custom parameter value is too long.');
+        }
+        return $value;
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, mixed>
+     */
+    private static function rawCustom($value) {
+        if ( ! is_array($value) || array_is_list($value) ) {
+            return array();
+        }
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @return mixed
+     */
+    private static function configCustom(array $document) {
+        $key = ToolRegistrationDocument::TOOL_CONFIGURATION;
+        if ( ! isset($document[$key]) || ! is_array($document[$key]) || array_is_list($document[$key]) ) {
+            return null;
+        }
+        return isset($document[$key]['custom_parameters']) ? $document[$key]['custom_parameters'] : null;
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @return array<string, string>
+     */
+    private static function documentCustom(array $document) {
+        return ToolRegistrationDocument::customParameterMap(self::configCustom($document));
+    }
+
+    /**
+     * @param int $registrationId
+     * @param array<string, mixed> $document
+     * @param array<string, mixed> $custom
+     * @return void
+     */
+    private static function writeConfigCustom($registrationId, array $document, array $custom) {
+        $key = ToolRegistrationDocument::TOOL_CONFIGURATION;
+        if ( count($custom) === 0 ) {
+            if ( isset($document[$key]) && is_array($document[$key]) && ! array_is_list($document[$key]) ) {
+                unset($document[$key]['custom_parameters']);
+            }
+        } else {
+            $document = self::setConfigValue($document, 'custom_parameters', $custom);
+        }
+        ToolRegistrationDocument::persistDocument($registrationId, $document);
+    }
+
+    /**
+     * @param int $registrationId
+     * @param array<string, mixed> $message
+     * @param array<string, mixed> $custom
+     * @return void
+     */
+    private static function writeMessageCustom($registrationId, array $message, array $custom) {
+        $object = self::messageObject($message);
+        if ( count($custom) === 0 ) {
+            unset($object['custom_parameters']);
+        } else {
+            $object['custom_parameters'] = $custom;
+        }
+        self::writeMessageObject($registrationId, $message, $object);
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @return string
+     */
+    private static function prettyDocument(array $document) {
+        $encoded = json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return is_string($encoded) ? $encoded : '';
     }
 
     /**

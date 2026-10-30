@@ -46,12 +46,13 @@ class LtiContentService {
      * @param string $title Outline title. Empty uses the tool title.
      * @param string $launchUrl
      * @param string $resourceLinkId Cartridge id to keep. Empty mints a new id.
+     * @param array<string, string>|null $custom Deep link content item custom parameters.
      * @return array<string, mixed>
      */
-    public static function placeAt($contextId, $toolDeploymentId, $title, $launchUrl, $resourceLinkId = '') {
+    public static function placeAt($contextId, $toolDeploymentId, $title, $launchUrl, $resourceLinkId = '', $custom = null) {
         $contextId = (int) $contextId;
         $tool = self::visibleDeployment($contextId, (int) $toolDeploymentId);
-        return self::writeContent($contextId, $tool, $title, $launchUrl, $resourceLinkId);
+        return self::writeContent($contextId, $tool, $title, $launchUrl, $resourceLinkId, $custom);
     }
 
     /**
@@ -60,9 +61,10 @@ class LtiContentService {
      * @param string $title
      * @param string $launchUrl
      * @param string $resourceLinkId
+     * @param array<string, string>|null $custom
      * @return array<string, mixed>
      */
-    private static function writeContent($contextId, array $tool, $title, $launchUrl, $resourceLinkId = '') {
+    private static function writeContent($contextId, array $tool, $title, $launchUrl, $resourceLinkId = '', $custom = null) {
         $launchUrl = trim((string) $launchUrl);
         if ( ! preg_match('#^https?://#i', $launchUrl) ) {
             throw new \InvalidArgumentException('This tool has no launch URL.');
@@ -78,11 +80,11 @@ class LtiContentService {
         self::db()->queryDie(
             "INSERT INTO {$p}lti_content
                 (context_id, key_id, tool_deployment_id, title, launch_url, target,
-                 resource_link_id, resource_link_sha256,
+                 resource_link_id, resource_link_sha256, custom,
                  send_name, send_email, send_grade, published, created_at)
              VALUES
                 (:context_id, :key_id, :tool_deployment_id, :title, :launch_url, 'window',
-                 :resource_link_id, :resource_link_sha256,
+                 :resource_link_id, :resource_link_sha256, :custom,
                  :send_name, :send_email, :send_grade, 0, NOW())",
             array(
                 ':context_id' => $contextId,
@@ -92,6 +94,7 @@ class LtiContentService {
                 ':launch_url' => $launchUrl,
                 ':resource_link_id' => $resourceLinkId,
                 ':resource_link_sha256' => U::lti_sha256($resourceLinkId),
+                ':custom' => self::customJson($custom),
                 ':send_name' => $privacy['send_name'] ? 1 : 0,
                 ':send_email' => $privacy['send_email'] ? 1 : 0,
                 ':send_grade' => $privacy['send_grade'] ? 1 : 0,
@@ -227,6 +230,63 @@ class LtiContentService {
             )
         );
         return is_array($row) ? $row : null;
+    }
+
+    /**
+     * Custom parameters stored for this launch. Empty when the row has none.
+     *
+     * @param int $contextId
+     * @param string $resourceLinkId
+     * @return array<string, string>
+     */
+    public static function customForResourceLink($contextId, $resourceLinkId) {
+        $resourceLinkId = trim((string) $resourceLinkId);
+        if ( $resourceLinkId === '' || (int) $contextId < 1 ) {
+            return array();
+        }
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT custom FROM {$p}lti_content
+             WHERE context_id = :context_id AND resource_link_sha256 = :resource_link_sha256",
+            array(
+                ':context_id' => (int) $contextId,
+                ':resource_link_sha256' => U::lti_sha256($resourceLinkId),
+            )
+        );
+        if ( ! is_array($row) ) {
+            return array();
+        }
+        return self::decodeCustom($row['custom']);
+    }
+
+    /**
+     * @param mixed $custom
+     * @return string|null
+     */
+    private static function customJson($custom) {
+        $custom = ToolRegistrationDocument::customParameterMap($custom);
+        if ( count($custom) === 0 ) {
+            return null;
+        }
+        $encoded = json_encode($custom, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ( ! is_string($encoded) ) {
+            throw new \InvalidArgumentException('Custom parameters could not be stored.');
+        }
+        return $encoded;
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, string>
+     */
+    private static function decodeCustom($value) {
+        if ( is_array($value) ) {
+            return ToolRegistrationDocument::customParameterMap($value);
+        }
+        if ( ! is_string($value) || $value === '' ) {
+            return array();
+        }
+        return ToolRegistrationDocument::customParameterMap(json_decode($value, true));
     }
 
     /**

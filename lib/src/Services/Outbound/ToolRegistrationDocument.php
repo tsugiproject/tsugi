@@ -216,6 +216,128 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * String values from a custom_parameters object.
+     *
+     * An empty object decodes as a list and means there are none.
+     *
+     * @param mixed $value
+     * @return array<string, string>
+     */
+    public static function customParameterMap($value) {
+        if ( ! is_array($value) || array_is_list($value) ) {
+            return array();
+        }
+        $out = array();
+        foreach ( $value as $key => $item ) {
+            $name = trim((string) $key);
+            if ( $name === '' ) {
+                continue;
+            }
+            if ( is_string($item) ) {
+                $out[$name] = $item;
+                continue;
+            }
+            if ( is_int($item) || is_float($item) ) {
+                $out[$name] = (string) $item;
+                continue;
+            }
+            if ( is_bool($item) ) {
+                $out[$name] = $item ? 'true' : 'false';
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Claim name for one stored custom parameter.
+     *
+     * Lower case. A character that is not a letter or number becomes an underscore.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function customClaimName($name) {
+        $name = strtolower(trim((string) $name));
+        $name = preg_replace('/[^a-z0-9]/', '_', $name);
+        if ( ! is_string($name) || ! preg_match('/[a-z0-9]/', $name) ) {
+            return '';
+        }
+        return $name;
+    }
+
+    /**
+     * Custom parameters for one launch.
+     *
+     * Tool configuration parameters apply to every message. Parameters on the
+     * message replace a tool parameter with the same claim name. One message
+     * of this type is that message. Several messages of this type match by
+     * target link.
+     *
+     * @param int $registrationId
+     * @param string $messageType
+     * @param string $targetLinkUri
+     * @return array<string, string>
+     */
+    public static function launchCustomParameters($registrationId, $messageType, $targetLinkUri) {
+        $document = self::registrationDocument($registrationId);
+        if ( ! is_array($document) ) {
+            return array();
+        }
+        $config = self::toolConfiguration($document);
+        $tool = self::customParameterMap(is_array($config) && isset($config['custom_parameters']) ? $config['custom_parameters'] : null);
+        $message = self::messageForLaunch(
+            self::messagesForRegistration($registrationId),
+            (string) $messageType,
+            (string) $targetLinkUri
+        );
+        $own = array();
+        if ( is_array($message) ) {
+            $json = isset($message['message_json']) && is_array($message['message_json']) ? $message['message_json'] : array();
+            $own = self::customParameterMap(isset($json['custom_parameters']) ? $json['custom_parameters'] : null);
+        }
+        $merged = array();
+        foreach ( array($tool, $own) as $source ) {
+            foreach ( $source as $name => $value ) {
+                $claimName = self::customClaimName($name);
+                if ( $claimName === '' ) {
+                    continue;
+                }
+                $merged[$claimName] = $value;
+            }
+        }
+        return $merged;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $messages
+     * @param string $messageType
+     * @param string $targetLinkUri
+     * @return array<string, mixed>|null
+     */
+    private static function messageForLaunch(array $messages, $messageType, $targetLinkUri) {
+        $typed = array();
+        foreach ( $messages as $message ) {
+            if ( isset($message['message_type']) && $message['message_type'] === $messageType ) {
+                $typed[] = $message;
+            }
+        }
+        if ( count($typed) === 0 ) {
+            return null;
+        }
+        if ( count($typed) === 1 ) {
+            return $typed[0];
+        }
+        $targetLinkUri = trim($targetLinkUri);
+        foreach ( $typed as $message ) {
+            $uri = isset($message['target_link_uri']) ? trim((string) $message['target_link_uri']) : '';
+            if ( $uri === $targetLinkUri ) {
+                return $message;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param array<string, mixed> $document
      * @return array<string, mixed>|null
      */

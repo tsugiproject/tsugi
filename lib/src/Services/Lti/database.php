@@ -1210,6 +1210,7 @@ array( "{$CFG->dbprefix}lti_content",
     target              VARCHAR(32) NOT NULL DEFAULT 'window',
 
     -- Placement custom parameters. Not the registration message custom.
+    -- A deep link content item's custom object is stored here.
     custom              JSON NULL,
 
     resource_link_id    TEXT NOT NULL,

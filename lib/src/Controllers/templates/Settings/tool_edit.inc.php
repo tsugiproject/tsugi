@@ -117,6 +117,23 @@ $rowOpen = function ($off, $attrs = array()) {
     $html .= '>';
     return $html;
 };
+
+$customList = function ($items, $messageId = null) use ($button, $rowOpen) {
+    if ( ! is_array($items) || count($items) === 0 ) {
+        echo '<p class="text-muted">'.htmlspecialchars(__('None')).'</p>';
+        return;
+    }
+    foreach ( $items as $name => $value ) {
+        $fields = array('custom_name' => (string) $name);
+        if ( $messageId !== null ) {
+            $fields['message_id'] = (string) $messageId;
+        }
+        echo $rowOpen(false);
+        echo '<span style="flex:1;min-width:16em;word-break:break-all;"><code>'.htmlspecialchars((string) $name).'</code> = '.htmlspecialchars((string) $value).'</span>';
+        echo $button('delete_custom', $fields, __('Delete'), 'btn btn-danger btn-sm', __('Remove this custom parameter?'));
+        echo '</div>';
+    }
+};
 ?>
 <div id="lti13-editor" data-edit-url="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8') ?>">
 <p><a href="<?= htmlspecialchars(isset($tools_url) ? (string) $tools_url : '') ?>"><?= __('Back to course tools') ?></a></p>
@@ -178,6 +195,24 @@ foreach ( $redirects as $uri ) {
         <input class="form-control" style="max-width:36em;display:inline-block;" id="lti13_redirect" name="redirect_uri" type="url" required>
         <button type="submit" class="btn btn-default"><?= __('Add') ?></button>
     </div>
+</form>
+
+<h3><?= __('Custom parameters') ?></h3>
+<p class="text-muted"><?= __('Sent on every launch. A message parameter with the same name replaces this one. A value can include $Context.id. A substitution this platform does not fill is sent as written.') ?></p>
+<?php $customList(isset($tool_edit['custom_parameters']) ? $tool_edit['custom_parameters'] : array()); ?>
+<form method="post" action="<?= htmlspecialchars($editUrl) ?>" style="margin-top:8px;">
+    <?= \Tsugi\Controllers\Settings::csrfField() ?>
+    <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
+    <input type="hidden" name="edit_action" value="add_custom">
+    <div class="form-group">
+        <label for="lti13_custom_name"><?= __('Name') ?></label>
+        <input class="form-control" style="max-width:24em;" id="lti13_custom_name" name="custom_name" type="text" maxlength="255" required>
+    </div>
+    <div class="form-group">
+        <label for="lti13_custom_value"><?= __('Value') ?></label>
+        <input class="form-control" style="max-width:40em;" id="lti13_custom_value" name="custom_value" type="text" maxlength="2048">
+    </div>
+    <p><button type="submit" class="btn btn-default"><?= __('Add') ?></button></p>
 </form>
 
 <h3><?= __('Scopes') ?></h3>
@@ -362,6 +397,27 @@ foreach ( $messages as $message ) {
         </div>
         <p class="text-muted"><?= __('Stored exactly as typed. Use this for a platform this list does not name.') ?></p>
     </form>
+    <h4><?= __('Custom parameters') ?></h4>
+    <p class="text-muted"><?= __('Sent when this message is launched. These replace a tool parameter with the same name.') ?></p>
+    <?php
+    $messageCustom = isset($message['custom_parameters']) && is_array($message['custom_parameters']) ? $message['custom_parameters'] : array();
+    $customList($messageCustom, $messageId);
+    ?>
+    <form method="post" action="<?= htmlspecialchars($editUrl) ?>" style="margin-top:8px;">
+        <?= \Tsugi\Controllers\Settings::csrfField() ?>
+        <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
+        <input type="hidden" name="edit_action" value="add_custom">
+        <input type="hidden" name="message_id" value="<?= $messageId ?>">
+        <div class="form-group">
+            <label for="lti13_custom_name_<?= $messageId ?>"><?= __('Name') ?></label>
+            <input class="form-control" style="max-width:24em;" id="lti13_custom_name_<?= $messageId ?>" name="custom_name" type="text" maxlength="255" required>
+        </div>
+        <div class="form-group">
+            <label for="lti13_custom_value_<?= $messageId ?>"><?= __('Value') ?></label>
+            <input class="form-control" style="max-width:40em;" id="lti13_custom_value_<?= $messageId ?>" name="custom_value" type="text" maxlength="2048">
+        </div>
+        <p><button type="submit" class="btn btn-default btn-sm"><?= __('Add') ?></button></p>
+    </form>
 </div>
 <?php } ?>
 <form method="post" action="<?= htmlspecialchars($editUrl) ?>">
@@ -391,6 +447,11 @@ foreach ( $messages as $message ) {
 </form>
 
 <?php include __DIR__.'/platform_urls.inc.php'; ?>
+<?php
+$registration_json = isset($tool_edit['registration_json']) ? (string) $tool_edit['registration_json'] : '';
+$registration_logs = isset($tool_edit['registration_logs']) && is_array($tool_edit['registration_logs']) ? $tool_edit['registration_logs'] : array();
+include __DIR__.'/registration_sources.inc.php';
+?>
 <p style="margin-top:16px;">
 <?php if ( $registrationId > 0 && isset($view_url) && is_string($view_url) && $view_url !== '' ) {
     $viewSep = strpos($view_url, '?') === false ? '?' : '&';
