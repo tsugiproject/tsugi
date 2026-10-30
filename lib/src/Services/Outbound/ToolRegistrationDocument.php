@@ -252,7 +252,8 @@ class ToolRegistrationDocument {
      * Message type used for a launch.
      *
      * The resource-link type in the specification is LtiResourceLinkRequest.
-     * A registration that says LtiResourceLink is that same message.
+     * A registration that says LtiResourceLink is stored as that message.
+     * The registration document keeps the type the tool sent.
      *
      * @param string $type
      * @return string
@@ -560,16 +561,17 @@ class ToolRegistrationDocument {
         $registrationId = self::requireRegistrationId($registrationId);
         $existing = self::requireMessageRow($registrationId, $messageId);
         $row = self::messageRow((int) $existing['sequence'], $message);
-        if ( $row['message_type'] !== (string) $existing['message_type'] ) {
+        if ( self::canonicalMessageType($row['message_type']) !== self::canonicalMessageType($existing['message_type']) ) {
             throw new \InvalidArgumentException('That message type cannot change.');
         }
         $p = self::prefix();
         $stmt = self::db()->queryReturnError(
             "UPDATE {$p}lti_tool_message
-             SET target_link_uri = :target_link_uri, label = :label, icon_uri = :icon_uri,
+             SET message_type = :message_type, target_link_uri = :target_link_uri, label = :label, icon_uri = :icon_uri,
                  message_json = :message_json, updated_at = NOW()
              WHERE message_id = :message_id AND registration_id = :registration_id",
             array(
+                ':message_type' => $row['message_type'],
                 ':target_link_uri' => $row['target_link_uri'],
                 ':label' => $row['label'],
                 ':icon_uri' => $row['icon_uri'],
@@ -768,7 +770,7 @@ class ToolRegistrationDocument {
                 'message_id' => (int) $row['message_id'],
                 'registration_id' => (int) $row['registration_id'],
                 'sequence' => (int) $row['sequence'],
-                'message_type' => (string) $row['message_type'],
+                'message_type' => self::canonicalMessageType($row['message_type']),
                 'target_link_uri' => $row['target_link_uri'] === null ? null : (string) $row['target_link_uri'],
                 'label' => $row['label'] === null ? null : (string) $row['label'],
                 'icon_uri' => $row['icon_uri'] === null ? null : (string) $row['icon_uri'],
@@ -1058,14 +1060,15 @@ class ToolRegistrationDocument {
         if ( strlen($message['type']) > 255 ) {
             throw new \InvalidArgumentException('Message type is too long.');
         }
+        $type = self::canonicalMessageType($message['type']);
         return array(
             'sequence' => (int) $sequence,
-            'message_type' => $message['type'],
+            'message_type' => $type,
             'target_link_uri' => self::scalarString($message, 'target_link_uri'),
             'label' => self::scalarString($message, 'label'),
             'icon_uri' => self::scalarString($message, 'icon_uri'),
             'message_json' => self::encodeJson($message),
-            'placements' => self::placementNames($message, $message['type']),
+            'placements' => self::placementNames($message, $type),
         );
     }
 

@@ -86,6 +86,17 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $stored = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
         $this->assertSame(200, $stored['status']);
         $registrationId = $this->registrationId('Amp Shape');
+        $kept = ToolRegistrationDocument::registrationDocument($registrationId);
+        $this->assertIsArray($kept);
+        $this->assertSame('LtiResourceLink', $kept[$config]['messages'][1]['type']);
+        $storedTypes = array();
+        foreach ( ToolRegistrationDocument::messagesForRegistration($registrationId) as $message ) {
+            $storedTypes[] = $message['message_type'];
+            if ( $message['message_type'] === 'LtiResourceLinkRequest' ) {
+                $this->assertSame('LtiResourceLink', $message['message_json']['type']);
+            }
+        }
+        $this->assertSame(array('LtiDeepLinkingRequest', 'LtiResourceLinkRequest'), $storedTypes);
 
         $choices = Lti13TestLaunch::choices($this->id['eecs280'], $registrationId);
         $ready = array();

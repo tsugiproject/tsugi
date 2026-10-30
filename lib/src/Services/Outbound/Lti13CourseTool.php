@@ -535,8 +535,7 @@ class Lti13CourseTool {
         $document = self::document($registrationId);
         $messages = ToolRegistrationDocument::messagesInDocument($document);
         $sequence = (int) $message['sequence'];
-        if ( ! isset($messages[$sequence]) || ! is_array($messages[$sequence]) || ! isset($messages[$sequence]['type'])
-            || $messages[$sequence]['type'] !== $message['message_type'] ) {
+        if ( ! self::documentMessageMatches($messages, $sequence, $message['message_type']) ) {
             throw new \InvalidArgumentException('That message is not in the registration document.');
         }
         array_splice($messages, $sequence, 1);
@@ -843,14 +842,13 @@ class Lti13CourseTool {
      * @return void
      */
     private static function writeMessageObject($registrationId, array $message, array $object) {
-        $object['type'] = $message['message_type'];
         $document = self::document($registrationId);
         $messages = ToolRegistrationDocument::messagesInDocument($document);
         $sequence = (int) $message['sequence'];
-        if ( ! isset($messages[$sequence]) || ! is_array($messages[$sequence]) || ! isset($messages[$sequence]['type'])
-            || $messages[$sequence]['type'] !== $message['message_type'] ) {
+        if ( ! self::documentMessageMatches($messages, $sequence, $message['message_type']) ) {
             throw new \InvalidArgumentException('That message is not in the registration document.');
         }
+        $object['type'] = (string) $messages[$sequence]['type'];
         $messages[$sequence] = $object;
         ToolRegistrationDocument::saveMessageRow($registrationId, (int) $message['message_id'], $object);
         ToolRegistrationDocument::persistDocument($registrationId, ToolRegistrationDocument::withMessages($document, $messages));
@@ -1005,6 +1003,24 @@ class Lti13CourseTool {
             }
         }
         return $uris;
+    }
+
+    /**
+     * The document message at this sequence is the same launch as the row.
+     *
+     * The document may still say LtiResourceLink. The row says LtiResourceLinkRequest.
+     *
+     * @param array<int, mixed> $messages
+     * @param int $sequence
+     * @param string $messageType
+     * @return bool
+     */
+    private static function documentMessageMatches(array $messages, $sequence, $messageType) {
+        if ( ! isset($messages[$sequence]) || ! is_array($messages[$sequence]) || ! isset($messages[$sequence]['type']) ) {
+            return false;
+        }
+        return ToolRegistrationDocument::canonicalMessageType($messages[$sequence]['type'])
+            === ToolRegistrationDocument::canonicalMessageType($messageType);
     }
 
     /**
