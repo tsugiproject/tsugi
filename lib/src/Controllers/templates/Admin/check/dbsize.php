@@ -26,7 +26,9 @@ $sql = "
 SELECT 
     table_name AS `Table`, 
     table_rows AS `Rows`,
-    round(((data_length + index_length) / 1024 / 1024), 2) AS `Size`
+    round(((data_length + index_length) / 1024 / 1024), 2) AS `Size`,
+    round((index_length / 1024 / 1024), 2) AS `Index`,
+    round((data_free / 1024 / 1024), 2) AS `Free`
 FROM information_schema.TABLES WHERE table_schema = :DBNAME";
 
 $parms = array(':DBNAME' => $dbname);
@@ -41,7 +43,7 @@ $rows = $PDOX->allRowsDie($sql, $parms);
 ?>
 <table class="table">
 <thead>
-<th>Table</th><th>Rows</th><th>Size (MB)</th>
+<th>Table</th><th>Rows</th><th>Size (MB)</th><th>Index MB</th><th>Free MB</th>
 </thead>
 <?php
 foreach ( $rows as $row ) {
@@ -51,6 +53,10 @@ foreach ( $rows as $row ) {
     echo(htmlentities($row['Rows']));
     echo("</td><td>");
     echo(htmlentities($row['Size']));
+    echo("</td><td>");
+    echo(htmlentities($row['Index']));
+    echo("</td><td>");
+    echo(htmlentities($row['Free']));
     echo("</td></tr>\n");
 }
 echo("</table>\n");
