@@ -778,9 +778,14 @@ class Lti13TestLaunch {
 
         $items = array();
         $rawItems = isset($body->{$itemsClaim}) ? $body->{$itemsClaim} : array();
+        $fallback = self::toolTarget($tool);
         if ( is_array($rawItems) ) {
             foreach ( $rawItems as $item ) {
-                $items[] = self::contentItem($item);
+                $row = self::contentItem($item);
+                if ( $row['url'] === '' && $row['type'] === 'ltiResourceLink' && preg_match('#^https?://#i', $fallback) ) {
+                    $row['url'] = $fallback;
+                }
+                $items[] = $row;
             }
         }
         return array(

@@ -447,6 +447,16 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
                         'Review:Chapter' => '1.2',
                     ),
                 ),
+                array(
+                    'type' => 'ltiResourceLink',
+                    'title' => 'S5 - Section-level Rubric Blocks',
+                    'custom' => array(
+                        'name' => 'S5 - Section-level Rubric Blocks',
+                        'id' => '752',
+                        'identifier' => 'S5-RubricBlock-Sections',
+                        'resourcetype' => 'Qti3test',
+                    ),
+                ),
             ),
         ), $private, 'tool-key');
         $accepted = Lti13TestLaunch::acceptReturn($response, $details['key']);
@@ -454,6 +464,8 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('Chosen garden', $accepted['items'][0]['title']);
         $this->assertSame('roses', $accepted['items'][0]['custom']['garden']);
         $this->assertStringContainsString('roses', $accepted['items'][0]['json']);
+        $this->assertSame('https://client.example.org/launch', $accepted['items'][1]['url']);
+        $this->assertSame('752', $accepted['items'][1]['custom']['id']);
 
         Lti13CourseTool::apply($this->id['eecs280'], $registrationId, array(
             'edit_action' => 'add_custom',
@@ -502,6 +514,37 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame((string) $this->id['eecs280'], $sentCustom->spot);
         $this->assertSame('1.2', $sentCustom->review_chapter);
         $this->assertStringContainsString('roses', $returned['jwt_json']);
+
+        $rubric = Lti13TestLaunch::launchReturned(
+            $this->id['eecs280'],
+            $registrationId,
+            424242,
+            $accepted['items'][1]['url'],
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Instructor',
+            $accepted['items'][1]['title'],
+            true,
+            $accepted['items'][1]['custom']
+        );
+        $this->assertTrue($rubric['ready']);
+        $this->assertSame('LtiResourceLinkRequest', $rubric['message_type']);
+        $rubricDone = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $rubric['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $rubric['parameters']['login_hint'],
+            'lti_message_hint' => $rubric['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-rubric',
+            'state' => 'rubric-state',
+        ));
+        $rubricJwt = LTI13::parse_jwt($rubricDone['id_token'], false);
+        $this->assertIsObject($rubricJwt);
+        $this->assertSame('LtiResourceLinkRequest', $rubricJwt->body->{LTI13::MESSAGE_TYPE_CLAIM});
+        $this->assertSame('https://client.example.org/launch', $rubricJwt->body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
+        $this->assertSame('752', $rubricJwt->body->{LTI13::CUSTOM_CLAIM}->id);
+        $this->assertSame('S5-RubricBlock-Sections', $rubricJwt->body->{LTI13::CUSTOM_CLAIM}->identifier);
+        $this->assertSame('Qti3test', $rubricJwt->body->{LTI13::CUSTOM_CLAIM}->resourcetype);
 
         $quiet = Lti13TestLaunch::launch(
             $this->id['eecs280'],
