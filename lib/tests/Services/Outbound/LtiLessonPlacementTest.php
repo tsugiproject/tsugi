@@ -257,6 +257,22 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
             return null;
         });
 
+        $registrationId = 0;
+        foreach ( ToolDeploymentService::getDeploymentsForContext($this->id['eecs280']) as $deployment ) {
+            if ( (int) $deployment['tool_deployment_id'] === $deploymentId ) {
+                $registrationId = (int) $deployment['registration_id'];
+            }
+        }
+        $this->assertGreaterThan(0, $registrationId);
+        $document = ToolRegistrationDocument::registrationDocument($registrationId);
+        $this->assertIsArray($document);
+        $document[ToolRegistrationDocument::TOOL_CONFIGURATION]['custom_parameters'] = array(
+            'mail' => '$Person.email.primary',
+            'who' => '$Person.name.full',
+        );
+        ToolRegistrationDocument::persistDocument($registrationId, $document);
+        $this->rememberLaunchUser();
+
         $placed = LtiContentService::placeAt(
             $this->id['eecs280'],
             $deploymentId,
@@ -301,7 +317,8 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         $body = $jwt->body;
         $this->assertSame('LtiResourceLinkRequest', $body->{LTI13::MESSAGE_TYPE_CLAIM});
         $this->assertSame('https://tool.example/privacy.php', $body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
-        $this->assertObjectNotHasProperty(LTI13::CUSTOM_CLAIM, $body);
+        $this->assertSame('$Person.email.primary', $body->{LTI13::CUSTOM_CLAIM}->mail);
+        $this->assertSame('$Person.name.full', $body->{LTI13::CUSTOM_CLAIM}->who);
         $this->assertSame($placed['resource_link_id'], $body->{LTI13::RESOURCE_LINK_CLAIM}->id);
         $this->assertSame('PY4E Privacy', $body->{LTI13::RESOURCE_LINK_CLAIM}->title);
         $this->assertFalse(isset($body->{LTI13::RESOURCE_LINK_CLAIM}->description));

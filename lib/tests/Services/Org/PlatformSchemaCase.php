@@ -186,6 +186,44 @@ abstract class PlatformSchemaCase extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString($needle, (string) $stmt->errorImplode);
     }
 
+    /**
+     * The launch tests address user 424242. Give that user a name and email
+     * in this tenant when the row is ours to write.
+     */
+    protected function rememberLaunchUser(): void
+    {
+        global $PDOX;
+        $p = $this->p();
+        $row = $PDOX->rowDie(
+            "SELECT key_id FROM {$p}lti_user WHERE user_id = 424242",
+            array()
+        );
+        if ( is_array($row) && (int) $row['key_id'] !== $this->id['keyA'] ) {
+            return;
+        }
+        if ( is_array($row) ) {
+            $PDOX->queryDie(
+                "UPDATE {$p}lti_user
+                 SET displayname = 'Pat Student', email = 'pat@example.test'
+                 WHERE user_id = 424242",
+                array()
+            );
+            return;
+        }
+        $userKey = 'pat-424242';
+        $PDOX->queryDie(
+            "INSERT INTO {$p}lti_user
+                (user_id, user_key, user_sha256, displayname, email, key_id, created_at, updated_at)
+             VALUES
+                (424242, :user_key, :user_sha256, 'Pat Student', 'pat@example.test', :key_id, NOW(), NOW())",
+            array(
+                ':user_key' => $userKey,
+                ':user_sha256' => \Tsugi\Util\U::lti_sha256($userKey),
+                ':key_id' => $this->id['keyA'],
+            )
+        );
+    }
+
     protected function p(): string
     {
         global $CFG;

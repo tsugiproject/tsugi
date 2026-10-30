@@ -7,6 +7,7 @@ use Tsugi\Services\Ims\PnpConnector;
 use Tsugi\Services\Outbound\Lti13CourseTool;
 use Tsugi\Services\Outbound\Lti13TestLaunch;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
+use Tsugi\Services\Outbound\ToolDeploymentService;
 use Tsugi\Services\Outbound\ToolRegistrationDocument;
 use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Util\LTI13;
@@ -704,6 +705,8 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
             'chapter' => 'tool',
             'plain' => 'kept',
             'who' => '$User.id',
+            'mail' => '$Person.email.primary',
+            'label' => '$Person.name.full',
         );
         $body[ToolRegistrationDocument::TOOL_CONFIGURATION]['messages'][0]['custom_parameters'] = array(
             'chapter' => '$Context.id',
@@ -724,6 +727,13 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $edit = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
         $this->assertSame('registration_request', $edit['registration_logs'][0]['phase']);
         $this->assertNotSame('', $edit['registration_json']);
+
+        $this->rememberLaunchUser();
+        ToolDeploymentService::assignContext((int) $view['deployments'][0]['tool_deployment_id'], $this->id['eecs281']);
+        $shared = ToolRegistrationService::visibleLti13($this->id['eecs281'], $registrationId);
+        $this->assertSame('', $shared['registration_json']);
+        $this->assertSame(array(), $shared['registration_logs']);
+        $this->assertSame('$Context.id.history', $shared['custom_parameters']['context_history']);
 
         $started = Lti13TestLaunch::launch(
             $this->id['eecs280'],
@@ -751,6 +761,8 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('$Context.id.history', $custom->context_history);
         $this->assertSame('kept', $custom->plain);
         $this->assertSame('424242', $custom->who);
+        $this->assertSame($jwt->body->email, $custom->mail);
+        $this->assertSame($jwt->body->name, $custom->label);
         $this->assertSame('1.2', $custom->review_chapter);
         $this->assertSame('test-'.$registrationId, $custom->link);
 

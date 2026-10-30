@@ -595,8 +595,9 @@ class ToolRegistrationService {
             );
         }
 
+        $ownedHere = $row['owner_context_id'] !== null && (int) $row['owner_context_id'] === $contextId;
         $json = '';
-        if ( is_array($document) ) {
+        if ( $ownedHere && is_array($document) ) {
             $encoded = json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $json = is_string($encoded) ? $encoded : '';
         }
@@ -621,7 +622,7 @@ class ToolRegistrationService {
             'requested_scopes' => is_array($document) ? ToolRegistrationDocument::requestedScopes($document) : array(),
             'deployments' => $deployments,
             'registration_json' => $json,
-            'registration_logs' => ToolRegistrationDocument::logsForRegistration($registrationId),
+            'registration_logs' => $ownedHere ? ToolRegistrationDocument::logsForRegistration($registrationId) : array(),
         );
     }
 

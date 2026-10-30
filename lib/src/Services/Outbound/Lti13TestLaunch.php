@@ -567,7 +567,7 @@ class Lti13TestLaunch {
                 'service_versions' => array('2.0'),
             );
         }
-        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiResourceLinkRequest', $context, $user, $resourceLink);
+        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiResourceLinkRequest', $context, $resourceLink);
         return self::withPnpClaim($claims);
     }
 
@@ -673,7 +673,7 @@ class Lti13TestLaunch {
                 $claims[LTI13::ENDPOINT_CLAIM] = $grade;
             }
         }
-        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDeepLinkingRequest', $context, $user, null);
+        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDeepLinkingRequest', $context, null);
         return self::withPnpClaim($claims);
     }
 
@@ -966,7 +966,7 @@ class Lti13TestLaunch {
             $forUser['email'] = $user['email'];
         }
         $claims[LTI13::FOR_USER_CLAIM] = $forUser;
-        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDataPrivacyLaunchRequest', $context, $user, null);
+        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDataPrivacyLaunchRequest', $context, null);
         return self::withPnpClaim($claims);
     }
 
@@ -983,11 +983,10 @@ class Lti13TestLaunch {
      * @param array<string, mixed> $hint
      * @param string $messageType
      * @param array{context_id:string, title:string, label:string, key_id:int} $context
-     * @param array{full:string, given:string, family:string, email:string} $user
      * @param array{id:string, title:string, description?:string}|null $resourceLink
      * @return array<string, mixed>
      */
-    private static function withCustomClaim(array $claims, array $tool, array $hint, $messageType, array $context, array $user, $resourceLink) {
+    private static function withCustomClaim(array $claims, array $tool, array $hint, $messageType, array $context, $resourceLink) {
         $custom = ToolRegistrationDocument::launchCustomParameters(
             (int) $tool['registration_id'],
             $messageType,
@@ -1005,32 +1004,40 @@ class Lti13TestLaunch {
         }
         $expanded = array();
         foreach ( $custom as $name => $value ) {
-            $expanded[$name] = self::substituteCustom($value, $claims, $context, $user, $resourceLink);
+            $expanded[$name] = self::substituteCustom($value, $claims, $context, $resourceLink);
         }
         $claims[LTI13::CUSTOM_CLAIM] = $expanded;
         return $claims;
     }
 
     /**
+     * Name and email variables are filled only when this launch releases that claim.
+     *
      * @param string $value
      * @param array<string, mixed> $claims
      * @param array{context_id:string, title:string, label:string, key_id:int} $context
-     * @param array{full:string, given:string, family:string, email:string} $user
      * @param array{id:string, title:string, description?:string}|null $resourceLink
      * @return string
      */
-    private static function substituteCustom($value, array $claims, array $context, array $user, $resourceLink) {
+    private static function substituteCustom($value, array $claims, array $context, $resourceLink) {
         $vars = array(
             'User.id' => isset($claims['sub']) ? (string) $claims['sub'] : '',
             'Context.id' => (string) $context['context_id'],
             'Context.title' => (string) $context['title'],
             'Context.label' => (string) $context['label'],
-            'Person.name.full' => (string) $user['full'],
-            'Person.name.given' => (string) $user['given'],
-            'Person.name.family' => (string) $user['family'],
-            'Person.email.primary' => (string) $user['email'],
             'Message.locale' => 'en',
         );
+        $released = array(
+            'Person.name.full' => 'name',
+            'Person.name.given' => 'given_name',
+            'Person.name.family' => 'family_name',
+            'Person.email.primary' => 'email',
+        );
+        foreach ( $released as $variable => $claim ) {
+            if ( isset($claims[$claim]) && is_string($claims[$claim]) && $claims[$claim] !== '' ) {
+                $vars[$variable] = $claims[$claim];
+            }
+        }
         $roles = isset($claims[LTI13::ROLES_CLAIM]) && is_array($claims[LTI13::ROLES_CLAIM]) ? $claims[LTI13::ROLES_CLAIM] : array();
         if ( isset($roles[0]) && is_string($roles[0]) && $roles[0] !== '' ) {
             $vars['Membership.role'] = $roles[0];
