@@ -200,7 +200,7 @@ class Lti13TestLaunch {
 
     /**
      * A resource link aimed at a URL a deep link return just verified.
-     * Nothing about that return is written down.
+     * The content item custom rides on the signed hint. This return is not a content row.
      *
      * @param int $contextId
      * @param int $registrationId
@@ -210,9 +210,10 @@ class Lti13TestLaunch {
      * @param string $role
      * @param string $title
      * @param bool $lineItems Include the line items URL. A tool that creates columns keeps them in the course.
+     * @param array<string, string> $custom Content item custom parameters. They replace a registration parameter with the same name.
      * @return array{title:string, endpoint:string, form_endpoint:string, message_type:string, label:string, role:string, ready:bool, new_window:bool, modal:bool, missing_resource_link:bool, content_item_url:bool, parameters:array<string, string>, jwt_json:string, jwt_signed:string}
      */
-    public static function launchReturned($contextId, $registrationId, $userId, $target, $returnUrl, $role = 'Instructor', $title = '', $lineItems = true) {
+    public static function launchReturned($contextId, $registrationId, $userId, $target, $returnUrl, $role = 'Instructor', $title = '', $lineItems = true, array $custom = array()) {
         $tool = ToolRegistrationService::visibleLti13((int) $contextId, (int) $registrationId);
         $target = self::httpUrl($target);
         if ( $target === '' || $tool['oidc_login_url'] === '' ) {
@@ -247,6 +248,10 @@ class Lti13TestLaunch {
         if ( ! $lineItems ) {
             $hintBody['lineitems'] = false;
         }
+        $custom = ToolRegistrationDocument::customParameterMap($custom);
+        if ( count($custom) > 0 ) {
+            $hintBody['custom'] = $custom;
+        }
         $hint = self::encodeHint($hintBody);
         $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
         $previewHint = array(
@@ -260,6 +265,9 @@ class Lti13TestLaunch {
         );
         if ( ! $lineItems ) {
             $previewHint['lineitems'] = false;
+        }
+        if ( count($custom) > 0 ) {
+            $previewHint['custom'] = $custom;
         }
         $preview = self::previewToken(self::resourceLinkClaims($tool, $deployment, $previewHint, 'preview'));
         return array(
@@ -293,7 +301,8 @@ class Lti13TestLaunch {
      * A lesson launch. The content row is the resource link. The stored URL is the target.
      *
      * A privacy placement and a content-item placement launch this same way.
-     * The message that supplied the URL is not launched again.
+     * The message that supplied the URL is not launched again. Custom parameters
+     * stored on the content row go on this launch.
      *
      * @param int $contextId
      * @param int $toolDeploymentId
@@ -491,6 +500,7 @@ class Lti13TestLaunch {
         $context = self::contextRow($contextId);
         $key = self::keyRow($context['key_id']);
         $user = self::userRow($userId, $context['key_id']);
+        $resourceLink = self::resourceLinkIdentity($tool, $hint);
         $now = time();
         $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
         $claims = array(
@@ -504,7 +514,7 @@ class Lti13TestLaunch {
             LTI13::VERSION_CLAIM => '1.3.0',
             LTI13::DEPLOYMENT_ID_CLAIM => $deployment['deployment_id'],
             'https://purl.imsglobal.org/spec/lti/claim/target_link_uri' => (string) $hint['target_link_uri'],
-            LTI13::RESOURCE_LINK_CLAIM => self::resourceLinkIdentity($tool, $hint),
+            LTI13::RESOURCE_LINK_CLAIM => $resourceLink,
             LTI13::ROLES_CLAIM => array(self::roleUri((string) $hint['role'])),
             LTI13::CONTEXT_ID_CLAIM => array(
                 'id' => $context['context_id'],
@@ -557,6 +567,7 @@ class Lti13TestLaunch {
                 'service_versions' => array('2.0'),
             );
         }
+        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiResourceLinkRequest', $context, $resourceLink);
         return self::withPnpClaim($claims);
     }
 
@@ -662,6 +673,7 @@ class Lti13TestLaunch {
                 $claims[LTI13::ENDPOINT_CLAIM] = $grade;
             }
         }
+        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDeepLinkingRequest', $context, null);
         return self::withPnpClaim($claims);
     }
 
@@ -716,7 +728,7 @@ class Lti13TestLaunch {
      *
      * @param string $jwt
      * @param string|null $publicKey Tool public key. When omitted, the registration key set is read.
-     * @return array{registration_id:int, context_id:int, user_id:int, role:string, deployment_id:string, items:array<int, array{type:string, title:string, text:string, url:string, json:string}>, msg:string, log:string, errormsg:string, errorlog:string}
+     * @return array{registration_id:int, context_id:int, user_id:int, role:string, deployment_id:string, items:array<int, array{type:string, title:string, text:string, url:string, custom:array<string, string>, json:string}>, msg:string, log:string, errormsg:string, errorlog:string}
      */
     public static function acceptReturn($jwt, $publicKey = null) {
         $jwt = trim((string) $jwt);
@@ -766,9 +778,14 @@ class Lti13TestLaunch {
 
         $items = array();
         $rawItems = isset($body->{$itemsClaim}) ? $body->{$itemsClaim} : array();
+        $fallback = self::toolTarget($tool);
         if ( is_array($rawItems) ) {
             foreach ( $rawItems as $item ) {
-                $items[] = self::contentItem($item);
+                $row = self::contentItem($item);
+                if ( $row['url'] === '' && $row['type'] === 'ltiResourceLink' && preg_match('#^https?://#i', $fallback) ) {
+                    $row['url'] = $fallback;
+                }
+                $items[] = $row;
             }
         }
         return array(
@@ -819,7 +836,7 @@ class Lti13TestLaunch {
 
     /**
      * @param mixed $item
-     * @return array{type:string, title:string, text:string, url:string, json:string}
+     * @return array{type:string, title:string, text:string, url:string, custom:array<string, string>, json:string}
      */
     private static function contentItem($item) {
         $row = json_decode(json_encode($item), true);
@@ -832,6 +849,7 @@ class Lti13TestLaunch {
             'title' => isset($row['title']) ? (string) $row['title'] : '',
             'text' => isset($row['text']) ? (string) $row['text'] : '',
             'url' => isset($row['url']) && is_string($row['url']) ? $row['url'] : '',
+            'custom' => ToolRegistrationDocument::customParameterMap(isset($row['custom']) ? $row['custom'] : null),
             'json' => is_string($encoded) ? $encoded : '',
         );
     }
@@ -948,7 +966,103 @@ class Lti13TestLaunch {
             $forUser['email'] = $user['email'];
         }
         $claims[LTI13::FOR_USER_CLAIM] = $forUser;
+        $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDataPrivacyLaunchRequest', $context, null);
         return self::withPnpClaim($claims);
+    }
+
+    /**
+     * Put custom parameters on the launch.
+     *
+     * Registration parameters come first. A content item parameter replaces one
+     * with the same claim name. A substitution this platform can fill is
+     * replaced. $Context.id.history and other values this platform does not
+     * fill stay as written.
+     *
+     * @param array<string, mixed> $claims
+     * @param array<string, mixed> $tool
+     * @param array<string, mixed> $hint
+     * @param string $messageType
+     * @param array{context_id:string, title:string, label:string, key_id:int} $context
+     * @param array{id:string, title:string, description?:string}|null $resourceLink
+     * @return array<string, mixed>
+     */
+    private static function withCustomClaim(array $claims, array $tool, array $hint, $messageType, array $context, $resourceLink) {
+        $custom = ToolRegistrationDocument::launchCustomParameters(
+            (int) $tool['registration_id'],
+            $messageType,
+            isset($hint['target_link_uri']) ? (string) $hint['target_link_uri'] : ''
+        );
+        foreach ( self::placementCustom($hint) as $name => $value ) {
+            $claimName = ToolRegistrationDocument::customClaimName($name);
+            if ( $claimName === '' ) {
+                continue;
+            }
+            $custom[$claimName] = $value;
+        }
+        if ( count($custom) === 0 ) {
+            return $claims;
+        }
+        $expanded = array();
+        foreach ( $custom as $name => $value ) {
+            $expanded[$name] = self::substituteCustom($value, $claims, $context, $resourceLink);
+        }
+        $claims[LTI13::CUSTOM_CLAIM] = $expanded;
+        return $claims;
+    }
+
+    /**
+     * Name and email variables are filled only when this launch releases that claim.
+     *
+     * @param string $value
+     * @param array<string, mixed> $claims
+     * @param array{context_id:string, title:string, label:string, key_id:int} $context
+     * @param array{id:string, title:string, description?:string}|null $resourceLink
+     * @return string
+     */
+    private static function substituteCustom($value, array $claims, array $context, $resourceLink) {
+        $vars = array(
+            'User.id' => isset($claims['sub']) ? (string) $claims['sub'] : '',
+            'Context.id' => (string) $context['context_id'],
+            'Context.title' => (string) $context['title'],
+            'Context.label' => (string) $context['label'],
+            'Message.locale' => 'en',
+        );
+        $released = array(
+            'Person.name.full' => 'name',
+            'Person.name.given' => 'given_name',
+            'Person.name.family' => 'family_name',
+            'Person.email.primary' => 'email',
+        );
+        foreach ( $released as $variable => $claim ) {
+            if ( isset($claims[$claim]) && is_string($claims[$claim]) && $claims[$claim] !== '' ) {
+                $vars[$variable] = $claims[$claim];
+            }
+        }
+        $roles = isset($claims[LTI13::ROLES_CLAIM]) && is_array($claims[LTI13::ROLES_CLAIM]) ? $claims[LTI13::ROLES_CLAIM] : array();
+        if ( isset($roles[0]) && is_string($roles[0]) && $roles[0] !== '' ) {
+            $vars['Membership.role'] = $roles[0];
+        }
+        if ( is_array($resourceLink) ) {
+            $vars['ResourceLink.id'] = isset($resourceLink['id']) ? (string) $resourceLink['id'] : '';
+            $vars['ResourceLink.title'] = isset($resourceLink['title']) ? (string) $resourceLink['title'] : '';
+            if ( isset($resourceLink['description']) ) {
+                $vars['ResourceLink.description'] = (string) $resourceLink['description'];
+            }
+        }
+        $value = preg_replace_callback(
+            '/(?<!\\\\)\$([A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)*)/',
+            function ($match) use ($vars) {
+                if ( ! array_key_exists($match[1], $vars) ) {
+                    return $match[0];
+                }
+                return $vars[$match[1]];
+            },
+            $value
+        );
+        if ( ! is_string($value) ) {
+            return '';
+        }
+        return str_replace('\\$', '$', $value);
     }
 
     /**
@@ -1017,13 +1131,19 @@ class Lti13TestLaunch {
         if ( $target === '' ) {
             return false;
         }
+        $fallback = self::toolTarget($tool);
+        $saw = false;
         foreach ( $tool['messages'] as $message ) {
-            if ( $message['message_type'] !== $messageType ) {
+            if ( ! self::sameMessageType($message['message_type'], $messageType) ) {
                 continue;
             }
-            if ( trim((string) $message['target_link_uri']) === $target ) {
+            $saw = true;
+            if ( self::effectiveTarget($message['target_link_uri'], $fallback) === $target ) {
                 return true;
             }
+        }
+        if ( ! $saw && $messageType === 'LtiResourceLinkRequest' && $fallback === $target && ! self::launchUrlIsContentItem($tool) ) {
+            return true;
         }
         return false;
     }
@@ -1063,7 +1183,11 @@ class Lti13TestLaunch {
     }
 
     /**
-     * Target of the first message of this type. A registration launch URL is not a message target.
+     * Target of the first message of this type.
+     *
+     * A message with no target link uses the registration target link.
+     * A resource link is implicit when the registration has a target link
+     * and that address is not a content-item message's own target.
      *
      * @param array<string, mixed> $tool
      * @param string $messageType
@@ -1073,16 +1197,53 @@ class Lti13TestLaunch {
         if ( $messageType !== 'LtiResourceLinkRequest' && $messageType !== 'LtiDataPrivacyLaunchRequest' && $messageType !== 'LtiDeepLinkingRequest' ) {
             return '';
         }
+        $fallback = self::toolTarget($tool);
+        $saw = false;
         foreach ( $tool['messages'] as $message ) {
-            if ( $message['message_type'] !== $messageType ) {
+            if ( ! self::sameMessageType($message['message_type'], $messageType) ) {
                 continue;
             }
-            $target = trim((string) $message['target_link_uri']);
+            $saw = true;
+            $target = self::effectiveTarget($message['target_link_uri'], $fallback);
             if ( $target !== '' ) {
                 return $target;
             }
         }
+        if ( ! $saw && $messageType === 'LtiResourceLinkRequest' && $fallback !== '' && ! self::launchUrlIsContentItem($tool) ) {
+            return $fallback;
+        }
         return '';
+    }
+
+    /**
+     * @param array<string, mixed> $tool
+     * @return string
+     */
+    private static function toolTarget(array $tool) {
+        return trim((string) $tool['launch_url']);
+    }
+
+    /**
+     * @param mixed $stored
+     * @param string $fallback
+     * @return string
+     */
+    private static function effectiveTarget($stored, $fallback) {
+        $stored = trim((string) $stored);
+        if ( $stored !== '' ) {
+            return $stored;
+        }
+        return trim((string) $fallback);
+    }
+
+    /**
+     * @param mixed $left
+     * @param string $right
+     * @return bool
+     */
+    private static function sameMessageType($left, $right) {
+        return ToolRegistrationDocument::canonicalMessageType((string) $left)
+            === ToolRegistrationDocument::canonicalMessageType($right);
     }
 
     /**
@@ -1167,7 +1328,42 @@ class Lti13TestLaunch {
             'send_name' => property_exists($decoded, 'send_name') ? (bool) $decoded->send_name : null,
             'send_email' => property_exists($decoded, 'send_email') ? (bool) $decoded->send_email : null,
             'document_target' => (isset($decoded->document_target) && (string) $decoded->document_target === 'iframe') ? 'iframe' : '',
+            'custom' => self::hintCustom(isset($decoded->custom) ? $decoded->custom : null),
         );
+    }
+
+    /**
+     * Content-item custom parameters for this launch.
+     *
+     * A returned launch carries them on the hint. A lesson launch reads the
+     * content row. The row replaces a hint parameter with the same name.
+     *
+     * @param array<string, mixed> $hint
+     * @return array<string, string>
+     */
+    private static function placementCustom(array $hint) {
+        $custom = isset($hint['custom']) && is_array($hint['custom']) ? $hint['custom'] : array();
+        if ( ! empty($hint['lesson']) ) {
+            $stored = LtiContentService::customForResourceLink(
+                (int) $hint['context_id'],
+                isset($hint['resource_link_id']) ? (string) $hint['resource_link_id'] : ''
+            );
+            foreach ( $stored as $name => $value ) {
+                $custom[$name] = $value;
+            }
+        }
+        return $custom;
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, string>
+     */
+    private static function hintCustom($value) {
+        if ( is_object($value) ) {
+            $value = json_decode(json_encode($value), true);
+        }
+        return ToolRegistrationDocument::customParameterMap($value);
     }
 
     /**

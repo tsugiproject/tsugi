@@ -4,9 +4,12 @@ use Tsugi\Core\Keyset;
 use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Services\Ims\PnpConnector;
+use Tsugi\Services\Outbound\Lti13CourseTool;
 use Tsugi\Services\Outbound\Lti13TestLaunch;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
+use Tsugi\Services\Outbound\ToolDeploymentService;
 use Tsugi\Services\Outbound\ToolRegistrationDocument;
+use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Util\LTI13;
 
 require_once __DIR__.'/../Org/PlatformSchemaCase.php';
@@ -61,6 +64,77 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('https://client.example.org/launch', $started['endpoint']);
         $this->assertSame(array(), $started['parameters']);
         $this->assertSame('', $started['jwt_signed']);
+    }
+
+    public function testMessagesInheritTheRegistrationTargetLink(): void
+    {
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $body = $this->payload();
+        $body['client_name'] = 'Amp Shape';
+        $config = ToolRegistrationDocument::TOOL_CONFIGURATION;
+        $body[$config]['target_link_uri'] = 'https://lti.example/app';
+        $body[$config]['custom_parameters'] = array('pid' => '43894675');
+        $body[$config]['messages'] = array(
+            array('type' => 'LtiDeepLinkingRequest'),
+            array('type' => 'LtiResourceLink'),
+        );
+        $raw = json_encode($body);
+        $this->assertIsString($raw);
+        $stored = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(200, $stored['status']);
+        $registrationId = $this->registrationId('Amp Shape');
+        $kept = ToolRegistrationDocument::registrationDocument($registrationId);
+        $this->assertIsArray($kept);
+        $this->assertSame('LtiResourceLink', $kept[$config]['messages'][1]['type']);
+        $storedTypes = array();
+        foreach ( ToolRegistrationDocument::messagesForRegistration($registrationId) as $message ) {
+            $storedTypes[] = $message['message_type'];
+            if ( $message['message_type'] === 'LtiResourceLinkRequest' ) {
+                $this->assertSame('LtiResourceLink', $message['message_json']['type']);
+            }
+        }
+        $this->assertSame(array('LtiDeepLinkingRequest', 'LtiResourceLinkRequest'), $storedTypes);
+
+        $choices = Lti13TestLaunch::choices($this->id['eecs280'], $registrationId);
+        $ready = array();
+        foreach ( $choices as $choice ) {
+            $ready[$choice['type']] = $choice['ready'];
+        }
+        $this->assertTrue($ready['LtiResourceLinkRequest']);
+        $this->assertTrue($ready['LtiDeepLinkingRequest']);
+
+        foreach ( array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest') as $messageType ) {
+            $started = Lti13TestLaunch::launch(
+                $this->id['eecs280'],
+                $registrationId,
+                424242,
+                $messageType,
+                'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+                'Instructor'
+            );
+            $this->assertTrue($started['ready'], $messageType);
+            $this->assertFalse($started['missing_resource_link']);
+            $this->assertSame('https://lti.example/app', $started['endpoint']);
+            $done = Lti13TestLaunch::complete(array(
+                'scope' => 'openid',
+                'response_type' => 'id_token',
+                'client_id' => $started['parameters']['client_id'],
+                'redirect_uri' => 'https://client.example.org/callback',
+                'login_hint' => $started['parameters']['login_hint'],
+                'lti_message_hint' => $started['parameters']['lti_message_hint'],
+                'nonce' => 'nonce-inherit',
+                'state' => 'inherit-state',
+            ));
+            $jwt = LTI13::parse_jwt($done['id_token'], false);
+            $this->assertIsObject($jwt);
+            $this->assertSame($messageType, $jwt->body->{LTI13::MESSAGE_TYPE_CLAIM});
+            $this->assertSame('https://lti.example/app', $jwt->body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
+            $this->assertSame('43894675', $jwt->body->{LTI13::CUSTOM_CLAIM}->pid);
+        }
     }
 
     public function testResourceLinkMessageIsSigned(): void
@@ -120,6 +194,7 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('https://client.example.org/resource', $body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
         $this->assertSame('nonce-4242', $body->nonce);
         $this->assertSame('424242', $body->sub);
+        $this->assertObjectNotHasProperty(LTI13::CUSTOM_CLAIM, $body);
         $this->assertSame($stored['document']['client_id'], $body->aud);
         $this->assertContains(
             'http://purl.imsglobal.org/vocab/lis/v2/membership#Learner',
@@ -366,14 +441,43 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
                     'type' => 'ltiResourceLink',
                     'title' => 'Chosen garden',
                     'url' => 'https://client.example.org/chosen',
-                    'custom' => array('garden' => 'roses'),
+                    'custom' => array(
+                        'garden' => 'roses',
+                        'chapter' => 'from-item',
+                        'spot' => '$Context.id',
+                        'Review:Chapter' => '1.2',
+                    ),
+                ),
+                array(
+                    'type' => 'ltiResourceLink',
+                    'title' => 'S5 - Section-level Rubric Blocks',
+                    'custom' => array(
+                        'name' => 'S5 - Section-level Rubric Blocks',
+                        'id' => '752',
+                        'identifier' => 'S5-RubricBlock-Sections',
+                        'resourcetype' => 'Qti3test',
+                    ),
                 ),
             ),
         ), $private, 'tool-key');
         $accepted = Lti13TestLaunch::acceptReturn($response, $details['key']);
         $this->assertSame('https://client.example.org/chosen', $accepted['items'][0]['url']);
         $this->assertSame('Chosen garden', $accepted['items'][0]['title']);
+        $this->assertSame('roses', $accepted['items'][0]['custom']['garden']);
         $this->assertStringContainsString('roses', $accepted['items'][0]['json']);
+        $this->assertSame('https://client.example.org/launch', $accepted['items'][1]['url']);
+        $this->assertSame('752', $accepted['items'][1]['custom']['id']);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $registrationId, array(
+            'edit_action' => 'add_custom',
+            'custom_name' => 'chapter',
+            'custom_value' => 'from-tool',
+        ));
+        Lti13CourseTool::apply($this->id['eecs280'], $registrationId, array(
+            'edit_action' => 'add_custom',
+            'custom_name' => 'plain',
+            'custom_value' => 'kept',
+        ));
 
         $returned = Lti13TestLaunch::launchReturned(
             $this->id['eecs280'],
@@ -382,7 +486,9 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
             $accepted['items'][0]['url'],
             'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
             'Instructor',
-            $accepted['items'][0]['title']
+            $accepted['items'][0]['title'],
+            true,
+            $accepted['items'][0]['custom']
         );
         $this->assertTrue($returned['ready']);
         $this->assertTrue($returned['new_window']);
@@ -402,6 +508,44 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('https://client.example.org/chosen', $resource->body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
         $this->assertSame('Chosen garden', $resource->body->{LTI13::RESOURCE_LINK_CLAIM}->title);
         $this->assertSame('deep-'.$registrationId, $resource->body->{LTI13::RESOURCE_LINK_CLAIM}->id);
+        $sentCustom = $resource->body->{LTI13::CUSTOM_CLAIM};
+        $this->assertSame('roses', $sentCustom->garden);
+        $this->assertSame('from-item', $sentCustom->chapter);
+        $this->assertSame('kept', $sentCustom->plain);
+        $this->assertSame((string) $this->id['eecs280'], $sentCustom->spot);
+        $this->assertSame('1.2', $sentCustom->review_chapter);
+        $this->assertStringContainsString('roses', $returned['jwt_json']);
+
+        $rubric = Lti13TestLaunch::launchReturned(
+            $this->id['eecs280'],
+            $registrationId,
+            424242,
+            $accepted['items'][1]['url'],
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Instructor',
+            $accepted['items'][1]['title'],
+            true,
+            $accepted['items'][1]['custom']
+        );
+        $this->assertTrue($rubric['ready']);
+        $this->assertSame('LtiResourceLinkRequest', $rubric['message_type']);
+        $rubricDone = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $rubric['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $rubric['parameters']['login_hint'],
+            'lti_message_hint' => $rubric['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-rubric',
+            'state' => 'rubric-state',
+        ));
+        $rubricJwt = LTI13::parse_jwt($rubricDone['id_token'], false);
+        $this->assertIsObject($rubricJwt);
+        $this->assertSame('LtiResourceLinkRequest', $rubricJwt->body->{LTI13::MESSAGE_TYPE_CLAIM});
+        $this->assertSame('https://client.example.org/launch', $rubricJwt->body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
+        $this->assertSame('752', $rubricJwt->body->{LTI13::CUSTOM_CLAIM}->id);
+        $this->assertSame('S5-RubricBlock-Sections', $rubricJwt->body->{LTI13::CUSTOM_CLAIM}->identifier);
+        $this->assertSame('Qti3test', $rubricJwt->body->{LTI13::CUSTOM_CLAIM}->resourcetype);
 
         $quiet = Lti13TestLaunch::launch(
             $this->id['eecs280'],
@@ -546,6 +690,107 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $jwt = LTI13::parse_jwt($done['id_token'], false);
         $this->assertIsObject($jwt);
         return $jwt->body;
+    }
+
+    public function testCustomParametersAreOnTheLaunch(): void
+    {
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $body = $this->payload(true);
+        $body[ToolRegistrationDocument::TOOL_CONFIGURATION]['custom_parameters'] = array(
+            'context_history' => '$Context.id.history',
+            'chapter' => 'tool',
+            'plain' => 'kept',
+            'who' => '$User.id',
+            'mail' => '$Person.email.primary',
+            'label' => '$Person.name.full',
+        );
+        $body[ToolRegistrationDocument::TOOL_CONFIGURATION]['messages'][0]['custom_parameters'] = array(
+            'chapter' => '$Context.id',
+            'Review:Chapter' => '1.2',
+            'link' => '$ResourceLink.id',
+        );
+        $raw = json_encode($body);
+        $this->assertIsString($raw);
+        $stored = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(200, $stored['status']);
+        $registrationId = $this->registrationId('Resource Garden');
+
+        $view = ToolRegistrationService::visibleLti13($this->id['eecs280'], $registrationId);
+        $this->assertSame('$Context.id.history', $view['custom_parameters']['context_history']);
+        $this->assertSame('$Context.id', $view['messages'][0]['custom_parameters']['chapter']);
+        $this->assertSame('registration_request', $view['registration_logs'][0]['phase']);
+        $this->assertStringContainsString('context_history', $view['registration_logs'][0]['payload_text']);
+        $edit = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
+        $this->assertSame('registration_request', $edit['registration_logs'][0]['phase']);
+        $this->assertNotSame('', $edit['registration_json']);
+
+        $userId = $this->rememberLaunchUser();
+        ToolDeploymentService::assignContext((int) $view['deployments'][0]['tool_deployment_id'], $this->id['eecs281']);
+        $shared = ToolRegistrationService::visibleLti13($this->id['eecs281'], $registrationId);
+        $this->assertSame('', $shared['registration_json']);
+        $this->assertSame(array(), $shared['registration_logs']);
+        $this->assertSame('$Context.id.history', $shared['custom_parameters']['context_history']);
+
+        $started = Lti13TestLaunch::launch(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            'LtiResourceLinkRequest',
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Learner'
+        );
+        $this->assertStringContainsString(LTI13::CUSTOM_CLAIM, $started['jwt_json']);
+        $done = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $started['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $started['parameters']['login_hint'],
+            'lti_message_hint' => $started['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-custom',
+            'state' => 'custom-state',
+        ));
+        $jwt = LTI13::parse_jwt($done['id_token'], false);
+        $this->assertIsObject($jwt);
+        $custom = $jwt->body->{LTI13::CUSTOM_CLAIM};
+        $this->assertSame($jwt->body->{LTI13::CONTEXT_ID_CLAIM}->id, $custom->chapter);
+        $this->assertSame('$Context.id.history', $custom->context_history);
+        $this->assertSame('kept', $custom->plain);
+        $this->assertSame((string) $userId, $custom->who);
+        $this->assertSame($jwt->body->email, $custom->mail);
+        $this->assertSame($jwt->body->name, $custom->label);
+        $this->assertSame('1.2', $custom->review_chapter);
+        $this->assertSame('test-'.$registrationId, $custom->link);
+
+        $deep = Lti13TestLaunch::launch(
+            $this->id['eecs280'],
+            $registrationId,
+            424242,
+            'LtiDeepLinkingRequest',
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Instructor'
+        );
+        $deepDone = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $deep['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $deep['parameters']['login_hint'],
+            'lti_message_hint' => $deep['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-deep-custom',
+            'state' => 'deep-custom',
+        ));
+        $deepJwt = LTI13::parse_jwt($deepDone['id_token'], false);
+        $this->assertIsObject($deepJwt);
+        $deepCustom = $deepJwt->body->{LTI13::CUSTOM_CLAIM};
+        $this->assertSame('tool', $deepCustom->chapter);
+        $this->assertSame('kept', $deepCustom->plain);
+        $this->assertObjectNotHasProperty('review_chapter', $deepCustom);
+        $this->assertObjectNotHasProperty('link', $deepCustom);
     }
 
     /**

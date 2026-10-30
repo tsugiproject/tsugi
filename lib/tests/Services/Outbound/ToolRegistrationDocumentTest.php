@@ -382,6 +382,61 @@ class ToolRegistrationDocumentTest extends PlatformSchemaCase
         $this->assertGreaterThanOrEqual(0, $found['sequence']);
     }
 
+    public function testLaunchCustomParametersFollowTheMessage(): void
+    {
+        $registrationId = $this->registration();
+        ToolRegistrationDocument::storeDocument($registrationId, array(
+            'client_name' => 'Widget',
+            ToolRegistrationDocument::TOOL_CONFIGURATION => array(
+                'custom_parameters' => array(
+                    'chapter' => 'tool',
+                    'Context_History' => '$Context.id.history',
+                ),
+                'messages' => array(
+                    array(
+                        'type' => 'LtiResourceLinkRequest',
+                        'target_link_uri' => 'https://tool.example/a',
+                        'custom_parameters' => array(
+                            'chapter' => 'a',
+                            'Review:Chapter' => '1',
+                        ),
+                    ),
+                    array(
+                        'type' => 'LtiResourceLinkRequest',
+                        'target_link_uri' => 'https://tool.example/b',
+                        'custom_parameters' => array('chapter' => 'b'),
+                    ),
+                    array(
+                        'type' => 'LtiDeepLinkingRequest',
+                        'target_link_uri' => 'https://tool.example/deep',
+                        'custom_parameters' => array('picker' => 'yes'),
+                    ),
+                ),
+            ),
+        ));
+
+        $linkA = ToolRegistrationDocument::launchCustomParameters($registrationId, 'LtiResourceLinkRequest', 'https://tool.example/a');
+        $this->assertSame('a', $linkA['chapter']);
+        $this->assertSame('1', $linkA['review_chapter']);
+        $this->assertSame('$Context.id.history', $linkA['context_history']);
+
+        $linkB = ToolRegistrationDocument::launchCustomParameters($registrationId, 'LtiResourceLinkRequest', 'https://tool.example/b');
+        $this->assertSame('b', $linkB['chapter']);
+        $this->assertArrayNotHasKey('review_chapter', $linkB);
+
+        $miss = ToolRegistrationDocument::launchCustomParameters($registrationId, 'LtiResourceLinkRequest', 'https://tool.example/other');
+        $this->assertSame('tool', $miss['chapter']);
+        $this->assertArrayNotHasKey('review_chapter', $miss);
+
+        $deep = ToolRegistrationDocument::launchCustomParameters($registrationId, 'LtiDeepLinkingRequest', 'https://tool.example/chosen');
+        $this->assertSame('tool', $deep['chapter']);
+        $this->assertSame('yes', $deep['picker']);
+
+        $privacy = ToolRegistrationDocument::launchCustomParameters($registrationId, 'LtiDataPrivacyLaunchRequest', 'https://tool.example/privacy');
+        $this->assertSame('tool', $privacy['chapter']);
+        $this->assertArrayNotHasKey('picker', $privacy);
+    }
+
     private function registration(): int
     {
         return ToolRegistrationService::createRegistration($this->id['keyA'], 'Widget');

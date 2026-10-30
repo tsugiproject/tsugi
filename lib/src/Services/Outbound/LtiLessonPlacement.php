@@ -9,7 +9,7 @@ namespace Tsugi\Services\Outbound;
  * lessons, or in link selection, can be placed in a lesson. Assignment and
  * rich-text placements are left out. Only the first deep link that fits is
  * offered. A resource link or a privacy launch stores its target link URI.
- * A deep link is launched, and the returned item's URL is stored instead.
+ * A deep link is launched, and the returned item's URL and custom parameters are stored instead.
  */
 class LtiLessonPlacement {
 
@@ -43,15 +43,19 @@ class LtiLessonPlacement {
         }
         $deepLink = false;
         $out = array();
+        $fallback = ToolRegistrationDocument::registrationLaunchUrl((int) $deployment['registration_id']);
         foreach ( self::messages($deployment['registration_id']) as $message ) {
             if ( ! self::fitsLesson($message['placements']) ) {
                 continue;
             }
             $target = trim((string) $message['target_link_uri']);
             if ( $target === '' ) {
+                $target = $fallback;
+            }
+            if ( $target === '' ) {
                 continue;
             }
-            $type = $message['message_type'];
+            $type = ToolRegistrationDocument::canonicalMessageType($message['message_type']);
             if ( $type === 'LtiDeepLinkingRequest' ) {
                 if ( $deepLink ) {
                     continue;
@@ -163,7 +167,7 @@ class LtiLessonPlacement {
      * @param string $jwt
      * @param int|null $index
      * @param string|null $publicKey
-     * @return array{url:string, title:string, items:?array<int, array{title:string, url:string}>}
+     * @return array{url:string, title:string, custom:array<string, string>, items:?array<int, array{title:string, url:string, custom:array<string, string>}>}
      */
     public static function returnedTarget($contextId, $toolDeploymentId, $jwt, $index = null, $publicKey = null) {
         $accepted = Lti13TestLaunch::acceptReturn($jwt, $publicKey);
@@ -183,6 +187,7 @@ class LtiLessonPlacement {
             $items[] = array(
                 'title' => trim((string) $item['title']),
                 'url' => $url,
+                'custom' => isset($item['custom']) && is_array($item['custom']) ? $item['custom'] : array(),
             );
         }
         if ( count($items) === 0 ) {
@@ -193,12 +198,14 @@ class LtiLessonPlacement {
                 return array(
                     'url' => $items[0]['url'],
                     'title' => $items[0]['title'],
+                    'custom' => $items[0]['custom'],
                     'items' => null,
                 );
             }
             return array(
                 'url' => '',
                 'title' => '',
+                'custom' => array(),
                 'items' => $items,
             );
         }
@@ -209,6 +216,7 @@ class LtiLessonPlacement {
         return array(
             'url' => $items[$index]['url'],
             'title' => $items[$index]['title'],
+            'custom' => $items[$index]['custom'],
             'items' => null,
         );
     }

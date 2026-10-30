@@ -2615,7 +2615,8 @@ re-check your login status.
                         $request->getUri(),
                         $accepted['role'],
                         $chosen['title'],
-                        $include_lineitems
+                        $include_lineitems,
+                        isset($chosen['custom']) && is_array($chosen['custom']) ? $chosen['custom'] : array()
                     );
                 }
             }

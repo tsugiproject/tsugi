@@ -32,6 +32,17 @@ $list = function ($items) {
     $html .= '</ul>';
     return $html;
 };
+$pairs = function ($items) {
+    if ( ! is_array($items) || count($items) === 0 ) {
+        return '<span class="text-muted">'.htmlspecialchars(__('None')).'</span>';
+    }
+    $html = '<ul class="list-unstyled" style="margin:0;">';
+    foreach ( $items as $name => $value ) {
+        $html .= '<li style="word-break:break-all;"><code>'.htmlspecialchars((string) $name).'</code> = '.htmlspecialchars((string) $value).'</li>';
+    }
+    $html .= '</ul>';
+    return $html;
+};
 ?>
 <p><a href="<?= htmlspecialchars(isset($tools_url) ? (string) $tools_url : '') ?>"><?= __('Back to course tools') ?></a></p>
 <h2 style="margin-top:0;"><?= htmlspecialchars($title) ?> <span class="text-muted">(LTI 1.3)</span></h2>
@@ -56,7 +67,10 @@ if ( count($missing) > 0 ) { ?>
     <dd style="word-break:break-all;margin-bottom:8px;"><?= $field(isset($tool_view['launch_url']) ? $tool_view['launch_url'] : '') ?></dd>
     <dt><?= __('Redirect URIs') ?></dt>
     <dd style="margin-bottom:8px;"><?= $list($redirects) ?></dd>
+    <dt><?= __('Custom parameters') ?></dt>
+    <dd style="margin-bottom:8px;"><?= $pairs(isset($tool_view['custom_parameters']) ? $tool_view['custom_parameters'] : array()) ?></dd>
 </dl>
+<p class="text-muted"><?= __('These are sent on every launch. A message can replace a parameter with the same name.') ?></p>
 <?php foreach ( $deployments as $deployment ) {
     $deploymentId = isset($deployment['deployment_id']) ? (string) $deployment['deployment_id'] : '';
     $claims = isset($deployment['allowed_claims']) && is_array($deployment['allowed_claims']) ? $deployment['allowed_claims'] : array();
@@ -92,16 +106,17 @@ if ( count($missing) > 0 ) { ?>
     <dd style="word-break:break-all;margin-bottom:8px;"><?= $field(isset($message['target_link_uri']) ? $message['target_link_uri'] : '') ?></dd>
     <dt><?= __('Placements') ?></dt>
     <dd style="margin-bottom:8px;"><?= $list($placements) ?></dd>
+    <dt><?= __('Custom parameters') ?></dt>
+    <dd style="margin-bottom:8px;"><?= $pairs(isset($message['custom_parameters']) ? $message['custom_parameters'] : array()) ?></dd>
 </dl>
 <?php } ?>
 <?php } ?>
 <?php include __DIR__.'/platform_urls.inc.php'; ?>
-<?php if ( $json !== '' ) { ?>
-<details>
-    <summary><?= __('Registration document') ?></summary>
-    <pre style="white-space:pre-wrap;word-break:break-all;"><?= htmlspecialchars($json) ?></pre>
-</details>
-<?php } ?>
+<?php
+$registration_json = $json;
+$registration_logs = isset($tool_view['registration_logs']) && is_array($tool_view['registration_logs']) ? $tool_view['registration_logs'] : array();
+include __DIR__.'/registration_sources.inc.php';
+?>
 <p style="margin-top:16px;">
 <?php if ( $registrationId > 0 && isset($test_url) && is_string($test_url) && $test_url !== '' ) {
     $testSep = strpos($test_url, '?') === false ? '?' : '&';

@@ -847,7 +847,8 @@ class Lessons extends Tool {
                 $title = $picked['title'];
             }
             LtiContentService::refuseDroppedPost($picked['url']);
-            $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $picked['url'], $resourceLinkId);
+            $custom = isset($picked['custom']) && is_array($picked['custom']) ? $picked['custom'] : array();
+            $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $picked['url'], $resourceLinkId, $custom);
         } catch ( \InvalidArgumentException $ex ) {
             return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
         }

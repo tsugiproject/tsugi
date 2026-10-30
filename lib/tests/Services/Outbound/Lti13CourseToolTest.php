@@ -375,6 +375,87 @@ class Lti13CourseToolTest extends PlatformSchemaCase
         $this->assertSame('lessons', $saved['message_json']['placements'][0]);
     }
 
+    public function testCustomParametersCanBeAddedAndRemoved(): void
+    {
+        $made = $this->tool();
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $made['registration_id']);
+        $this->assertSame(array(), $state['custom_parameters']);
+        $this->assertSame(array('keep' => 'yes'), $state['messages'][0]['custom_parameters']);
+        $this->assertSame(array(), $state['messages'][1]['custom_parameters']);
+        $this->assertNotSame('', $state['registration_json']);
+        $this->assertSame(array(), $state['registration_logs']);
+
+        $view = ToolRegistrationService::visibleLti13($this->id['eecs280'], $made['registration_id']);
+        $this->assertSame(array('keep' => 'yes'), $view['messages'][0]['custom_parameters']);
+        $this->assertSame(array(), $view['registration_logs']);
+        $this->assertStringContainsString('keep', $view['registration_json']);
+
+        $messageId = $state['messages'][0]['message_id'];
+        Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+            'edit_action' => 'add_custom',
+            'custom_name' => 'chapter',
+            'custom_value' => '$Context.id',
+        ));
+        Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+            'edit_action' => 'add_custom',
+            'message_id' => $messageId,
+            'custom_name' => 'botanical_set',
+            'custom_value' => '12',
+        ));
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $made['registration_id']);
+        $this->assertSame('$Context.id', $state['custom_parameters']['chapter']);
+        $this->assertSame('yes', $state['messages'][0]['custom_parameters']['keep']);
+        $this->assertSame('12', $state['messages'][0]['custom_parameters']['botanical_set']);
+
+        $launch = ToolRegistrationDocument::launchCustomParameters(
+            $made['registration_id'],
+            'LtiResourceLinkRequest',
+            'https://tool.example/launch'
+        );
+        $this->assertSame('$Context.id', $launch['chapter']);
+        $this->assertSame('yes', $launch['keep']);
+        $this->assertSame('12', $launch['botanical_set']);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+            'edit_action' => 'add_custom',
+            'custom_name' => 'chapter',
+            'custom_value' => 'two',
+        ));
+        $this->assertSame('two', Lti13CourseTool::editState($this->id['eecs280'], $made['registration_id'])['custom_parameters']['chapter']);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+            'edit_action' => 'delete_custom',
+            'message_id' => $messageId,
+            'custom_name' => 'keep',
+        ));
+        Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+            'edit_action' => 'delete_custom',
+            'custom_name' => 'chapter',
+        ));
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $made['registration_id']);
+        $this->assertSame(array(), $state['custom_parameters']);
+        $this->assertSame(array('botanical_set' => '12'), $state['messages'][0]['custom_parameters']);
+        $document = ToolRegistrationDocument::registrationDocument($made['registration_id']);
+        $config = $document[ToolRegistrationDocument::TOOL_CONFIGURATION];
+        $this->assertArrayNotHasKey('custom_parameters', $config);
+        $stored = ToolRegistrationDocument::messagesForRegistration($made['registration_id'])[0];
+        $this->assertArrayNotHasKey('keep', $stored['message_json']['custom_parameters']);
+
+        $this->expectRejection(function () use ($made) {
+            Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+                'edit_action' => 'add_custom',
+                'custom_name' => 'not valid',
+                'custom_value' => 'x',
+            ));
+        });
+        $this->expectRejection(function () use ($made) {
+            Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+                'edit_action' => 'delete_custom',
+                'custom_name' => 'missing',
+            ));
+        });
+    }
+
     /**
      * @return array{registration_id:int, tool_deployment_id:int}
      */

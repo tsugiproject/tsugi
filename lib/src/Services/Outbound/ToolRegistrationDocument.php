@@ -216,6 +216,172 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * String values from a custom_parameters object.
+     *
+     * An empty object decodes as a list and means there are none.
+     *
+     * @param mixed $value
+     * @return array<string, string>
+     */
+    public static function customParameterMap($value) {
+        if ( ! is_array($value) || array_is_list($value) ) {
+            return array();
+        }
+        $out = array();
+        foreach ( $value as $key => $item ) {
+            $name = trim((string) $key);
+            if ( $name === '' ) {
+                continue;
+            }
+            if ( is_string($item) ) {
+                $out[$name] = $item;
+                continue;
+            }
+            if ( is_int($item) || is_float($item) ) {
+                $out[$name] = (string) $item;
+                continue;
+            }
+            if ( is_bool($item) ) {
+                $out[$name] = $item ? 'true' : 'false';
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Message type used for a launch.
+     *
+     * The resource-link type in the specification is LtiResourceLinkRequest.
+     * A registration that says LtiResourceLink is stored as that message.
+     * The registration document keeps the type the tool sent.
+     *
+     * @param string $type
+     * @return string
+     */
+    public static function canonicalMessageType($type) {
+        $type = trim((string) $type);
+        if ( $type === 'LtiResourceLink' ) {
+            return 'LtiResourceLinkRequest';
+        }
+        return $type;
+    }
+
+    /**
+     * The tool configuration target link. A message with none of its own uses this.
+     *
+     * @param int $registrationId
+     * @return string
+     */
+    public static function registrationLaunchUrl($registrationId) {
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT lti13_launch_url FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => (int) $registrationId)
+        );
+        if ( ! is_array($row) || $row['lti13_launch_url'] === null ) {
+            return '';
+        }
+        return trim((string) $row['lti13_launch_url']);
+    }
+
+    /**
+     * Claim name for one stored custom parameter.
+     *
+     * Lower case. A character that is not a letter or number becomes an underscore.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function customClaimName($name) {
+        $name = strtolower(trim((string) $name));
+        $name = preg_replace('/[^a-z0-9]/', '_', $name);
+        if ( ! is_string($name) || ! preg_match('/[a-z0-9]/', $name) ) {
+            return '';
+        }
+        return $name;
+    }
+
+    /**
+     * Custom parameters for one launch.
+     *
+     * Tool configuration parameters apply to every message. Parameters on the
+     * message replace a tool parameter with the same claim name. One message
+     * of this type is that message. Several messages of this type match by
+     * target link.
+     *
+     * @param int $registrationId
+     * @param string $messageType
+     * @param string $targetLinkUri
+     * @return array<string, string>
+     */
+    public static function launchCustomParameters($registrationId, $messageType, $targetLinkUri) {
+        $document = self::registrationDocument($registrationId);
+        if ( ! is_array($document) ) {
+            return array();
+        }
+        $config = self::toolConfiguration($document);
+        $tool = self::customParameterMap(is_array($config) && isset($config['custom_parameters']) ? $config['custom_parameters'] : null);
+        $message = self::messageForLaunch(
+            self::messagesForRegistration($registrationId),
+            (string) $messageType,
+            (string) $targetLinkUri,
+            self::registrationLaunchUrl($registrationId)
+        );
+        $own = array();
+        if ( is_array($message) ) {
+            $json = isset($message['message_json']) && is_array($message['message_json']) ? $message['message_json'] : array();
+            $own = self::customParameterMap(isset($json['custom_parameters']) ? $json['custom_parameters'] : null);
+        }
+        $merged = array();
+        foreach ( array($tool, $own) as $source ) {
+            foreach ( $source as $name => $value ) {
+                $claimName = self::customClaimName($name);
+                if ( $claimName === '' ) {
+                    continue;
+                }
+                $merged[$claimName] = $value;
+            }
+        }
+        return $merged;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $messages
+     * @param string $messageType
+     * @param string $targetLinkUri
+     * @param string $fallback Target link of the registration. A message with none of its own uses it.
+     * @return array<string, mixed>|null
+     */
+    private static function messageForLaunch(array $messages, $messageType, $targetLinkUri, $fallback = '') {
+        $messageType = self::canonicalMessageType($messageType);
+        $fallback = trim((string) $fallback);
+        $typed = array();
+        foreach ( $messages as $message ) {
+            if ( isset($message['message_type']) && self::canonicalMessageType($message['message_type']) === $messageType ) {
+                $typed[] = $message;
+            }
+        }
+        if ( count($typed) === 0 ) {
+            return null;
+        }
+        if ( count($typed) === 1 ) {
+            return $typed[0];
+        }
+        $targetLinkUri = trim($targetLinkUri);
+        foreach ( $typed as $message ) {
+            $uri = isset($message['target_link_uri']) ? trim((string) $message['target_link_uri']) : '';
+            if ( $uri === '' ) {
+                $uri = $fallback;
+            }
+            if ( $uri !== '' && $uri === $targetLinkUri ) {
+                return $message;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param array<string, mixed> $document
      * @return array<string, mixed>|null
      */
@@ -395,16 +561,17 @@ class ToolRegistrationDocument {
         $registrationId = self::requireRegistrationId($registrationId);
         $existing = self::requireMessageRow($registrationId, $messageId);
         $row = self::messageRow((int) $existing['sequence'], $message);
-        if ( $row['message_type'] !== (string) $existing['message_type'] ) {
+        if ( self::canonicalMessageType($row['message_type']) !== self::canonicalMessageType($existing['message_type']) ) {
             throw new \InvalidArgumentException('That message type cannot change.');
         }
         $p = self::prefix();
         $stmt = self::db()->queryReturnError(
             "UPDATE {$p}lti_tool_message
-             SET target_link_uri = :target_link_uri, label = :label, icon_uri = :icon_uri,
+             SET message_type = :message_type, target_link_uri = :target_link_uri, label = :label, icon_uri = :icon_uri,
                  message_json = :message_json, updated_at = NOW()
              WHERE message_id = :message_id AND registration_id = :registration_id",
             array(
+                ':message_type' => $row['message_type'],
                 ':target_link_uri' => $row['target_link_uri'],
                 ':label' => $row['label'],
                 ':icon_uri' => $row['icon_uri'],
@@ -603,7 +770,7 @@ class ToolRegistrationDocument {
                 'message_id' => (int) $row['message_id'],
                 'registration_id' => (int) $row['registration_id'],
                 'sequence' => (int) $row['sequence'],
-                'message_type' => (string) $row['message_type'],
+                'message_type' => self::canonicalMessageType($row['message_type']),
                 'target_link_uri' => $row['target_link_uri'] === null ? null : (string) $row['target_link_uri'],
                 'label' => $row['label'] === null ? null : (string) $row['label'],
                 'icon_uri' => $row['icon_uri'] === null ? null : (string) $row['icon_uri'],
@@ -893,14 +1060,15 @@ class ToolRegistrationDocument {
         if ( strlen($message['type']) > 255 ) {
             throw new \InvalidArgumentException('Message type is too long.');
         }
+        $type = self::canonicalMessageType($message['type']);
         return array(
             'sequence' => (int) $sequence,
-            'message_type' => $message['type'],
+            'message_type' => $type,
             'target_link_uri' => self::scalarString($message, 'target_link_uri'),
             'label' => self::scalarString($message, 'label'),
             'icon_uri' => self::scalarString($message, 'icon_uri'),
             'message_json' => self::encodeJson($message),
-            'placements' => self::placementNames($message, $message['type']),
+            'placements' => self::placementNames($message, $type),
         );
     }
 
