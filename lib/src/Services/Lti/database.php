@@ -143,12 +143,15 @@ array( "{$CFG->dbprefix}lti_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    -- Nullable guid. No default and no index.
-    guid                BINARY(16) NULL,
+    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- Explicit NULL stays NULL. The unique key allows more than one NULL.
+    -- Upgrade of an existing table does not add this default or this key.
+    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
 
     -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
     -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -205,8 +208,10 @@ array( "{$CFG->dbprefix}lti_user",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- Nullable guid. No default and no index.
-    guid                BINARY(16) NULL,
+    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- Explicit NULL stays NULL. The unique key allows more than one NULL.
+    -- Upgrade of an existing table does not add this default or this key.
+    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -215,6 +220,7 @@ array( "{$CFG->dbprefix}lti_user",
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_1` UNIQUE(key_id, user_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_user_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -332,8 +338,10 @@ array( "{$CFG->dbprefix}lti_context",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- Nullable guid. No default and no index.
-    guid                BINARY(16) NULL,
+    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- Explicit NULL stays NULL. The unique key allows more than one NULL.
+    -- Upgrade of an existing table does not add this default or this key.
+    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -356,6 +364,7 @@ array( "{$CFG->dbprefix}lti_context",
     -- Deployment scope and registration ownership reference (context_id, key_id)
     -- so a course link cannot leave this tenant key.
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_2` UNIQUE(context_id, key_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id),
 
     INDEX `{$CFG->dbprefix}lti_context_indx_1` (org_id)
@@ -537,8 +546,10 @@ array( "{$CFG->dbprefix}lti_link",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- Nullable guid. No default and no index.
-    guid                BINARY(16) NULL,
+    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- Explicit NULL stays NULL. The unique key allows more than one NULL.
+    -- Upgrade of an existing table does not add this default or this key.
+    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -552,6 +563,7 @@ array( "{$CFG->dbprefix}lti_link",
         ON DELETE SET NULL ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_link_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -1850,11 +1862,15 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // DROP INDEX index_name ON tbl_name
     $keep_issuer_index = $PDOX->columnExists('issuer_id', $CFG->dbprefix."lti_key");
+    // A fresh CREATE adds this unique key. This pass does not add it to an
+    // existing table, and it must not drop it from a table that already has it.
+    $keep_guid_index = $CFG->dbprefix."lti_key_const_guid";
     foreach($indexes as $index) {
         if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
         if ( strcasecmp($index, "ibfk") == 0 ) continue;
         // lti_key_const_2 backs issuer_id until lti_issuer phase 3 (2026-10-01 UTC)
         if ( $keep_issuer_index && $index === $CFG->dbprefix."lti_key_const_2" ) continue;
+        if ( $index === $keep_guid_index ) continue;
         $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
         if ( is_string($command) ) continue;
         $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
@@ -2586,7 +2602,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         if ( ! $q->success ) die("Unable to add {$link_category_fk}: ".$q->errorImplode."<br/>\n");
     }
 
-    // Nullable guid. No default and no index. Existing rows stay NULL until
+    // Existing tables only. A fresh CREATE already has the expression default
+    // and the unique key. This adds a nullable column with neither, and does
+    // not alter a column that is already there. Existing rows stay NULL until
     // admin/lti-maint/backfill-guid.php. MySQL 8.0.12+, Aurora MySQL 8, and
     // MariaDB 10.3.2+ add the column with ALGORITHM=INSTANT. MySQL 5.6/5.7
     // and MySQL 8.0 before 8.0.12 use ALGORITHM=INPLACE, LOCK=NONE so the
