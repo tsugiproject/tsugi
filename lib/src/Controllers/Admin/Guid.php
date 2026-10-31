@@ -42,9 +42,20 @@ class Guid extends Admin {
         }
 
         $guid_rows = self::report();
+        $guid_sql = array();
+        foreach ( $guid_rows as $row ) {
+            if ( empty($row['fillable']) ) {
+                continue;
+            }
+            $sql = self::fillSql((string) $row['table']);
+            if ( $sql !== '' ) {
+                $guid_sql[] = $sql;
+            }
+        }
         $this->view('check/guid.php', array(
             'guid_rows' => $guid_rows,
             'guid_healthy' => self::healthy($guid_rows),
+            'guid_sql' => $guid_sql,
         ));
     }
 
@@ -208,14 +219,10 @@ class Guid extends Admin {
         if ( $type !== 'binary(16)' ) {
             return array('ok' => false, 'text' => $table.'.guid is '.$type.', expected binary(16).');
         }
-        $pk = $tables[$table];
-        $limit = (int) self::BATCH;
-        // Same statement as admin/backfill-guid.php. Valid on MySQL 5.6/5.7 and 8.
-        $sql = "UPDATE {$physical}
-            SET guid = UNHEX(REPLACE(UUID(), '-', ''))
-            WHERE guid IS NULL
-            ORDER BY {$pk}
-            LIMIT {$limit}";
+        $sql = self::fillSql($table);
+        if ( $sql === '' ) {
+            return array('ok' => false, 'text' => 'Unknown table.');
+        }
         $q = $PDOX->queryReturnError($sql);
         if ( ! $q->success ) {
             return array('ok' => false, 'text' => 'Could not fill '.$table.' GUIDs: '.$q->errorImplode);
@@ -225,6 +232,28 @@ class Guid extends Admin {
             'ok' => true,
             'text' => $table.': filled '.$updated.' null GUID'.($updated === 1 ? '' : 's').'.',
         );
+    }
+
+    /**
+     * The statement fill() runs for one table. Empty when the table or prefix is not usable.
+     */
+    public static function fillSql($table) {
+        $tables = self::tables();
+        if ( ! isset($tables[$table]) ) {
+            return '';
+        }
+        $prefix = self::prefix();
+        if ( $prefix === false ) {
+            return '';
+        }
+        $physical = $prefix.$table;
+        $pk = $tables[$table];
+        $limit = (int) self::BATCH;
+        return "UPDATE {$physical}\n"
+            ."SET guid = UNHEX(REPLACE(UUID(), '-', ''))\n"
+            ."WHERE guid IS NULL\n"
+            ."ORDER BY {$pk}\n"
+            ."LIMIT {$limit}";
     }
 
     /**
