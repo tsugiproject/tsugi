@@ -143,6 +143,9 @@ array( "{$CFG->dbprefix}lti_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
+
     -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
     -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
@@ -201,6 +204,9 @@ array( "{$CFG->dbprefix}lti_user",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
+
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -325,6 +331,9 @@ array( "{$CFG->dbprefix}lti_context",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
+
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -527,6 +536,9 @@ array( "{$CFG->dbprefix}lti_link",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
+
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -1561,8 +1573,9 @@ $DATABASE_POST_CREATE = function($table) {
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
         $shaval = lti_sha256('12345');
-        $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values
-            ( '$shaval', '12345', 'secret')";
+        $guid_sql = "UNHEX(REPLACE(UUID(), '-', ''))";
+        $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret, guid) values
+            ( '$shaval', '12345', 'secret', {$guid_sql})";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -1570,8 +1583,8 @@ $DATABASE_POST_CREATE = function($table) {
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
         $secret = bin2hex(openssl_random_pseudo_bytes(16));
         $shaval = lti_sha256('google.com');
-        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
-            ( '$shaval', '$secret', 'google.com')";
+        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key, guid) values
+            ( '$shaval', '$secret', 'google.com', {$guid_sql})";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -2571,6 +2584,62 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
         if ( ! $q->success ) die("Unable to add {$link_category_fk}: ".$q->errorImplode."<br/>\n");
+    }
+
+    // Nullable guid. No default and no index. Existing rows stay NULL until
+    // admin/lti-maint/backfill-guid.php. MySQL 8.0.12+, Aurora MySQL 8, and
+    // MariaDB 10.3.2+ add the column with ALGORITHM=INSTANT. MySQL 5.6/5.7
+    // and MySQL 8.0 before 8.0.12 use ALGORITHM=INPLACE, LOCK=NONE so the
+    // copy does not block reads or writes. Any other server gets a plain
+    // ALTER TABLE, which may lock the table while it copies.
+    $guid_tables = array('lti_user', 'lti_context', 'lti_key', 'lti_link');
+    $guid_missing = array();
+    foreach ( $guid_tables as $guid_table ) {
+        $guid_physical = "{$p}{$guid_table}";
+        if ( $PDOX->metadata($guid_physical) === false ) {
+            echo("Skipping guid column, table missing: {$guid_physical}<br/>\n");
+            continue;
+        }
+        $guid_column = $PDOX->rowDie(
+            "SELECT COLUMN_TYPE AS column_type, IS_NULLABLE AS is_nullable
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND COLUMN_NAME = 'guid'",
+            array(':table_name' => $guid_physical));
+        if ( $guid_column === false ) {
+            $guid_missing[] = $guid_physical;
+            continue;
+        }
+        $guid_type = strtolower((string) $guid_column['column_type']);
+        $guid_nullable = strtoupper((string) $guid_column['is_nullable']);
+        if ( $guid_type !== 'binary(16)' || $guid_nullable !== 'YES' ) {
+            die("guid on {$guid_physical} is {$guid_type} nullable={$guid_nullable}; expected binary(16) YES. Not altering it.<br/>\n");
+        }
+    }
+
+    if ( count($guid_missing) > 0 ) {
+        $guid_server = $PDOX->serverVersion();
+        foreach ( $guid_missing as $guid_physical ) {
+            $sql = "ALTER TABLE {$guid_physical} ADD COLUMN guid BINARY(16) NULL";
+            if ( $guid_server['add_column'] === 'instant' ) {
+                $sql .= ', ALGORITHM=INSTANT';
+            } else if ( $guid_server['add_column'] === 'inplace' ) {
+                $sql .= ', ALGORITHM=INPLACE, LOCK=NONE';
+            }
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success && $guid_server['add_column'] !== '' ) {
+                $plain = "ALTER TABLE {$guid_physical} ADD COLUMN guid BINARY(16) NULL";
+                $warn = "guid add with ".$guid_server['add_column']." failed: ".$q->errorImplode."; retrying: ".$plain;
+                echo(htmlentities($warn)."<br/>\n");
+                error_log($warn);
+                $q->closeCursor();
+                $q = $PDOX->queryReturnError($plain);
+            }
+            if ( ! $q->success ) die("Unable to add guid on {$guid_physical}: ".$q->errorImplode."<br/>\n");
+        }
     }
 
     // When you increase this number in any database.php file,

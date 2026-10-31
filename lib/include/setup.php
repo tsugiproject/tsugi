@@ -189,24 +189,13 @@ if (!defined('TSUGI_MINIMUM_MYSQL')) {
 }
 
 // Organization walks use recursive queries, and CHECK constraints are enforced
-// starting in MySQL 8.0.16. Aurora MySQL 3 reports 8.0.mysql_aurora.3.x and is
-// MySQL 8.0.23 or newer, so that string is not too old.
+// starting in MySQL 8.0.16. The product and version rules live in PDOX.
 function tsugi_mysql_version_too_low($version) {
     $version = trim((string) $version);
     if ( $version === '' ) {
         return false;
     }
-    if ( preg_match('/^(\d+)\.(\d+)\.(\d+)/', $version, $match) ) {
-        $comparable = $match[1].'.'.$match[2].'.'.$match[3];
-        return version_compare($comparable, TSUGI_MINIMUM_MYSQL) < 0;
-    }
-    if ( stripos($version, 'aurora') !== false && preg_match('/^(\d+)\.(\d+)/', $version, $match) ) {
-        return (int) $match[1] < 8;
-    }
-    if ( preg_match('/^(\d+)\.(\d+)/', $version, $match) ) {
-        $comparable = $match[1].'.'.$match[2].'.0';
-        return version_compare($comparable, TSUGI_MINIMUM_MYSQL) < 0;
-    }
-    return true;
+    $info = \Tsugi\Util\PDOX::parseServerVersion($version);
+    return ! $info['modern'];
 }
 // No trailer

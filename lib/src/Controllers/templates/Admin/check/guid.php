@@ -72,12 +72,22 @@ foreach ( $guid_rows as $row ) {
 if ( $guid_healthy ) {
     echo("<p>guids appear to be functioning normally.</p>\n");
 }
-if ( $guid_fillable ) {
+if ( $guid_fillable && count($guid_sql) > 0 ) {
+    $sql_text = implode(";\n\n", $guid_sql).';';
+    echo("<style>details > summary { list-style: none; cursor: pointer; } details > summary::-webkit-details-marker { display: none; }</style>\n");
+    echo("<details>\n");
+    echo('<summary class="btn btn-default" style="display:inline-block; width:auto;">Backfill</summary>'."\n");
+    $limit = (int) $guid_limit;
+    $seconds = (int) $guid_seconds;
+    $commit = (int) $guid_commit;
+    echo("<p>Run these statements? Each row is its own UPDATE. The guid is chosen first and stored as a literal. This click runs for up to {$seconds} seconds or {$limit} rows, whichever comes first, and commits about every {$commit} rows. It then says how far it got.</p>\n");
+    echo('<pre style="white-space: pre-wrap;">'.htmlspecialchars($sql_text, ENT_QUOTES, 'UTF-8')."</pre>\n");
     echo('<form method="post">'."\n");
     echo(Tool::csrfField()."\n");
     echo('<input type="hidden" name="backfill" value="1">'."\n");
-    echo('<button type="submit" class="btn btn-default">Backfill</button>'."\n");
+    echo('<button type="submit" class="btn btn-default">Yes</button>'."\n");
+    echo('<button type="button" class="btn btn-default" style="margin-left: 0.5em;" onclick="this.closest(\'details\').open = false;">No</button>'."\n");
     echo("</form>\n");
-    echo("<p>Backfill runs only when you press the button. Each press updates at most 5000 null rows per table.</p>\n");
+    echo("</details>\n");
 }
 $OUTPUT->footer();
