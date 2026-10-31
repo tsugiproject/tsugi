@@ -44,7 +44,7 @@ function tsugi_backfill_guid_usage() {
     global $tsugi_guid_tables;
     $names = implode('|', array_keys($tsugi_guid_tables));
     fwrite(STDOUT, "Usage: php admin/lti-maint/backfill-guid.php [--table={$names}] [--batch-size=N] [--seconds=N] [--dry-run]\n");
-    fwrite(STDOUT, "Default batch size is 5000. Maximum is 50000. Omit --table to process all four tables.\n");
+    fwrite(STDOUT, "Default batch size is ".Guid::BATCH.". Maximum is 10000. Omit --table to process all four tables.\n");
     fwrite(STDOUT, "Each row is its own UPDATE. A commit runs after each batch. --seconds stops the run early.\n");
     fwrite(STDOUT, "Does not replace an existing guid.\n");
 }
@@ -96,7 +96,7 @@ for ( $i = 1; $i < count($argv); $i++ ) {
     exit(1);
 }
 
-$batch_size = 5000;
+$batch_size = Guid::BATCH;
 if ( isset($opts['batch-size']) ) {
     if ( is_array($opts['batch-size']) ) {
         fwrite(STDERR, "Pass --batch-size once\n");
@@ -104,12 +104,12 @@ if ( isset($opts['batch-size']) ) {
     }
     $raw_batch = (string) $opts['batch-size'];
     if ( ! preg_match('/^[1-9][0-9]*$/', $raw_batch) ) {
-        fwrite(STDERR, "batch-size must be an integer from 1 to 50000\n");
+        fwrite(STDERR, "batch-size must be an integer from 1 to 10000\n");
         exit(1);
     }
     $batch_size = (int) $raw_batch;
-    if ( $batch_size > 50000 ) {
-        fwrite(STDERR, "batch-size must be an integer from 1 to 50000\n");
+    if ( $batch_size > 10000 ) {
+        fwrite(STDERR, "batch-size must be an integer from 1 to 10000\n");
         exit(1);
     }
 }

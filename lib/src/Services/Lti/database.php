@@ -2630,6 +2630,14 @@ $DATABASE_UPGRADE = function($oldversion) {
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success && $guid_server['add_column'] !== '' ) {
+                $plain = "ALTER TABLE {$guid_physical} ADD COLUMN guid BINARY(16) NULL";
+                $warn = "guid add with ".$guid_server['add_column']." failed: ".$q->errorImplode."; retrying: ".$plain;
+                echo(htmlentities($warn)."<br/>\n");
+                error_log($warn);
+                $q->closeCursor();
+                $q = $PDOX->queryReturnError($plain);
+            }
             if ( ! $q->success ) die("Unable to add guid on {$guid_physical}: ".$q->errorImplode."<br/>\n");
         }
     }

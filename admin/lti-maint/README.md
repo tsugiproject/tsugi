@@ -43,7 +43,7 @@ A course line is printed when that course still has links with `upward = 0`. The
 
 Run `php admin/upgrade.php` first. The script stops if a `guid` column is missing. It is safe to stop and run again.
 
-Each row is its own `UPDATE`. The guid comes from `UUID()` and is stored as a literal, so a replica keeps the same bytes. The script commits after each batch. The default batch is 5000 and the maximum is 50000. `--seconds=15` stops the run at 15 seconds and reports how far it got. The admin Backfill button runs for up to 15 seconds or 5000 rows, whichever comes first, commits about every 1000 rows, and says how far it got. A server older than MySQL 8.0.16, or older than MariaDB 10.3.2, prints a warning and continues. The upgrade adds the column with a plain `ALTER TABLE` on those older servers, and that copy can lock the table.
+Each row is its own `UPDATE`. The guid comes from `UUID()` and is stored as a literal, so a replica keeps the same bytes. The script commits after each batch. The default batch is 1000 and the maximum is 10000. A batch holds locks on the rows it updates until that commit. `--seconds=15` stops the run at 15 seconds and reports how far it got. The admin Backfill button runs for up to 15 seconds or 5000 rows, whichever comes first, commits about every 1000 rows, and says how far it got. A server older than MySQL 8.0.16, or older than MariaDB 10.3.2, prints a warning and continues. The upgrade adds the column with `ALGORITHM=INSTANT` on MySQL 8.0.12 and newer, Aurora MySQL 3, and MariaDB 10.3.2 and newer, and with `ALGORITHM=INPLACE, LOCK=NONE` on MySQL 5.6, 5.7, and MySQL 8.0 before 8.0.12. Any other server, such as MySQL 5.5 or MariaDB before 10.3.2, gets a plain `ALTER TABLE`, and that copy can lock the table.
 
 From the site's Tsugi checkout:
 
@@ -53,11 +53,11 @@ php backfill-guid.php --dry-run
 php backfill-guid.php
 ```
 
-`--dry-run` counts `NULL` rows and writes nothing. The default batch size is 5000. The maximum is 50000.
+`--dry-run` counts `NULL` rows and writes nothing. The default batch size is 1000. The maximum is 10000.
 
 ```
 php backfill-guid.php --table=lti_user --batch-size=1000
 php backfill-guid.php --seconds=15
 ```
 
-`--table` is one of `lti_user`, `lti_context`, `lti_key`, or `lti_link`. Omit it to process all four. Each batch is its own transaction. A later run skips rows that already have a guid.
+`--table` is one of `lti_user`, `lti_context`, `lti_key`, or `lti_link`. Omit it to process all four. Each batch is its own transaction and holds locks on the updated rows until it commits. A later run skips rows that already have a guid.
