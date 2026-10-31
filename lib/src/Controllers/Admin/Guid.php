@@ -210,7 +210,7 @@ class Guid extends Admin {
         }
         $pk = $tables[$table];
         $limit = (int) self::BATCH;
-        // Same 16 bytes as UUID_TO_BIN(UUID()) and valid on MySQL 5.6/5.7.
+        // Same statement as admin/backfill-guid.php. Valid on MySQL 5.6/5.7 and 8.
         $sql = "UPDATE {$physical}
             SET guid = UNHEX(REPLACE(UUID(), '-', ''))
             WHERE guid IS NULL

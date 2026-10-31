@@ -143,6 +143,9 @@ array( "{$CFG->dbprefix}lti_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
+
     -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
     -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
@@ -201,6 +204,9 @@ array( "{$CFG->dbprefix}lti_user",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
+
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -325,6 +331,9 @@ array( "{$CFG->dbprefix}lti_context",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
+
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -527,6 +536,9 @@ array( "{$CFG->dbprefix}lti_link",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
+
+    -- Nullable guid. No default and no index.
+    guid                BINARY(16) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -1561,8 +1573,9 @@ $DATABASE_POST_CREATE = function($table) {
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
         $shaval = lti_sha256('12345');
-        $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values
-            ( '$shaval', '12345', 'secret')";
+        $guid_sql = "UNHEX(REPLACE(UUID(), '-', ''))";
+        $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret, guid) values
+            ( '$shaval', '12345', 'secret', {$guid_sql})";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -1570,8 +1583,8 @@ $DATABASE_POST_CREATE = function($table) {
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
         $secret = bin2hex(openssl_random_pseudo_bytes(16));
         $shaval = lti_sha256('google.com');
-        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
-            ( '$shaval', '$secret', 'google.com')";
+        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key, guid) values
+            ( '$shaval', '$secret', 'google.com', {$guid_sql})";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -2571,6 +2584,76 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
         if ( ! $q->success ) die("Unable to add {$link_category_fk}: ".$q->errorImplode."<br/>\n");
+    }
+
+    // Nullable guid. No default and no index. Existing rows stay NULL until
+    // admin/backfill-guid.php. MySQL 8.0.12+ adds the column with
+    // ALGORITHM=INSTANT, which only updates metadata. MySQL 5.6/5.7, and
+    // MySQL 8.0 before 8.0.12, use ALGORITHM=INPLACE, LOCK=NONE so the
+    // copy does not block reads or writes.
+    $guid_tables = array('lti_user', 'lti_context', 'lti_key', 'lti_link');
+    $guid_missing = array();
+    foreach ( $guid_tables as $guid_table ) {
+        $guid_physical = "{$p}{$guid_table}";
+        if ( $PDOX->metadata($guid_physical) === false ) {
+            echo("Skipping guid column, table missing: {$guid_physical}<br/>\n");
+            continue;
+        }
+        $guid_column = $PDOX->rowDie(
+            "SELECT COLUMN_TYPE AS column_type, IS_NULLABLE AS is_nullable
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND COLUMN_NAME = 'guid'",
+            array(':table_name' => $guid_physical));
+        if ( $guid_column === false ) {
+            $guid_missing[] = $guid_physical;
+            continue;
+        }
+        $guid_type = strtolower((string) $guid_column['column_type']);
+        $guid_nullable = strtoupper((string) $guid_column['is_nullable']);
+        if ( $guid_type !== 'binary(16)' || $guid_nullable !== 'YES' ) {
+            die("guid on {$guid_physical} is {$guid_type} nullable={$guid_nullable}; expected binary(16) YES. Not altering it.<br/>\n");
+        }
+    }
+
+    if ( count($guid_missing) > 0 ) {
+        $guid_version_row = $PDOX->rowDie("SELECT VERSION() AS version");
+        $guid_version = is_array($guid_version_row) ? (string) $guid_version_row['version'] : '';
+        $guid_instant = false;
+        $guid_inplace = false;
+        if ( stripos($guid_version, 'mariadb') === false
+            && preg_match('/^(\d+)\.(\d+)(?:\.(\d+))?/', $guid_version, $guid_match) ) {
+            $guid_major = (int) $guid_match[1];
+            $guid_minor = (int) $guid_match[2];
+            $guid_patch = (isset($guid_match[3]) && $guid_match[3] !== '') ? (int) $guid_match[3] : null;
+            if ( $guid_major > 8 || ($guid_major === 8 && $guid_minor > 0) ) {
+                $guid_instant = true;
+            } else if ( $guid_major === 8 && $guid_minor === 0 ) {
+                if ( $guid_patch !== null && $guid_patch >= 12 ) {
+                    $guid_instant = true;
+                } else if ( $guid_patch === null && stripos($guid_version, 'aurora') !== false ) {
+                    $guid_instant = true;
+                } else if ( $guid_patch !== null ) {
+                    $guid_inplace = true;
+                }
+            } else if ( $guid_major === 5 && ($guid_minor === 6 || $guid_minor === 7) ) {
+                $guid_inplace = true;
+            }
+        }
+        if ( ! $guid_instant && ! $guid_inplace ) {
+            die("guid columns are missing. This server is VERSION={$guid_version}. ".
+                "Adding them needs MySQL 8.0.12+ (ALGORITHM=INSTANT) or MySQL 5.6/5.7 ".
+                "(ALGORITHM=INPLACE, LOCK=NONE).<br/>\n");
+        }
+        $guid_algorithm = $guid_instant ? 'ALGORITHM=INSTANT' : 'ALGORITHM=INPLACE, LOCK=NONE';
+        foreach ( $guid_missing as $guid_physical ) {
+            $sql = "ALTER TABLE {$guid_physical} ADD COLUMN guid BINARY(16) NULL, {$guid_algorithm}";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add guid on {$guid_physical}: ".$q->errorImplode."<br/>\n");
+        }
     }
 
     // When you increase this number in any database.php file,
