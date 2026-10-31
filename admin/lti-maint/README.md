@@ -36,3 +36,28 @@ php upward.php --after=1000 --limit=25
 `--context` is one course and ignores `--after` and `--limit`. `--after` resumes after that `context_id`. `--limit` stops after that many courses and prints the next command.
 
 A course line is printed when that course still has links with `upward = 0`. The last line is the total: courses visited, links checked, links set, and elapsed time. A `SET` line uses the link title, which is often empty on an LMS activity. The course title is on that course's summary line.
+
+## When to run `backfill-guid.php`
+
+`lti_user`, `lti_context`, `lti_key`, and `lti_link` each have a nullable `guid` column. New installs set it on the starter `lti_key` rows. An upgrade adds the column and leaves existing rows `NULL`. This script fills those `NULL` values. It does not replace a guid that is already set.
+
+Run `php admin/upgrade.php` first. The script stops if a `guid` column is missing. It is safe to stop and run again.
+
+Each row is its own `UPDATE`. The guid comes from `UUID()` and is stored as a literal, so a replica keeps the same bytes. The script commits after each batch. The default batch is 5000 and the maximum is 50000. `--seconds=15` stops the run at 15 seconds and reports how far it got. The admin Backfill button runs for up to 15 seconds or 5000 rows, whichever comes first, commits about every 1000 rows, and says how far it got. A server older than MySQL 8.0.16, or older than MariaDB 10.3.2, prints a warning and continues. The upgrade adds the column with a plain `ALTER TABLE` on those older servers, and that copy can lock the table.
+
+From the site's Tsugi checkout:
+
+```
+cd admin/lti-maint
+php backfill-guid.php --dry-run
+php backfill-guid.php
+```
+
+`--dry-run` counts `NULL` rows and writes nothing. The default batch size is 5000. The maximum is 50000.
+
+```
+php backfill-guid.php --table=lti_user --batch-size=1000
+php backfill-guid.php --seconds=15
+```
+
+`--table` is one of `lti_user`, `lti_context`, `lti_key`, or `lti_link`. Omit it to process all four. Each batch is its own transaction. A later run skips rows that already have a guid.

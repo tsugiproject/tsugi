@@ -719,4 +719,38 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($PDOX->indexExists('IDX_EMAIL', 'test_table'), 
             'indexExists should be case-sensitive - uppercase IDX_EMAIL should not match lowercase idx_email');
     }
+
+    /**
+     * @dataProvider serverVersionProvider
+     */
+    public function testParseServerVersion($raw, $product, $version, $modern, $add_column) {
+        $info = \Tsugi\Util\PDOX::parseServerVersion($raw);
+        $this->assertSame($product, $info['product'], $raw);
+        $this->assertSame($version, $info['version'], $raw);
+        $this->assertSame($modern, $info['modern'], $raw);
+        $this->assertSame($add_column, $info['add_column'], $raw);
+    }
+
+    public static function serverVersionProvider() {
+        return array(
+            'empty' => array('', 'unknown', '', false, ''),
+            'mysql 8.0.40' => array('8.0.40', 'mysql', '8.0.40', true, 'instant'),
+            'mysql 8.0.16' => array('8.0.16', 'mysql', '8.0.16', true, 'instant'),
+            'mysql 8.0.15' => array('8.0.15', 'mysql', '8.0.15', false, 'instant'),
+            'mysql 8.0.12' => array('8.0.12', 'mysql', '8.0.12', false, 'instant'),
+            'mysql 8.0.11' => array('8.0.11', 'mysql', '8.0.11', false, 'inplace'),
+            'mysql 8.4' => array('8.4.4', 'mysql', '8.4.4', true, 'instant'),
+            'mysql 5.7' => array('5.7.44', 'mysql', '5.7.44', false, 'inplace'),
+            'mysql 5.6' => array('5.6.51', 'mysql', '5.6.51', false, 'inplace'),
+            'mysql 5.5' => array('5.5.62', 'mysql', '5.5.62', false, ''),
+            'mysql ubuntu suffix' => array('8.0.40-0ubuntu0.22.04.1', 'mysql', '8.0.40', true, 'instant'),
+            'aurora mysql 3' => array('8.0.mysql_aurora.3.08.0', 'aurora', '8.0.23', true, 'instant'),
+            'aurora mysql 2' => array('5.7.mysql_aurora.2.11.4', 'aurora', '5.7.0', false, 'inplace'),
+            'mariadb 10.5 docker' => array('10.5.29-MariaDB-1:10.5.29+maria~ubu2004', 'mariadb', '10.5.29', true, 'instant'),
+            'mariadb compatibility prefix' => array('5.5.5-10.5.23-MariaDB', 'mariadb', '10.5.23', true, 'instant'),
+            'mariadb 10.3.2' => array('10.3.2-MariaDB', 'mariadb', '10.3.2', true, 'instant'),
+            'mariadb 10.3.1' => array('10.3.1-MariaDB', 'mariadb', '10.3.1', false, ''),
+            'garbage' => array('not-a-database', 'unknown', '', false, ''),
+        );
+    }
 }

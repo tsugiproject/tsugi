@@ -446,13 +446,9 @@ class PDOX extends \PDO {
     // https://stackoverflow.com/questions/31788297/get-mysql-server-version-with-pdo
     function versionNumber()
     {
-        $version = $this->query('select version()')->fetchColumn();
-        preg_match("/^[0-9\.]+/", $version, $match);
-
-        if ( count($match) < 1 ) return "0.0.0";
-        $version = $match[0];
-
-        return $version;
+        $info = $this->serverVersion();
+        if ( $info['version'] === '' ) return '0.0.0';
+        return $info['version'];
     }
 
     /**
@@ -464,6 +460,93 @@ class PDOX extends \PDO {
     {
         $version = $this->versionNumber();
         return (version_compare($version, $min) >= 0);
+    }
+
+    /**
+     * Which database this connection is, and whether it is modern enough.
+     *
+     * @return array{raw: string, product: string, version: string, modern: bool, add_column: string}
+     */
+    function serverVersion()
+    {
+        $version = $this->query('select version()')->fetchColumn();
+        return self::parseServerVersion($version);
+    }
+
+    /**
+     * Parse a VERSION() string without opening a connection.
+     *
+     * product is mysql, mariadb, aurora, or unknown.
+     * version is comparable as major.minor.patch. MariaDB's 5.5.5- compatibility
+     * prefix is ignored. Aurora MySQL 3 with no MySQL patch (8.0.mysql_aurora.3.x)
+     * is reported as 8.0.23, the oldest MySQL 8.0 that release is based on.
+     * modern is MySQL or Aurora at 8.0.16 or newer, or MariaDB at 10.3.2 or newer.
+     * add_column is instant or inplace when a nullable column can be added
+     * without blocking writes. Empty means use a plain ALTER TABLE. That copy
+     * can lock the table.
+     *
+     * @param mixed $version
+     * @return array{raw: string, product: string, version: string, modern: bool, add_column: string}
+     */
+    public static function parseServerVersion($version)
+    {
+        $raw = trim((string) $version);
+        $info = array(
+            'raw' => $raw,
+            'product' => 'unknown',
+            'version' => '',
+            'modern' => false,
+            'add_column' => '',
+        );
+        if ( $raw === '' ) {
+            return $info;
+        }
+
+        if ( stripos($raw, 'mariadb') !== false ) {
+            $info['product'] = 'mariadb';
+            if ( preg_match('/(\d+\.\d+\.\d+)-mariadb/i', $raw, $match) ) {
+                $info['version'] = $match[1];
+            } else if ( preg_match('/(\d+\.\d+\.\d+)/', $raw, $match) ) {
+                $info['version'] = $match[1];
+            }
+            if ( $info['version'] !== '' && version_compare($info['version'], '10.3.2') >= 0 ) {
+                $info['modern'] = true;
+                $info['add_column'] = 'instant';
+            }
+            return $info;
+        }
+
+        if ( ! preg_match('/^(\d+)\.(\d+)(?:\.(\d+))?/', $raw, $match) ) {
+            return $info;
+        }
+        $major = (int) $match[1];
+        $minor = (int) $match[2];
+        $patch = (isset($match[3]) && $match[3] !== '') ? (int) $match[3] : null;
+        $aurora = stripos($raw, 'aurora') !== false;
+        $info['product'] = $aurora ? 'aurora' : 'mysql';
+        if ( $aurora && $major >= 8 && $patch === null ) {
+            $info['version'] = '8.0.23';
+        } else if ( $patch === null ) {
+            $info['version'] = $major.'.'.$minor.'.0';
+        } else {
+            $info['version'] = $major.'.'.$minor.'.'.$patch;
+        }
+        $info['modern'] = version_compare($info['version'], '8.0.16') >= 0;
+
+        if ( $major > 8 || ($major === 8 && $minor > 0) ) {
+            $info['add_column'] = 'instant';
+        } else if ( $major === 8 && $minor === 0 ) {
+            if ( $patch !== null && $patch >= 12 ) {
+                $info['add_column'] = 'instant';
+            } else if ( $patch === null && $aurora ) {
+                $info['add_column'] = 'instant';
+            } else if ( $patch !== null ) {
+                $info['add_column'] = 'inplace';
+            }
+        } else if ( $major === 5 && ($minor === 6 || $minor === 7) ) {
+            $info['add_column'] = 'inplace';
+        }
+        return $info;
     }
 
     /**

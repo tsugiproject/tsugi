@@ -13,7 +13,9 @@ use Tsugi\Util\U;
  */
 class Guid extends Admin {
 
-    const BATCH = 5000;
+    const BATCH = 1000;
+    const LIMIT = 5000;
+    const SECONDS = 15;
 
     public static function routes(Application $app) {
         self::map($app, self::class, 'index', self::paths('guid'));
@@ -56,6 +58,9 @@ class Guid extends Admin {
             'guid_rows' => $guid_rows,
             'guid_healthy' => self::healthy($guid_rows),
             'guid_sql' => $guid_sql,
+            'guid_limit' => self::LIMIT,
+            'guid_seconds' => self::SECONDS,
+            'guid_commit' => self::BATCH,
         ));
     }
 
@@ -170,15 +175,29 @@ class Guid extends Admin {
     public static function fillAll() {
         $notes = array();
         $ran = false;
-        foreach ( self::report() as $row ) {
+        $deadline = microtime(true) + self::SECONDS;
+        $budget = self::LIMIT;
+        $rows = self::report();
+        foreach ( $rows as $index => $row ) {
             if ( empty($row['fillable']) ) {
                 continue;
             }
+            if ( $budget < 1 || microtime(true) >= $deadline ) {
+                if ( self::rowsStillNull($rows, $index) ) {
+                    $notes[] = 'More null GUIDs remain. Run Backfill again.';
+                }
+                break;
+            }
             $ran = true;
-            $result = self::fill((string) $row['table']);
+            $result = self::fill((string) $row['table'], $deadline, $budget);
             $notes[] = $result['text'];
             if ( ! $result['ok'] ) {
                 return array('ok' => false, 'text' => implode(' ', $notes));
+            }
+            $budget -= (int) $result['updated'];
+            if ( empty($result['done']) ) {
+                $notes[] = 'More null GUIDs remain. Run Backfill again.';
+                break;
             }
         }
         if ( ! $ran ) {
@@ -188,11 +207,12 @@ class Guid extends Admin {
     }
 
     /**
-     * Fill at most BATCH null guid values. Existing values are left alone.
+     * Fill null guids until the row budget or the deadline. Existing values are left alone.
      *
-     * @return array{ok: bool, text: string}
+     * @param float|null $deadline
+     * @return array{ok: bool, text: string, updated: int, done: bool}
      */
-    public static function fill($table) {
+    public static function fill($table, $deadline = null, $rowLimit = null) {
         global $PDOX;
 
         $tables = self::tables();
@@ -219,23 +239,278 @@ class Guid extends Admin {
         if ( $type !== 'binary(16)' ) {
             return array('ok' => false, 'text' => $table.'.guid is '.$type.', expected binary(16).');
         }
-        $sql = self::fillSql($table);
-        if ( $sql === '' ) {
-            return array('ok' => false, 'text' => 'Unknown table.');
+        $pk = $tables[$table];
+        $limit = $rowLimit === null ? self::LIMIT : (int) $rowLimit;
+        $run = self::fillUntil($physical, $pk, $limit, $deadline, self::BATCH);
+        if ( ! $run['ok'] ) {
+            return array(
+                'ok' => false,
+                'text' => $table.': '.$run['text'],
+                'updated' => (int) $run['updated'],
+                'done' => false,
+            );
         }
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            return array('ok' => false, 'text' => 'Could not fill '.$table.' GUIDs: '.$q->errorImplode);
-        }
-        $updated = (int) $q->rowCount();
+        $updated = (int) $run['updated'];
         return array(
             'ok' => true,
             'text' => $table.': filled '.$updated.' null GUID'.($updated === 1 ? '' : 's').'.',
+            'updated' => $updated,
+            'done' => ! empty($run['done']),
         );
     }
 
     /**
-     * The statement fill() runs for one table. Empty when the table or prefix is not usable.
+     * Commit every $commitSize rows until $rowLimit, $deadline, or the table is done.
+     * $deadline is a microtime(true) instant, or null when there is no time limit.
+     *
+     * @param float|null $deadline
+     * @param callable|null $onChunk
+     * @return array{ok: bool, updated: int, done: bool, stopped: string, text: string}
+     */
+    public static function fillUntil($physical, $pk, $rowLimit, $deadline, $commitSize, $onChunk = null) {
+        $rowLimit = (int) $rowLimit;
+        $commitSize = (int) $commitSize;
+        $stopped = array('ok' => false, 'updated' => 0, 'done' => false, 'stopped' => 'error', 'text' => '');
+        if ( $rowLimit < 1 || $commitSize < 1 ) {
+            $stopped['text'] = 'Row limit and commit size must be at least 1.';
+            return $stopped;
+        }
+        if ( $deadline !== null && microtime(true) >= (float) $deadline ) {
+            return array('ok' => true, 'updated' => 0, 'done' => false, 'stopped' => 'time', 'text' => '');
+        }
+        $after = -1;
+        $updated = 0;
+        $batchNo = 0;
+        while ( true ) {
+            $room = $rowLimit - $updated;
+            $time_up = ($deadline !== null && microtime(true) >= (float) $deadline);
+            if ( $room < 1 || $time_up ) {
+                if ( $updated === 0 ) {
+                    return array('ok' => true, 'updated' => 0, 'done' => false, 'stopped' => 'time', 'text' => '');
+                }
+                $more = self::nullRemains($physical, $pk, $after);
+                $reason = $room < 1 ? 'rows' : 'time';
+                return array(
+                    'ok' => true,
+                    'updated' => $updated,
+                    'done' => ! $more,
+                    'stopped' => $more ? $reason : 'done',
+                    'text' => '',
+                );
+            }
+            $chunkLimit = $commitSize < $room ? $commitSize : $room;
+            $batchStarted = microtime(true);
+            $chunk = self::fillChunk($physical, $pk, $chunkLimit, $after);
+            if ( ! $chunk['ok'] ) {
+                $text = $chunk['text'];
+                if ( $updated > 0 ) {
+                    $text .= ' Committed '.$updated.' before this batch.';
+                }
+                return array('ok' => false, 'updated' => $updated, 'done' => false, 'stopped' => 'error', 'text' => $text);
+            }
+            if ( (int) $chunk['selected'] === 0 ) {
+                return array('ok' => true, 'updated' => $updated, 'done' => true, 'stopped' => 'done', 'text' => '');
+            }
+            $updated += (int) $chunk['updated'];
+            $after = (int) $chunk['hi'];
+            $batchNo++;
+            if ( is_callable($onChunk) ) {
+                $onChunk(array(
+                    'batch' => $batchNo,
+                    'updated' => (int) $chunk['updated'],
+                    'cumulative' => $updated,
+                    'lo' => (int) $chunk['lo'],
+                    'hi' => (int) $chunk['hi'],
+                    'elapsed' => microtime(true) - $batchStarted,
+                ));
+            }
+            if ( (int) $chunk['selected'] < $chunkLimit ) {
+                return array('ok' => true, 'updated' => $updated, 'done' => true, 'stopped' => 'done', 'text' => '');
+            }
+        }
+    }
+
+    /**
+     * True when a null guid remains after $after.
+     */
+    private static function nullRemains($physical, $pk, $after) {
+        global $PDOX;
+
+        $q = $PDOX->queryReturnError(
+            "SELECT `{$pk}` AS pk FROM `{$physical}`
+             WHERE guid IS NULL AND `{$pk}` > :after
+             ORDER BY `{$pk}`
+             LIMIT 1",
+            array(':after' => (int) $after)
+        );
+        if ( ! $q->success ) {
+            $q->closeCursor();
+            return true;
+        }
+        $row = $q->fetch(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
+        return is_array($row);
+    }
+
+    /**
+     * One transaction of up to $limit rows with primary key greater than $after.
+     * Each row is its own UPDATE. The guid is stored as a literal.
+     *
+     * @return array{ok: bool, selected: int, updated: int, lo: int, hi: int, text: string}
+     */
+    public static function fillChunk($physical, $pk, $limit, $after = -1) {
+        global $PDOX;
+
+        $limit = (int) $limit;
+        $after = (int) $after;
+        $empty = array('ok' => false, 'selected' => 0, 'updated' => 0, 'lo' => 0, 'hi' => 0, 'text' => '');
+        if ( $limit < 1 ) {
+            $empty['text'] = 'Batch size must be at least 1.';
+            return $empty;
+        }
+        if ( ! self::plainIdentifier($physical) || ! self::plainIdentifier($pk) ) {
+            $empty['text'] = 'Unsafe table or key.';
+            return $empty;
+        }
+        try {
+            if ( ! $PDOX->beginTransaction() ) {
+                $empty['text'] = 'Could not start a transaction.';
+                return $empty;
+            }
+        } catch ( \Throwable $e ) {
+            $empty['text'] = 'Could not start a transaction.';
+            return $empty;
+        }
+        $q = $PDOX->queryReturnError(
+            "SELECT `{$pk}` AS pk FROM `{$physical}`
+             WHERE guid IS NULL AND `{$pk}` > :after
+             ORDER BY `{$pk}`
+             LIMIT {$limit}",
+            array(':after' => $after)
+        );
+        if ( ! $q->success ) {
+            $empty['text'] = (string) $q->errorImplode.'. Rolled back this batch.';
+            $q->closeCursor();
+            self::rollBackQuietly();
+            return $empty;
+        }
+        $ids = $q->fetchAll(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
+        if ( ! is_array($ids) || count($ids) === 0 ) {
+            try {
+                if ( ! $PDOX->commit() ) {
+                    $empty['text'] = 'Commit failed. Rolled back this batch.';
+                    self::rollBackQuietly();
+                    return $empty;
+                }
+            } catch ( \Throwable $e ) {
+                $empty['text'] = 'Commit failed. Rolled back this batch.';
+                self::rollBackQuietly();
+                return $empty;
+            }
+            $empty['ok'] = true;
+            return $empty;
+        }
+        $lo = (int) $ids[0]['pk'];
+        $hi = (int) $ids[count($ids) - 1]['pk'];
+        $updated = 0;
+        foreach ( $ids as $id_row ) {
+            $result = self::fillOneRow($physical, $pk, (int) $id_row['pk']);
+            if ( ! $result['ok'] ) {
+                $empty['text'] = $result['text'].' Rolled back this batch.';
+                self::rollBackQuietly();
+                return $empty;
+            }
+            $updated += (int) $result['updated'];
+        }
+        try {
+            if ( ! $PDOX->commit() ) {
+                $empty['text'] = 'Commit failed. Rolled back this batch.';
+                self::rollBackQuietly();
+                return $empty;
+            }
+        } catch ( \Throwable $e ) {
+            $empty['text'] = 'Commit failed. Rolled back this batch.';
+            self::rollBackQuietly();
+            return $empty;
+        }
+        return array(
+            'ok' => true,
+            'selected' => count($ids),
+            'updated' => $updated,
+            'lo' => $lo,
+            'hi' => $hi,
+            'text' => '',
+        );
+    }
+
+    private static function rollBackQuietly() {
+        global $PDOX;
+        try {
+            if ( $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+        } catch ( \Throwable $e ) {
+            // The connection close rolls the batch back.
+        }
+    }
+
+    /**
+     * @return array{ok: bool, updated: int, text: string}
+     */
+    private static function fillOneRow($physical, $pk, $id) {
+        global $PDOX;
+
+        if ( ! self::plainIdentifier($physical) || ! self::plainIdentifier($pk) ) {
+            return array('ok' => false, 'updated' => 0, 'text' => 'Unsafe table or key.');
+        }
+        $hex = self::newGuidHex();
+        if ( $hex === '' ) {
+            return array('ok' => false, 'updated' => 0, 'text' => 'Could not generate a guid.');
+        }
+        $q = $PDOX->queryReturnError(
+            "UPDATE `{$physical}` SET guid = UNHEX(:hex) WHERE `{$pk}` = :id AND guid IS NULL",
+            array(':hex' => $hex, ':id' => (int) $id)
+        );
+        if ( ! $q->success ) {
+            $error = (string) $q->errorImplode;
+            $q->closeCursor();
+            return array('ok' => false, 'updated' => 0, 'text' => $error);
+        }
+        $updated = (int) $q->rowCount();
+        $q->closeCursor();
+        return array('ok' => true, 'updated' => $updated, 'text' => '');
+    }
+
+    /**
+     * 32 hex characters from MySQL UUID(), or empty when that value is unusable.
+     */
+    private static function newGuidHex() {
+        global $PDOX;
+
+        $q = $PDOX->queryReturnError("SELECT REPLACE(UUID(), '-', '') AS guid_hex");
+        if ( ! $q->success ) {
+            $q->closeCursor();
+            return '';
+        }
+        $row = $q->fetch(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
+        $hex = '';
+        if ( is_array($row) ) {
+            foreach ( $row as $key => $value ) {
+                if ( strcasecmp((string) $key, 'guid_hex') === 0 ) {
+                    $hex = strtolower((string) $value);
+                }
+            }
+        }
+        if ( ! preg_match('/^[0-9a-f]{32}$/', $hex) ) {
+            return '';
+        }
+        return $hex;
+    }
+
+    /**
+     * The per-row statement fill() runs. Empty when the table or prefix is not usable.
      */
     public static function fillSql($table) {
         $tables = self::tables();
@@ -248,12 +523,26 @@ class Guid extends Admin {
         }
         $physical = $prefix.$table;
         $pk = $tables[$table];
-        $limit = (int) self::BATCH;
-        return "UPDATE {$physical}\n"
-            ."SET guid = UNHEX(REPLACE(UUID(), '-', ''))\n"
-            ."WHERE guid IS NULL\n"
-            ."ORDER BY {$pk}\n"
-            ."LIMIT {$limit}";
+        return "SELECT REPLACE(UUID(), '-', '')\n"
+            ."UPDATE {$physical}\n"
+            ."SET guid = UNHEX('<hex from the SELECT>')\n"
+            ."WHERE {$pk} = <id> AND guid IS NULL";
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     */
+    private static function rowsStillNull(array $rows, $from) {
+        for ( $i = (int) $from; $i < count($rows); $i++ ) {
+            if ( ! empty($rows[$i]['fillable']) && (int) $rows[$i]['nulls'] > 0 ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static function plainIdentifier($name) {
+        return preg_match('/^[A-Za-z0-9_]+$/', (string) $name) === 1;
     }
 
     /**

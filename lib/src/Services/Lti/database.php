@@ -2587,10 +2587,11 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Nullable guid. No default and no index. Existing rows stay NULL until
-    // admin/backfill-guid.php. MySQL 8.0.12+ adds the column with
-    // ALGORITHM=INSTANT, which only updates metadata. MySQL 5.6/5.7, and
-    // MySQL 8.0 before 8.0.12, use ALGORITHM=INPLACE, LOCK=NONE so the
-    // copy does not block reads or writes.
+    // admin/lti-maint/backfill-guid.php. MySQL 8.0.12+, Aurora MySQL 8, and
+    // MariaDB 10.3.2+ add the column with ALGORITHM=INSTANT. MySQL 5.6/5.7
+    // and MySQL 8.0 before 8.0.12 use ALGORITHM=INPLACE, LOCK=NONE so the
+    // copy does not block reads or writes. Any other server gets a plain
+    // ALTER TABLE, which may lock the table while it copies.
     $guid_tables = array('lti_user', 'lti_context', 'lti_key', 'lti_link');
     $guid_missing = array();
     foreach ( $guid_tables as $guid_table ) {
@@ -2618,37 +2619,14 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     if ( count($guid_missing) > 0 ) {
-        $guid_version_row = $PDOX->rowDie("SELECT VERSION() AS version");
-        $guid_version = is_array($guid_version_row) ? (string) $guid_version_row['version'] : '';
-        $guid_instant = false;
-        $guid_inplace = false;
-        if ( stripos($guid_version, 'mariadb') === false
-            && preg_match('/^(\d+)\.(\d+)(?:\.(\d+))?/', $guid_version, $guid_match) ) {
-            $guid_major = (int) $guid_match[1];
-            $guid_minor = (int) $guid_match[2];
-            $guid_patch = (isset($guid_match[3]) && $guid_match[3] !== '') ? (int) $guid_match[3] : null;
-            if ( $guid_major > 8 || ($guid_major === 8 && $guid_minor > 0) ) {
-                $guid_instant = true;
-            } else if ( $guid_major === 8 && $guid_minor === 0 ) {
-                if ( $guid_patch !== null && $guid_patch >= 12 ) {
-                    $guid_instant = true;
-                } else if ( $guid_patch === null && stripos($guid_version, 'aurora') !== false ) {
-                    $guid_instant = true;
-                } else if ( $guid_patch !== null ) {
-                    $guid_inplace = true;
-                }
-            } else if ( $guid_major === 5 && ($guid_minor === 6 || $guid_minor === 7) ) {
-                $guid_inplace = true;
-            }
-        }
-        if ( ! $guid_instant && ! $guid_inplace ) {
-            die("guid columns are missing. This server is VERSION={$guid_version}. ".
-                "Adding them needs MySQL 8.0.12+ (ALGORITHM=INSTANT) or MySQL 5.6/5.7 ".
-                "(ALGORITHM=INPLACE, LOCK=NONE).<br/>\n");
-        }
-        $guid_algorithm = $guid_instant ? 'ALGORITHM=INSTANT' : 'ALGORITHM=INPLACE, LOCK=NONE';
+        $guid_server = $PDOX->serverVersion();
         foreach ( $guid_missing as $guid_physical ) {
-            $sql = "ALTER TABLE {$guid_physical} ADD COLUMN guid BINARY(16) NULL, {$guid_algorithm}";
+            $sql = "ALTER TABLE {$guid_physical} ADD COLUMN guid BINARY(16) NULL";
+            if ( $guid_server['add_column'] === 'instant' ) {
+                $sql .= ', ALGORITHM=INSTANT';
+            } else if ( $guid_server['add_column'] === 'inplace' ) {
+                $sql .= ', ALGORITHM=INPLACE, LOCK=NONE';
+            }
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);

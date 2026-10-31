@@ -77,7 +77,10 @@ if ( $guid_fillable && count($guid_sql) > 0 ) {
     echo("<style>details > summary { list-style: none; cursor: pointer; } details > summary::-webkit-details-marker { display: none; }</style>\n");
     echo("<details>\n");
     echo('<summary class="btn btn-default" style="display:inline-block; width:auto;">Backfill</summary>'."\n");
-    echo("<p>Run this SQL? Each statement updates at most 5000 null rows.</p>\n");
+    $limit = (int) $guid_limit;
+    $seconds = (int) $guid_seconds;
+    $commit = (int) $guid_commit;
+    echo("<p>Run these statements? Each row is its own UPDATE. The guid is chosen first and stored as a literal. This click runs for up to {$seconds} seconds or {$limit} rows, whichever comes first, and commits about every {$commit} rows. It then says how far it got.</p>\n");
     echo('<pre style="white-space: pre-wrap;">'.htmlspecialchars($sql_text, ENT_QUOTES, 'UTF-8')."</pre>\n");
     echo('<form method="post">'."\n");
     echo(Tool::csrfField()."\n");
