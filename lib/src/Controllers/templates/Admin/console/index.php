@@ -80,6 +80,9 @@ if ( is_object($PDOX) ) {
             echo("<br/>\n");
             echo("Current Database Version: ".htmlspecialchars($db_version, ENT_QUOTES, 'UTF-8').
                 " (".htmlspecialchars($aurora_label, ENT_QUOTES, 'UTF-8').")\n");
+            if ( tsugi_mysql_version_too_low($db_version) ) {
+                echo(' - <span style="color: red;">The recommended minimum MySQL version is '.TSUGI_MINIMUM_MYSQL.".</span>\n");
+            }
         }
     }
 }

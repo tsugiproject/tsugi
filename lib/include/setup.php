@@ -183,4 +183,30 @@ if (!defined('TSUGI_VERSION')) {
 if (!defined('TSUGI_MINIMUM_PHP')) {
     define('TSUGI_MINIMUM_PHP', '8.4');   // ← update this occasionally
 }
+
+if (!defined('TSUGI_MINIMUM_MYSQL')) {
+    define('TSUGI_MINIMUM_MYSQL', '8.0.16');
+}
+
+// Organization walks use recursive queries, and CHECK constraints are enforced
+// starting in MySQL 8.0.16. Aurora MySQL 3 reports 8.0.mysql_aurora.3.x and is
+// MySQL 8.0.23 or newer, so that string is not too old.
+function tsugi_mysql_version_too_low($version) {
+    $version = trim((string) $version);
+    if ( $version === '' ) {
+        return false;
+    }
+    if ( preg_match('/^(\d+)\.(\d+)\.(\d+)/', $version, $match) ) {
+        $comparable = $match[1].'.'.$match[2].'.'.$match[3];
+        return version_compare($comparable, TSUGI_MINIMUM_MYSQL) < 0;
+    }
+    if ( stripos($version, 'aurora') !== false && preg_match('/^(\d+)\.(\d+)/', $version, $match) ) {
+        return (int) $match[1] < 8;
+    }
+    if ( preg_match('/^(\d+)\.(\d+)/', $version, $match) ) {
+        $comparable = $match[1].'.'.$match[2].'.0';
+        return version_compare($comparable, TSUGI_MINIMUM_MYSQL) < 0;
+    }
+    return true;
+}
 // No trailer
