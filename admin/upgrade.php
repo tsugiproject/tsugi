@@ -8,6 +8,16 @@ use \Tsugi\Core\LTIX;
  * The admin controller calls this after the passphrase gate.
  * `php admin/upgrade.php` calls it from the shell.
  */
+function tsugi_admin_upgrade_mysql_banner($version) {
+    $version = htmlspecialchars((string) $version, ENT_QUOTES, 'UTF-8');
+    $bar = str_repeat('*', 64);
+    echo("\n".$bar."<br/>\n");
+    echo("*** ERROR: MySQL version ".$version." is older than ".TSUGI_MINIMUM_MYSQL.".<br/>\n");
+    echo("*** Tsugi needs MySQL ".TSUGI_MINIMUM_MYSQL." or newer.<br/>\n");
+    echo("*** Continuing the database upgrade.<br/>\n");
+    echo($bar."<br/>\n\n");
+}
+
 function tsugi_admin_upgrade_run() {
     global $CFG, $PDOX, $OUTPUT;
 
@@ -30,6 +40,17 @@ if ( ! U::isCli() ) {
 </head>
 <body>
 <?php
+}
+
+$db_version_stmt = $PDOX->queryReturnError("SELECT VERSION() AS version", false, false);
+if ( $db_version_stmt->success ) {
+    $db_version_row = $db_version_stmt->fetch(\PDO::FETCH_ASSOC);
+    $db_version_stmt->closeCursor();
+    $db_version = is_array($db_version_row) ? (string) ($db_version_row['version'] ?? '') : '';
+    if ( tsugi_mysql_version_too_low($db_version) ) {
+        tsugi_admin_upgrade_mysql_banner($db_version);
+        flush();
+    }
 }
 
 $p = $CFG->dbprefix;

@@ -37,6 +37,7 @@ class Admin extends Tool {
         self::map($app, self::class, 'proxy', self::paths('proxy_small_json'));
 
         Admin\Check::routes($app);
+        Admin\Guid::routes($app);
         Admin\Blob::routes($app);
         Admin\Activity::routes($app);
         Admin\Badges::routes($app);
@@ -235,8 +236,9 @@ class Admin extends Tool {
      * Run a page that used to be a script under admin/.
      * The include writes the response. Exit so the application does not send a second one.
      */
-    protected function view($template) {
+    protected function view($template, array $data = array()) {
         global $CFG, $OUTPUT, $PDOX, $LAUNCH, $USER, $CONTEXT, $LINK;
+        extract($data, EXTR_SKIP);
         $path = __DIR__.'/templates/Admin/'.$template;
         if ( ! is_file($path) ) {
             throw new \RuntimeException('Missing admin template '.$template);

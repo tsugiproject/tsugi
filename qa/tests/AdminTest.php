@@ -141,6 +141,7 @@ final class AdminTest extends TsugiPantherTestCase
             'admin/crypt' => 'Encrypt/Decrypt',
             'admin/nonce' => 'Nonce count',
             'admin/dbsize.php' => 'Database size',
+            'admin/guid' => 'GUID status',
             'admin/mail/' => '<h1>Mail</h1>',
             'admin/events' => 'Event Detail',
             'admin/blob_status' => 'Blob Status',
