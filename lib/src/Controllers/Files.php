@@ -940,8 +940,8 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
             ? $_SESSION[TSUGI_SESSION_LTI] : array();
 
         if ( ! is_object($CONTEXT) || empty($CONTEXT->id) ) {
-            // No row. An id in the constructor reads and backfills guid.
-            // This launch only uses the integer context id.
+            // Construct without a row so no guid is read or backfilled.
+            // This launch uses the integer context id.
             $CONTEXT = new Context();
             $CONTEXT->id = $context_id;
             if ( isset($lti['context_title']) ) $CONTEXT->title = $lti['context_title'];
@@ -955,8 +955,8 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
         $CONTEXT->launch = $TSUGI_LAUNCH;
         $TSUGI_LAUNCH->context = $CONTEXT;
 
-        // No row. An id in the constructor reads and backfills guid.
-        // This launch only uses the integer link id.
+        // Construct without a row so no guid is read or backfilled.
+        // This launch uses the integer link id.
         $LINK = new Link();
         $LINK->id = $link_id;
         $LINK->title = self::NAME;
@@ -981,8 +981,8 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
             $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
         }
 
-        // No row. An id in the constructor reads and backfills guid.
-        // A public download only uses the integer ids from blob_file.
+        // Construct without a row so no guid is read or backfilled.
+        // A public download uses the integer ids from blob_file.
         $CONTEXT = new Context();
         $CONTEXT->id = $row['context_id'];
         $CONTEXT->key = '';
