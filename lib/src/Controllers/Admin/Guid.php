@@ -182,9 +182,10 @@ class Guid extends Admin {
     public static function fillAll() {
         $notes = array();
         $ran = false;
-        $deadline = microtime(true) + self::SECONDS;
         $budget = self::LIMIT;
         $rows = self::report();
+        // The duplicate scan is not part of the 15-second backfill budget.
+        $deadline = microtime(true) + self::SECONDS;
         foreach ( $rows as $index => $row ) {
             if ( empty($row['fillable']) ) {
                 continue;
