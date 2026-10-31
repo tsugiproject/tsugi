@@ -1,6 +1,7 @@
 <?php
 
 use Tsugi\Core\Keyset;
+use Tsugi\Core\User;
 use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Services\Ims\PnpConnector;
@@ -613,6 +614,10 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $oldBase = $hadBase ? $CFG->lti_pnp_baseurl : null;
         $oldEmail = $hadEmail ? $CFG->lti_pnp_use_email : null;
         $base = 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/@/activities/default/afapnprecords';
+        $userId = $this->rememberLaunchUser();
+        $user = new User(array('user_id' => $userId));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', (string) $user->guid);
+        $guidUrl = str_replace('@', (string) $user->guid, $base);
 
         $token = PlatformDynamicRegistration::startForCourse(
             $this->id['eecs280'],
@@ -628,29 +633,26 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         try {
             $CFG->lti_pnp_baseurl = false;
             $CFG->lti_pnp_use_email = false;
-            $off = $this->completedLaunch($registrationId, 424242, 'LtiResourceLinkRequest');
+            $off = $this->completedLaunch($registrationId, $userId, 'LtiResourceLinkRequest');
             $this->assertObjectNotHasProperty(LTI13::PNP_CLAIM, $off);
 
             $CFG->lti_pnp_baseurl = $base;
             foreach ( array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest') as $type ) {
-                $body = $this->completedLaunch($registrationId, 424242, $type);
+                $body = $this->completedLaunch($registrationId, $userId, $type);
                 $this->assertSame($type, $body->{LTI13::MESSAGE_TYPE_CLAIM});
                 $pnp = $body->{LTI13::PNP_CLAIM};
-                $this->assertSame(
-                    'https://pnp.amp-up.io/ims/afapnp/v1p0/users/424242/activities/default/afapnprecords',
-                    $pnp->afapnp_endpoint_url
-                );
+                $this->assertSame($guidUrl, $pnp->afapnp_endpoint_url);
                 $this->assertSame(array(PnpConnector::SCOPE_PNP_READONLY), $pnp->scopes);
                 $this->assertObjectNotHasProperty('afapnp_endpoint_hosturl', $pnp);
             }
 
             $CFG->lti_pnp_use_email = true;
-            $withEmail = $this->completedLaunch($registrationId, 424242, 'LtiResourceLinkRequest');
+            $withEmail = $this->completedLaunch($registrationId, $userId, 'LtiResourceLinkRequest');
             $url = $withEmail->{LTI13::PNP_CLAIM}->afapnp_endpoint_url;
             if ( isset($withEmail->email) && is_string($withEmail->email) && $withEmail->email !== '' ) {
                 $this->assertSame(str_replace('@', $withEmail->email, $base), $url);
             } else {
-                $this->assertSame(str_replace('@', '424242', $base), $url);
+                $this->assertSame($guidUrl, $url);
             }
         } finally {
             if ( $hadBase ) {

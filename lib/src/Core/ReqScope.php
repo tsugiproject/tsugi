@@ -936,7 +936,7 @@ class ReqScope {
         LTIX::getConnection();
         $p = $CFG->dbprefix;
         $linkRow = $PDOX->rowDie(
-            "SELECT link_id, link_key, title, published
+            "SELECT link_id, link_key, title, published, guid AS link_guid
              FROM {$p}lti_link
              WHERE link_id = :LID AND context_id = :CID
                AND (deleted IS NULL OR deleted = 0)",
@@ -945,7 +945,7 @@ class ReqScope {
         if ( ! $linkRow ) {
             throw new ReqScopeException('Link not found in this context.', 404);
         }
-        $link = new Link();
+        $link = new Link($linkRow);
         $link->id = (int) $linkRow['link_id'];
         $link->title = $linkRow['title'];
         $result = self::ensureResult($link->id, (int) $rc->user->id);
@@ -975,7 +975,7 @@ class ReqScope {
         $p = $CFG->dbprefix;
 
         $userRow = $PDOX->rowDie(
-            "SELECT user_id, user_key, displayname, email, locale, image
+            "SELECT user_id, user_key, displayname, email, locale, image, guid AS user_guid
              FROM {$p}lti_user
              WHERE user_id = :UID AND (deleted IS NULL OR deleted = 0)",
             array(':UID' => $user_id)
@@ -985,7 +985,7 @@ class ReqScope {
         }
 
         $contextRow = $PDOX->rowDie(
-            "SELECT c.context_id, c.context_key, c.title, k.key_key
+            "SELECT c.context_id, c.context_key, c.title, c.guid AS context_guid, k.key_key
              FROM {$p}lti_context AS c
              LEFT JOIN {$p}lti_key AS k ON c.key_id = k.key_id
              WHERE c.context_id = :CID AND (c.deleted IS NULL OR c.deleted = 0)",
@@ -1015,7 +1015,7 @@ class ReqScope {
             $effective = max($role, $role_override);
         }
 
-        $user = new User();
+        $user = new User($userRow);
         $user->id = (int) $userRow['user_id'];
         $user->key = $userRow['user_key'];
         $user->displayname = $userRow['displayname'];
@@ -1046,7 +1046,7 @@ class ReqScope {
         $published = null;
         if ( $link_id !== null && $link_id > 0 ) {
             $linkRow = $PDOX->rowDie(
-                "SELECT link_id, link_key, title, published
+                "SELECT link_id, link_key, title, published, guid AS link_guid
                  FROM {$p}lti_link
                  WHERE link_id = :LID AND context_id = :CID
                    AND (deleted IS NULL OR deleted = 0)",
@@ -1055,7 +1055,7 @@ class ReqScope {
             if ( ! $linkRow ) {
                 throw new ReqScopeException('Link not found in this context.', 404);
             }
-            $link = new Link();
+            $link = new Link($linkRow);
             $link->id = (int) $linkRow['link_id'];
             $link->title = $linkRow['title'];
             $published = (int) $linkRow['published'];
@@ -1316,7 +1316,7 @@ class ReqScope {
         }
         LTIX::getConnection();
         $userRow = $PDOX->rowDie(
-            "SELECT user_id, user_key, displayname, email, locale, image
+            "SELECT user_id, user_key, displayname, email, locale, image, guid AS user_guid
              FROM {$CFG->dbprefix}lti_user
              WHERE user_id = :UID AND (deleted IS NULL OR deleted = 0)",
             array(':UID' => (int) $user_id)
@@ -1324,7 +1324,7 @@ class ReqScope {
         if ( ! is_array($userRow) ) {
             return null;
         }
-        $user = new User();
+        $user = new User($userRow);
         $user->id = (int) $userRow['user_id'];
         $user->key = $userRow['user_key'];
         $user->displayname = $userRow['displayname'];
@@ -1356,7 +1356,7 @@ class ReqScope {
         LTIX::getConnection();
         $p = $CFG->dbprefix;
         $row = $PDOX->rowDie(
-            "SELECT c.context_id, c.context_key, c.title, k.key_key
+            "SELECT c.context_id, c.context_key, c.title, c.guid AS context_guid, k.key_key
              FROM {$p}lti_context AS c
              LEFT JOIN {$p}lti_key AS k ON c.key_id = k.key_id
              WHERE c.context_id = :CID AND (c.deleted IS NULL OR c.deleted = 0)",
@@ -1375,7 +1375,7 @@ class ReqScope {
      * @return Context
      */
     private static function contextFromRow(array $row) {
-        $context = new Context();
+        $context = new Context($row);
         $context->id = (int) $row['context_id'];
         $context->title = $row['title'];
         $context->context_id = $row['context_key'];

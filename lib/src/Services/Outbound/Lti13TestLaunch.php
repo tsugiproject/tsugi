@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\User;
 use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Services\Ims\PnpConnector;
@@ -568,7 +569,7 @@ class Lti13TestLaunch {
             );
         }
         $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiResourceLinkRequest', $context, $resourceLink);
-        return self::withPnpClaim($claims);
+        return self::withPnpClaim($claims, $user['guid']);
     }
 
     /**
@@ -674,7 +675,7 @@ class Lti13TestLaunch {
             }
         }
         $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDeepLinkingRequest', $context, null);
-        return self::withPnpClaim($claims);
+        return self::withPnpClaim($claims, $user['guid']);
     }
 
     /**
@@ -967,7 +968,7 @@ class Lti13TestLaunch {
         }
         $claims[LTI13::FOR_USER_CLAIM] = $forUser;
         $claims = self::withCustomClaim($claims, $tool, $hint, 'LtiDataPrivacyLaunchRequest', $context, null);
-        return self::withPnpClaim($claims);
+        return self::withPnpClaim($claims, $user['guid']);
     }
 
     /**
@@ -1067,15 +1068,16 @@ class Lti13TestLaunch {
 
     /**
      * Attach the PNP endpoint claim when $CFG->lti_pnp_baseurl is set.
-     * The email is the one this launch actually releases, matching Sakai.
+     * @ in that URL is this user's guid. The email is the one this launch
+     * actually releases, and it replaces the guid when lti_pnp_use_email is on.
      *
      * @param array<string, mixed> $claims
+     * @param string|null $userGuid
      * @return array<string, mixed>
      */
-    private static function withPnpClaim(array $claims) {
-        $userId = isset($claims['sub']) ? (string) $claims['sub'] : '';
+    private static function withPnpClaim(array $claims, $userGuid) {
         $email = (isset($claims['email']) && is_string($claims['email'])) ? $claims['email'] : '';
-        $pnp = PnpConnector::launchClaim($userId, $email);
+        $pnp = PnpConnector::launchClaim($userGuid, $email);
         if ( $pnp !== null ) {
             $claims[LTI13::PNP_CLAIM] = $pnp;
         }
@@ -1456,12 +1458,12 @@ class Lti13TestLaunch {
     /**
      * @param int $userId
      * @param int $keyId
-     * @return array{full:string, given:string, family:string, email:string}
+     * @return array{full:string, given:string, family:string, email:string, guid:?string}
      */
     private static function userRow($userId, $keyId) {
         $p = self::prefix();
         $row = self::db()->rowDie(
-            "SELECT displayname, email FROM {$p}lti_user
+            "SELECT user_id, displayname, email, guid FROM {$p}lti_user
              WHERE user_id = :user_id AND key_id = :key_id",
             array(
                 ':user_id' => (int) $userId,
@@ -1477,11 +1479,20 @@ class Lti13TestLaunch {
             $given = trim(substr($full, 0, $space));
             $family = trim(substr($full, $space + 1));
         }
+        $guid = null;
+        if ( is_array($row) ) {
+            $loaded = new User(array(
+                'user_id' => (int) $row['user_id'],
+                'user_guid' => $row['guid'],
+            ));
+            $guid = $loaded->guid;
+        }
         return array(
             'full' => $full,
             'given' => $given,
             'family' => $family,
             'email' => $email,
+            'guid' => $guid,
         );
     }
 

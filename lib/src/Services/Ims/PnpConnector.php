@@ -5,9 +5,9 @@ namespace Tsugi\Services\Ims;
 /**
  * Personal Needs and Preferences claim on LTI 1.3 launches.
  *
- * Same behavior as Sakai's lti.pnp.baseurl and lti.pnp.use_email (SAK-50682).
- * When a base URL is configured and the launch has a user id, the launch
- * carries afapnp-endpoint-service. The @ in that URL is the user id, or the
+ * Same settings as Sakai's lti.pnp.baseurl and lti.pnp.use_email (SAK-50682).
+ * When a base URL is configured and the launch user has a guid, the launch
+ * carries afapnp-endpoint-service. The @ in that URL is the user guid, or the
  * email when use_email is on and this launch releases an email.
  */
 class PnpConnector {
@@ -17,18 +17,18 @@ class PnpConnector {
     public const SCOPE_PNP_READONLY = 'https://purl.imsglobal.org/spec/lti-afapnp/scope/afapnprecord.readonly';
 
     /**
-     * Claim body, or null when this platform has no PNP base URL or no user id.
+     * Claim body, or null when this platform has no PNP base URL or no user guid.
      *
-     * @param string $userId Launch user id. Sakai substitutes LTI user_id.
+     * @param string|null $userGuid Launch user guid, 32 lowercase hex characters.
      * @param string|null $email Launch email. Used only when lti_pnp_use_email is on and this is non-empty.
      * @return array{afapnp_endpoint_url:string, scopes:array<int, string>}|null
      */
-    public static function launchClaim($userId, $email = null): ?array {
+    public static function launchClaim($userGuid, $email = null): ?array {
         $base = self::baseUrl();
-        if ( $base === null || $userId === null || $userId === '' ) {
+        if ( $base === null || $userGuid === null || $userGuid === '' ) {
             return null;
         }
-        $token = (string) $userId;
+        $token = (string) $userGuid;
         if ( self::useEmail() && is_string($email) && $email !== '' ) {
             $token = $email;
         }

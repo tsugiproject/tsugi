@@ -35,6 +35,11 @@ class User {
     public $id;
 
     /**
+     * Stable guid for this user, as 32 lowercase hex characters.
+     */
+    public $guid = null;
+
+    /**
      * The logical key for this user in the 'lti_user' table.
      */
     public $key;
@@ -78,6 +83,20 @@ class User {
      * Is the user an administrator?
      */
     public $admin = false;
+
+    /**
+     * A guid already on the row is kept with no query. A null guid becomes the
+     * value read back after the conditional update, not the candidate that
+     * this request generated.
+     *
+     * @param array<string,mixed>|null $row Launch or lti_user row. Null leaves guid unset.
+     */
+    public function __construct($row = null) {
+        if ( ! is_array($row) ) {
+            return;
+        }
+        $this->guid = Guid::forRow($row, 'lti_user', 'user_id', array('user_id'), array('user_guid', 'guid'));
+    }
 
     /**
      * Construct the user's name / email combination

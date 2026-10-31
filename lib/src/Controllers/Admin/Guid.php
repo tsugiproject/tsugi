@@ -139,14 +139,20 @@ class Guid extends Admin {
                 }
             }
             $counts = $PDOX->rowDie(
-                "SELECT SUM(CASE WHEN guid IS NULL THEN 1 ELSE 0 END) AS nulls,
-                        SUM(CASE WHEN guid IS NOT NULL THEN 1 ELSE 0 END) AS filled
-                 FROM {$physical}"
+                "SELECT COALESCE(SUM(CASE WHEN guid IS NULL THEN cnt ELSE 0 END), 0) AS nulls,
+                        COALESCE(SUM(CASE WHEN guid IS NOT NULL THEN cnt ELSE 0 END), 0) AS filled,
+                        COALESCE(SUM(CASE WHEN guid IS NOT NULL AND cnt > 1 THEN 1 ELSE 0 END), 0) AS duplicate_guids
+                 FROM (
+                     SELECT guid, COUNT(*) AS cnt
+                     FROM {$physical}
+                     GROUP BY guid
+                 ) AS grouped"
             );
             $nulls = is_array($counts) ? (int) $counts['nulls'] : 0;
             $filled = is_array($counts) ? (int) $counts['filled'] : 0;
+            $duplicates = is_array($counts) ? (int) $counts['duplicate_guids'] : 0;
             $type_ok = ($type === 'binary(16)');
-            $problem = ! $type_ok || $nulls > 0;
+            $problem = ! $type_ok || $nulls > 0 || $duplicates > 0;
             $note = '';
             if ( ! $type_ok ) {
                 $note = 'guid is '.$type.', expected binary(16).';
@@ -159,6 +165,7 @@ class Guid extends Admin {
                 'indexes' => $indexes,
                 'nulls' => $nulls,
                 'filled' => $filled,
+                'duplicates' => $duplicates,
                 'problem' => $problem,
                 'fillable' => $type_ok,
                 'note' => $note,
@@ -569,6 +576,7 @@ class Guid extends Admin {
             'indexes' => array(),
             'nulls' => 0,
             'filled' => 0,
+            'duplicates' => 0,
             'problem' => true,
             'fillable' => false,
             'note' => $note,
