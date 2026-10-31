@@ -37,6 +37,11 @@ class Context extends Entity {
     public $id;
 
     /**
+     * Stable guid for this context, as 32 lowercase hex characters.
+     */
+    public $guid = null;
+
+    /**
      * The context title
      */
     public $title;
@@ -55,6 +60,20 @@ class Context extends Entity {
      * The context_id from the server
      */
     public $context_id;
+
+    /**
+     * A guid already on the row is kept with no query. A null guid becomes the
+     * value read back after the conditional update, not the candidate that
+     * this request generated.
+     *
+     * @param array<string,mixed>|null $row Launch or lti_context row. Null leaves guid unset.
+     */
+    public function __construct($row = null) {
+        if ( ! is_array($row) ) {
+            return;
+        }
+        $this->guid = Guid::forRow($row, 'lti_context', 'context_id', array('context_id'), array('context_guid', 'guid'));
+    }
 
     /**
      * Load the LTI 1.3 data from the session, checking for sanity

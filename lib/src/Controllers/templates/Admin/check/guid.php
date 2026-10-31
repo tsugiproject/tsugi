@@ -26,6 +26,7 @@ $red = ' style="color: red;"';
 <th>Index</th>
 <th>Null rows</th>
 <th>Not null rows</th>
+<th>Duplicate GUIDs</th>
 </tr>
 </thead>
 <tbody>
@@ -39,7 +40,7 @@ foreach ( $guid_rows as $row ) {
     echo('<td>'.htmlspecialchars($table === '' ? '—' : $table, ENT_QUOTES, 'UTF-8')."</td>\n");
     if ( ! $present ) {
         echo('<td'.$red.'>'.htmlspecialchars($note, ENT_QUOTES, 'UTF-8')."</td>\n");
-        echo("<td>—</td><td>—</td><td>—</td><td>—</td>\n");
+        echo("<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>\n");
         echo("</tr>\n");
         continue;
     }
@@ -61,8 +62,10 @@ foreach ( $guid_rows as $row ) {
         }
         echo('<td>'.implode(', ', $shown)."</td>\n");
     }
+    $duplicates = (int) $row['duplicates'];
     echo('<td'.($nulls > 0 ? $red : '').'>'.$nulls."</td>\n");
     echo('<td>'.(int) $row['filled']."</td>\n");
+    echo('<td'.($duplicates > 0 ? $red : '').'>'.$duplicates."</td>\n");
     echo("</tr>\n");
 }
 ?>

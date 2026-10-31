@@ -817,7 +817,7 @@ class ConfigInfo {
     /*
      * Personal Needs and Preferences base URL for LTI 1.3 launches.
      * False leaves the claim off. A URL is sent as afapnp_endpoint_url.
-     * @ in the URL is the launch user id, or the email when lti_pnp_use_email is true.
+     * @ in the URL is the launch user guid, or the email when lti_pnp_use_email is true.
      *
      * $CFG->lti_pnp_baseurl = 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/@/activities/default/afapnprecords';
      */
@@ -825,7 +825,7 @@ class ConfigInfo {
 
     /*
      * When true, @ in lti_pnp_baseurl is the launch email if this launch
-     * releases one, otherwise the user id. False always uses the user id.
+     * releases one, otherwise the user guid. False always uses the user guid.
      * Has no effect when lti_pnp_baseurl is empty.
      *
      * $CFG->lti_pnp_use_email = false;

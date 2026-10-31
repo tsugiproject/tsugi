@@ -1176,12 +1176,13 @@ class LTIX {
             c.plus_course AS plus_course, c.plus_launch_link_id AS plus_launch_link_id,
             c.lti13_deployment_id AS lti13_deployment_id, c.timezone AS context_timezone,
             c.short_title AS context_short_title, k.timezone AS key_timezone,
-            k.plus AS key_plus,
+            k.plus AS key_plus, k.guid AS key_guid, c.guid AS context_guid,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             l.lti13_lineitem AS lti13_lineitem, l.upward AS upward, l.settings AS link_settings,
+            l.guid AS link_guid,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, u.user_key AS user_key, u.image AS user_image,
             u.locale AS user_locale,
-            u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
+            u.subscribe AS subscribe, u.user_sha256 AS user_sha256, u.guid AS user_guid,
             m.membership_id, m.role, m.role_override, m.deleted AS membership_deleted,
             r.result_id, r.grade, r.result_url, r.sourcedid";
 
@@ -1189,7 +1190,7 @@ class LTIX {
             $sql .= ",
             f.user_id AS for_user_id, f.displayname AS for_user_displayname, f.email AS for_user_email,
             f.user_key as for_user_key, f.image AS for_user_image, f.locale AS for_user_locale,
-            f.subscribe AS for_subscribe, f.user_sha256 AS for_user_sha256,
+            f.subscribe AS for_subscribe, f.user_sha256 AS for_user_sha256, f.guid AS for_user_guid,
             fm.membership_id AS for_membership_id, fm.role AS for_user_role, fm.role_override AS for_user_role_override";
         }
 
@@ -1387,8 +1388,8 @@ class LTIX {
         // https://dev.mysql.com/doc/refman/5.6/en/insert-on-duplicate.html
         if ( $row['context_id'] === null && isset($post['context_id']) ) {
             $sql = "INSERT INTO {$p}lti_context
-                ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
-                ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )
+                ( guid, context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
+                ( UNHEX(REPLACE(UUID(), '-', '')), :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $context_settings_url = U::get($post, 'context_settings_url', null);
             $PDOX->queryDie($sql, array(
@@ -1407,8 +1408,8 @@ class LTIX {
         // if we didn't get context_id from post, we can't update lti_link either
         if ( $row['link_id'] === null && $row['context_id'] !== null && isset($post['link_id']) ) {
             $sql = "INSERT INTO {$p}lti_link
-                ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
-                    ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
+                ( guid, link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
+                    ( UNHEX(REPLACE(UUID(), '-', '')), :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
                     ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $link_settings_url = U::get($post, 'link_settings_url', null);
             $PDOX->queryDie($sql, array(
@@ -1439,8 +1440,8 @@ class LTIX {
         if ( $row['user_id'] === null && isset($post['user_id']) && U::isNotEmpty($post['user_id']) ) {
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: user_sha256,key_id */
-                ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ( guid, user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+                ( UNHEX(REPLACE(UUID(), '-', '')), :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':user_key' => $post['user_id'],
@@ -1489,8 +1490,8 @@ class LTIX {
         if ( $row['user_id'] === null && U::isNotEmpty($post_user_subject) ) {
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: subject_sha256,user_sha256,key_id */
-                ( user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ( guid, user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+                ( UNHEX(REPLACE(UUID(), '-', '')), :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE
                 user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
             $PDOX->queryDie($sql, array(
@@ -2197,6 +2198,32 @@ class LTIX {
         self::abort_with_error_log('Course has been deleted');
     }
 
+    /**
+     * Keep a repaired guid on the launch row so the next request does not query again.
+     *
+     * The constructor returns hex. The launch row keeps the BINARY(16) form.
+     *
+     * @param string $alias
+     * @param string|null $hex
+     */
+    private static function rememberBinaryGuid($alias, $hex) {
+        if ( ! is_string($hex) || ! preg_match('/^[0-9a-f]{32}$/', $hex) ) {
+            return;
+        }
+        if ( ! isset($_SESSION[TSUGI_SESSION_LTI]) || ! is_array($_SESSION[TSUGI_SESSION_LTI]) ) {
+            return;
+        }
+        $current = $_SESSION[TSUGI_SESSION_LTI][$alias] ?? null;
+        if ( is_string($current) && strlen($current) === 16 ) {
+            return;
+        }
+        $binary = hex2bin($hex);
+        if ( ! is_string($binary) || strlen($binary) !== 16 ) {
+            return;
+        }
+        $_SESSION[TSUGI_SESSION_LTI][$alias] = $binary;
+    }
+
     public static function buildLaunch($LTI) {
         global $CFG, $TSUGI_LAUNCH, $TSUGI_KEY;
         global $OUTPUT, $USER, $PROFILE, $CONTEXT, $LINK, $RESULT, $ROSTER;
@@ -2213,7 +2240,8 @@ class LTIX {
 
         // Populate the $USER $CONTEXT and $LINK objects
         if ( isset($LTI['user_id']) && ! is_object($USER) ) {
-            $USER = new \Tsugi\Core\User();
+            $USER = new \Tsugi\Core\User($LTI);
+            self::rememberBinaryGuid('user_guid', $USER->guid);
             $USER->launch = $TSUGI_LAUNCH;
             $USER->id = $LTI['user_id'];
             $USER->key = $LTI['user_key'];
@@ -2250,7 +2278,12 @@ class LTIX {
 
         $TSUGI_LAUNCH->for_user = null;
         if ( isset($LTI['for_user_id']) ) {
-            $for_user = new \Tsugi\Core\User();
+            $forRow = array('user_id' => $LTI['for_user_id']);
+            if ( array_key_exists('for_user_guid', $LTI) ) {
+                $forRow['user_guid'] = $LTI['for_user_guid'];
+            }
+            $for_user = new \Tsugi\Core\User($forRow);
+            self::rememberBinaryGuid('for_user_guid', $for_user->guid);
             $for_user->launch = $TSUGI_LAUNCH;
             $for_user->id = $LTI['for_user_id'];
             $for_user->key = $LTI['for_user_key'];
@@ -2272,7 +2305,8 @@ class LTIX {
         }
 
         if ( isset($LTI['key_id']) && ! is_object($TSUGI_KEY) ) {
-            $TSUGI_KEY = new \Tsugi\Core\Key();
+            $TSUGI_KEY = new \Tsugi\Core\Key($LTI);
+            self::rememberBinaryGuid('key_guid', $TSUGI_KEY->guid);
             $TSUGI_KEY->launch = $TSUGI_LAUNCH;
             $TSUGI_KEY->id = $LTI['key_id'];
             if (isset($LTI['key_title']) ) $TSUGI_KEY->title = $LTI['key_title'];
@@ -2284,7 +2318,8 @@ class LTIX {
         $courseApplies = self::launchContextApplies(is_array($LTI) ? $LTI : null);
 
         if ( $courseApplies && isset($LTI['context_id']) && ! is_object($CONTEXT) ) {
-            $CONTEXT = new \Tsugi\Core\Context();
+            $CONTEXT = new \Tsugi\Core\Context($LTI);
+            self::rememberBinaryGuid('context_guid', $CONTEXT->guid);
             $CONTEXT->launch = $TSUGI_LAUNCH;
             $CONTEXT->id = $LTI['context_id'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
@@ -2295,7 +2330,8 @@ class LTIX {
         }
 
         if ( $courseApplies && isset($LTI['link_id']) && ! is_object($LINK) ) {
-            $LINK = new \Tsugi\Core\Link();
+            $LINK = new \Tsugi\Core\Link($LTI);
+            self::rememberBinaryGuid('link_guid', $LINK->guid);
             $LINK->launch = $TSUGI_LAUNCH;
             $LINK->id = $LTI['link_id'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
@@ -3055,7 +3091,7 @@ class LTIX {
 
                 // Set up user
                 $insertUser = "INSERT INTO {$p}lti_user
-                        ( user_key, user_sha256, displayname, email, locale, json, key_id, created_at, updated_at ) VALUES ";
+                        ( guid, user_key, user_sha256, displayname, email, locale, json, key_id, created_at, updated_at ) VALUES ";
 
                 // Set up membership
                 $insertMembership = "INSERT INTO {$p}lti_membership
@@ -3070,7 +3106,7 @@ class LTIX {
                 $insertUserMembershipArray = [];
                 foreach($ROSTER->data as $user) {
                     array_push($insertUserArray,
-                            "('". $user['user_id'] ."', '".
+                            "(UNHEX(REPLACE(UUID(), '-', '')), '". $user['user_id'] ."', '".
                                     lti_sha256($user['user_id']) ."', '".
                                     $user['user_name'] ."', '".
                                     $user['user_email'] ."', '".

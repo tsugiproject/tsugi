@@ -1303,7 +1303,7 @@ you will need to request a key and have it approved.
             return new RedirectResponse($from_location);
         }
 
-        $key = new \Tsugi\Core\Key();
+        $key = new \Tsugi\Core\Key(array('key_id' => (int) $row['key_id']));
         $key->id = $row['key_id'];
         $key->title = $row['key_title'];
         $launch = new \Tsugi\Core\Launch();

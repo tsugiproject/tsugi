@@ -31,6 +31,11 @@ class Link extends Entity {
     public $id;
 
     /**
+     * Stable guid for this link, as 32 lowercase hex characters.
+     */
+    public $guid = null;
+
+    /**
      * The link title
      */
     public $title;
@@ -63,6 +68,20 @@ class Link extends Entity {
      * The count of the user's activity on this link at the moment of launch
      */
     public $user_activity = 0;
+
+    /**
+     * A guid already on the row is kept with no query. A null guid becomes the
+     * value read back after the conditional update, not the candidate that
+     * this request generated.
+     *
+     * @param array<string,mixed>|null $row Launch or lti_link row. Null leaves guid unset.
+     */
+    public function __construct($row = null) {
+        if ( ! is_array($row) ) {
+            return;
+        }
+        $this->guid = Guid::forRow($row, 'lti_link', 'link_id', array('link_id'), array('link_guid', 'guid'));
+    }
 
     /**
      * Load link information for a different link than current

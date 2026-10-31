@@ -70,24 +70,25 @@ class PnpConnectorTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(PnpConnector::launchClaim('admin', 'ada@example.edu'));
     }
 
-    public function testUserIdReplacesThePlaceholder(): void
+    public function testGuidReplacesThePlaceholder(): void
     {
         global $CFG;
+        $guid = '550e8400e29b41d4a716446655440000';
         $CFG->lti_pnp_baseurl = 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/@/activities/default/afapnprecords';
         $CFG->lti_pnp_use_email = true;
-        $claim = PnpConnector::launchClaim('admin', '');
+        $claim = PnpConnector::launchClaim($guid, '');
         $this->assertSame(
             array(
-                'afapnp_endpoint_url' => 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/admin/activities/default/afapnprecords',
+                'afapnp_endpoint_url' => 'https://pnp.amp-up.io/ims/afapnp/v1p0/users/'.$guid.'/activities/default/afapnprecords',
                 'scopes' => array(PnpConnector::SCOPE_PNP_READONLY),
             ),
             $claim
         );
 
         $CFG->lti_pnp_use_email = false;
-        $claim = PnpConnector::launchClaim('admin', 'ada@example.edu');
+        $claim = PnpConnector::launchClaim($guid, 'ada@example.edu');
         $this->assertSame(
-            'https://pnp.amp-up.io/ims/afapnp/v1p0/users/admin/activities/default/afapnprecords',
+            'https://pnp.amp-up.io/ims/afapnp/v1p0/users/'.$guid.'/activities/default/afapnprecords',
             $claim['afapnp_endpoint_url']
         );
     }
@@ -97,7 +98,7 @@ class PnpConnectorTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG->lti_pnp_baseurl = ' https://pnp.example.test/users/@/x/@ ';
         $CFG->lti_pnp_use_email = 'true';
-        $claim = PnpConnector::launchClaim('42', 'ada@example.edu');
+        $claim = PnpConnector::launchClaim('550e8400e29b41d4a716446655440000', 'ada@example.edu');
         $this->assertSame(
             'https://pnp.example.test/users/ada@example.edu/x/ada@example.edu',
             $claim['afapnp_endpoint_url']
