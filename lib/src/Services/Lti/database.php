@@ -143,10 +143,12 @@ array( "{$CFG->dbprefix}lti_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
+    -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
     -- Upgrade of an existing table does not add this default or this key.
-    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
+    guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
     -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
@@ -208,10 +210,12 @@ array( "{$CFG->dbprefix}lti_user",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
+    -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
     -- Upgrade of an existing table does not add this default or this key.
-    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
+    guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -339,10 +343,12 @@ array( "{$CFG->dbprefix}lti_context",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
+    -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
     -- Upgrade of an existing table does not add this default or this key.
-    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
+    guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -547,10 +553,12 @@ array( "{$CFG->dbprefix}lti_link",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- Fresh CREATE is MySQL 8.0.13+. An omitted guid gets an unswapped UUID.
+    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
+    -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
     -- Upgrade of an existing table does not add this default or this key.
-    guid                BINARY(16) NULL DEFAULT (UUID_TO_BIN(UUID())),
+    guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
