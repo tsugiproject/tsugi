@@ -1017,21 +1017,24 @@ class Grades extends Tool {
 
         $comment_select = "COALESCE(CC.comment_count, 0) AS comment_count";
         $question_select = "COALESCE(QQ.question_count, 0) AS threads_started";
+        // Subquery where/group by stay lowercase. Table::pagedQuery rewrites the
+        // first uppercase WHERE and treats the first uppercase GROUP BY as the
+        // outer clause, so a search would otherwise land inside a subquery.
         $discussion_joins = "
         LEFT JOIN (
             SELECT C.user_id, COUNT(*) AS comment_count
-            FROM {$p}tdiscus_comment C
-            JOIN {$p}tdiscus_thread T ON T.thread_id = C.thread_id
-            JOIN {$p}lti_link LL ON LL.link_id = T.link_id
-            WHERE LL.context_id = :CID2
-            GROUP BY C.user_id
+            FROM {$p}lti_link LL
+            STRAIGHT_JOIN {$p}tdiscus_thread T ON T.link_id = LL.link_id
+            STRAIGHT_JOIN {$p}tdiscus_comment C ON C.thread_id = T.thread_id
+            where LL.context_id = :CID2
+            group by C.user_id
         ) CC ON CC.user_id = U.user_id
         LEFT JOIN (
             SELECT T.user_id, COUNT(*) AS question_count
-            FROM {$p}tdiscus_thread T
-            JOIN {$p}lti_link LL ON LL.link_id = T.link_id
-            WHERE LL.context_id = :CID4
-            GROUP BY T.user_id
+            FROM {$p}lti_link LL
+            STRAIGHT_JOIN {$p}tdiscus_thread T ON T.link_id = LL.link_id
+            where LL.context_id = :CID4
+            group by T.user_id
         ) QQ ON QQ.user_id = U.user_id";
 
         $assignment_grade_clause = "FALSE";
@@ -1052,31 +1055,21 @@ class Grades extends Tool {
             }
             $assignment_grade_clause = "L.link_key IN (".implode(',', $rlid_placeholders).")";
         }
-        $group_by_discussion = ", QQ.question_count, CC.comment_count";
 
         $assignment_count_sql = (int) $total_assignments;
+        // One row per enrolled student. Grades come from this course's links.
+        // STRAIGHT_JOIN keeps that lookup on the link index. A plain JOIN can
+        // start from lti_result and scan every result on the site.
         $sql = "SELECT
             U.user_id,
             U.displayname,
             U.email,
             M.created_at AS enrolled_at,
-            MAX(COALESCE(R.updated_at, M.updated_at)) AS last_visited_at,
-            COUNT(DISTINCT CASE
-                WHEN R.grade IS NOT NULL
-                    AND R.grade >= 0.8
-                    AND {$assignment_grade_clause}
-                THEN L.link_key
-                ELSE NULL
-            END) AS completed_assignments,
+            COALESCE(G.last_result_at, M.updated_at) AS last_visited_at,
+            COALESCE(G.completed_assignments, 0) AS completed_assignments,
             CASE
                 WHEN {$assignment_count_sql} > 0 THEN ROUND(
-                    100 * COUNT(DISTINCT CASE
-                        WHEN R.grade IS NOT NULL
-                            AND R.grade >= 0.8
-                            AND {$assignment_grade_clause}
-                        THEN L.link_key
-                        ELSE NULL
-                    END) / {$assignment_count_sql},
+                    100 * COALESCE(G.completed_assignments, 0) / {$assignment_count_sql},
                     0
                 )
                 ELSE 0
@@ -1086,16 +1079,26 @@ class Grades extends Tool {
         FROM {$p}lti_membership M
         JOIN {$p}lti_user U
             ON U.user_id = M.user_id
-        LEFT JOIN {$p}lti_result R
-            ON R.user_id = U.user_id
-            AND R.deleted = 0
-        LEFT JOIN {$p}lti_link L
-            ON L.link_id = R.link_id
-            AND L.context_id = :CID
+        LEFT JOIN (
+            SELECT R.user_id,
+                MAX(R.updated_at) AS last_result_at,
+                COUNT(DISTINCT CASE
+                    WHEN R.grade IS NOT NULL
+                        AND R.grade >= 0.8
+                        AND {$assignment_grade_clause}
+                    THEN L.link_key
+                    ELSE NULL
+                END) AS completed_assignments
+            FROM {$p}lti_link L
+            STRAIGHT_JOIN {$p}lti_result R
+                ON R.link_id = L.link_id
+                AND R.deleted = 0
+            where L.context_id = :CID
+            group by R.user_id
+        ) G ON G.user_id = U.user_id
         {$discussion_joins}
         WHERE M.context_id = :CID3
-          AND M.deleted = 0
-        GROUP BY U.user_id, U.displayname, U.email, M.created_at{$group_by_discussion}";
+          AND M.deleted = 0";
 
         $this->beginLessonGradePage('progress');
         echo('<h2>'.__('Student Progress')."</h2>\n");
