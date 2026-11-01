@@ -86,9 +86,12 @@ $our_keyset = $row['lti13_keyset'];
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
+$nonce = bin2hex(random_bytes(32));
 $payload = array();
 $payload['signature'] = $signature;
 $payload['time'] = time();
+// Bind the nonce to this transaction and make concurrent login states distinct.
+$payload['nonce'] = $nonce;
 // Someday we might do something clever with this...
 if ( U::get($_REQUEST,'target_link_uri') ) {
     $payload['target_link_uri'] = $_REQUEST['target_link_uri'];
@@ -119,7 +122,7 @@ $redirect = U::add_url_parm($redirect, "scope", "openid");
 $redirect = U::add_url_parm($redirect, "response_type", "id_token");
 $redirect = U::add_url_parm($redirect, "response_mode", "form_post");
 $redirect = U::add_url_parm($redirect, "prompt", "none");
-$redirect = U::add_url_parm($redirect, "nonce", uniqid());
+$redirect = U::add_url_parm($redirect, "nonce", $nonce);
 
 // client_id - Required, per OIDC spec, the tool’s client id for this issuer.
 $redirect = U::add_url_parm($redirect, "client_id", $client_id);

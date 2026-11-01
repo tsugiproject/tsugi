@@ -100,6 +100,11 @@ if ( ! isset($jwt->body) ) {
     LTIX::abort_with_error_log("Missing body in JWT");
 }
 
+$nonce_check = LTIX::checkOidcNonce($state, $jwt->body->nonce ?? null);
+if ( $nonce_check !== true ) {
+    LTIX::abort_with_error_log($nonce_check);
+}
+
 $launch_url = false;
 if ( isset($jwt->body->{$url_claim}) && is_string($jwt->body->{$url_claim}) ) {
     $launch_url = $jwt->body->{$url_claim};
