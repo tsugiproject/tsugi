@@ -305,7 +305,7 @@ class Lti13CourseToolTest extends PlatformSchemaCase
             'title' => 'Half Tool',
         ));
         $state = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
-        $this->assertSame(array('Login URL', 'Keyset URL', 'Launch URL', 'Redirect URL'), $state['missing']);
+        $this->assertSame(array('Login URL', 'Keyset URL', 'Target link', 'Redirect URL'), $state['missing']);
         $this->assertArrayHasKey($registrationId, Lti13CourseTool::draftIds(array($registrationId)));
         $listed = $this->listedTool($registrationId);
         $this->assertTrue($listed['draft']);

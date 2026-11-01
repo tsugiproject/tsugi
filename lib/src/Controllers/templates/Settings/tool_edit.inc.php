@@ -164,7 +164,7 @@ if ( count($missing) > 0 ) { ?>
         <input class="form-control" style="max-width:40em;" id="lti13_jwks" name="jwks_url" type="url" value="<?= htmlspecialchars(isset($tool_edit['jwks_url']) ? (string) $tool_edit['jwks_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
     </div>
     <div class="form-group">
-        <label for="lti13_launch"><?= __('Launch URL') ?></label>
+        <label for="lti13_launch"><?= __('Target link') ?></label>
         <input class="form-control" style="max-width:40em;" id="lti13_launch" name="launch_url" type="url" value="<?= htmlspecialchars(isset($tool_edit['launch_url']) ? (string) $tool_edit['launch_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
     </div>
     <p><button type="submit" class="btn btn-primary"><?= __('Save tool') ?></button></p>
