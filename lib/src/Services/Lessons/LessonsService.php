@@ -98,6 +98,43 @@ class LessonsService {
     }
 
     /**
+     * Student step checkboxes on ungraded lesson items.
+     * Missing means on. "steps": false in the lessons document turns them off.
+     * The same key is the course manifest and a file-based lessons.json.
+     */
+    public function stepsEnabled() {
+        if ( ! isset($this->lessons) || ! is_object($this->lessons) ) {
+            return true;
+        }
+        if ( ! property_exists($this->lessons, 'steps') ) {
+            return true;
+        }
+        return self::stepsFlag($this->lessons->steps);
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public static function stepsFlag($value) {
+        if ( is_bool($value) ) {
+            return $value;
+        }
+        if ( is_int($value) || is_float($value) ) {
+            return ((int) $value) !== 0;
+        }
+        if ( is_string($value) ) {
+            $v = strtolower(trim($value));
+            if ( in_array($v, array('0', 'false', 'no', 'off'), true) ) {
+                return false;
+            }
+            if ( in_array($v, array('1', 'true', 'yes', 'on'), true) ) {
+                return true;
+            }
+        }
+        return true;
+    }
+
+    /**
      * get a setting for the lesson
      */
     public function getSetting($key, $default=false) {

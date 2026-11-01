@@ -2788,6 +2788,14 @@ re-check your login status.
         $nav_rows = CourseNav::editorRows($doc);
         $save_url = $navigation_url;
         $setup_tab = 'navigation';
+        $steps_on = true;
+        $steps_doc = Manifest::currentDocument();
+        if ( is_array($steps_doc) && isset($steps_doc['json']) ) {
+            $steps_decoded = json_decode($steps_doc['json'], true);
+            if ( is_array($steps_decoded) && array_key_exists('steps', $steps_decoded) ) {
+                $steps_on = LessonsService::stepsFlag($steps_decoded['steps']);
+            }
+        }
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -2820,7 +2828,6 @@ re-check your login status.
         if ( $csrf ) {
             return $csrf;
         }
-
         $doc = Manifest::currentDocument();
         if ( ! $doc ) {
             U::flashError(__('Cannot load course manifest.'));
@@ -2830,6 +2837,10 @@ re-check your login status.
         if ( ! is_array($decoded) ) {
             U::flashError(__('Invalid manifest JSON.'));
             return new RedirectResponse($navigation_url);
+        }
+
+        if ( array_key_exists('steps', $_POST) ) {
+            $decoded['steps'] = ((string) U::get($_POST, 'steps', '0')) === '1';
         }
 
         $context_id = ReqScope::currentContextId();
