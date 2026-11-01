@@ -23,6 +23,36 @@
 .tsugi-nav-editor tr.tsugi-nav-pinned .tsugi-nav-handle { visibility: hidden; cursor: default; }
 .tsugi-nav-hint { color: #666; font-size: 0.9em; margin: 0.2em 0 0; }
 .tsugi-nav-home-label { display: inline-block; width: 14em; max-width: 100%; }
+.tsugi-nav-editor tr.tsugi-nav-steps td {
+    background: #f3faf5;
+    padding-top: 0.1em;
+    padding-bottom: 0.45em;
+    box-shadow: inset 3px 0 0 #2e7d32;
+}
+.tsugi-nav-steps-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    margin: 0 0 0 0.35em;
+    font-weight: normal;
+    cursor: pointer;
+}
+.tsugi-nav-steps-label input {
+    margin: 0;
+    accent-color: #2e7d32;
+}
+.tsugi-nav-steps-elbow {
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    margin-right: 0.15em;
+    border-left: 2px solid #2e7d32;
+    border-bottom: 2px solid #2e7d32;
+    border-bottom-left-radius: 2px;
+    flex: 0 0 auto;
+}
+.tsugi-nav-steps .tsugi-nav-hint { margin: 0 0 0 0.6em; }
+.tsugi-nav-editor tr.tsugi-nav-steps[hidden] { display: none; }
 </style>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
@@ -85,6 +115,25 @@
                 </td>
                 <?php } ?>
             </tr>
+            <?php if ( ($row['id'] ?? '') === 'lessons' ) {
+                if ( ! isset($steps_on) ) {
+                    $steps_on = true;
+                }
+                $lessons_shown = ! empty($row['left']) || ! empty($row['right']) || ! empty($row['dropdown']);
+                ?>
+            <tr class="tsugi-nav-pinned tsugi-nav-steps" data-nav-child="lessons"<?= $lessons_shown ? '' : ' hidden' ?>>
+                <td class="tsugi-nav-handle" aria-hidden="true"></td>
+                <td colspan="5">
+                    <label class="tsugi-nav-steps-label">
+                        <span class="tsugi-nav-steps-elbow" aria-hidden="true"></span>
+                        <input type="hidden" name="steps" value="0">
+                        <input type="checkbox" name="steps" value="1"<?= ! empty($steps_on) ? ' checked' : '' ?> aria-label="<?= htmlspecialchars(__('Show progress boxes'), ENT_QUOTES, 'UTF-8') ?>">
+                        <?= __('Show progress boxes') ?>
+                    </label>
+                    <span class="tsugi-nav-hint"><?= __('Lectures, readings, and assignment links. Checks stay in this browser.') ?></span>
+                </td>
+            </tr>
+            <?php } ?>
         <?php } ?>
         </tbody>
     </table>
@@ -128,15 +177,49 @@
     tbody.addEventListener('dragend', function () {
         if (dragging) dragging.classList.remove('tsugi-nav-dragging');
         dragging = null;
+        keepStepsUnderLessons();
     });
     tbody.addEventListener('dragover', function (e) {
         e.preventDefault();
         var tr = e.target.closest('tr');
         if (!tr || tr === dragging || !dragging) return;
-        if (tr.classList.contains('tsugi-nav-pinned')) return;
+        if (tr.getAttribute('data-nav-child') === 'lessons') {
+            tr = tr.previousElementSibling;
+        }
+        if (!tr || tr === dragging || tr.classList.contains('tsugi-nav-pinned')) return;
         var rect = tr.getBoundingClientRect();
         var next = (e.clientY - rect.top) > (rect.height / 2);
         tbody.insertBefore(dragging, next ? tr.nextSibling : tr);
+        keepStepsUnderLessons();
     });
+
+    function keepStepsUnderLessons() {
+        var lessons = tbody.querySelector('tr[data-nav-id="lessons"]');
+        var steps = tbody.querySelector('tr[data-nav-child="lessons"]');
+        if (!lessons || !steps || lessons.nextElementSibling === steps) return;
+        lessons.insertAdjacentElement('afterend', steps);
+    }
+
+    function lessonsIsShown() {
+        var row = tbody.querySelector('tr[data-nav-id="lessons"]');
+        if (!row) return false;
+        var places = ['left', 'right', 'dropdown'];
+        for (var i = 0; i < places.length; i++) {
+            var box = row.querySelector('input[name="nav[lessons][' + places[i] + ']"]');
+            if (box && box.checked) return true;
+        }
+        return false;
+    }
+
+    function syncProgressBoxes() {
+        var steps = tbody.querySelector('tr[data-nav-child="lessons"]');
+        if (!steps) return;
+        if (lessonsIsShown()) steps.removeAttribute('hidden');
+        else steps.setAttribute('hidden', 'hidden');
+    }
+
+    var lessonsRow = tbody.querySelector('tr[data-nav-id="lessons"]');
+    if (lessonsRow) lessonsRow.addEventListener('change', syncProgressBoxes);
+    syncProgressBoxes();
 })();
 </script>

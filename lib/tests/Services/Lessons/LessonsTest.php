@@ -1559,6 +1559,56 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $PDOX = $originalPDOX;
     }
 
+    public function testStepsEnabledDefaultsOn() {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+            }
+        };
+        $lessons->lessons = new \stdClass();
+        $this->assertTrue($lessons->stepsEnabled());
+
+        $lessons->lessons->steps = false;
+        $this->assertFalse($lessons->stepsEnabled());
+
+        $lessons->lessons->steps = true;
+        $this->assertTrue($lessons->stepsEnabled());
+
+        $lessons->lessons->steps = 'false';
+        $this->assertFalse($lessons->stepsEnabled());
+        $this->assertTrue(\Tsugi\Services\Lessons\LessonsService::stepsFlag(null));
+    }
+
+    public function testStepCheckboxesOnUngradedItemsOnly() {
+        $video = '<li class="tsugi-lessons-module-video">Lecture</li>';
+        $assignment = '<li class="tsugi-lessons-module-assignment">Spec</li>';
+        $quiz = '<li class="tsugi-lessons-module-quiz1">Quiz</li>';
+        $graded = '<li class="tsugi-lessons-module-lti">Tool</li>';
+        $ungraded = '<li class="tsugi-lessons-module-lti tsugi-step">Optional tool</li>';
+        $container = '<li class="tsugi-lessons-module-videos"><ul><li class="tsugi-lessons-module-video">One</li></ul></li>';
+
+        $html = \Tsugi\Controllers\Lessons::applyStepCheckboxes(
+            $video.$assignment.$quiz.$graded.$ungraded.$container
+        );
+
+        $this->assertSame(4, substr_count($html, 'tsugi-step-box'));
+        $this->assertStringContainsString('class="tsugi-lessons-module-video tsugi-step"', $html);
+        $this->assertStringContainsString('module-assignment tsugi-step', $html);
+        $this->assertStringNotContainsString('module-quiz1 tsugi-step', $html);
+        $this->assertStringNotContainsString('module-lti tsugi-step">Tool', $html);
+        $this->assertStringContainsString('module-lti tsugi-step"><input type="checkbox" class="tsugi-step-box"', $html);
+        $this->assertStringNotContainsString('module-videos tsugi-step', $html);
+
+        $withIcon = '<li class="tsugi-lessons-module-reference"><a><span class="tsugi-item-type-icon"><i class="fa fa-link"></i></span>Read</a></li>';
+        $placed = \Tsugi\Controllers\Lessons::applyStepCheckboxes($withIcon);
+        $this->assertStringContainsString('</span><input type="checkbox" class="tsugi-step-box"', $placed);
+        $this->assertStringNotContainsString('<li class="tsugi-lessons-module-reference tsugi-step"><input', $placed);
+
+        $video = '<li class="tsugi-lessons-module-video"><tsugi-kaltura-video title="Lecture"></tsugi-kaltura-video></li>';
+        $slotted = \Tsugi\Controllers\Lessons::applyStepCheckboxes($video);
+        $this->assertStringContainsString('slot="step" class="tsugi-step-box"', $slotted);
+        $this->assertLessThan(strpos($slotted, '</tsugi-kaltura-video>'), strpos($slotted, 'tsugi-step-box'));
+    }
+
     public function testResourceLinkIdLetterPrefix() {
         $this->assertEquals('py', \Tsugi\Services\Lessons\LessonsService::resourceLinkIdLetterPrefix('pythonauto_01_hello', 2));
         $this->assertEquals('ab', \Tsugi\Services\Lessons\LessonsService::resourceLinkIdLetterPrefix('a1b2c3', 2));

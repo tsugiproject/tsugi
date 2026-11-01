@@ -114,7 +114,7 @@ class LessonsNormalize {
 
     /** @var list<string> */
     private static $documentKeyOrder = array(
-        'lessons_json_version', 'title', 'description', 'count', 'required_modules',
+        'lessons_json_version', 'title', 'description', 'count', 'steps', 'required_modules',
         'settings', 'headers', 'modules', 'badges', 'launches', 'discussions',
         'discussion_order',
     );
