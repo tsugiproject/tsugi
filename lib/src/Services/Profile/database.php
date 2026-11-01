@@ -36,6 +36,8 @@ $DATABASE_INSTALL = array(
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
+    INDEX `{$CFG->dbprefix}profile_indx_email` (email(255)),
+
     CONSTRAINT `{$CFG->dbprefix}profile_const_pk` PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
@@ -65,5 +67,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         $PDOX->queryReturnError($sql);
     }
 
-    return 202606070001;
+    // email is TEXT. A 255-char prefix covers an address and lets
+    // unsubscribe opt-out match email = :E instead of scanning LOWER(email).
+    $email_index = "{$CFG->dbprefix}profile_indx_email";
+    if ( ! $PDOX->indexExists($email_index, "{$CFG->dbprefix}profile") ) {
+        $sql = "CREATE INDEX `{$email_index}` ON {$CFG->dbprefix}profile (email(255))";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
+    return 202610310001;
 };

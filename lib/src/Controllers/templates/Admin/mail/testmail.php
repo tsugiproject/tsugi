@@ -17,7 +17,7 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     // Resolve recipient user for signed unsubscribe (required for bulk List-Unsubscribe).
     $user_to = null;
     $urow = $PDOX->rowDie(
-        "SELECT user_id FROM {$CFG->dbprefix}lti_user WHERE LOWER(email) = :E ORDER BY user_id DESC LIMIT 1",
+        "SELECT user_id FROM {$CFG->dbprefix}lti_user WHERE email = :E ORDER BY user_id DESC LIMIT 1",
         array(':E' => MailService::normalizeEmail($to))
     );
     if ( is_array($urow) && isset($urow['user_id']) && (int) $urow['user_id'] > 0 ) {

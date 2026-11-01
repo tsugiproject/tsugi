@@ -270,7 +270,7 @@ class MailService {
         $q = $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}profile
                 SET subscribe = -1, updated_at = NOW()
-                WHERE LOWER(email) = :E
+                WHERE email = :E
                   AND (subscribe IS NULL OR subscribe <> -1)",
             array(':E' => $email)
         );
@@ -283,7 +283,7 @@ class MailService {
         $q = $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}lti_user
                 SET subscribe = -1, updated_at = NOW()
-                WHERE LOWER(email) = :E
+                WHERE email = :E
                   AND (subscribe IS NULL OR subscribe <> -1)",
             array(':E' => $email)
         );
