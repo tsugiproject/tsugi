@@ -145,7 +145,7 @@ class Lti13CourseTool {
      * Create an empty LTI 1.3 registration this course owns.
      *
      * Client id and deployment id are assigned here. The login URL, keyset URL,
-     * launch URL, and a redirect URL can wait. Until those are set, the tool
+     * target link, and a redirect URL can wait. Until those are set, the tool
      * is a draft. Messages, scopes, and placements are added on the editor.
      *
      * @param int $contextId
@@ -163,7 +163,7 @@ class Lti13CourseTool {
         }
         $login = self::optionalUrl(self::posted($post, 'oidc_login_url'), 'Login URL');
         $jwks = self::optionalUrl(self::posted($post, 'jwks_url'), 'Keyset URL');
-        $launch = self::optionalUrl(self::posted($post, 'launch_url'), 'Launch URL');
+        $launch = self::optionalUrl(self::posted($post, 'launch_url'), 'Target link');
         $redirect = self::optionalUrl(self::posted($post, 'redirect_uri'), 'Redirect URL');
         $clientId = self::uuid();
         $deploymentId = self::uuid();
@@ -301,7 +301,7 @@ class Lti13CourseTool {
         }
         $login = self::optionalUrl(self::posted($post, 'oidc_login_url'), 'Login URL');
         $jwks = self::optionalUrl(self::posted($post, 'jwks_url'), 'Keyset URL');
-        $launch = self::optionalUrl(self::posted($post, 'launch_url'), 'Launch URL');
+        $launch = self::optionalUrl(self::posted($post, 'launch_url'), 'Target link');
         self::updateColumns($contextId, $registrationId, array(
             'title' => $title,
             'lti13_oidc_login_url' => $login,
@@ -1436,7 +1436,7 @@ class Lti13CourseTool {
     }
 
     /**
-     * Login URL, keyset URL, launch URL, and one redirect URL.
+     * Login URL, keyset URL, target link, and one redirect URL.
      * An empty list means the registration is still a draft.
      *
      * @param string|null $login
@@ -1454,7 +1454,7 @@ class Lti13CourseTool {
             $missing[] = __('Keyset URL');
         }
         if ( trim((string) $launch) === '' ) {
-            $missing[] = __('Launch URL');
+            $missing[] = __('Target link');
         }
         $redirect = false;
         foreach ( $redirects as $uri ) {

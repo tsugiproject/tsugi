@@ -63,7 +63,7 @@ if ( count($missing) > 0 ) { ?>
     <dd style="word-break:break-all;margin-bottom:8px;"><?= $field(isset($tool_view['oidc_login_url']) ? $tool_view['oidc_login_url'] : '') ?></dd>
     <dt><?= __('Keyset URL') ?></dt>
     <dd style="word-break:break-all;margin-bottom:8px;"><?= $field(isset($tool_view['jwks_url']) ? $tool_view['jwks_url'] : '') ?></dd>
-    <dt><?= __('Launch URL') ?></dt>
+    <dt><?= __('Target link') ?></dt>
     <dd style="word-break:break-all;margin-bottom:8px;"><?= $field(isset($tool_view['launch_url']) ? $tool_view['launch_url'] : '') ?></dd>
     <dt><?= __('Redirect URIs') ?></dt>
     <dd style="margin-bottom:8px;"><?= $list($redirects) ?></dd>
