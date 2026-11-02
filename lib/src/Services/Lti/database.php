@@ -143,7 +143,8 @@ array( "{$CFG->dbprefix}lti_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- An omitted guid gets an unswapped MySQL UUID() (version 1).
+    -- Same bytes as UUID_TO_BIN(UUID()). Inserts and backfill pass Guid::uuid7().
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
@@ -210,7 +211,8 @@ array( "{$CFG->dbprefix}lti_user",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- An omitted guid gets an unswapped MySQL UUID() (version 1).
+    -- Same bytes as UUID_TO_BIN(UUID()). Inserts and backfill pass Guid::uuid7().
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
@@ -344,7 +346,8 @@ array( "{$CFG->dbprefix}lti_context",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- An omitted guid gets an unswapped MySQL UUID() (version 1).
+    -- Same bytes as UUID_TO_BIN(UUID()). Inserts and backfill pass Guid::uuid7().
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
@@ -554,7 +557,8 @@ array( "{$CFG->dbprefix}lti_link",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    -- An omitted guid gets an unswapped UUID. Same bytes as UUID_TO_BIN(UUID()).
+    -- An omitted guid gets an unswapped MySQL UUID() (version 1).
+    -- Same bytes as UUID_TO_BIN(UUID()). Inserts and backfill pass Guid::uuid7().
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
@@ -1597,9 +1601,9 @@ $DATABASE_POST_CREATE = function($table) {
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
         $shaval = lti_sha256('12345');
-        $guid_sql = "UNHEX(REPLACE(UUID(), '-', ''))";
+        $guid_12345 = \Tsugi\Core\Guid::uuid7();
         $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret, guid) values
-            ( '$shaval', '12345', 'secret', {$guid_sql})";
+            ( '$shaval', '12345', 'secret', UNHEX('{$guid_12345}'))";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -1607,8 +1611,9 @@ $DATABASE_POST_CREATE = function($table) {
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
         $secret = bin2hex(openssl_random_pseudo_bytes(16));
         $shaval = lti_sha256('google.com');
+        $guid_google = \Tsugi\Core\Guid::uuid7();
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key, guid) values
-            ( '$shaval', '$secret', 'google.com', {$guid_sql})";
+            ( '$shaval', '$secret', 'google.com', UNHEX('{$guid_google}'))";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);

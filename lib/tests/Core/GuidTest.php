@@ -10,6 +10,21 @@ use Tsugi\Util\U;
 
 class GuidTest extends \PHPUnit\Framework\TestCase
 {
+    public function testUuid7Layout() {
+        $previous = '';
+        $seen = array();
+        for ( $i = 0; $i < 20; $i++ ) {
+            $hex = Guid::uuid7();
+            $this->assertUuid7($hex);
+            $this->assertArrayNotHasKey($hex, $seen);
+            $seen[$hex] = true;
+            if ( $previous !== '' ) {
+                $this->assertGreaterThanOrEqual(0, strcmp(substr($hex, 0, 12), substr($previous, 0, 12)));
+            }
+            $previous = $hex;
+        }
+    }
+
     public function testEmptyObjectsDoNotQuery() {
         $this->resetSqlCount();
         $user = new User();
@@ -77,7 +92,7 @@ class GuidTest extends \PHPUnit\Framework\TestCase
             $again = $this->insertThroughLtix($pdo, 'b');
             $guids = array($made['context'], $made['link'], $made['user'], $again['context'], $again['link'], $again['user']);
             foreach ( $guids as $hex ) {
-                $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $hex);
+                $this->assertUuid7($hex);
             }
             $this->assertCount(6, array_unique($guids));
             $this->assertNull($this->storedHex($pdo, 'lti_key', 'key_id', $made['key_id']));
@@ -112,6 +127,7 @@ class GuidTest extends \PHPUnit\Framework\TestCase
 
             $key = new Key($loaded);
             $keyHex = $this->storedHex($pdo, 'lti_key', 'key_id', $made['key_id']);
+            $this->assertUuid7($keyHex);
             $this->assertSame($keyHex, $key->guid);
             $this->assertGreaterThan(0, $this->sqlCount());
             $loaded['key_guid'] = hex2bin($keyHex);
@@ -132,6 +148,7 @@ class GuidTest extends \PHPUnit\Framework\TestCase
             $this->assertNull($this->storedHex($pdo, 'lti_user', 'user_id', $bareId));
             $bare = new User(array('user_id' => $bareId, 'user_guid' => null));
             $bareHex = $this->storedHex($pdo, 'lti_user', 'user_id', $bareId);
+            $this->assertUuid7($bareHex);
             $this->assertSame($bareHex, $bare->guid);
             $bareAgain = new User(array('user_id' => $bareId, 'user_guid' => hex2bin($bareHex)));
             $this->assertSame($bareHex, $bareAgain->guid);
@@ -286,6 +303,12 @@ class GuidTest extends \PHPUnit\Framework\TestCase
     private function prefix() {
         global $CFG;
         return $CFG->dbprefix;
+    }
+
+    private function assertUuid7($hex) {
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $hex);
+        $this->assertSame('7', $hex[12]);
+        $this->assertContains($hex[16], array('8', '9', 'a', 'b'));
     }
 
     private function sqlCount() {

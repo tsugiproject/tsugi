@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Discussions;
 
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
@@ -67,10 +68,11 @@ class DiscussionsService {
         if ( ! is_array($row) ) {
             $title = (isset($item->title) && is_string($item->title)) ? $item->title : '';
             $PDOX->queryDie("INSERT INTO {$p}lti_link
-                (link_key, link_sha256, title, context_id, path, created_at, updated_at)
-                VALUES (:KEY, :SHA, :TITLE, :CID, :PATH, NOW(), NOW())
+                (guid, link_key, link_sha256, title, context_id, path, created_at, updated_at)
+                VALUES (UNHEX(:GUID), :KEY, :SHA, :TITLE, :CID, :PATH, NOW(), NOW())
                 ON DUPLICATE KEY UPDATE updated_at = NOW()",
                 array(
+                    ':GUID' => Guid::uuid7(),
                     ':KEY' => $resourceLinkId,
                     ':SHA' => $sha,
                     ':TITLE' => $title,

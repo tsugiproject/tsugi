@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 
 use \Tsugi\Util\U;
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -2612,8 +2613,8 @@ JS;
 
         $p = $CFG->dbprefix;
         $sql = "INSERT INTO {$p}lti_link
-            ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
-                ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
+            ( guid, link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
+                ( UNHEX(:guid), :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
             ON DUPLICATE KEY UPDATE updated_at = NOW()";
 
         $attempted = 0;
@@ -2625,6 +2626,7 @@ JS;
             }
             $attempted++;
             $stmt = $PDOX->queryReturnError($sql, array(
+                ':guid' => Guid::uuid7(),
                 ':link_key' => $rlid,
                 ':link_sha256' => lti_sha256($rlid),
                 ':settings_url' => null,

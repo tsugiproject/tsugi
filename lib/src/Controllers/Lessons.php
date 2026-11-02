@@ -3,6 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Grades\GradeUtil;
@@ -648,10 +649,11 @@ class Lessons extends Tool {
         }
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_link
-                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+                (guid, link_key, link_sha256, title, context_id, published, created_at, updated_at)
              VALUES
-                (:link_key, :link_sha256, :title, :context_id, 0, NOW(), NOW())",
+                (UNHEX(:guid), :link_key, :link_sha256, :title, :context_id, 0, NOW(), NOW())",
             array(
+                ':guid' => Guid::uuid7(),
                 ':link_key' => $resourceLinkId,
                 ':link_sha256' => $sha,
                 ':title' => $title,

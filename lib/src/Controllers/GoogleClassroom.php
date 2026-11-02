@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\Guid;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ReqScope;
 use \Tsugi\UI\Lessons;
@@ -258,9 +259,10 @@ class GoogleClassroom extends Tool {
             if ( $link_id < 1 ) {
                 $resource_link_id_tmp = uniqid();
                 $sql = "INSERT INTO {$CFG->dbprefix}lti_link
-                    ( link_key, link_sha256, title, context_id, path, created_at, updated_at ) VALUES
-                        ( :link_key, :link_sha256, :title, :context_id, :path, NOW(), NOW() )";
+                    ( guid, link_key, link_sha256, title, context_id, path, created_at, updated_at ) VALUES
+                        ( UNHEX(:guid), :link_key, :link_sha256, :title, :context_id, :path, NOW(), NOW() )";
                 $PDOX->queryDie($sql, array(
+                    ':guid' => Guid::uuid7(),
                     ':link_key' => $resource_link_id_tmp,
                     ':link_sha256' => lti_sha256($resource_link_id_tmp),
                     ':title' => $endpoint_title,
@@ -1806,10 +1808,11 @@ Install in Google Classroom
             $gc_secret = bin2hex(openssl_random_pseudo_bytes(128 / 2));
             $PDOX->queryDie(
                 "INSERT INTO {$CFG->dbprefix}lti_context
-                    ( context_key, context_sha256, title, key_id, gc_secret, user_id, created_at, updated_at )
+                    ( guid, context_key, context_sha256, title, key_id, gc_secret, user_id, created_at, updated_at )
                     VALUES
-                    ( :context_key, :context_sha256, :title, :key_id, :GCS, :user_id, NOW(), NOW() )",
+                    ( UNHEX(:guid), :context_key, :context_sha256, :title, :key_id, :GCS, :user_id, NOW(), NOW() )",
                 array(
+                    ':guid' => Guid::uuid7(),
                     ':context_key' => $context_key,
                     ':context_sha256' => $context_sha256,
                     ':title' => $googleTitle,

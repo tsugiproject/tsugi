@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Outbound;
 
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Lessons\LessonDue;
@@ -456,10 +457,11 @@ class LtiContentService {
             }
             self::db()->queryDie(
                 "INSERT INTO {$p}lti_link
-                    (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+                    (guid, link_key, link_sha256, title, context_id, published, created_at, updated_at)
                  VALUES
-                    (:link_key, :link_sha256, :title, :context_id, :published, NOW(), NOW())",
+                    (UNHEX(:guid), :link_key, :link_sha256, :title, :context_id, :published, NOW(), NOW())",
                 array(
+                    ':guid' => Guid::uuid7(),
                     ':link_key' => (string) $row['resource_link_id'],
                     ':link_sha256' => $sha,
                     ':title' => $title,

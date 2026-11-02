@@ -83,7 +83,7 @@ if ( $guid_fillable && count($guid_sql) > 0 ) {
     $limit = (int) $guid_limit;
     $seconds = (int) $guid_seconds;
     $commit = (int) $guid_commit;
-    echo("<p>Run these statements? Each row is its own UPDATE. The guid is chosen first and stored as a literal. This click runs for up to {$seconds} seconds or {$limit} rows, whichever comes first, and commits about every {$commit} rows. It then says how far it got.</p>\n");
+    echo("<p>Run these statements? Each row is its own UPDATE. The guid is a UUID version 7 chosen in PHP and stored as a literal. This click runs for up to {$seconds} seconds or {$limit} rows, whichever comes first, and commits about every {$commit} rows. It then says how far it got.</p>\n");
     echo('<pre style="white-space: pre-wrap;">'.htmlspecialchars($sql_text, ENT_QUOTES, 'UTF-8')."</pre>\n");
     echo('<form method="post" id="guid-backfill-form">'."\n");
     echo(Tool::csrfField()."\n");

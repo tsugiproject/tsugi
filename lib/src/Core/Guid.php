@@ -10,6 +10,9 @@ namespace Tsugi\Core;
  * candidate, writing it only while the column is still null, then reading
  * the stored bytes back. The object keeps that read, so two requests that
  * generate different candidates end up with the one row that won.
+ *
+ * New values are UUID version 7 from uuid7(). That is standard byte order,
+ * the same layout as UNHEX of a hex UUID, not the MySQL UUID_TO_BIN swap.
  */
 class Guid {
 
@@ -106,10 +109,7 @@ class Guid {
             return null;
         }
 
-        $candidate = self::candidateHex();
-        if ( $candidate === null ) {
-            return null;
-        }
+        $candidate = self::uuid7();
 
         self::$sqlCount++;
         $stmt = $PDOX->queryDie(
@@ -129,23 +129,26 @@ class Guid {
     }
 
     /**
-     * One candidate, as 32 lowercase hex characters. Not the value assigned
-     * to the object; the following read decides that.
+     * UUID version 7 as 32 lowercase hex characters.
      *
-     * @return string|null
+     * 48-bit Unix time in milliseconds, version nibble 7, the RFC 4122
+     * variant, and random bits in the rest. Standard byte order.
+     *
+     * @return string
      */
-    private static function candidateHex() {
-        $PDOX = LTIX::getConnection();
-        self::$sqlCount++;
-        $row = $PDOX->rowDie("SELECT LOWER(REPLACE(UUID(), '-', '')) AS guid_hex");
-        if ( ! is_array($row) || ! isset($row['guid_hex']) || ! is_string($row['guid_hex']) ) {
-            return null;
-        }
-        $hex = strtolower($row['guid_hex']);
-        if ( ! preg_match('/^[0-9a-f]{32}$/', $hex) ) {
-            return null;
-        }
-        return $hex;
+    public static function uuid7() {
+        $parts = explode(' ', microtime());
+        $ms = ((int) $parts[1]) * 1000 + (int) ((float) $parts[0] * 1000);
+        $bytes = chr(($ms >> 40) & 0xff)
+            .chr(($ms >> 32) & 0xff)
+            .chr(($ms >> 24) & 0xff)
+            .chr(($ms >> 16) & 0xff)
+            .chr(($ms >> 8) & 0xff)
+            .chr($ms & 0xff);
+        $bytes .= random_bytes(10);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x70);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        return bin2hex($bytes);
     }
 
     /**

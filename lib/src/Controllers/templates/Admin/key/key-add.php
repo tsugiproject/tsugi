@@ -79,7 +79,11 @@ if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
     }
 }
 
-$retval = CrudForm::handleInsert($tablename, $fields);
+$binaryHex = array();
+if ( isset($_POST['doSave']) ) {
+    $binaryHex['guid'] = \Tsugi\Core\Guid::uuid7();
+}
+$retval = CrudForm::handleInsert($tablename, $fields, $binaryHex);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
     return;
