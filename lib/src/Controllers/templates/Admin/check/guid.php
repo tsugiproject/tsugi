@@ -21,7 +21,6 @@ $red = ' style="color: red;"';
 <thead>
 <tr>
 <th>Table</th>
-<th>Column</th>
 <th>Null rows</th>
 <th>Not null rows</th>
 <th>Duplicate GUIDs</th>
@@ -35,20 +34,16 @@ foreach ( $guid_rows as $row ) {
     $nulls = (int) $row['nulls'];
     $note = (string) $row['note'];
     echo("<tr>\n");
-    echo('<td>'.htmlspecialchars($table === '' ? '—' : $table, ENT_QUOTES, 'UTF-8')."</td>\n");
+    echo('<td>'.htmlspecialchars($table === '' ? '—' : $table, ENT_QUOTES, 'UTF-8'));
+    if ( $note !== '' ) {
+        echo('<br/><span'.$red.'>'.htmlspecialchars($note, ENT_QUOTES, 'UTF-8').'</span>');
+    }
+    echo("</td>\n");
     if ( ! $present ) {
-        echo('<td'.$red.'>'.htmlspecialchars($note, ENT_QUOTES, 'UTF-8')."</td>\n");
         echo("<td>—</td><td>—</td><td>—</td>\n");
         echo("</tr>\n");
         continue;
     }
-    $type = (string) $row['type'];
-    $type_bad = $type !== 'binary(16)';
-    echo('<td'.($type_bad ? $red : '').'>'.htmlspecialchars($type, ENT_QUOTES, 'UTF-8'));
-    if ( $note !== '' ) {
-        echo('<br/>'.htmlspecialchars($note, ENT_QUOTES, 'UTF-8'));
-    }
-    echo("</td>\n");
     $duplicates = (int) $row['duplicates'];
     echo('<td'.($nulls > 0 ? $red : '').'>'.$nulls."</td>\n");
     echo('<td>'.(int) $row['filled']."</td>\n");
