@@ -4,6 +4,7 @@ namespace Tsugi\Services\Login;
 
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
+use \Tsugi\Core\Guid;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\User;
@@ -183,9 +184,10 @@ class GoogleLoginService {
                 $context_id = $row['context_id'];
             } else {
                 $sql = "INSERT INTO {$CFG->dbprefix}lti_context
-                        ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
-                        ( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
+                        ( guid, context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
+                        ( UNHEX(:guid), :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
                 $PDOX->queryDie($sql, array(
+                        ':guid' => Guid::uuid7(),
                         ':context_key' => $context_key,
                         ':context_sha256' => lti_sha256($context_key),
                         ':title' => $context_title,
@@ -299,10 +301,10 @@ class GoogleLoginService {
         } else if ( $user_row === false ) {
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$CFG->dbprefix}lti_user
-                (user_sha256, user_key, key_id, profile_id,
+                (guid, user_sha256, user_key, key_id, profile_id,
                     email, displayname, image, created_at, updated_at, login_at, ipaddr) ".
-                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, :IM, NOW(), NOW(), NOW(), :IP )",
-                array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
+                "VALUES ( UNHEX(:GUID), :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, :IM, NOW(), NOW(), NOW(), :IP )",
+                array(':GUID' => Guid::uuid7(), 'SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
                     ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName,
                     ':IM' => $userAvatar, ':IP' => Net::getIP())
             );

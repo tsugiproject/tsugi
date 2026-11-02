@@ -1144,10 +1144,11 @@ class Manifest {
         $context_sha = lti_sha256($context_key);
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_context
-                (context_key, context_sha256, title, short_title, key_id, user_id, created_at, updated_at)
+                (guid, context_key, context_sha256, title, short_title, key_id, user_id, created_at, updated_at)
              VALUES
-                (:context_key, :context_sha256, :title, :short_title, :key_id, :user_id, NOW(), NOW())",
+                (UNHEX(:guid), :context_key, :context_sha256, :title, :short_title, :key_id, :user_id, NOW(), NOW())",
             array(
+                ':guid' => Guid::uuid7(),
                 ':context_key' => $context_key,
                 ':context_sha256' => $context_sha,
                 ':title' => $title,

@@ -98,9 +98,10 @@ class CrudForm {
      *
      * @param $fields An array of fields to be inserted.  These items must be
      * in the $_POST data as well.
+     * @param array<string,string> $binaryHex Column name => 32 lowercase hex, stored with UNHEX.
      * @return array|int Returns the fetched row array or the constant for SUCCESS, FAIL, or NONE
      */
-    public static function handleInsert($tablename, $fields) {
+    public static function handleInsert($tablename, $fields, $binaryHex = array()) {
         global $PDOX;
         if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
             if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
@@ -157,6 +158,24 @@ class CrudForm {
                 }
                 $parms[':'.$i] = $value;
                 $values .= ":".$i;
+            }
+            if ( is_array($binaryHex) ) {
+                foreach ( $binaryHex as $column => $hex ) {
+                    if ( ! preg_match('/^[A-Za-z0-9_]+$/', (string) $column) ) {
+                        U::flashError("Bad column: ".$column);
+                        return self::CRUD_FAIL;
+                    }
+                    if ( ! is_string($hex) || ! preg_match('/^[0-9a-f]{32}$/', $hex) ) {
+                        U::flashError("Bad value for ".$column);
+                        return self::CRUD_FAIL;
+                    }
+                    if ( U::strlen($names) > 0 ) $names .= ', ';
+                    if ( U::strlen($values) > 0 ) $values .= ', ';
+                    $names .= $column;
+                    $parm = ':fixed_'.$column;
+                    $parms[$parm] = $hex;
+                    $values .= 'UNHEX('.$parm.')';
+                }
             }
             $sql = "INSERT IGNORE INTO $tablename \n( $names ) VALUES ( $values )";
             $stmt = $PDOX->queryDie($sql, $parms);

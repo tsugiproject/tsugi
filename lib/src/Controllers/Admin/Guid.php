@@ -5,6 +5,7 @@ namespace Tsugi\Controllers\Admin;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tsugi\Controllers\Admin;
 use Tsugi\Controllers\Tool;
+use Tsugi\Core\Guid as CoreGuid;
 use Tsugi\Lumos\Application;
 use Tsugi\Util\U;
 
@@ -472,10 +473,7 @@ class Guid extends Admin {
         if ( ! self::plainIdentifier($physical) || ! self::plainIdentifier($pk) ) {
             return array('ok' => false, 'updated' => 0, 'text' => 'Unsafe table or key.');
         }
-        $hex = self::newGuidHex();
-        if ( $hex === '' ) {
-            return array('ok' => false, 'updated' => 0, 'text' => 'Could not generate a guid.');
-        }
+        $hex = CoreGuid::uuid7();
         $q = $PDOX->queryReturnError(
             "UPDATE `{$physical}` SET guid = UNHEX(:hex) WHERE `{$pk}` = :id AND guid IS NULL",
             array(':hex' => $hex, ':id' => (int) $id)
@@ -488,33 +486,6 @@ class Guid extends Admin {
         $updated = (int) $q->rowCount();
         $q->closeCursor();
         return array('ok' => true, 'updated' => $updated, 'text' => '');
-    }
-
-    /**
-     * 32 hex characters from MySQL UUID(), or empty when that value is unusable.
-     */
-    private static function newGuidHex() {
-        global $PDOX;
-
-        $q = $PDOX->queryReturnError("SELECT REPLACE(UUID(), '-', '') AS guid_hex");
-        if ( ! $q->success ) {
-            $q->closeCursor();
-            return '';
-        }
-        $row = $q->fetch(\PDO::FETCH_ASSOC);
-        $q->closeCursor();
-        $hex = '';
-        if ( is_array($row) ) {
-            foreach ( $row as $key => $value ) {
-                if ( strcasecmp((string) $key, 'guid_hex') === 0 ) {
-                    $hex = strtolower((string) $value);
-                }
-            }
-        }
-        if ( ! preg_match('/^[0-9a-f]{32}$/', $hex) ) {
-            return '';
-        }
-        return $hex;
     }
 
     /**
@@ -531,9 +502,8 @@ class Guid extends Admin {
         }
         $physical = $prefix.$table;
         $pk = $tables[$table];
-        return "SELECT REPLACE(UUID(), '-', '')\n"
-            ."UPDATE {$physical}\n"
-            ."SET guid = UNHEX('<hex from the SELECT>')\n"
+        return "UPDATE {$physical}\n"
+            ."SET guid = UNHEX('<uuid version 7>')\n"
             ."WHERE {$pk} = <id> AND guid IS NULL";
     }
 

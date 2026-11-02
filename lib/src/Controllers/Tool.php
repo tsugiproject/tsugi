@@ -6,6 +6,7 @@ namespace Tsugi\Controllers;
 use \Tsugi\Util\U;
 use Tsugi\Util\CCFileBase;
 use Tsugi\Util\LTI;
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Membership;
 use Tsugi\Grades\GradeUtil;
@@ -1082,10 +1083,11 @@ abstract class Tool {
             // link_key is required (TEXT NOT NULL) - we store our prefixed key
             $stmt = $PDOX->queryReturnError(
                 "INSERT IGNORE INTO {$CFG->dbprefix}lti_link
-                    (link_sha256, link_key, context_id, title, path, updated_at)
+                    (guid, link_sha256, link_key, context_id, title, path, updated_at)
                  VALUES
-                    (:SHA, :KEY, :CID, :TITLE, :PATH, NOW())",
+                    (UNHEX(:GUID), :SHA, :KEY, :CID, :TITLE, :PATH, NOW())",
                 array(
+                    ':GUID' => Guid::uuid7(),
                     ':SHA' => $sha,
                     ':KEY' => $link_key,
                     ':CID' => $context_id,

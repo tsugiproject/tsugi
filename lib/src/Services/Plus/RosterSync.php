@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Plus;
 
+use Tsugi\Core\Guid;
 use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
 use Tsugi\Util\LTI13;
@@ -685,10 +686,11 @@ class RosterSync {
         }
         self::exec(
             "INSERT INTO {$p}lti_user
-                (subject_key, subject_sha256, displayname, email, image, key_id, created_at, updated_at)
+                (guid, subject_key, subject_sha256, displayname, email, image, key_id, created_at, updated_at)
              VALUES
-                (:SUBJECT, :SHA, :NAME, :EMAIL, :IMAGE, :KID, NOW(), NOW())",
+                (UNHEX(:GUID), :SUBJECT, :SHA, :NAME, :EMAIL, :IMAGE, :KID, NOW(), NOW())",
             array(
+                ':GUID' => Guid::uuid7(),
                 ':SUBJECT' => $subject,
                 ':SHA' => $sha,
                 ':NAME' => $name,

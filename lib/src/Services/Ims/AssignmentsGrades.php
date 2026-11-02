@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Ims;
 
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Services\Outbound\ToolDeploymentGrant;
 use Tsugi\Services\Outbound\ToolDeploymentService;
@@ -423,6 +424,7 @@ class AssignmentsGrades {
             $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
         $params = array(
+            ':guid' => Guid::uuid7(),
             ':link_key' => $linkKey,
             ':link_sha256' => U::lti_sha256($linkKey),
             ':context_id' => $contextId,
@@ -443,12 +445,12 @@ class AssignmentsGrades {
         }
         self::db()->queryDie(
             "INSERT INTO {$p}lti_link
-                (link_key, link_sha256, context_id, title, score_maximum,
+                (guid, link_key, link_sha256, context_id, title, score_maximum,
                  ags_resource_id, ags_tag, grades_released,
                  submission_start_datetime, submission_end_datetime,
                  json, published, created_at, updated_at)
              VALUES
-                (:link_key, :link_sha256, :context_id, :title, :score_maximum,
+                (UNHEX(:guid), :link_key, :link_sha256, :context_id, :title, :score_maximum,
                  :ags_resource_id, :ags_tag, :grades_released,
                  {$start}, {$end},
                  :json, 1, NOW(), NOW())",

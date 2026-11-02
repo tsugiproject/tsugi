@@ -83,9 +83,10 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
         $key_sha256 = lti_sha256($oauth_consumer_key);
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_key 
-                (key_sha256, key_key, secret, user_id, created_at, updated_at)
-                VALUES ( :k256, :key, :secret, :uid, NOW(), NOW() )",
+                (guid, key_sha256, key_key, secret, user_id, created_at, updated_at)
+                VALUES ( UNHEX(:guid), :k256, :key, :secret, :uid, NOW(), NOW() )",
             array(
+                ':guid' => \Tsugi\Core\Guid::uuid7(),
                 'k256' => $key_sha256,
                 'key' => $oauth_consumer_key,
                 'secret' => $oauth_secret,

@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Lessons;
 
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Outbound\LtiContentService;
@@ -125,10 +126,11 @@ class LessonPublish {
         }
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_link
-                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+                (guid, link_key, link_sha256, title, context_id, published, created_at, updated_at)
              VALUES
-                (:link_key, :link_sha256, :title, :context_id, :published, NOW(), NOW())",
+                (UNHEX(:guid), :link_key, :link_sha256, :title, :context_id, :published, NOW(), NOW())",
             array(
+                ':guid' => Guid::uuid7(),
                 ':link_key' => $resourceLinkId,
                 ':link_sha256' => $sha,
                 ':title' => $storedTitle,

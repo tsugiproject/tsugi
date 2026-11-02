@@ -3,6 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\ContextImages;
@@ -1434,9 +1435,10 @@ $(document).ready( function() {
                 $key_sha256 = lti_sha256($oauth_consumer_key);
                 $PDOX->queryDie(
                     "INSERT INTO {$CFG->dbprefix}lti_key
-                        (key_sha256, key_key, secret, user_id, created_at, updated_at)
-                        VALUES ( :k256, :key, :secret, :uid, NOW(), NOW() )",
+                        (guid, key_sha256, key_key, secret, user_id, created_at, updated_at)
+                        VALUES ( UNHEX(:guid), :k256, :key, :secret, :uid, NOW(), NOW() )",
                     array(
+                    ':guid' => Guid::uuid7(),
                     'k256' => $key_sha256,
                         'key' => $oauth_consumer_key,
                         'secret' => $oauth_secret,

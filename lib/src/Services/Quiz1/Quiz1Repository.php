@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Quiz1;
 
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Lessons\LessonDue;
@@ -781,10 +782,11 @@ class Quiz1Repository {
         $link_key = self::newLinkKey($context_id, $preferredKey);
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_link
-                (link_key, link_sha256, title, context_id, path, published, created_at, updated_at)
+                (guid, link_key, link_sha256, title, context_id, path, published, created_at, updated_at)
              VALUES
-                (:link_key, :link_sha256, :title, :context_id, :path, 0, NOW(), NOW())",
+                (UNHEX(:guid), :link_key, :link_sha256, :title, :context_id, :path, 0, NOW(), NOW())",
             array(
+                ':guid' => Guid::uuid7(),
                 ':link_key' => $link_key,
                 ':link_sha256' => U::lti_sha256($link_key),
                 ':title' => $row['title'],

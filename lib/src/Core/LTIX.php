@@ -1429,10 +1429,11 @@ class LTIX {
         if ( $row['context_id'] === null && isset($post['context_id']) ) {
             $sql = "INSERT INTO {$p}lti_context
                 ( guid, context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
-                ( UNHEX(REPLACE(UUID(), '-', '')), :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )
+                ( UNHEX(:guid), :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $context_settings_url = U::get($post, 'context_settings_url', null);
             $PDOX->queryDie($sql, array(
+                ':guid' => Guid::uuid7(),
                 ':context_key' => $post['context_id'],
                 ':context_sha256' => lti_sha256($post['context_id']),
                 ':settings_url' => $context_settings_url,
@@ -1449,10 +1450,11 @@ class LTIX {
         if ( $row['link_id'] === null && $row['context_id'] !== null && isset($post['link_id']) ) {
             $sql = "INSERT INTO {$p}lti_link
                 ( guid, link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
-                    ( UNHEX(REPLACE(UUID(), '-', '')), :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
+                    ( UNHEX(:guid), :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
                     ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $link_settings_url = U::get($post, 'link_settings_url', null);
             $PDOX->queryDie($sql, array(
+                ':guid' => Guid::uuid7(),
                 ':link_key' => $post['link_id'],
                 ':link_sha256' => lti_sha256($post['link_id']),
                 ':settings_url' => $link_settings_url,
@@ -1481,9 +1483,10 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: user_sha256,key_id */
                 ( guid, user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( UNHEX(REPLACE(UUID(), '-', '')), :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ( UNHEX(:guid), :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $PDOX->queryDie($sql, array(
+                ':guid' => Guid::uuid7(),
                 ':user_key' => $post['user_id'],
                 ':user_sha256' => lti_sha256($post['user_id']),
                 ':displayname' => $user_displayname,
@@ -1531,10 +1534,11 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: subject_sha256,user_sha256,key_id */
                 ( guid, user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( UNHEX(REPLACE(UUID(), '-', '')), :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ( UNHEX(:guid), :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE
                 user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
             $PDOX->queryDie($sql, array(
+                ':guid' => Guid::uuid7(),
                 ':user_key' => $lti11_transition_user_id,
                 ':user_sha256' => $lti11_transition_user_id_sha256,
                 ':subject_key' => $post_user_subject,
@@ -3146,7 +3150,7 @@ class LTIX {
                 $insertUserMembershipArray = [];
                 foreach($ROSTER->data as $user) {
                     array_push($insertUserArray,
-                            "(UNHEX(REPLACE(UUID(), '-', '')), '". $user['user_id'] ."', '".
+                            "(UNHEX('".Guid::uuid7()."'), '". $user['user_id'] ."', '".
                                     lti_sha256($user['user_id']) ."', '".
                                     $user['user_name'] ."', '".
                                     $user['user_email'] ."', '".

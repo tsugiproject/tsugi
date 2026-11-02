@@ -9,8 +9,8 @@ use Tsugi\Util\U;
  *
  * Not called from the web, from admin/upgrade.php, or from database setup.
  * Safe to stop and run again. A guid that is already set is left alone.
- * Each row is its own UPDATE. The guid is chosen first and stored as a literal,
- * so a replica keeps the same bytes. A commit runs after each batch.
+ * Each row is its own UPDATE. The guid is a UUID version 7 chosen in PHP and
+ * stored as a literal, so a replica keeps the same bytes. A commit runs after each batch.
  *
  *   php admin/lti-maint/backfill-guid.php --dry-run
  *   php admin/lti-maint/backfill-guid.php --table=lti_user --batch-size=1000

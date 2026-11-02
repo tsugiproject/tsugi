@@ -3,6 +3,7 @@
 namespace Tsugi\Services\Files;
 
 use Tsugi\Blob\BlobUtil;
+use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
 use Tsugi\Util\U;
 
@@ -59,10 +60,11 @@ class FileRepository {
         if ( ! $row ) {
             $stmt = $PDOX->queryReturnError(
                 "INSERT IGNORE INTO {$CFG->dbprefix}lti_link
-                    (link_sha256, link_key, context_id, title, path, updated_at)
+                    (guid, link_sha256, link_key, context_id, title, path, updated_at)
                  VALUES
-                    (:SHA, :KEY, :CID, :TITLE, :PATH, NOW())",
+                    (UNHEX(:GUID), :SHA, :KEY, :CID, :TITLE, :PATH, NOW())",
                 array(
+                    ':GUID' => Guid::uuid7(),
                     ':SHA' => $sha,
                     ':KEY' => $link_key,
                     ':CID' => $context_id,
