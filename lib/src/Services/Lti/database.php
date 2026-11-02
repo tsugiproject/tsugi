@@ -147,7 +147,7 @@ array( "{$CFG->dbprefix}lti_key",
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
-    -- Upgrade of an existing table does not add this default or this key.
+    -- Upgrade adds this unique key. It does not add this default.
     guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
@@ -214,7 +214,7 @@ array( "{$CFG->dbprefix}lti_user",
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
-    -- Upgrade of an existing table does not add this default or this key.
+    -- Upgrade adds this unique key. It does not add this default.
     guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
@@ -348,7 +348,7 @@ array( "{$CFG->dbprefix}lti_context",
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
-    -- Upgrade of an existing table does not add this default or this key.
+    -- Upgrade adds this unique key. It does not add this default.
     guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
@@ -558,7 +558,7 @@ array( "{$CFG->dbprefix}lti_link",
     -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
     -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
     -- Explicit NULL stays NULL. The unique key allows more than one NULL.
-    -- Upgrade of an existing table does not add this default or this key.
+    -- Upgrade adds this unique key. It does not add this default.
     guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
@@ -1874,8 +1874,8 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // DROP INDEX index_name ON tbl_name
     $keep_issuer_index = $PDOX->columnExists('issuer_id', $CFG->dbprefix."lti_key");
-    // A fresh CREATE adds this unique key. This pass does not add it to an
-    // existing table, and it must not drop it from a table that already has it.
+    // The unique guid key is added later in this upgrade. This pass must not
+    // drop it when the table already has it.
     $keep_guid_index = $CFG->dbprefix."lti_key_const_guid";
     foreach($indexes as $index) {
         if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
@@ -2619,9 +2619,10 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Existing tables only. A fresh CREATE already has the expression default
-    // and the unique key. This adds a nullable column with neither, and does
-    // not alter a column that is already there. Existing rows stay NULL until
-    // admin/lti-maint/backfill-guid.php. MySQL 8.0.12+, Aurora MySQL 8, and
+    // and the unique key. This adds a nullable column with neither. The unique
+    // key is added in the next block. It does not add the expression default,
+    // and it does not alter a column that is already there. Existing rows stay
+    // NULL until admin/lti-maint/backfill-guid.php. MySQL 8.0.12+, Aurora MySQL 8, and
     // MariaDB 10.3.2+ add the column with ALGORITHM=INSTANT. MySQL 5.6/5.7
     // and MySQL 8.0 before 8.0.12 use ALGORITHM=INPLACE, LOCK=NONE so the
     // copy does not block reads or writes. Any other server gets a plain
@@ -2676,6 +2677,55 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Unique key on guid. A fresh CREATE already has it. This adds it once the
+    // column is there. Multiple NULLs are allowed, so this can run before
+    // backfill. A repeated non-NULL guid stops the upgrade. The expression
+    // default stays on fresh CREATE only.
+    //
+    // A secondary unique index is INPLACE on MySQL 5.6+ and MariaDB 10.0+ and
+    // does not copy the table. LOCK=NONE lets reads and writes continue. MySQL
+    // 5.5 and older MariaDB get a plain ALTER TABLE, which may lock the table
+    // while it copies. If INPLACE is rejected, this retries that plain
+    // statement. A duplicate guid is not retried.
+    foreach ( $guid_tables as $guid_table ) {
+        $guid_physical = "{$p}{$guid_table}";
+        if ( $PDOX->metadata($guid_physical) === false ) {
+            continue;
+        }
+        if ( ! $PDOX->columnExists('guid', $guid_physical) ) {
+            continue;
+        }
+        $guid_index = "{$p}{$guid_table}_const_guid";
+        if ( $PDOX->indexExists($guid_index, $guid_physical) ) {
+            continue;
+        }
+        $plain = "ALTER TABLE {$guid_physical} ADD CONSTRAINT `{$guid_index}` UNIQUE (`guid`)";
+        $sql = $plain.', ALGORITHM=INPLACE, LOCK=NONE';
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $err = (string) $q->errorImplode;
+            $duplicate = (stripos($err, '1062') !== false) || (stripos($err, 'Duplicate entry') !== false);
+            if ( $duplicate ) {
+                die("Unable to add {$guid_index} on {$guid_physical}: duplicate guid values. ".$err."<br/>\n");
+            }
+            $warn = "guid unique index with INPLACE failed: ".$err."; retrying: ".$plain;
+            echo(htmlentities($warn)."<br/>\n");
+            error_log($warn);
+            $q->closeCursor();
+            $q = $PDOX->queryReturnError($plain);
+        }
+        if ( ! $q->success ) {
+            $err = (string) $q->errorImplode;
+            $duplicate = (stripos($err, '1062') !== false) || (stripos($err, 'Duplicate entry') !== false);
+            if ( $duplicate ) {
+                die("Unable to add {$guid_index} on {$guid_physical}: duplicate guid values. ".$err."<br/>\n");
+            }
+            die("Unable to add {$guid_index} on {$guid_physical}: ".$err."<br/>\n");
+        }
+    }
+
     // email is TEXT. A 255-char prefix covers an address and lets
     // unsubscribe opt-out match email = :E instead of scanning LOWER(email).
     $email_index = "{$CFG->dbprefix}lti_user_indx_email";
@@ -2708,7 +2758,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202611010002;
+    return 202611020000;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

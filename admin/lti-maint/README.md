@@ -39,7 +39,7 @@ A course line is printed when that course still has links with `upward = 0`. The
 
 ## When to run `backfill-guid.php`
 
-`lti_user`, `lti_context`, `lti_key`, and `lti_link` each have a nullable `guid` column. New installs set it on the starter `lti_key` rows. An upgrade adds the column and leaves existing rows `NULL`. This script fills those `NULL` values. It does not replace a guid that is already set.
+`lti_user`, `lti_context`, `lti_key`, and `lti_link` each have a nullable `guid` column. New installs set it on the starter `lti_key` rows. An upgrade adds the column, leaves existing rows `NULL`, and adds a unique key on `guid`. More than one `NULL` is allowed, so the key can be added before this script runs. A repeated non-NULL guid stops the upgrade. This script fills those `NULL` values. It does not replace a guid that is already set.
 
 Run `php admin/upgrade.php` first. The script stops if a `guid` column is missing. It is safe to stop and run again.
 
