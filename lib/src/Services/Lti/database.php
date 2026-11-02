@@ -798,7 +798,9 @@ array( "{$CFG->dbprefix}lti_result",
     
     -- Indexes for performance optimization (grades queries)
     KEY `{$CFG->dbprefix}lti_result_indx_link_deleted_grade` (link_id, deleted, grade),
-    KEY `{$CFG->dbprefix}lti_result_indx_link_user_grade` (link_id, user_id, grade, deleted)
+    KEY `{$CFG->dbprefix}lti_result_indx_link_user_grade` (link_id, user_id, grade, deleted),
+    -- Grade list: WHERE link_id ORDER BY updated_at LIMIT n
+    KEY `{$CFG->dbprefix}lti_result_indx_link_updated` (link_id, updated_at)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // One waiting Classroom grade per result. A successful send deletes the row.
@@ -2175,7 +2177,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         "{$CFG->dbprefix}lti_result_indx_link_deleted_grade" => 
             "CREATE INDEX `{$CFG->dbprefix}lti_result_indx_link_deleted_grade` ON {$CFG->dbprefix}lti_result (link_id, deleted, grade)",
         "{$CFG->dbprefix}lti_result_indx_link_user_grade" => 
-            "CREATE INDEX `{$CFG->dbprefix}lti_result_indx_link_user_grade` ON {$CFG->dbprefix}lti_result (link_id, user_id, grade, deleted)"
+            "CREATE INDEX `{$CFG->dbprefix}lti_result_indx_link_user_grade` ON {$CFG->dbprefix}lti_result (link_id, user_id, grade, deleted)",
+        // Grade list pages sort one link by updated_at and then LIMIT.
+        // UNIQUE(link_id, user_id) finds the rows but cannot keep that order.
+        "{$CFG->dbprefix}lti_result_indx_link_updated" =>
+            "CREATE INDEX `{$CFG->dbprefix}lti_result_indx_link_updated` ON {$CFG->dbprefix}lti_result (link_id, updated_at)"
     );
     
     foreach($indexes_to_create as $index_name => $sql) {
@@ -2686,7 +2692,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610310001;
+    return 202611010001;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
