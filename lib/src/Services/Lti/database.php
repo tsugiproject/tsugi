@@ -226,6 +226,7 @@ array( "{$CFG->dbprefix}lti_user",
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_guid` UNIQUE (`guid`),
     INDEX `{$CFG->dbprefix}lti_user_indx_email` (email(255)),
+    INDEX `{$CFG->dbprefix}lti_user_indx_profile` (profile_id),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -2690,9 +2691,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Admin profile list counts lti_user rows per profile. profile_id has no key,
+    // so each count scanned lti_user.
+    $profile_index = "{$CFG->dbprefix}lti_user_indx_profile";
+    if ( ! $PDOX->indexExists($profile_index, "{$CFG->dbprefix}lti_user") ) {
+        $sql = "CREATE INDEX `{$profile_index}` ON {$CFG->dbprefix}lti_user (profile_id)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202611010001;
+    return 202611010002;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
