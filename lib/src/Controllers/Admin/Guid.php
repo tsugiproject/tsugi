@@ -110,7 +110,7 @@ class Guid extends Admin {
                 continue;
             }
             $column = $PDOX->rowDie(
-                "SELECT COLUMN_TYPE AS column_type, IS_NULLABLE AS is_nullable
+                "SELECT COLUMN_TYPE AS column_type
                  FROM information_schema.COLUMNS
                  WHERE TABLE_SCHEMA = DATABASE()
                    AND TABLE_NAME = :table_name
@@ -122,23 +122,6 @@ class Guid extends Admin {
                 continue;
             }
             $type = strtolower((string) $column['column_type']);
-            $nullable = strtoupper((string) $column['is_nullable']) === 'YES';
-            $indexes = array();
-            $index_rows = $PDOX->allRowsDie(
-                "SELECT DISTINCT INDEX_NAME AS index_name
-                 FROM information_schema.STATISTICS
-                 WHERE TABLE_SCHEMA = DATABASE()
-                   AND TABLE_NAME = :table_name
-                   AND COLUMN_NAME = 'guid'
-                 ORDER BY INDEX_NAME",
-                array(':table_name' => $physical)
-            );
-            foreach ( $index_rows as $index_row ) {
-                $name = (string) ($index_row['index_name'] ?? '');
-                if ( $name !== '' ) {
-                    $indexes[] = $name;
-                }
-            }
             $counts = $PDOX->rowDie(
                 "SELECT COALESCE(SUM(CASE WHEN guid IS NULL THEN cnt ELSE 0 END), 0) AS nulls,
                         COALESCE(SUM(CASE WHEN guid IS NOT NULL THEN cnt ELSE 0 END), 0) AS filled,
@@ -162,8 +145,6 @@ class Guid extends Admin {
                 'table' => $table,
                 'present' => true,
                 'type' => $type,
-                'nullable' => $nullable,
-                'indexes' => $indexes,
                 'nulls' => $nulls,
                 'filled' => $filled,
                 'duplicates' => $duplicates,
@@ -543,8 +524,6 @@ class Guid extends Admin {
             'table' => $table,
             'present' => false,
             'type' => '',
-            'nullable' => false,
-            'indexes' => array(),
             'nulls' => 0,
             'filled' => 0,
             'duplicates' => 0,

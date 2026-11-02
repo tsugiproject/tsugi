@@ -22,8 +22,6 @@ $red = ' style="color: red;"';
 <tr>
 <th>Table</th>
 <th>Column</th>
-<th>Nullability</th>
-<th>Index</th>
 <th>Null rows</th>
 <th>Not null rows</th>
 <th>Duplicate GUIDs</th>
@@ -40,7 +38,7 @@ foreach ( $guid_rows as $row ) {
     echo('<td>'.htmlspecialchars($table === '' ? '—' : $table, ENT_QUOTES, 'UTF-8')."</td>\n");
     if ( ! $present ) {
         echo('<td'.$red.'>'.htmlspecialchars($note, ENT_QUOTES, 'UTF-8')."</td>\n");
-        echo("<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>\n");
+        echo("<td>—</td><td>—</td><td>—</td>\n");
         echo("</tr>\n");
         continue;
     }
@@ -51,17 +49,6 @@ foreach ( $guid_rows as $row ) {
         echo('<br/>'.htmlspecialchars($note, ENT_QUOTES, 'UTF-8'));
     }
     echo("</td>\n");
-    echo('<td>'.($row['nullable'] ? 'NULL' : 'NOT NULL')."</td>\n");
-    $indexes = $row['indexes'];
-    if ( count($indexes) < 1 ) {
-        echo("<td>no index</td>\n");
-    } else {
-        $shown = array();
-        foreach ( $indexes as $index ) {
-            $shown[] = htmlspecialchars((string) $index, ENT_QUOTES, 'UTF-8');
-        }
-        echo('<td>'.implode(', ', $shown)."</td>\n");
-    }
     $duplicates = (int) $row['duplicates'];
     echo('<td'.($nulls > 0 ? $red : '').'>'.$nulls."</td>\n");
     echo('<td>'.(int) $row['filled']."</td>\n");
