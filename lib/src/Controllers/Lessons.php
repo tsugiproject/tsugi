@@ -2911,13 +2911,7 @@ $(function(){
                 break;
             case 'web_link':
             case 'file':
-                self::renderCanonicalResource($item, $module, $kind, $gclass);
-                break;
             case 'html_page':
-                if ( ReqScope::isAnonymousLessonView() ) {
-                    self::renderAnonymousClosedItem($item, 'html_page');
-                    break;
-                }
                 self::renderCanonicalResource($item, $module, $kind, $gclass);
                 break;
             case 'lti':

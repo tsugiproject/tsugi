@@ -961,7 +961,7 @@ class Courses extends Tool {
      * @return bool
      */
     private static function anonymousContentRequest(Request $request, $rest) {
-        if ( $request->isMethod('GET') && self::isAnonymousLessonRest($rest) ) {
+        if ( $request->isMethod('GET') && (self::isAnonymousLessonRest($rest) || self::isAnonymousPageRest($rest)) ) {
             return true;
         }
         return ( $request->isMethod('GET') || $request->isMethod('POST') )
@@ -1208,8 +1208,8 @@ class Courses extends Tool {
      * Google site-login, or the Plus launch for this same course.
      *
      * Every /courses route uses this, including nested tools and
-     * /courses/{id}/image/{kind}, except a read-only lessons GET and a
-     * student-visible file when this course allows anonymous lesson viewing. An ordinary LMS launch already has its
+     * /courses/{id}/image/{kind}, except a read-only lessons GET, a published
+     * page, and a student-visible file when this course allows anonymous lesson viewing. An ordinary LMS launch already has its
      * course and cannot switch. A Plus launch may open /courses/{id} when
      * that id is the context it just launched, so each tab's address is the
      * course. It cannot open a different id, the course list, or create.
@@ -1272,6 +1272,33 @@ class Courses extends Tool {
         $slash = strpos($tail, '/');
         $head = strtolower($slash === false ? $tail : substr($tail, 0, $slash));
         if ( in_array($head, array('json', 'analytics', 'upload', 'mkdir', 'delete', 'replace'), true) ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A published-page GET: /courses/{id}/pages or /courses/{id}/pages/{key}.
+     *
+     * Add, edit, manage, history, and analytics stay on the membership gate.
+     *
+     * @param mixed $rest
+     * @return bool
+     */
+    public static function isAnonymousPageRest($rest) {
+        $rest = is_string($rest) ? trim($rest, '/') : '';
+        if ( $rest === 'pages' ) {
+            return true;
+        }
+        if ( ! str_starts_with($rest, 'pages/') ) {
+            return false;
+        }
+        $tail = substr($rest, strlen('pages/'));
+        if ( $tail === '' || str_contains($tail, '/') ) {
+            return false;
+        }
+        $head = strtolower($tail);
+        if ( in_array($head, array('json', 'lessons-json', 'add', 'edit', 'manage', 'history', 'analytics'), true) ) {
             return false;
         }
         return true;
@@ -1389,7 +1416,7 @@ class Courses extends Tool {
     }
 
     /**
-     * Render lessons, or send a student-visible file, for someone who is not in the course.
+     * Render lessons, or send a published page or a student-visible file, for someone who is not in the course.
      *
      * The session is restored afterward so this read does not switch their
      * course or leave a membership behind.
