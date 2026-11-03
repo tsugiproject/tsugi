@@ -19,30 +19,57 @@ if ( ! isset($pending_title) || ! is_string($pending_title) ) {
 if ( ! isset($pending_modules) || ! is_array($pending_modules) ) {
     $pending_modules = array();
 }
+$cc_is_copy = isset($cc_is_copy) && $cc_is_copy;
+if ( ! isset($form_url) || ! is_string($form_url) || $form_url === '' ) {
+    $form_url = $import_url;
+}
+$cc_source_label = $cc_is_copy ? __('Copying from:') : __('Uploaded cartridge:');
+$cc_held = $cc_is_copy
+    ? __('The copy is held until you copy or cancel (up to one hour).')
+    : __('The file is held until you import or cancel (up to one hour).');
+$cc_when = $cc_is_copy ? __('When copying:') : __('When importing:');
+$cc_add = $cc_is_copy
+    ? __('Add the copied content to this course')
+    : __('Add this import to the course\'s content');
+$cc_wipe = $cc_is_copy
+    ? __('Delete this course\'s content before copying')
+    : __('Delete this course\'s content before importing');
+$cc_wipe_lead = $cc_is_copy
+    ? __('If you copy with this option selected, this course will be emptied first:')
+    : __('If you import with this option selected, this course will be emptied first:');
+$cc_all_help = $cc_is_copy
+    ? __('You can copy all the modules, or you can copy any combination of the modules.')
+    : __('You can import all the modules, or you can import any combination of the modules.');
+$cc_all_button = $cc_is_copy ? __('Copy all modules') : __('Import all modules');
+$cc_select_help = $cc_is_copy
+    ? __('Select the modules to include, and copy below. You must select at least one module.')
+    : __('Select the modules to include, and import below. You must select at least one module.');
+$cc_select_button = $cc_is_copy ? __('Copy selected modules') : __('Import selected modules');
+$cc_cancel = $cc_is_copy ? __('Choose a different course') : __('Cancel upload');
 
 if ( $pending_token !== '' ) {
     $module_count = count($pending_modules);
     ?>
-<p><?= __('Uploaded cartridge:') ?> <?= htmlentities($pending_name !== '' ? $pending_name : __('cartridge')) ?></p>
-<?php if ( $pending_title !== '' ) { ?>
+<p><?= $cc_source_label ?> <?= htmlentities($pending_name !== '' ? $pending_name : __('cartridge')) ?></p>
+<?php if ( ! $cc_is_copy && $pending_title !== '' ) { ?>
 <p><?= __('Course:') ?> <?= htmlentities($pending_title) ?></p>
 <?php } ?>
-<p><?= __('The file is held until you import or cancel (up to one hour).') ?></p>
+<p><?= $cc_held ?></p>
 <p><?= __('Modules:') ?> <?= (int) $module_count ?></p>
 
 <fieldset style="margin:1em 0;border:0;padding:0;">
-  <legend style="font-size:inherit;border:0;margin-bottom:0.5em;"><?= __('When importing:') ?></legend>
+  <legend style="font-size:inherit;border:0;margin-bottom:0.5em;"><?= $cc_when ?></legend>
   <label style="display:block;font-weight:normal;">
     <input type="radio" name="cc_replace_choice" value="add" checked>
-    <?= __('Add this import to the course\'s content') ?>
+    <?= $cc_add ?>
   </label>
   <label style="display:block;font-weight:normal;">
     <input type="radio" name="cc_replace_choice" value="replace">
-    <?= __('Delete this course\'s content before importing') ?>
+    <?= $cc_wipe ?>
   </label>
   <div id="import-replace-warning" class="alert alert-danger" role="alert" style="display:none;margin-top:16px;padding:18px 20px;border-width:3px;">
     <p style="font-size:1.75em;font-weight:bold;margin:0 0 12px 0;line-height:1.2;"><?= __('Warning: this cannot be undone') ?></p>
-    <p style="font-size:1.15em;margin-bottom:10px;"><?= __('If you import with this option selected, this course will be emptied first:') ?></p>
+    <p style="font-size:1.15em;margin-bottom:10px;"><?= $cc_wipe_lead ?></p>
     <ul style="font-size:1.1em;margin-bottom:12px;">
       <li><?= __('All pages, files, and quizzes') ?></li>
       <li><?= __('All resource links (assignments and LTI items)') ?></li>
@@ -95,8 +122,8 @@ if ( $pending_token !== '' ) {
 
 <div id="importTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="import-allcontent">
-<p><?= __('You can import all the modules, or you can import any combination of the modules.') ?></p>
-<form method="post" action="<?= htmlspecialchars($import_url) ?>" onsubmit="return confirmImportReplace(this.querySelector('.import-submit'));">
+<p><?= $cc_all_help ?></p>
+<form method="post" action="<?= htmlspecialchars($form_url) ?>" onsubmit="return confirmImportReplace(this.querySelector('.import-submit'));">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="all">
@@ -105,12 +132,12 @@ if ( $pending_token !== '' ) {
     <input type="hidden" name="cc_replace_title" value="">
     <input type="hidden" name="cc_replace_members" value="">
     <p>
-        <button type="submit" class="btn btn-primary import-submit"><?= __('Import all modules') ?></button>
+        <button type="submit" class="btn btn-primary import-submit"><?= $cc_all_button ?></button>
     </p>
 </form>
   </div>
   <div class="tab-pane fade" id="import-selectcontent">
-<p><?= __('Select the modules to include, and import below. You must select at least one module.') ?></p>
+<p><?= $cc_select_help ?></p>
 <form id="void">
 <?php foreach ( $pending_modules as $mod ) {
     $key = isset($mod['key']) ? (string) $mod['key'] : '';
@@ -147,10 +174,10 @@ if ( $pending_token !== '' ) {
     }
 } ?>
 <p>
-<button type="submit" class="btn btn-primary import-submit" onclick="return importSelectedModules(this);"><?= __('Import selected modules') ?></button>
+<button type="submit" class="btn btn-primary import-submit" onclick="return importSelectedModules(this);"><?= $cc_select_button ?></button>
 </p>
 </form>
-<form id="import-selected-real" method="post" action="<?= htmlspecialchars($import_url) ?>">
+<form id="import-selected-real" method="post" action="<?= htmlspecialchars($form_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="selected">
@@ -162,11 +189,11 @@ if ( $pending_token !== '' ) {
 </form>
   </div>
 </div>
-<form method="post" action="<?= htmlspecialchars($import_url) ?>" style="margin-top:1em;">
+<form method="post" action="<?= htmlspecialchars($form_url) ?>" style="margin-top:1em;">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="cancel">
-    <button type="submit" class="btn btn-default"><?= __('Cancel upload') ?></button>
+    <button type="submit" class="btn btn-default"><?= $cc_cancel ?></button>
 </form>
     <?php
     return;

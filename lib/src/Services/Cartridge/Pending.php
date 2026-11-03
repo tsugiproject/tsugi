@@ -18,12 +18,17 @@ class Pending {
     /**
      * Remember a moved upload for this instructor and course. Replaces any prior pending zip.
      *
+     * $sessionKey isolates course-copy from an in-progress import upload.
+     * Both still use the ccimp temp prefix so sweep can delete either.
+     *
      * @param string $path Absolute path already moved off PHP's upload tmp
      * @param string $name Original filename
+     * @param string|null $sessionKey
      * @return string Token posted back on confirm
      */
-    public static function stash($path, $name, $context_id, $user_id) {
+    public static function stash($path, $name, $context_id, $user_id, $sessionKey = null) {
         self::sweep();
+        $sessionKey = self::sessionKey($sessionKey);
         $path = (string) $path;
         if ( $path === '' || ! is_readable($path) ) {
             throw new ImportException('Cartridge zip is not readable.');
@@ -31,13 +36,13 @@ class Pending {
         if ( ! self::isStashPath($path) ) {
             throw new ImportException('Cartridge zip is not in the import stash directory.');
         }
-        $old = self::raw();
+        $old = self::raw($sessionKey);
         if ( $old !== null && isset($old['path']) && $old['path'] !== $path ) {
             @unlink($old['path']);
         }
-        unset($_SESSION[self::SESSION_KEY]);
+        unset($_SESSION[$sessionKey]);
         $token = bin2hex(random_bytes(16));
-        $_SESSION[self::SESSION_KEY] = array(
+        $_SESSION[$sessionKey] = array(
             'token' => $token,
             'path' => $path,
             'name' => is_string($name) ? $name : '',
@@ -51,11 +56,13 @@ class Pending {
     /**
      * Pending zip for this course and user, or null if none / expired / mismatched.
      *
+     * @param string|null $sessionKey
      * @return array{token:string,path:string,name:string,context_id:int,user_id:int,created:int}|null
      */
-    public static function load($context_id, $user_id) {
+    public static function load($context_id, $user_id, $sessionKey = null) {
         self::sweep();
-        $row = self::raw();
+        $sessionKey = self::sessionKey($sessionKey);
+        $row = self::raw($sessionKey);
         if ( $row === null ) {
             return null;
         }
@@ -64,11 +71,11 @@ class Pending {
             return null;
         }
         if ( (int) $row['created'] + self::TTL_SECONDS < time() ) {
-            self::clear();
+            self::clear($sessionKey);
             return null;
         }
         if ( ! is_readable($row['path']) || ! self::isStashPath($row['path']) ) {
-            self::clear();
+            self::clear($sessionKey);
             return null;
         }
         return $row;
@@ -78,37 +85,53 @@ class Pending {
      * True when $token matches the pending row for this course and user.
      *
      * @param mixed $token
+     * @param string|null $sessionKey
      */
-    public static function matches($context_id, $user_id, $token) {
+    public static function matches($context_id, $user_id, $token, $sessionKey = null) {
         if ( ! is_string($token) || $token === '' ) {
             return false;
         }
-        $row = self::load($context_id, $user_id);
+        $row = self::load($context_id, $user_id, $sessionKey);
         return $row !== null && hash_equals($row['token'], $token);
     }
 
     /**
      * Unlink the stashed zip and drop the session row.
+     *
+     * @param string|null $sessionKey
      */
-    public static function clear() {
-        $row = self::raw();
+    public static function clear($sessionKey = null) {
+        $sessionKey = self::sessionKey($sessionKey);
+        $row = self::raw($sessionKey);
         if ( $row !== null && isset($row['path']) && is_string($row['path']) && $row['path'] !== '' ) {
             @unlink($row['path']);
         }
-        unset($_SESSION[self::SESSION_KEY]);
+        unset($_SESSION[$sessionKey]);
     }
 
     /**
+     * @param string|null $sessionKey
+     * @return string
+     */
+    private static function sessionKey($sessionKey) {
+        if ( is_string($sessionKey) && $sessionKey !== '' ) {
+            return $sessionKey;
+        }
+        return self::SESSION_KEY;
+    }
+
+    /**
+     * @param string $sessionKey
      * @return array{token:string,path:string,name:string,context_id:int,user_id:int,created:int}|null
      */
-    private static function raw() {
-        if ( ! isset($_SESSION[self::SESSION_KEY]) || ! is_array($_SESSION[self::SESSION_KEY]) ) {
+    private static function raw($sessionKey) {
+        if ( ! isset($_SESSION[$sessionKey]) || ! is_array($_SESSION[$sessionKey]) ) {
             return null;
         }
-        $row = $_SESSION[self::SESSION_KEY];
+        $row = $_SESSION[$sessionKey];
         foreach ( array('token', 'path', 'name', 'context_id', 'user_id', 'created') as $k ) {
             if ( ! array_key_exists($k, $row) ) {
-                unset($_SESSION[self::SESSION_KEY]);
+                unset($_SESSION[$sessionKey]);
                 return null;
             }
         }

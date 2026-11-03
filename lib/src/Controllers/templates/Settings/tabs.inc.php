@@ -1,11 +1,11 @@
 <?php
 /**
  * Course Settings tabs: Theme, Navigation, Images, Badges, External Tools,
- * External Links, Import, Export, Delete.
+ * External Links, Import, Export, Course Copy, Delete.
  *
  * Expected: $setup_url, $navigation_url, $images_url, $badges_url, $tools_url,
- * $lesson_links_url, $import_url, $export_url, $delete_url,
- * $setup_tab ('theme'|'navigation'|'images'|'badges'|'tools'|'links'|'import'|'export'|'delete')
+ * $lesson_links_url, $import_url, $export_url, $copy_url, $delete_url,
+ * $setup_tab ('theme'|'navigation'|'images'|'badges'|'tools'|'links'|'import'|'export'|'copy'|'delete')
  */
 if ( ! isset($setup_tab) ) {
     $setup_tab = 'theme';
@@ -40,6 +40,9 @@ if ( ! isset($import_url) ) {
 if ( ! isset($export_url) ) {
     $export_url = $setup_url;
 }
+if ( ! isset($copy_url) || ! is_string($copy_url) || $copy_url === '' ) {
+    $copy_url = \Tsugi\Controllers\Settings::copyTabUrl($export_url);
+}
 if ( ! isset($delete_url) ) {
     $delete_url = $setup_url;
 }
@@ -69,6 +72,9 @@ if ( ! isset($delete_url) ) {
   </li>
   <li class="<?= $setup_tab === 'export' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($export_url) ?>"><?= __('Export') ?></a>
+  </li>
+  <li class="<?= $setup_tab === 'copy' ? 'active' : '' ?>">
+    <a href="<?= htmlspecialchars($copy_url) ?>"><?= __('Course Copy') ?></a>
   </li>
   <li class="<?= $setup_tab === 'delete' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($delete_url) ?>"><?= __('Delete') ?></a>

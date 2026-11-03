@@ -23,6 +23,7 @@ class CartridgePendingTest extends \PHPUnit\Framework\TestCase
     protected function tearDown(): void
     {
         Pending::clear();
+        Pending::clear('tsugi_cc_copy_pending');
         if ( is_string($this->file) && $this->file !== '' && file_exists($this->file) ) {
             @unlink($this->file);
         }
@@ -96,6 +97,35 @@ class CartridgePendingTest extends \PHPUnit\Framework\TestCase
         } finally {
             if ( file_exists($orphan) ) {
                 @unlink($orphan);
+            }
+        }
+    }
+
+    public function testCopySessionKeyDoesNotReplaceImport()
+    {
+        $copyFile = tempnam(sys_get_temp_dir(), Pending::FILE_PREFIX);
+        $this->assertNotFalse($copyFile);
+        file_put_contents($copyFile, 'copy-bytes');
+        try {
+            $importToken = Pending::stash($this->file, 'import.imscc', 9, 4);
+            $copyToken = Pending::stash($copyFile, 'copy.imscc', 9, 4, 'tsugi_cc_copy_pending');
+            $this->assertNotSame($importToken, $copyToken);
+            $import = Pending::load(9, 4);
+            $copy = Pending::load(9, 4, 'tsugi_cc_copy_pending');
+            $this->assertNotNull($import);
+            $this->assertNotNull($copy);
+            $this->assertSame('import.imscc', $import['name']);
+            $this->assertSame('copy.imscc', $copy['name']);
+            $this->assertTrue(Pending::matches(9, 4, $copyToken, 'tsugi_cc_copy_pending'));
+            $this->assertFalse(Pending::matches(9, 4, $copyToken));
+            Pending::clear('tsugi_cc_copy_pending');
+            $this->assertFileDoesNotExist($copyFile);
+            $this->assertNotNull(Pending::load(9, 4));
+            $this->assertFileExists($this->file);
+        } finally {
+            Pending::clear('tsugi_cc_copy_pending');
+            if ( file_exists($copyFile) ) {
+                @unlink($copyFile);
             }
         }
     }

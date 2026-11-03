@@ -63,6 +63,10 @@ class SettingsCartridgeUploadTest extends \PHPUnit\Framework\TestCase
             'https://www.example.com/tsugi/courses/2/settings/import',
             Settings::cartridgeImportPageUrl(2)
         );
+        $this->assertSame(
+            'https://www.example.com/tsugi/courses/2/settings/copy?x=1',
+            Settings::copyTabUrl('https://www.example.com/tsugi/courses/2/settings/export?x=1')
+        );
     }
 
     public function testIsCartridgeUploadRequestMatchesUtilUpload() {

@@ -8,8 +8,8 @@ use Tsugi\Util\U;
 /**
  * Legacy /cc/export helper: turn same-server public file URLs into cartridge bytes.
  *
- * Used only by cc/export.php (file-based lessons.json). Settings / LessonsCartridge
- * already packages Files-tool blobs and is intentionally separate.
+ * Used by cc/export.php and course copy of a file-based lessons.json.
+ * Settings / LessonsCartridge already packages Files-tool blobs and is intentionally separate.
  */
 class LessonsLegacyFiles {
 

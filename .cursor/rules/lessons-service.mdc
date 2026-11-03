@@ -10,8 +10,9 @@ The lessons document and export helpers are `Tsugi\Services\Lessons`, one class 
 
 - `LessonsService` — loaded document (lookup, progress math, URL expansion)
 - `LessonsNormalize` — item shape
-- `LessonsCartridge` — Settings cartridge zip (not `Services\Cartridge` import)
-- `LessonsLegacyFiles` / `LessonsLegacyGift` — file-based `/cc` export only
+- `LessonsCartridge` — Settings cartridge zip for a manifest course (not `Services\Cartridge` import)
+- `LessonsLegacyExport` — file-based `/cc` zip writer, also used when course copy exports `$CFG->lessons`
+- `LessonsLegacyFiles` / `LessonsLegacyGift` — helpers for that file-based zip only
 
 Do not merge those classes. Do not move them back under `Tsugi\UI`. Do not put page HTML in this namespace.
 
