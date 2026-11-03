@@ -161,6 +161,37 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('published = 1', $PDOX->lastSql);
     }
 
+    public function testRelativePageLinksResolveUnderPages() {
+        global $PDOX;
+        $this->setContext(42);
+        $PDOX->row = array(
+            'page_id' => 7,
+            'title' => 'Welcome',
+            'body' => '<p><a href="next">Next</a>'
+                .'<a href="./more">More</a>'
+                .'<a href="../files/pic.png">Pic</a>'
+                .'<a href="https://example.com/x">Abs</a>'
+                .'<a href="/keep">Root</a>'
+                .'<a href="#top">Top</a>'
+                .'<a href="mailto:a@b.test">Mail</a></p>',
+            'published' => 1,
+            'is_main' => 1,
+        );
+        $probe = new HomeMainPageProbe();
+        $probe->instructor = true;
+        $page = $probe->mainPage();
+
+        $this->assertIsArray($page);
+        $html = $page['body_html'];
+        $this->assertStringContainsString('href="/courses/42/pages/next"', $html);
+        $this->assertStringContainsString('href="/courses/42/pages/more"', $html);
+        $this->assertStringContainsString('href="/courses/42/files/pic.png"', $html);
+        $this->assertStringContainsString('href="https://example.com/x"', $html);
+        $this->assertStringContainsString('href="/keep"', $html);
+        $this->assertStringContainsString('href="#top"', $html);
+        $this->assertStringContainsString('href="mailto:a@b.test"', $html);
+    }
+
     public function testStudentHomeRequiresAPublishedMainPage() {
         global $PDOX;
         $this->setContext(42);

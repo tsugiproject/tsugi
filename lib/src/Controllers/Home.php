@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Tsugi\Core\ReqScope;
 use Tsugi\Services\Pages\PageRepository;
+use Tsugi\Util\CCFileBase;
 
 /**
  * Course home: site-wide at /home, course-mounted at /courses/{id}/home.
@@ -78,16 +79,117 @@ class Home extends Tool {
         if ( $instructor && ! empty($page['page_id']) ) {
             $edit_url = $this->toolHome(Pages::ROUTE).'/edit/'.((int) $page['page_id']);
         }
+        $pages_base = rtrim($this->toolHome(Pages::ROUTE), '/').'/';
         return array(
             'title' => $title,
             'body_html' => PageRepository::expandHtml(
-                $body,
-                $this->courseFileBaseUrl(self::ROUTE),
+                self::rebaseRelativePageUrls($body, $pages_base),
+                $this->courseFileBaseUrl(Pages::ROUTE),
                 self::courseLocalPrefixes()
             ),
             'published' => empty($page['published']) ? 0 : 1,
             'edit_url' => $edit_url,
         );
+    }
+
+    /**
+     * Point plain relative links at the course Pages URL.
+     *
+     * A link such as href="next" resolves under /pages/{key} and would resolve
+     * under /home when this body is rendered there. Absolute, root-relative,
+     * fragment, and query-only URLs stay as stored.
+     *
+     * @param string $html
+     * @param string $pagesBase Pages URL with a trailing slash
+     * @return string
+     */
+    private static function rebaseRelativePageUrls($html, $pagesBase) {
+        if ( ! is_string($html) || $html === '' || ! is_string($pagesBase) || $pagesBase === '' ) {
+            return is_string($html) ? $html : '';
+        }
+        $rewritten = preg_replace_callback(
+            '/\b(href|src)\s*=\s*(["\'])([^"\']*)\2/i',
+            function ($match) use ($pagesBase) {
+                $resolved = self::resolveAgainstPages($pagesBase, $match[3]);
+                if ( $resolved === null ) {
+                    return $match[0];
+                }
+                return $match[1].'='.$match[2].$resolved.$match[2];
+            },
+            $html
+        );
+        return is_string($rewritten) ? $rewritten : $html;
+    }
+
+    /**
+     * Resolve a path-relative URL against the Pages directory, or null to leave it.
+     *
+     * @param string $pagesBase
+     * @param string $url
+     * @return string|null
+     */
+    private static function resolveAgainstPages($pagesBase, $url) {
+        $url = trim($url);
+        if ( $url === '' || $url[0] === '#' || $url[0] === '?' || $url[0] === '/' ) {
+            return null;
+        }
+        if ( preg_match('#^[a-z][a-z0-9+.-]*:#i', $url) ) {
+            return null;
+        }
+        foreach ( CCFileBase::TOKEN_ALIASES as $token ) {
+            if ( str_contains($url, $token) || str_contains($url, rawurlencode($token)) ) {
+                return null;
+            }
+        }
+        $fragment = '';
+        $query = '';
+        $path = $url;
+        $hashPos = strpos($path, '#');
+        if ( $hashPos !== false ) {
+            $fragment = substr($path, $hashPos);
+            $path = substr($path, 0, $hashPos);
+        }
+        $queryPos = strpos($path, '?');
+        if ( $queryPos !== false ) {
+            $query = substr($path, $queryPos);
+            $path = substr($path, 0, $queryPos);
+        }
+        if ( $path === '' ) {
+            return null;
+        }
+
+        $origin = '';
+        $basePath = $pagesBase;
+        if ( preg_match('#^https?://#i', $pagesBase) ) {
+            $parts = parse_url($pagesBase);
+            if ( ! is_array($parts) || empty($parts['host']) ) {
+                return null;
+            }
+            $scheme = strtolower((string) ($parts['scheme'] ?? 'https'));
+            $origin = $scheme.'://'.strtolower((string) $parts['host']);
+            if ( ! empty($parts['port']) ) {
+                $origin .= ':'.$parts['port'];
+            }
+            $basePath = isset($parts['path']) ? (string) $parts['path'] : '/';
+        }
+        if ( $basePath === '' || $basePath[0] !== '/' ) {
+            $basePath = '/'.$basePath;
+        }
+        if ( ! str_ends_with($basePath, '/') ) {
+            $basePath .= '/';
+        }
+        $segments = explode('/', trim($basePath, '/'));
+        foreach ( explode('/', $path) as $part ) {
+            if ( $part === '' || $part === '.' ) {
+                continue;
+            }
+            if ( $part === '..' ) {
+                array_pop($segments);
+                continue;
+            }
+            $segments[] = $part;
+        }
+        return $origin.'/'.implode('/', $segments).$query.$fragment;
     }
 
     /**

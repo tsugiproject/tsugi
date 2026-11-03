@@ -531,10 +531,9 @@ class Pages extends Tool {
             PageRepository::generateLogicalKey($title)
         );
 
-        $page_count = PageRepository::countForContext($context_id);
-        if ($page_count == 0) {
-            $is_main = 1;
-        } else if ($is_main) {
+        // The first page is not main unless the box is checked. /pages still
+        // shows a lone page through its single-page fallback.
+        if ($is_main) {
             PageRepository::clearMain($context_id);
         }
 
