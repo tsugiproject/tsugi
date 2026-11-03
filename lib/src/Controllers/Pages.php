@@ -451,7 +451,7 @@ class Pages extends Tool {
                                <?= U::get($_POST, 'is_main') ? 'checked' : '' ?>>
                         This is the main page
                     </label>
-                    <p class="help-block">If checked, this page will become the main page (shown at /pages). Any existing main page will be unset.</p>
+                    <p class="help-block">If checked, this page replaces the course home and is shown at /pages. Students see it on the home page after it is published. Any existing main page will be unset.</p>
                 </div>
                 
                 <div class="form-group">
@@ -531,10 +531,9 @@ class Pages extends Tool {
             PageRepository::generateLogicalKey($title)
         );
 
-        $page_count = PageRepository::countForContext($context_id);
-        if ($page_count == 0) {
-            $is_main = 1;
-        } else if ($is_main) {
+        // The first page is not main unless the box is checked. /pages still
+        // shows a lone page through its single-page fallback.
+        if ($is_main) {
             PageRepository::clearMain($context_id);
         }
 
@@ -616,7 +615,7 @@ class Pages extends Tool {
                                <?= (U::get($_POST, 'is_main', $page['is_main'])) ? 'checked' : '' ?>>
                         This is the main page
                     </label>
-                    <p class="help-block">If checked, this page will become the main page (shown at /pages). Any existing main page will be unset.</p>
+                    <p class="help-block">If checked, this page replaces the course home and is shown at /pages. Students see it on the home page after it is published. Any existing main page will be unset.</p>
                 </div>
                 
                 <div class="form-group">

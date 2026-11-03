@@ -7,12 +7,15 @@ use Tsugi\Core\LTIX;
 use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 
+use Tsugi\Core\ContextImages;
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Pages\PageRepository;
+use Tsugi\Util\CCFileBase;
 
 /**
  * Course home: site-wide at /home, course-mounted at /courses/{id}/home.
  *
- * Under-construction copy until widgets land. Keep HTTP and chrome here;
+ * A published main page replaces the default copy. Keep HTTP and chrome here;
  * put domain logic in Tsugi\Services\Home as this grows. Nested dispatch
  * from Courses keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
  *
@@ -46,7 +49,208 @@ class Home extends Tool {
         LTIX::getConnection();
         $this->render('index.inc.php', array(
             'course_title' => $this->courseTitle(),
+            'main_page' => $this->mainPageForHome(),
+            'hero_url' => $this->courseHeroUrl(),
         ));
+    }
+
+    /**
+     * Versioned course hero URL, or empty when this course has no hero image.
+     *
+     * @return string
+     */
+    protected function courseHeroUrl() {
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return '';
+        }
+        $meta = ContextImages::metadata($context_id);
+        return ContextImages::servedUrl(
+            $context_id,
+            ContextImages::KIND_HERO,
+            $meta['hero_bytes'] ?? 0,
+            $meta['hero_updated_at'] ?? null
+        );
+    }
+
+    /**
+     * Main page that should stand in for the default home copy.
+     *
+     * Students only see a published main page. Instructors also see a draft,
+     * so they can tell the home replacement is in place before students can.
+     *
+     * @return array{title:string,body_html:string,published:int,edit_url:string}|null
+     */
+    protected function mainPageForHome() {
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return null;
+        }
+        $instructor = $this->isInstructor();
+        $page = PageRepository::loadMain($context_id, ! $instructor);
+        if ( ! is_array($page) ) {
+            return null;
+        }
+        $title = isset($page['title']) ? trim((string) $page['title']) : '';
+        $body = isset($page['body']) ? (string) $page['body'] : '';
+        if ( $title === '' && trim($body) === '' ) {
+            return null;
+        }
+        $edit_url = '';
+        if ( $instructor && ! empty($page['page_id']) ) {
+            $edit_url = $this->toolHome(Pages::ROUTE).'/edit/'.((int) $page['page_id']);
+        }
+        $pages_base = rtrim($this->toolHome(Pages::ROUTE), '/').'/';
+        return array(
+            'title' => $title,
+            'body_html' => PageRepository::expandHtml(
+                self::rebaseRelativePageUrls($body, $pages_base),
+                $this->courseFileBaseUrl(Pages::ROUTE),
+                self::courseLocalPrefixes()
+            ),
+            'published' => empty($page['published']) ? 0 : 1,
+            'edit_url' => $edit_url,
+        );
+    }
+
+    /**
+     * Point plain relative links at the course Pages URL.
+     *
+     * A link such as href="next" or srcset="small.png 1x" resolves under
+     * /pages/{key} and would resolve under /home when this body is rendered
+     * there. Absolute, root-relative, fragment, and query-only URLs stay as
+     * stored. srcset width and density descriptors stay with their candidate.
+     *
+     * @param string $html
+     * @param string $pagesBase Pages URL with a trailing slash
+     * @return string
+     */
+    private static function rebaseRelativePageUrls($html, $pagesBase) {
+        if ( ! is_string($html) || $html === '' || ! is_string($pagesBase) || $pagesBase === '' ) {
+            return is_string($html) ? $html : '';
+        }
+        $rewritten = preg_replace_callback(
+            '/\b(href|src|srcset)\s*=\s*(["\'])([^"\']*)\2/i',
+            function ($match) use ($pagesBase) {
+                if ( strtolower($match[1]) === 'srcset' ) {
+                    $resolved = self::rebaseSrcset($pagesBase, $match[3]);
+                } else {
+                    $resolved = self::resolveAgainstPages($pagesBase, $match[3]);
+                }
+                if ( $resolved === null ) {
+                    return $match[0];
+                }
+                return $match[1].'='.$match[2].$resolved.$match[2];
+            },
+            $html
+        );
+        return is_string($rewritten) ? $rewritten : $html;
+    }
+
+    /**
+     * Rebase each relative srcset candidate. Leave the descriptor on that candidate.
+     *
+     * @param string $pagesBase
+     * @param string $value
+     * @return string|null Null when nothing in the list is path-relative
+     */
+    private static function rebaseSrcset($pagesBase, $value) {
+        $parts = explode(',', $value);
+        $out = array();
+        $changed = false;
+        foreach ( $parts as $part ) {
+            $part = trim($part);
+            if ( $part === '' ) {
+                continue;
+            }
+            if ( preg_match('/^(.*?)(?:\s+([\d.]+x|\d+w))?$/i', $part, $match) ) {
+                $url = trim($match[1]);
+                $desc = isset($match[2]) ? $match[2] : '';
+                $resolved = self::resolveAgainstPages($pagesBase, $url);
+                if ( $resolved !== null ) {
+                    $changed = true;
+                    $url = $resolved;
+                }
+                $out[] = $desc !== '' ? ($url.' '.$desc) : $url;
+            } else {
+                $out[] = $part;
+            }
+        }
+        if ( ! $changed ) {
+            return null;
+        }
+        return implode(', ', $out);
+    }
+
+    /**
+     * Resolve a path-relative URL against the Pages directory, or null to leave it.
+     *
+     * @param string $pagesBase
+     * @param string $url
+     * @return string|null
+     */
+    private static function resolveAgainstPages($pagesBase, $url) {
+        $url = trim($url);
+        if ( $url === '' || $url[0] === '#' || $url[0] === '?' || $url[0] === '/' ) {
+            return null;
+        }
+        if ( preg_match('#^[a-z][a-z0-9+.-]*:#i', $url) ) {
+            return null;
+        }
+        foreach ( CCFileBase::TOKEN_ALIASES as $token ) {
+            if ( str_contains($url, $token) || str_contains($url, rawurlencode($token)) ) {
+                return null;
+            }
+        }
+        $fragment = '';
+        $query = '';
+        $path = $url;
+        $hashPos = strpos($path, '#');
+        if ( $hashPos !== false ) {
+            $fragment = substr($path, $hashPos);
+            $path = substr($path, 0, $hashPos);
+        }
+        $queryPos = strpos($path, '?');
+        if ( $queryPos !== false ) {
+            $query = substr($path, $queryPos);
+            $path = substr($path, 0, $queryPos);
+        }
+        if ( $path === '' ) {
+            return null;
+        }
+
+        $origin = '';
+        $basePath = $pagesBase;
+        if ( preg_match('#^https?://#i', $pagesBase) ) {
+            $parts = parse_url($pagesBase);
+            if ( ! is_array($parts) || empty($parts['host']) ) {
+                return null;
+            }
+            $scheme = strtolower((string) ($parts['scheme'] ?? 'https'));
+            $origin = $scheme.'://'.strtolower((string) $parts['host']);
+            if ( ! empty($parts['port']) ) {
+                $origin .= ':'.$parts['port'];
+            }
+            $basePath = isset($parts['path']) ? (string) $parts['path'] : '/';
+        }
+        if ( $basePath === '' || $basePath[0] !== '/' ) {
+            $basePath = '/'.$basePath;
+        }
+        if ( ! str_ends_with($basePath, '/') ) {
+            $basePath .= '/';
+        }
+        $segments = explode('/', trim($basePath, '/'));
+        foreach ( explode('/', $path) as $part ) {
+            if ( $part === '' || $part === '.' ) {
+                continue;
+            }
+            if ( $part === '..' ) {
+                array_pop($segments);
+                continue;
+            }
+            $segments[] = $part;
+        }
+        return $origin.'/'.implode('/', $segments).$query.$fragment;
     }
 
     /**
