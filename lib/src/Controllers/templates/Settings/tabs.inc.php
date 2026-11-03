@@ -1,11 +1,14 @@
 <?php
 /**
  * Course Settings tabs: Theme, Navigation, Images, Badges, External Tools,
- * External Links, Import, Export, Course Copy, Delete.
+ * External Links, Import, Export, Course Copy, Delete, Configuration.
+ *
+ * Configuration is site-wide. The other tabs belong to this course.
  *
  * Expected: $setup_url, $navigation_url, $images_url, $badges_url, $tools_url,
  * $lesson_links_url, $import_url, $export_url, $copy_url, $delete_url,
- * $setup_tab ('theme'|'navigation'|'images'|'badges'|'tools'|'links'|'import'|'export'|'copy'|'delete')
+ * $configuration_url,
+ * $setup_tab ('theme'|'navigation'|'images'|'badges'|'tools'|'links'|'import'|'export'|'copy'|'delete'|'configuration')
  */
 if ( ! isset($setup_tab) ) {
     $setup_tab = 'theme';
@@ -46,6 +49,12 @@ if ( ! isset($copy_url) || ! is_string($copy_url) || $copy_url === '' ) {
 if ( ! isset($delete_url) ) {
     $delete_url = $setup_url;
 }
+if ( ! isset($configuration_url) || ! is_string($configuration_url) || $configuration_url === '' ) {
+    $query = strpos($setup_url, '?');
+    $path = $query === false ? $setup_url : substr($setup_url, 0, $query);
+    $tail = $query === false ? '' : substr($setup_url, $query);
+    $configuration_url = rtrim($path, '/') . '/configuration' . $tail;
+}
 ?>
 <h1><?= htmlspecialchars(\Tsugi\Controllers\Settings::courseHeadingTitle()) ?></h1>
 <ul class="nav nav-tabs">
@@ -78,5 +87,8 @@ if ( ! isset($delete_url) ) {
   </li>
   <li class="<?= $setup_tab === 'delete' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($delete_url) ?>"><?= __('Delete') ?></a>
+  </li>
+  <li class="<?= $setup_tab === 'configuration' ? 'active' : '' ?>">
+    <a href="<?= htmlspecialchars($configuration_url) ?>"><?= __('Configuration') ?></a>
   </li>
 </ul>

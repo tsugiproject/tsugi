@@ -667,4 +667,18 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Cannot open this course', $body);
         $this->assertStringContainsString('Course not found.', $body);
     }
+
+    public function testAnonymousLessonRestIsTheReadOnlyOutline()
+    {
+        $this->assertTrue(Courses::isAnonymousLessonRest('lessons'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('/lessons/'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('lessons/week-1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons/_author'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons/_author/export'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons/week-1/extra'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons_launch/week-1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('quiz1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('pages/3'));
+        $this->assertFalse(Courses::isAnonymousLessonRest(''));
+    }
 }

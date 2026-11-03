@@ -4,6 +4,8 @@ namespace Tsugi\Services\CourseNav;
 
 use \Tsugi\Controllers\Courses;
 use \Tsugi\Controllers\Catalog;
+use \Tsugi\Services\Catalog\CatalogRepository;
+use \Tsugi\Services\Site\Site;
 use \Tsugi\Controllers\Login;
 use Tsugi\Controllers\Settings;
 use Tsugi\Core\ContextImages;
@@ -452,6 +454,9 @@ class CourseNav {
     public static function compile(array $doc, $context_id) {
         $cid = (int) $context_id;
         $doc = self::normalize($doc);
+        if ( ReqScope::isAnonymousLessonView() ) {
+            return self::anonymousLessonMenu();
+        }
         $known = self::catalogById();
         $prefix = Courses::courseUrlPrefix($cid);
         $set = new MenuSet();
@@ -515,6 +520,50 @@ class CourseNav {
         $set->addRight(self::avatarTrigger(), $submenu, false);
 
         return $set;
+    }
+
+    /**
+     * Top bar for a reader who is not in the course.
+     *
+     * No course tools, no avatar, no exit. The upper-left brand is the
+     * only link. When the catalog is on, the link text is Catalog and it
+     * returns to this course's catalog page. Otherwise the text is
+     * $CFG->servicename and it goes to the app home.
+     *
+     * @return MenuSet
+     */
+    private static function anonymousLessonMenu() {
+        global $CFG;
+        $set = new MenuSet();
+        $href = self::anonymousCatalogHref();
+        if ( $href !== '' ) {
+            $label = __('Catalog');
+        } else {
+            if ( isset($CFG) && is_object($CFG) && method_exists($CFG, 'getHomeUrl') ) {
+                $href = $CFG->getHomeUrl();
+            }
+            $label = 'Home';
+            if ( isset($CFG->servicename) && is_string($CFG->servicename) && trim($CFG->servicename) !== '' ) {
+                $label = trim($CFG->servicename);
+            }
+        }
+        $set->setHome(htmlspecialchars($label, ENT_QUOTES, 'UTF-8'), $href);
+        return $set;
+    }
+
+    /**
+     * This course's catalog page when the site publishes a catalog, otherwise empty.
+     *
+     * A course that is not in the catalog falls back to the catalog listing.
+     *
+     * @return string
+     */
+    private static function anonymousCatalogHref() {
+        if ( ! Catalog::showCourseCatalog() && ! Site::useCatalog() ) {
+            return '';
+        }
+        $catalog_id = CatalogRepository::publishedIdForContext(ReqScope::anonymousLessonContextId());
+        return Catalog::catalogDetailUrl($catalog_id);
     }
 
     /**

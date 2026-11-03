@@ -15,6 +15,7 @@ require_once "src/Core/ContextImages.php";
 
 use Tsugi\Controllers\Courses;
 use Tsugi\Core\ContextImages;
+use Tsugi\Core\ReqScope;
 use Tsugi\Services\CourseNav\CourseNav;
 
 class CourseNavTest extends \PHPUnit\Framework\TestCase
@@ -596,6 +597,53 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $set = CourseNav::compile($doc, 42);
         $this->assertSame('https://example.org/portal', $this->dropdownHref($set, 'Exit course'));
+    }
+
+    public function testAnonymousLessonViewKeepsOnlyTheAppHomeLink()
+    {
+        global $CFG;
+        $_SERVER['REQUEST_URI'] = '/courses/42/lessons';
+        $CFG->apphome = 'https://local.dj4e.com/';
+        $CFG->servicename = 'DJ4E';
+        ReqScope::beginAnonymousLessonView(42);
+        try {
+            $doc = CourseNav::defaultDocument();
+            $doc['home'] = 'DJ Free';
+            $doc['items'][] = array('id' => 'exit_course', 'dropdown' => true);
+            $doc['items'][] = array('id' => 'pages', 'left' => true);
+            $set = CourseNav::compile($doc, 42);
+            $this->assertSame('DJ4E', $set->home->link);
+            $this->assertSame('https://local.dj4e.com', $set->home->href);
+            $this->assertStringNotContainsString('/courses/42', $set->home->href);
+            $this->assertFalse($set->left);
+            $this->assertFalse($set->right);
+        } finally {
+            ReqScope::endAnonymousLessonView();
+            ReqScope::reset();
+        }
+    }
+
+    public function testAnonymousLessonViewReturnsToTheCatalogWhenItIsOn()
+    {
+        global $CFG;
+        $_SERVER['REQUEST_URI'] = '/courses/42/lessons';
+        $CFG->apphome = 'https://local.dj4e.com/';
+        $CFG->wwwroot = 'https://local.dj4e.com/tsugi';
+        $CFG->servicename = 'DJ4E';
+        $CFG->show_course_catalog = true;
+        ReqScope::beginAnonymousLessonView(42);
+        try {
+            $doc = CourseNav::defaultDocument();
+            $doc['home'] = 'DJ Free';
+            $set = CourseNav::compile($doc, 42);
+            $this->assertSame('Catalog', $set->home->link);
+            $this->assertSame('https://local.dj4e.com/tsugi/catalog', $set->home->href);
+            $this->assertFalse($set->left);
+            $this->assertFalse($set->right);
+        } finally {
+            ReqScope::endAnonymousLessonView();
+            ReqScope::reset();
+        }
     }
 
     public function testCompileLeaveCourseClosesTheWindow()

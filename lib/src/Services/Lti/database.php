@@ -333,6 +333,8 @@ array( "{$CFG->dbprefix}lti_context",
 
     -- 1 when a Plus launch controls this course. 0 for file-based lessons and ordinary resource links.
     plus_course         TINYINT(1) NOT NULL DEFAULT 0,
+    -- 1 when anyone may open this course's lessons without membership.
+    anonymous_lessons   TINYINT(1) NOT NULL DEFAULT 0,
     -- Deployment id from the Plus launch. Token calls read this.
     lti13_deployment_id TEXT NULL,
     -- lti_link of the Plus launch. No foreign key: lti_link already points here.
@@ -1773,6 +1775,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_context', 'plus_launch_link_id', 'INTEGER NULL'),
         array('lti_context', 'nrps_at', 'TIMESTAMP NULL'),
         array('lti_context', 'timezone', 'VARCHAR(64) NULL'),
+
+        // 2026-11-03 This course allows anonymous lesson preview. Existing courses stay closed.
+        array('lti_context', 'anonymous_lessons', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('lti_key', 'timezone', 'VARCHAR(64) NULL'),
         array('lti_key', 'plus', 'TINYINT(1) NOT NULL DEFAULT 0'),
 

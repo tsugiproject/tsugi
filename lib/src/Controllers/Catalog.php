@@ -58,6 +58,21 @@ class Catalog extends Tool {
     }
 
     /**
+     * Public catalog page for one listing. An empty id is the catalog itself.
+     *
+     * @param mixed $catalog_id
+     * @return string
+     */
+    public static function catalogDetailUrl($catalog_id) {
+        $id = (int) $catalog_id;
+        $base = self::catalogUrl();
+        if ( $id < 1 ) {
+            return $base;
+        }
+        return $base.'/'.$id;
+    }
+
+    /**
      * True when $url is the site Home URL (home_path, else apphome, else wwwroot).
      *
      * That is the Google site-home catalog card: a link, not an enrollable course.
@@ -342,6 +357,8 @@ class Catalog extends Tool {
                 'icon_url' => $row['icon_url'] ?? '',
                 'external_url' => $row['external_url'] ?? null,
                 'context_id' => isset($row['context_id']) ? (int) $row['context_id'] : 0,
+                'anonymous_lessons' => (int) ($row['anonymous_lessons'] ?? 0) === 1,
+                'preview_url' => $row['preview_url'] ?? '',
                 'enrolled' => ! empty($row['enrolled']),
             );
         }

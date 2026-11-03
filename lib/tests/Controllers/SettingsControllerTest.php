@@ -81,6 +81,7 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('/settings/import', $uris);
         $this->assertContains('/settings/navigation', $uris);
         $this->assertContains('/settings/images', $uris);
+        $this->assertContains('/settings/configuration', $uris);
         $this->assertContains('/settings/export/download', $uris);
     }
 

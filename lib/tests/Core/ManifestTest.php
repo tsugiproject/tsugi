@@ -57,6 +57,20 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(array(), $doc['modules']);
     }
 
+    public function testAnonymousLessonViewDoesNotUseTheSessionManifest()
+    {
+        $_SESSION['id'] = 3;
+        $_SESSION['context_id'] = 4;
+        $_SESSION['manifest_id'] = 99;
+        \Tsugi\Core\ReqScope::reset();
+        \Tsugi\Core\ReqScope::beginAnonymousLessonView(15);
+        $this->assertSame(0, Manifest::resolvedId());
+        $this->assertSame(99, $_SESSION['manifest_id']);
+        $this->assertArrayNotHasKey('manifest_id', $_SESSION['lti'] ?? array());
+        \Tsugi\Core\ReqScope::endAnonymousLessonView();
+        \Tsugi\Core\ReqScope::reset();
+    }
+
     public function testStarterBlankTitle()
     {
         $doc = Manifest::starter('  ');

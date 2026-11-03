@@ -49,6 +49,24 @@ class Site {
     }
 
     /**
+     * Copy $json and set or remove one boolean flag.
+     *
+     * @param mixed $json
+     * @param string $key
+     * @param bool $on
+     * @return array<string, mixed>
+     */
+    public static function mergeJsonFlag($json, $key, $on) {
+        $data = self::jsonArray($json);
+        if ( $on ) {
+            $data[$key] = true;
+        } else {
+            unset($data[$key]);
+        }
+        return $data;
+    }
+
+    /**
      * True when $json is an object with a non-empty $key.
      *
      * @param mixed $json
@@ -65,16 +83,14 @@ class Site {
     /**
      * Save landing HTML and/or catalog-as-landing.
      *
-     * Empty HTML with catalog off deletes the row (built-in welcome text).
-     * Catalog on keeps a row even when body is empty so the flag persists.
+     * Empty HTML with catalog off drops the landing page. A row remains when
+     * another site flag, such as anonymous lessons, is still on.
      *
      * @param mixed $html
      * @param bool $use_catalog
      * @return bool True when a site row is stored, false when the default is used.
      */
     public static function save($html, $use_catalog = false) {
-        global $CFG, $PDOX;
-
         LTIX::getConnection();
         $use_catalog = (bool) $use_catalog;
         $clean = self::purify(is_string($html) ? $html : '');
@@ -84,8 +100,64 @@ class Site {
             return false;
         }
 
+        $existing = self::row();
+        $data = self::mergeJsonFlag($existing['json'] ?? null, 'use_catalog', $use_catalog);
         $body = $empty ? null : $clean;
-        $json = $use_catalog ? json_encode(array('use_catalog' => true)) : null;
+        if ( $body === null && $data === array() ) {
+            self::deleteRow();
+            return false;
+        }
+        self::write($body, $data);
+        return true;
+    }
+
+    /**
+     * Drop the custom landing page. Other json flags stay. The row is
+     * removed only when nothing else is stored.
+     */
+    public static function clear() {
+        $existing = self::row();
+        $data = self::mergeJsonFlag($existing['json'] ?? null, 'use_catalog', false);
+        if ( $data === array() ) {
+            self::deleteRow();
+            return;
+        }
+        self::write(null, $data);
+    }
+
+    /**
+     * @param mixed $json
+     * @return array<string, mixed>
+     */
+    private static function jsonArray($json) {
+        if ( ! is_string($json) || trim($json) === '' ) {
+            return array();
+        }
+        $data = json_decode($json, true);
+        return is_array($data) ? $data : array();
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return string|null
+     */
+    private static function encodeJson(array $data) {
+        if ( $data === array() ) {
+            return null;
+        }
+        $json = json_encode($data);
+        return is_string($json) ? $json : null;
+    }
+
+    /**
+     * @param string|null $body
+     * @param array<string, mixed> $data
+     */
+    private static function write($body, array $data) {
+        global $CFG, $PDOX;
+
+        LTIX::getConnection();
+        $json = self::encodeJson($data);
         $existing = self::row();
         if ( $existing === null ) {
             $PDOX->queryDie(
@@ -93,20 +165,19 @@ class Site {
                  VALUES (:id, :body, :json, NOW(), NOW())",
                 array(':id' => self::SITE_ID, ':body' => $body, ':json' => $json)
             );
-        } else {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}site SET body = :body, json = :json, updated_at = NOW()
-                 WHERE site_id = :id",
-                array(':id' => self::SITE_ID, ':body' => $body, ':json' => $json)
-            );
+            return;
         }
-        return true;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}site SET body = :body, json = :json, updated_at = NOW()
+             WHERE site_id = :id",
+            array(':id' => self::SITE_ID, ':body' => $body, ':json' => $json)
+        );
     }
 
     /**
-     * Remove the singleton row so index.php shows the built-in welcome text.
+     * Remove the singleton row.
      */
-    public static function clear() {
+    private static function deleteRow() {
         global $CFG, $PDOX;
 
         LTIX::getConnection();

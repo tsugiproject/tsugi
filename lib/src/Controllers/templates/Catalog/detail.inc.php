@@ -21,6 +21,7 @@ $external_url = (string) ($row['external_url'] ?? '');
 $context_id = (int) ($row['context_id'] ?? 0);
 $catalog_id = (int) ($row['catalog_id'] ?? 0);
 $enrolled = ! empty($row['enrolled']);
+$preview_url = (string) ($row['preview_url'] ?? '');
 $new_window = ! empty($row['new_window']);
 $site_home = ! empty($site_home);
 ?>
@@ -151,6 +152,9 @@ $site_home = ! empty($site_home);
             <button type="submit" class="btn btn-primary"><?= __('Join course') ?></button>
         </form>
             <?php }
-        } ?>
+        }
+        if ( $preview_url !== '' && ! $enrolled ) { ?>
+        <a class="btn btn-default" href="<?= htmlspecialchars($preview_url) ?>"><?= __('Preview course content') ?></a>
+        <?php } ?>
     </div>
 </main>

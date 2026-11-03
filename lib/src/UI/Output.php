@@ -1157,14 +1157,17 @@ $('a').each(function (x) {
         }
 
         $collapse_id = $is_tool_menu ? 'tsugi_tool_nav_collapse' : 'tsugi_main_nav_collapse';
+        $has_menu = ($set->left && count($set->left->menu) > 0)
+            || ($set->right && count($set->right->menu) > 0);
+        $toggle = '';
+        if ( $has_menu ) {
+            $toggle = '<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#'.$collapse_id.'" aria-controls="'.$collapse_id.'" aria-expanded="false" aria-label="Toggle navigation">'
+                .'<span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>';
+        }
 $retval .= <<< EOF
   <div class="container-fluid">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#$collapse_id" aria-controls="$collapse_id" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
+      $toggle
 
 EOF;
 
