@@ -3,8 +3,6 @@
  * Course Settings tabs: Theme, Navigation, Images, Badges, External Tools,
  * External Links, Import, Export, Course Copy, Delete, Configuration.
  *
- * Configuration is site-wide. The other tabs belong to this course.
- *
  * Expected: $setup_url, $navigation_url, $images_url, $badges_url, $tools_url,
  * $lesson_links_url, $import_url, $export_url, $copy_url, $delete_url,
  * $configuration_url,
