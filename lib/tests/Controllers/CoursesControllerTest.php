@@ -680,5 +680,15 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Courses::isAnonymousLessonRest('quiz1'));
         $this->assertFalse(Courses::isAnonymousLessonRest('pages/3'));
         $this->assertFalse(Courses::isAnonymousLessonRest(''));
+        $this->assertTrue(Courses::isAnonymousFileRest('files/Student/notes.pdf'));
+        $this->assertTrue(Courses::isAnonymousFileRest('files/download/'.str_repeat('ab', 32)));
+        $this->assertFalse(Courses::isAnonymousFileRest('files'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/json'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/analytics'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/upload'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/mkdir'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/delete/4'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/replace/4'));
+        $this->assertFalse(Courses::isAnonymousFileRest('pages/3'));
     }
 }

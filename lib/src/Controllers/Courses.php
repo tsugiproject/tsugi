@@ -953,8 +953,23 @@ class Courses extends Tool {
         return $row ? (int) $row['key_id'] : 0;
     }
 
+    /**
+     * Lessons outline, or a file a student could open, for an anonymous reader.
+     *
+     * @param Request $request
+     * @param mixed $rest
+     * @return bool
+     */
+    private static function anonymousContentRequest(Request $request, $rest) {
+        if ( $request->isMethod('GET') && self::isAnonymousLessonRest($rest) ) {
+            return true;
+        }
+        return ( $request->isMethod('GET') || $request->isMethod('POST') )
+            && self::isAnonymousFileRest($rest);
+    }
+
     public static function nested(Application $app, Request $request, $id, $rest) {
-        if ( $request->isMethod('GET') && self::isAnonymousLessonRest($rest)
+        if ( self::anonymousContentRequest($request, $rest)
                 && ! self::viewerAlreadyInCourse($id) && self::anonymousLessonsOpen($id) ) {
             return self::dispatchAnonymousLessons($app, $request, $id, $rest);
         }
@@ -1193,8 +1208,8 @@ class Courses extends Tool {
      * Google site-login, or the Plus launch for this same course.
      *
      * Every /courses route uses this, including nested tools and
-     * /courses/{id}/image/{kind}, except a read-only lessons GET when this
-     * course allows anonymous lesson viewing. An ordinary LMS launch already has its
+     * /courses/{id}/image/{kind}, except a read-only lessons GET and a
+     * student-visible file when this course allows anonymous lesson viewing. An ordinary LMS launch already has its
      * course and cannot switch. A Plus launch may open /courses/{id} when
      * that id is the context it just launched, so each tab's address is the
      * course. It cannot open a different id, the course list, or create.
@@ -1232,6 +1247,31 @@ class Courses extends Tool {
         }
         $tail = substr($rest, strlen('lessons/'));
         if ( $tail === '' || str_contains($tail, '/') || str_starts_with($tail, '_') ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A file GET or caution POST: /courses/{id}/files/{path}.
+     *
+     * The file browser, upload, and instructor actions stay on the membership gate.
+     *
+     * @param mixed $rest
+     * @return bool
+     */
+    public static function isAnonymousFileRest($rest) {
+        $rest = is_string($rest) ? trim($rest, '/') : '';
+        if ( ! str_starts_with($rest, 'files/') ) {
+            return false;
+        }
+        $tail = substr($rest, strlen('files/'));
+        if ( $tail === '' ) {
+            return false;
+        }
+        $slash = strpos($tail, '/');
+        $head = strtolower($slash === false ? $tail : substr($tail, 0, $slash));
+        if ( in_array($head, array('json', 'analytics', 'upload', 'mkdir', 'delete', 'replace'), true) ) {
             return false;
         }
         return true;
@@ -1349,7 +1389,7 @@ class Courses extends Tool {
     }
 
     /**
-     * Render lessons for someone who is not in the course.
+     * Render lessons, or send a student-visible file, for someone who is not in the course.
      *
      * The session is restored afterward so this read does not switch their
      * course or leave a membership behind.
