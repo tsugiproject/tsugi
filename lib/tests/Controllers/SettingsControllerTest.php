@@ -143,6 +143,18 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(array('M_one', 'M_two'), Settings::selectedImportModules($described, 'M_two, M_one'));
     }
 
+    public function testNormalizeCourseTitle()
+    {
+        $this->assertNull(Settings::normalizeCourseTitle(null));
+        $this->assertNull(Settings::normalizeCourseTitle(''));
+        $this->assertNull(Settings::normalizeCourseTitle('   '));
+        $this->assertSame('Django for Everybody', Settings::normalizeCourseTitle('  Django for Everybody  '));
+        $this->assertSame('Économie', Settings::normalizeCourseTitle('Économie'));
+        $long = str_repeat('a', Settings::COURSE_TITLE_MAX);
+        $this->assertSame($long, Settings::normalizeCourseTitle($long));
+        $this->assertFalse(Settings::normalizeCourseTitle($long.'b'));
+    }
+
     public function testCourseHeadingTitleUsesSessionThenFallback()
     {
         $this->assertSame('Settings', Settings::courseHeadingTitle());

@@ -52,7 +52,7 @@ use Tsugi\Core\ReqScope;
  * a course context is not. Do not call requireAuth() on those pages.
  *
  * Course-mounted (/courses/{id}/settings): theme, navigation, images, badges,
- * this course's configuration (anonymous lessons),
+ * this course's configuration (course title, anonymous lessons),
  * add, edit, and delete an LTI 1.1 tool for this course, Common Cartridge import/export,
  * copy from another owned course, and delete course for the active manifest.
  * Instructor + manifest only. Nested dispatch from
@@ -69,6 +69,9 @@ class Settings extends Tool {
     const ROUTE = '/settings';
     const NAME = 'Settings';
     const REDIRECT = 'tsugi_controllers_settings';
+
+    /** Stored course title. lti_context.title is TEXT; this caps the form. */
+    const COURSE_TITLE_MAX = 255;
 
     /** Keep in sync with Controllers/util/upload/.user.ini and .htaccess */
     const CARTRIDGE_UPLOAD_MAX = '128M';
@@ -3023,7 +3026,7 @@ re-check your login status.
     }
 
     /**
-     * This course's anonymous-lessons switch.
+     * This course's title and anonymous-lessons switch.
      */
     public function configuration(Request $request)
     {
@@ -3053,6 +3056,10 @@ re-check your login status.
         $context_id = self::settingsContextId();
         $table_ok = $context_id > 0 && self::anonymousLessonsColumnReady();
         $anonymous_lessons = $table_ok && Courses::contextAllowsAnonymousLessons($context_id);
+        $course_title = self::courseHeadingTitle();
+        if ( $course_title === __('Settings') ) {
+            $course_title = '';
+        }
         $save_url = $configuration_url;
         $setup_tab = 'configuration';
 
@@ -3073,7 +3080,28 @@ re-check your login status.
     }
 
     /**
-     * Save this course's anonymous lessons flag.
+     * Trim a posted course title. Null when blank. False when longer than COURSE_TITLE_MAX.
+     *
+     * @param mixed $raw
+     * @return string|null|false
+     */
+    public static function normalizeCourseTitle($raw) {
+        if ( ! is_string($raw) ) {
+            return null;
+        }
+        $title = trim($raw);
+        if ( $title === '' ) {
+            return null;
+        }
+        $len = function_exists('mb_strlen') ? mb_strlen($title) : strlen($title);
+        if ( $len > self::COURSE_TITLE_MAX ) {
+            return false;
+        }
+        return $title;
+    }
+
+    /**
+     * Save this course's title or its anonymous lessons flag.
      */
     private function configurationPost()
     {
@@ -3085,6 +3113,9 @@ re-check your login status.
         $csrf = self::requireCsrf($configuration_url);
         if ( $csrf ) {
             return $csrf;
+        }
+        if ( array_key_exists('course_title', $_POST) ) {
+            return $this->configurationTitlePost($configuration_url);
         }
         $context_id = self::settingsContextId();
         if ( $context_id < 1 || ! self::anonymousLessonsColumnReady() ) {
@@ -3100,6 +3131,69 @@ re-check your login status.
         U::flashSuccess($on
             ? __('Anonymous lesson viewing is on for this course.')
             : __('Anonymous lesson viewing is off for this course.'));
+        return new RedirectResponse($configuration_url);
+    }
+
+    /**
+     * Save the course title onto a new manifest version and lti_context.title.
+     *
+     * @param string $configuration_url
+     * @return RedirectResponse
+     */
+    private function configurationTitlePost($configuration_url)
+    {
+        $title = self::normalizeCourseTitle(U::get($_POST, 'course_title'));
+        if ( $title === null ) {
+            U::flashError(__('Course title is required.'));
+            return new RedirectResponse($configuration_url);
+        }
+        if ( $title === false ) {
+            U::flashError(sprintf(__('Course title must be %d characters or fewer.'), self::COURSE_TITLE_MAX));
+            return new RedirectResponse($configuration_url);
+        }
+
+        $context_id = self::settingsContextId();
+        if ( $context_id < 1 ) {
+            U::flashError(__('Cannot load course manifest.'));
+            return new RedirectResponse($configuration_url);
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            U::flashError(__('Cannot load course manifest.'));
+            return new RedirectResponse($configuration_url);
+        }
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            U::flashError(__('Invalid manifest JSON.'));
+            return new RedirectResponse($configuration_url);
+        }
+
+        $current = '';
+        if ( isset($decoded['title']) && is_string($decoded['title']) ) {
+            $current = trim($decoded['title']);
+        }
+        try {
+            if ( $current === $title ) {
+                Manifest::syncContextTitle($context_id, $title);
+            } else {
+                $decoded['title'] = $title;
+                Manifest::saveNewVersion(
+                    $context_id,
+                    $decoded,
+                    ReqScope::loggedInUserId(),
+                    'Update course title'
+                );
+            }
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($configuration_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Could not save course title.'));
+            return new RedirectResponse($configuration_url);
+        }
+
+        U::flashSuccess(__('Course title saved.'));
         return new RedirectResponse($configuration_url);
     }
 
