@@ -76,20 +76,23 @@ class Pages extends Tool {
     {
         global $CFG, $OUTPUT;
 
-        $this->requireAuth();
+        $anonymous = ReqScope::isAnonymousLessonView();
+        if ( ! $anonymous ) {
+            $this->requireAuth();
+        }
 
         LTIX::getConnection();
 
         $context_id = ReqScope::currentContextId();
 
-        $is_instructor = $this->isInstructor();
+        $is_instructor = $anonymous ? false : $this->isInstructor();
 
         if (!$logical_key && isset($_GET['logical_key']) && U::strlen($_GET['logical_key']) > 0) {
             $logical_key = $_GET['logical_key'];
         }
 
         $page = null;
-        $published_only = !$is_instructor;
+        $published_only = $anonymous || !$is_instructor;
         if ($logical_key) {
             $page = PageRepository::loadByLogicalKey($context_id, $logical_key, $published_only);
         } else {
@@ -101,14 +104,15 @@ class Pages extends Tool {
                 }
             }
         }
-        
-        // Record learner analytics for this tool (not per-page within the tool)
-        $analytics_path = self::ROUTE;
-        $analytics_title = self::NAME;
-        $this->lmsRecordLaunchAnalytics($analytics_path, $analytics_title);
-        
+
+        if ( ! $anonymous ) {
+            $analytics_path = self::ROUTE;
+            $analytics_title = self::NAME;
+            $this->lmsRecordLaunchAnalytics($analytics_path, $analytics_title);
+        }
+
         // If instructor/admin, add an analytics button
-        $is_admin = $this->isAdmin();
+        $is_admin = $anonymous ? false : $this->isAdmin();
         $show_analytics = $is_instructor || $is_admin;
         
         $tool_home = $this->toolHome(self::ROUTE);

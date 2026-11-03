@@ -52,6 +52,7 @@ use Tsugi\Core\ReqScope;
  * a course context is not. Do not call requireAuth() on those pages.
  *
  * Course-mounted (/courses/{id}/settings): theme, navigation, images, badges,
+ * this course's configuration (anonymous lessons),
  * add, edit, and delete an LTI 1.1 tool for this course, Common Cartridge import/export,
  * copy from another owned course, and delete course for the active manifest.
  * Instructor + manifest only. Nested dispatch from
@@ -86,6 +87,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
         self::mapPage($app, $prefix.'/badges', 'badges', true);
+        self::mapPage($app, $prefix.'/configuration', 'configuration', true);
         self::mapPage($app, $prefix.'/tools/dynamic/status', 'toolsDynamicStatus', false);
         self::mapPage($app, $prefix.'/tools/dynamic/done', 'toolsDynamicDone', false);
         self::mapPage($app, $prefix.'/tools/dynamic', 'toolsDynamic', true);
@@ -3018,6 +3020,109 @@ re-check your login status.
             ? __('16×9 image saved.')
             : __('Course icon saved.'));
         return new RedirectResponse($images_url);
+    }
+
+    /**
+     * This course's anonymous-lessons switch.
+     */
+    public function configuration(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->configurationPost();
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $badges_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'badges'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $configuration_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'configuration'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $context_id = self::settingsContextId();
+        $table_ok = $context_id > 0 && self::anonymousLessonsColumnReady();
+        $anonymous_lessons = $table_ok && Courses::contextAllowsAnonymousLessons($context_id);
+        $save_url = $configuration_url;
+        $setup_tab = 'configuration';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/configuration.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Save this course's anonymous lessons flag.
+     */
+    private function configurationPost()
+    {
+        $configuration_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'configuration'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($configuration_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $context_id = self::settingsContextId();
+        if ( $context_id < 1 || ! self::anonymousLessonsColumnReady() ) {
+            U::flashError(__('Course column is missing. Run Upgrade Database.'));
+            return new RedirectResponse($configuration_url);
+        }
+
+        $on = U::get($_POST, 'anonymous_lessons') ? true : false;
+        if ( ! Courses::setContextAnonymousLessons($context_id, $on) ) {
+            U::flashError(__('Could not save course configuration.'));
+            return new RedirectResponse($configuration_url);
+        }
+        U::flashSuccess($on
+            ? __('Anonymous lesson viewing is on for this course.')
+            : __('Anonymous lesson viewing is off for this course.'));
+        return new RedirectResponse($configuration_url);
+    }
+
+    /**
+     * Course the instructor is editing.
+     */
+    private static function settingsContextId() {
+        $cid = ReqScope::currentContextId();
+        if ( $cid > 0 ) {
+            return $cid;
+        }
+        return ReqScope::currentContextIdLegacy();
+    }
+
+    /**
+     * True when lti_context.anonymous_lessons exists.
+     */
+    private static function anonymousLessonsColumnReady() {
+        global $CFG, $PDOX;
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        return $PDOX->columnExists('anonymous_lessons', $CFG->dbprefix.'lti_context');
     }
 
     /**

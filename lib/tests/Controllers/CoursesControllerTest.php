@@ -667,4 +667,36 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Cannot open this course', $body);
         $this->assertStringContainsString('Course not found.', $body);
     }
+
+    public function testAnonymousLessonRestIsTheReadOnlyOutline()
+    {
+        $this->assertTrue(Courses::isAnonymousLessonRest('lessons'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('/lessons/'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('lessons/week-1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons/_author'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons/_author/export'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons/week-1/extra'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('lessons_launch/week-1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('quiz1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('pages/3'));
+        $this->assertFalse(Courses::isAnonymousLessonRest(''));
+        $this->assertTrue(Courses::isAnonymousFileRest('files/Student/notes.pdf'));
+        $this->assertTrue(Courses::isAnonymousFileRest('files/download/'.str_repeat('ab', 32)));
+        $this->assertFalse(Courses::isAnonymousFileRest('files'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/json'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/analytics'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/upload'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/mkdir'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/delete/4'));
+        $this->assertFalse(Courses::isAnonymousFileRest('files/replace/4'));
+        $this->assertFalse(Courses::isAnonymousFileRest('pages/3'));
+        $this->assertTrue(Courses::isAnonymousPageRest('pages'));
+        $this->assertTrue(Courses::isAnonymousPageRest('pages/syllabus'));
+        $this->assertFalse(Courses::isAnonymousPageRest('pages/add'));
+        $this->assertFalse(Courses::isAnonymousPageRest('pages/edit/4'));
+        $this->assertFalse(Courses::isAnonymousPageRest('pages/manage'));
+        $this->assertFalse(Courses::isAnonymousPageRest('pages/json'));
+        $this->assertFalse(Courses::isAnonymousPageRest('pages/analytics'));
+        $this->assertFalse(Courses::isAnonymousPageRest('quiz1'));
+    }
 }

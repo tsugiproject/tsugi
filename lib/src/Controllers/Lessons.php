@@ -183,7 +183,7 @@ class Lessons extends Tool {
         $menu = false;
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        if ( $this->isInstructor() ) {
+        if ( $this->isInstructor() && ! ReqScope::isAnonymousLessonView() ) {
             echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
             if ( $this->canAuthorLessons() ) {
                 $author_url = U::addSession($this->toolHome(self::ROUTE) . '/_author');
@@ -2019,7 +2019,7 @@ $(function(){
             }
 
             // DISCUSSIONs not logged in
-            if ( isset($module->discussions) && ! isset($_SESSION['secret']) ) {
+            if ( isset($module->discussions) && self::showLaunchLoginRequired() ) {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
@@ -2033,9 +2033,7 @@ $(function(){
             }
 
             // DISCUSSIONs logged in
-            if ( isset($module->discussions)
-                && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+            if ( isset($module->discussions) && self::launchSessionReady() )
             {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
@@ -2067,7 +2065,7 @@ $(function(){
             }
 
             // LTIs not logged in
-            if ( isset($module->lti) && ! isset($_SESSION['secret']) ) {
+            if ( isset($module->lti) && self::showLaunchLoginRequired() ) {
                 $ltis = $module->lti;
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
                 echo(__('Tools:'));
@@ -2086,8 +2084,7 @@ $(function(){
             }
 
             // LTIs logged in
-            if ( isset($module->lti) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+            if ( isset($module->lti) && self::launchSessionReady() )
             {
                 $ltis = $module->lti;
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
@@ -2913,8 +2910,8 @@ $(function(){
                 self::renderItemText($item);
                 break;
             case 'web_link':
-            case 'html_page':
             case 'file':
+            case 'html_page':
                 self::renderCanonicalResource($item, $module, $kind, $gclass);
                 break;
             case 'lti':
@@ -3391,14 +3388,59 @@ $(function(){
     }
 
     /**
+     * A full launch session for this course. Anonymous lesson readers never have one.
+     *
+     * @return bool
+     */
+    private static function launchSessionReady() {
+        if ( ReqScope::isAnonymousLessonView() ) {
+            return false;
+        }
+        return (bool) (U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+            && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email'));
+    }
+
+    /**
+     * Show the title with Login Required instead of a launch link.
+     *
+     * A partial session (secret set, course keys missing) still hides the
+     * item, matching the older lessons page.
+     *
+     * @return bool
+     */
+    private static function showLaunchLoginRequired() {
+        if ( ReqScope::isAnonymousLessonView() ) {
+            return true;
+        }
+        return ! isset($_SESSION['secret']);
+    }
+
+    /**
+     * Lesson item that stays closed for an anonymous reader.
+     *
+     * @param object $item
+     * @param string $class
+     */
+    private static function renderAnonymousClosedItem($item, $class) {
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : __('Page');
+        echo('<li class="tsugi-lessons-module-'.$class.'">');
+        echo('<span style="display: inline-flex; align-items: center;">');
+        self::renderItemIcon(LessonsNormalize::iconKey($item));
+        echo(htmlentities($title).' ('.__('Login Required').')');
+        echo('</span></li>'."\n");
+    }
+
+    /**
      * Render a discussion item
      */
     private static function renderItemDiscussion($lessons, $item, $module, $gclass=false) {
         $resource_link_title = isset($item->title) ? $item->title : $module->title;
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         
-        // Not logged in
-        if ( ! isset($_SESSION['secret']) ) {
+        // Not logged in, or an anonymous reader of this course
+        if ( self::showLaunchLoginRequired() ) {
             echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
@@ -3407,8 +3449,7 @@ $(function(){
         }
         
         // Logged in
-        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-            && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+        if ( self::launchSessionReady() )
         {
             if ( $gclass ) {
                 $launch_path = self::discussionHref($lessons, $resource_link_id);
@@ -3625,7 +3666,7 @@ $(function(){
             unset($contentStep->result);
         }
         $ltiClass = self::ltiStepClass($lessons, $contentStep);
-        if ( ! isset($_SESSION['secret']) ) {
+        if ( self::showLaunchLoginRequired() ) {
             echo('<li typeof="oer:assessment" class="'.$ltiClass.'">');
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
@@ -3706,8 +3747,8 @@ $(function(){
         }
         
         $ltiClass = self::ltiStepClass($lessons, $item);
-        // Not logged in
-        if ( ! isset($_SESSION['secret']) ) {
+        // Not logged in, or an anonymous reader of this course
+        if ( self::showLaunchLoginRequired() ) {
             echo('<li typeof="oer:assessment" class="'.$ltiClass.'">');
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
@@ -3718,8 +3759,7 @@ $(function(){
         }
         
         // Logged in
-        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-            && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+        if ( self::launchSessionReady() )
         {
             if ( $gclass ) {
                 $ltiurl = $lessons->lessonsLaunchPath($resource_link_id);
@@ -3786,7 +3826,7 @@ $(function(){
         }
 
         $href = '';
-        $logged_in = ReqScope::isLoggedIn();
+        $logged_in = ReqScope::isLoggedIn() && ! ReqScope::isAnonymousLessonView();
         $open = $published || $instructor;
         if ( $open && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);

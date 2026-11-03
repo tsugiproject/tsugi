@@ -87,6 +87,8 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
     public function testCatalogUrl()
     {
         $this->assertSame('http://localhost/tsugi/catalog', Catalog::catalogUrl());
+        $this->assertSame('http://localhost/tsugi/catalog/7', Catalog::catalogDetailUrl(7));
+        $this->assertSame('http://localhost/tsugi/catalog', Catalog::catalogDetailUrl(0));
     }
 
     public function testCoursesWidgetTagOmitsCatalogWhenOff()

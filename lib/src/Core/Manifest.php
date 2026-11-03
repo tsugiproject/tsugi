@@ -743,6 +743,11 @@ class Manifest {
      * session still has no manifest_id from Google login.
      */
     public static function resolvedId() {
+        // Anonymous readers are not members. Do not copy this manifest into
+        // their session, and do not use a leftover session manifest.
+        if ( ReqScope::isAnonymousLessonView() ) {
+            return self::idForContext(ReqScope::anonymousLessonContextId());
+        }
         $contextId = ReqScope::currentContextIdLegacy();
         // A request with no course has no manifest. Drop a leftover session id.
         if ( $contextId < 1 ) {

@@ -205,11 +205,16 @@ class ReqScope {
      * Course id already stored on this request, or 0.
      *
      * Reads the course on ReqScope::current(). A missing course is 0.
-     * A logged-in user does not need a course.
+     * A logged-in user does not need a course. During an anonymous lesson
+     * view, this is the course being read.
      *
      * @return int
      */
     public static function currentContextId() {
+        $view = self::anonymousLessonContextId();
+        if ( $view > 0 ) {
+            return $view;
+        }
         return self::walkerScopeId(self::current(), 'context');
     }
 
@@ -371,8 +376,61 @@ class ReqScope {
      * @return int
      */
     public static function currentContextIdLegacy() {
+        $view = self::anonymousLessonContextId();
+        if ( $view > 0 ) {
+            return $view;
+        }
         $identity = self::identity();
         return (int) $identity['context_id'];
+    }
+
+    /**
+     * Read one manifest course's lessons without joining that course.
+     *
+     * Does not write the session and does not create a membership. Course
+     * id readers report $context_id until endAnonymousLessonView().
+     *
+     * @param int $context_id
+     */
+    public static function beginAnonymousLessonView($context_id) {
+        $context_id = (int) $context_id;
+        if ( $context_id < 1 ) {
+            return;
+        }
+        self::set('lesson_view_context', $context_id);
+    }
+
+    /**
+     * End the read-only lesson view for this request.
+     */
+    public static function endAnonymousLessonView() {
+        unset(self::$storedValues['lesson_view_context']);
+        if ( self::$current ) {
+            self::attachValues(self::$current);
+        }
+    }
+
+    /**
+     * Course being read anonymously, or 0.
+     *
+     * @return int
+     */
+    public static function anonymousLessonContextId() {
+        $id = self::get('lesson_view_context', 0);
+        if ( ! is_numeric($id) ) {
+            return 0;
+        }
+        $id = (int) $id;
+        return $id > 0 ? $id : 0;
+    }
+
+    /**
+     * True while a read-only lesson view is in effect.
+     *
+     * @return bool
+     */
+    public static function isAnonymousLessonView() {
+        return self::anonymousLessonContextId() > 0;
     }
 
     /**

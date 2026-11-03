@@ -953,7 +953,27 @@ class Courses extends Tool {
         return $row ? (int) $row['key_id'] : 0;
     }
 
+    /**
+     * Lessons outline, or a file a student could open, for an anonymous reader.
+     *
+     * @param Request $request
+     * @param mixed $rest
+     * @return bool
+     */
+    private static function anonymousContentRequest(Request $request, $rest) {
+        if ( $request->isMethod('GET') && (self::isAnonymousLessonRest($rest) || self::isAnonymousPageRest($rest)) ) {
+            return true;
+        }
+        return ( $request->isMethod('GET') || $request->isMethod('POST') )
+            && self::isAnonymousFileRest($rest);
+    }
+
     public static function nested(Application $app, Request $request, $id, $rest) {
+        if ( self::anonymousContentRequest($request, $rest)
+                && ! self::viewerAlreadyInCourse($id) && self::anonymousLessonsOpen($id) ) {
+            return self::dispatchAnonymousLessons($app, $request, $id, $rest);
+        }
+
         $gate = self::gateResponse();
         if ( $gate ) {
             return $gate;
@@ -1188,7 +1208,8 @@ class Courses extends Tool {
      * Google site-login, or the Plus launch for this same course.
      *
      * Every /courses route uses this, including nested tools and
-     * /courses/{id}/image/{kind}. An ordinary LMS launch already has its
+     * /courses/{id}/image/{kind}, except a read-only lessons GET, a published
+     * page, and a student-visible file when this course allows anonymous lesson viewing. An ordinary LMS launch already has its
      * course and cannot switch. A Plus launch may open /courses/{id} when
      * that id is the context it just launched, so each tab's address is the
      * course. It cannot open a different id, the course list, or create.
@@ -1206,6 +1227,217 @@ class Courses extends Tool {
             'This session is an LTI launch from an LMS. Course switching is not available.',
             403
         );
+    }
+
+    /**
+     * GET /courses/{id}/lessons or /courses/{id}/lessons/{anchor}.
+     *
+     * Author, launch, and deeper paths stay on the membership gate.
+     *
+     * @param mixed $rest
+     * @return bool
+     */
+    public static function isAnonymousLessonRest($rest) {
+        $rest = is_string($rest) ? trim($rest, '/') : '';
+        if ( $rest === 'lessons' ) {
+            return true;
+        }
+        if ( ! str_starts_with($rest, 'lessons/') ) {
+            return false;
+        }
+        $tail = substr($rest, strlen('lessons/'));
+        if ( $tail === '' || str_contains($tail, '/') || str_starts_with($tail, '_') ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A file GET or caution POST: /courses/{id}/files/{path}.
+     *
+     * The file browser, upload, and instructor actions stay on the membership gate.
+     *
+     * @param mixed $rest
+     * @return bool
+     */
+    public static function isAnonymousFileRest($rest) {
+        $rest = is_string($rest) ? trim($rest, '/') : '';
+        if ( ! str_starts_with($rest, 'files/') ) {
+            return false;
+        }
+        $tail = substr($rest, strlen('files/'));
+        if ( $tail === '' ) {
+            return false;
+        }
+        $slash = strpos($tail, '/');
+        $head = strtolower($slash === false ? $tail : substr($tail, 0, $slash));
+        if ( in_array($head, array('json', 'analytics', 'upload', 'mkdir', 'delete', 'replace'), true) ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * A published-page GET: /courses/{id}/pages or /courses/{id}/pages/{key}.
+     *
+     * Add, edit, manage, history, and analytics stay on the membership gate.
+     *
+     * @param mixed $rest
+     * @return bool
+     */
+    public static function isAnonymousPageRest($rest) {
+        $rest = is_string($rest) ? trim($rest, '/') : '';
+        if ( $rest === 'pages' ) {
+            return true;
+        }
+        if ( ! str_starts_with($rest, 'pages/') ) {
+            return false;
+        }
+        $tail = substr($rest, strlen('pages/'));
+        if ( $tail === '' || str_contains($tail, '/') ) {
+            return false;
+        }
+        $head = strtolower($tail);
+        if ( in_array($head, array('json', 'lessons-json', 'add', 'edit', 'manage', 'history', 'analytics'), true) ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Logged-in member (or site admin) who can already open this course.
+     *
+     * @param mixed $context_id
+     * @return bool
+     */
+    private static function viewerAlreadyInCourse($context_id) {
+        if ( self::gateResponse() !== null ) {
+            return false;
+        }
+        return self::memberCheck($context_id) === true;
+    }
+
+    /**
+     * This course's lti_context.anonymous_lessons is on, and it is a live manifest course.
+     *
+     * @param mixed $context_id
+     * @return bool
+     */
+    private static function anonymousLessonsOpen($context_id) {
+        return self::contextAllowsAnonymousLessons($context_id);
+    }
+
+    /**
+     * Absolute URL of /courses/{id}/lessons.
+     *
+     * @param mixed $context_id
+     * @return string
+     */
+    public static function lessonsUrl($context_id) {
+        global $CFG;
+        $id = (int) $context_id;
+        if ( $id < 1 ) {
+            return '';
+        }
+        $root = '';
+        if ( isset($CFG) && is_object($CFG) && isset($CFG->wwwroot) ) {
+            $root = rtrim((string) $CFG->wwwroot, '/');
+        }
+        if ( $root === '' ) {
+            return self::ROUTE.'/'.$id.'/lessons';
+        }
+        return $root.self::ROUTE.'/'.$id.'/lessons';
+    }
+
+    /**
+     * True when this course row allows anonymous lesson preview.
+     *
+     * @param mixed $context_id
+     * @return bool
+     */
+    public static function contextAllowsAnonymousLessons($context_id) {
+        global $CFG, $PDOX;
+
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return false;
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $table = $CFG->dbprefix.'lti_context';
+        if ( ! $PDOX->columnExists('anonymous_lessons', $table) ) {
+            return false;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT manifest_id, anonymous_lessons FROM {$table}
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $cid)
+        );
+        if ( ! is_array($row) ) {
+            return false;
+        }
+        if ( (int) ($row['manifest_id'] ?? 0) < 1 ) {
+            return false;
+        }
+        return (int) ($row['anonymous_lessons'] ?? 0) === 1;
+    }
+
+    /**
+     * Turn anonymous lesson preview on or off for one course.
+     *
+     * @param mixed $context_id
+     * @param bool $on
+     * @return bool
+     */
+    public static function setContextAnonymousLessons($context_id, $on) {
+        global $CFG, $PDOX;
+
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return false;
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $table = $CFG->dbprefix.'lti_context';
+        if ( ! $PDOX->columnExists('anonymous_lessons', $table) ) {
+            return false;
+        }
+        $stmt = $PDOX->queryReturnError(
+            "UPDATE {$table} SET anonymous_lessons = :ON
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(
+                ':ON' => $on ? 1 : 0,
+                ':CID' => $cid,
+            )
+        );
+        return is_object($stmt) && ! empty($stmt->success);
+    }
+
+    /**
+     * Render lessons, or send a published page or a student-visible file, for someone who is not in the course.
+     *
+     * The session is restored afterward so this read does not switch their
+     * course or leave a membership behind.
+     *
+     * @param mixed $id
+     * @param mixed $rest
+     * @return mixed
+     */
+    private static function dispatchAnonymousLessons(Application $app, Request $request, $id, $rest) {
+        $had = isset($_SESSION) && is_array($_SESSION);
+        $snap = $had ? $_SESSION : null;
+        ReqScope::beginAnonymousLessonView((int) $id);
+        try {
+            return $app->dispatch(self::innerRequest($request, $rest));
+        } finally {
+            if ( $had ) {
+                $_SESSION = $snap;
+            }
+            ReqScope::endAnonymousLessonView();
+            ReqScope::resetIdentity();
+        }
     }
 
     /**

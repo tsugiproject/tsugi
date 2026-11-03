@@ -142,4 +142,37 @@ class CatalogRepositoryTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(CatalogRepository::hasRichDescription('<p>Hello</p>'));
         $this->assertTrue(CatalogRepository::hasRichDescription('<img src="x.jpg" alt="">'));
     }
+
+    public function testPreviewUrlUsesTheCourseColumn()
+    {
+        global $CFG;
+        $saved = $CFG ?? null;
+        $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost/tsugi');
+        $CFG->wwwroot = 'https://local.dj4e.com/tsugi';
+        try {
+            $this->assertSame('', CatalogRepository::previewUrl(array(
+                'anonymous_lessons' => 0,
+                'context_id' => 7,
+            )));
+            $this->assertSame('', CatalogRepository::previewUrl(array(
+                'anonymous_lessons' => 1,
+                'context_id' => 0,
+            )));
+            $this->assertSame(
+                'https://local.dj4e.com/tsugi/courses/7/lessons',
+                CatalogRepository::previewUrl(array(
+                    'anonymous_lessons' => '1',
+                    'context_id' => 7,
+                ))
+            );
+        } finally {
+            $CFG = $saved;
+        }
+    }
+
+    public function testPublishedIdForContextWithoutACourseIsZero()
+    {
+        $this->assertSame(0, CatalogRepository::publishedIdForContext(0));
+        $this->assertSame(0, CatalogRepository::publishedIdForContext(-3));
+    }
 }

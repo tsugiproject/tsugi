@@ -43,6 +43,9 @@ reviews:
         lti_content belongs in $DATABASE_INSTALL. Upgrade creates a table that is in the install list and missing from the database.
         Do not ask for a $DATABASE_UPGRADE block only because the table is new.
 
+        A new column follows that same production order. Put it on the CREATE TABLE and in the upgrade field list. Upgrade Database runs before the new code serves traffic. Do not ask for a columnExists guard, a fallback SELECT, or a constant in place of the column because application code reads a column that upgrade adds. A missing column until that upgrade is expected.
+        Review a columnExists check only when the change already includes one. Do not ask for that check on other readers of the same column, and do not treat one guard as a pattern to copy. columnExists inside an upgrade script only keeps that script from adding a column that is already present.
+
     - path: "composer.json"
       instructions: |
         Tsugi commits vendor/ to git; production does not run Composer.

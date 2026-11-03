@@ -17,6 +17,19 @@ class SiteTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Site::jsonFlag('{"use_catalog":1}', 'use_catalog'));
     }
 
+    public function testMergeJsonFlagKeepsOtherKeys()
+    {
+        $data = Site::mergeJsonFlag('{"use_catalog":true}', 'anonymous_lessons', true);
+        $this->assertTrue($data['use_catalog']);
+        $this->assertTrue($data['anonymous_lessons']);
+
+        $cleared = Site::mergeJsonFlag(json_encode($data), 'anonymous_lessons', false);
+        $this->assertTrue($cleared['use_catalog']);
+        $this->assertArrayNotHasKey('anonymous_lessons', $cleared);
+
+        $this->assertSame(array(), Site::mergeJsonFlag(null, 'anonymous_lessons', false));
+    }
+
     public function testIsEmptyHtml()
     {
         $this->assertTrue(Site::isEmptyHtml(null));

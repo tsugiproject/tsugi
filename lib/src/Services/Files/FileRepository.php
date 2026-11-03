@@ -257,6 +257,84 @@ class FileRepository {
     }
 
     /**
+     * Files link for this course, or 0 when the course has no Files link yet.
+     *
+     * Does not create a link.
+     *
+     * @param mixed $context_id
+     * @return int
+     */
+    public static function existingLinkId($context_id) {
+        global $CFG, $PDOX;
+
+        $context_id = (int) $context_id;
+        if ( $context_id < 1 || ! isset($PDOX) || $PDOX === false ) {
+            return 0;
+        }
+        try {
+            LTIX::getConnection();
+        } catch ( \Throwable $e ) {
+            return 0;
+        }
+        $link_key = 'lms:'.self::HREF_PREFIX;
+        $sha = function_exists('lti_sha256') ? lti_sha256($link_key) : hash('sha256', $link_key);
+        $row = $PDOX->rowDie(
+            "SELECT link_id FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :CID AND link_sha256 = :SHA",
+            array(':CID' => $context_id, ':SHA' => $sha)
+        );
+        if ( ! is_array($row) ) {
+            return 0;
+        }
+        return (int) ($row['link_id'] ?? 0);
+    }
+
+    /**
+     * A non-private file at this path. Same files a student can open by link.
+     *
+     * @param string $path
+     * @param mixed $context_id
+     * @return array<string, mixed>|null
+     */
+    public static function studentVisibleFileByPath($path, $context_id) {
+        $link_id = self::existingLinkId($context_id);
+        if ( $link_id < 1 ) {
+            return null;
+        }
+        $row = self::getFileRowByPath($path, $link_id, (int) $context_id);
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $meta = self::decodeMeta($row);
+        if ( self::isPrivatePath($meta['folder']) ) {
+            return null;
+        }
+        $row['context_id'] = (int) $context_id;
+        $row['link_id'] = $link_id;
+        return $row;
+    }
+
+    /**
+     * A non-private file with this sha in the course.
+     *
+     * @param string $sha256
+     * @param mixed $context_id
+     * @return array<string, mixed>|null
+     */
+    public static function studentVisibleFileBySha256($sha256, $context_id) {
+        if ( self::existingLinkId($context_id) < 1 ) {
+            return null;
+        }
+        foreach ( self::getFileRowsBySha256($sha256, $context_id) as $candidate ) {
+            $meta = self::decodeMeta($candidate);
+            if ( ! self::isPrivatePath($meta['folder']) ) {
+                return $candidate;
+            }
+        }
+        return null;
+    }
+
+    /**
      * A Public file at this folder path, in any course. No login required.
      *
      * @param string $path

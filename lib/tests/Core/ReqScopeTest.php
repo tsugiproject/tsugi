@@ -35,6 +35,27 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(ReqScope::current());
     }
 
+    public function testAnonymousLessonViewReportsThatCourseOnly() {
+        $_SESSION['id'] = 3;
+        $_SESSION['context_id'] = 4;
+        $_SESSION['manifest_id'] = 99;
+        ReqScope::beginAnonymousLessonView(15);
+        $this->assertTrue(ReqScope::isAnonymousLessonView());
+        $this->assertSame(15, ReqScope::anonymousLessonContextId());
+        $this->assertSame(15, ReqScope::currentContextId());
+        $this->assertSame(15, ReqScope::currentContextIdLegacy());
+        $this->assertSame(3, ReqScope::loggedInUserIdLegacy());
+        $this->assertSame(4, $_SESSION['context_id']);
+        $this->assertSame(99, $_SESSION['manifest_id']);
+
+        ReqScope::endAnonymousLessonView();
+        ReqScope::resetIdentity();
+        $this->assertFalse(ReqScope::isAnonymousLessonView());
+        $this->assertSame(0, ReqScope::currentContextId());
+        $this->assertSame(4, ReqScope::currentContextIdLegacy());
+        $this->assertSame(99, $_SESSION['manifest_id']);
+    }
+
     public function testReadersUseOnlyTheStoredRequest() {
         $_SESSION['id'] = 3;
         $_SESSION['context_id'] = 4;
