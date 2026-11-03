@@ -14,8 +14,8 @@ use Tsugi\Util\U;
 /**
  * Legacy /cc/export helper: optionally turn GIFT LTI launches into QTI assessments.
  *
- * Used only by cc/export.php (file-based lessons.json). Settings / LessonsCartridge
- * native Quiz1 export is intentionally separate.
+ * Used by cc/export.php and course copy of a file-based lessons.json.
+ * Settings / LessonsCartridge native Quiz1 export is intentionally separate.
  *
  * Default is convert found GIFT quizzes to QTI. Keep-as-LTI is opt-out.
  * Conversion reads $CFG->giftquizzes and ignores .lock / other gift-tool access checks.

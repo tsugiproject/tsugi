@@ -19,6 +19,7 @@ use Tsugi\Lumos\Application;
 use Tsugi\Services\Settings\Expire;
 use Tsugi\Services\Settings\DynamicRegistration;
 use Tsugi\Services\Quiz1\ExportException;
+use Tsugi\Services\Cartridge\CourseCopy;
 use Tsugi\Services\Cartridge\Importer;
 use Tsugi\Services\Cartridge\ImportException;
 use Tsugi\Services\Cartridge\Package;
@@ -52,7 +53,7 @@ use Tsugi\Core\ReqScope;
  *
  * Course-mounted (/courses/{id}/settings): theme, navigation, images, badges,
  * add, edit, and delete an LTI 1.1 tool for this course, Common Cartridge import/export,
- * and delete course for the active manifest.
+ * copy from another owned course, and delete course for the active manifest.
  * Instructor + manifest only. Nested dispatch from
  * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
  * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
@@ -80,6 +81,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/export/download', 'exportDownload', false);
         self::mapPage($app, $prefix.'/export', 'export', true);
         self::mapPage($app, $prefix.'/import', 'import', true);
+        self::mapPage($app, $prefix.'/copy', 'copy', true);
         self::mapPage($app, $prefix.'/delete', 'deleteCourse', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
@@ -3166,6 +3168,153 @@ re-check your login status.
     }
 
     /**
+     * Copy into this course: export another course to a cartridge, then import it.
+     */
+    public function copy(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->copyPost();
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $copy_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'copy'));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $setup_tab = 'copy';
+        $form_url = $copy_url;
+        $cc_is_copy = true;
+        $pending_token = '';
+        $pending_name = '';
+        $pending_title = '';
+        $pending_modules = array();
+        $copy_sources = array();
+        $cid = ReqScope::currentContextId();
+        $uid = ReqScope::loggedInUserId();
+        $pending = Pending::load($cid, $uid, CourseCopy::SESSION_KEY);
+        if ( $pending ) {
+            try {
+                $pkg = Package::open($pending['path']);
+                try {
+                    $pending_modules = $pkg->describeModules();
+                    $pending_title = $pkg->title;
+                } finally {
+                    $pkg->close();
+                }
+                $pending_token = $pending['token'];
+                $pending_name = $pending['name'];
+            } catch ( ImportException $e ) {
+                Pending::clear(CourseCopy::SESSION_KEY);
+                U::flashError($e->getMessage());
+            }
+        }
+        if ( $pending_token === '' ) {
+            $copy_sources = CourseCopy::sources($uid, $cid);
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php
+            if ( $pending_token !== '' ) {
+                include __DIR__ . '/templates/Settings/import.inc.php';
+            } else {
+                include __DIR__ . '/templates/Settings/copy.inc.php';
+            }
+            ?>
+            </div>
+        </main>
+        <?php
+        if ( $pending_token !== '' ) {
+            $OUTPUT->footerStart();
+            $this->echoImportPendingScript(true);
+            $OUTPUT->footerEnd();
+        } else if ( count($copy_sources) > 0 ) {
+            $OUTPUT->footerStart();
+            ?>
+<script>
+$('#copy-source-form').on('submit', function(){
+    var btn = $(this).find('[type="submit"]');
+    btn.prop('disabled', true).text(<?= json_encode(__('Preparing copy...')) ?>);
+});
+</script>
+            <?php
+            $OUTPUT->footerEnd();
+        } else {
+            $OUTPUT->footer();
+        }
+        return '';
+    }
+
+    /**
+     * Export the chosen course into the copy stash, or run the import on that stash.
+     *
+     * @return RedirectResponse
+     */
+    private function copyPost()
+    {
+        $copy_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'copy'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($copy_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $action = U::get($_POST, 'cc_import_action', '');
+        if ( is_string($action) && $action !== '' ) {
+            return $this->importPendingPost($copy_url, $action, CourseCopy::SESSION_KEY);
+        }
+
+        $uid = ReqScope::loggedInUserId();
+        $cid = ReqScope::currentContextId();
+        $dest = tempnam(sys_get_temp_dir(), Pending::FILE_PREFIX);
+        if ( $dest === false ) {
+            U::flashError(__('Could not create a temporary file for the cartridge.'));
+            return new RedirectResponse($copy_url);
+        }
+        @set_time_limit(120);
+        try {
+            $name = CourseCopy::exportTo(U::get($_POST, 'cc_copy_source', ''), $dest, $uid, $cid);
+            Pending::stash($dest, $name, $cid, $uid, CourseCopy::SESSION_KEY);
+        } catch ( ImportException $e ) {
+            @unlink($dest);
+            U::flashError($e->getMessage());
+            return new RedirectResponse($copy_url);
+        } catch ( ExportException $e ) {
+            @unlink($dest);
+            U::flashError($e->getMessage());
+            return new RedirectResponse($copy_url);
+        } catch ( \Throwable $e ) {
+            @unlink($dest);
+            error_log('Course copy export failed: '.$e->getMessage());
+            U::flashError(__('Could not copy that course.'));
+            return new RedirectResponse($copy_url);
+        }
+        return new RedirectResponse($copy_url);
+    }
+
+    /**
      * Common Cartridge export form for the current manifest course.
      */
     public function export(Request $request)
@@ -3334,137 +3483,7 @@ function goToCanvas(anchors) {
         <?php
         if ( $pending_token !== '' ) {
             $OUTPUT->footerStart();
-            $import_site_domain = self::importSiteDomain();
-            $import_course_title = self::importReplaceCourseTitle();
-            $import_member_count = self::importReplaceMemberCount();
-            $import_replace_confirm = sprintf(
-                __('WARNING: This permanently deletes this course\'s pages, files, quizzes, resource links, and ALL GRADEBOOK RESULTS on %s in course "%s" (%s members), then imports. Student scores cannot be recovered. Continue?'),
-                $import_site_domain !== '' ? $import_site_domain : __('this site'),
-                $import_course_title !== '' ? $import_course_title : __('this course'),
-                $import_member_count === null ? __('unknown') : number_format($import_member_count)
-            );
-            ?>
-<script>
-function importReplaceMode(){
-    var v = $('input[name="cc_replace_choice"]:checked').val();
-    return v === 'replace' ? 'replace' : 'add';
-}
-function typedImportDomain(){
-    var raw = $.trim($('#cc_replace_domain_input').val() || '');
-    raw = raw.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
-    raw = raw.split('/')[0];
-    raw = raw.split(':')[0];
-    return raw.toLowerCase();
-}
-function typedImportTitle(){
-    var raw = $.trim($('#cc_replace_title_input').val() || '');
-    raw = raw.replace(/\s+/g, ' ');
-    return raw.toLowerCase();
-}
-function typedImportMembers(){
-    var raw = $.trim($('#cc_replace_members_input').val() || '');
-    raw = raw.replace(/[,\s]/g, '');
-    if ( ! /^\d+$/.test(raw) ) {
-        return null;
-    }
-    return parseInt(raw, 10);
-}
-function importDomainMatches(){
-    var expected = <?= json_encode($import_site_domain) ?>;
-    return expected !== '' && typedImportDomain() === expected;
-}
-function importTitleMatches(){
-    var expected = <?= json_encode(self::normalizeImportTitle($import_course_title)) ?>;
-    return expected !== '' && typedImportTitle() === expected;
-}
-function importMembersMatch(){
-    var expected = <?= json_encode($import_member_count) ?>;
-    if ( expected === null || typeof expected !== 'number' ) {
-        return false;
-    }
-    return typedImportMembers() === expected;
-}
-function importConfirmMatches(){
-    return importDomainMatches() && importTitleMatches() && importMembersMatch();
-}
-function syncImportReplace(){
-    var replace = importReplaceMode() === 'replace';
-    var match = importConfirmMatches();
-    $('input[name="cc_replace"]').val(replace && match ? 'replace' : 'add');
-    $('input[name="cc_replace_domain"]').val($('#cc_replace_domain_input').val() || '');
-    $('input[name="cc_replace_title"]').val($('#cc_replace_title_input').val() || '');
-    $('input[name="cc_replace_members"]').val($('#cc_replace_members_input').val() || '');
-    if ( replace ) {
-        $('#import-replace-warning').show();
-        $('.import-submit').removeClass('btn-primary').addClass('btn-danger');
-    } else {
-        $('#import-replace-warning').hide();
-        $('.import-submit').removeClass('btn-danger').addClass('btn-primary');
-    }
-    if ( importAlreadyBusy() ) {
-        return;
-    }
-    $('.import-submit').prop('disabled', replace && ! match);
-}
-function importAlreadyBusy(){
-    return $('.import-submit[aria-busy="true"]').length > 0;
-}
-function startImportBusy(btn){
-    var label = <?= json_encode(__('Importing...')) ?>;
-    $('.import-submit').prop('disabled', true).attr('aria-busy', 'true');
-    if ( ! btn ) {
-        btn = $('.import-submit').get(0);
-    }
-    if ( btn ) {
-        $(btn).html('<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> '+label);
-    }
-}
-function confirmImportReplace(btn){
-    if ( importAlreadyBusy() ) {
-        return false;
-    }
-    syncImportReplace();
-    if ( importReplaceMode() === 'replace' ) {
-        if ( ! importDomainMatches() || ! importTitleMatches() || ! importMembersMatch() ) {
-            alert(<?= json_encode(__('Type this site\'s domain, this course\'s title, and the number of members to confirm deleting this course\'s content.')) ?>);
-            return false;
-        }
-        if ( ! confirm(<?= json_encode($import_replace_confirm) ?>) ) {
-            return false;
-        }
-    }
-    startImportBusy(btn);
-    return true;
-}
-function importSelectedModules(btn){
-    var keys = [];
-    $('#void input.import-module-key[type="checkbox"]').each(function(){
-         if ( ! $(this).is(':checked') ) return;
-         var v = $(this).val();
-         if ( v ) {
-            keys.push(v);
-         }
-    });
-    $("#import_modules_real").val(keys.join(','));
-    if ( keys.length < 1 ) {
-        alert(<?= json_encode(__('Please select at least one module')) ?>);
-        return false;
-    }
-    if ( ! confirmImportReplace(btn) ) {
-        return false;
-    }
-    $("#import-selected-real").submit();
-    return false;
-}
-$(function(){
-    $('input[name="cc_replace_choice"]').on('change', syncImportReplace);
-    $('#cc_replace_domain_input').on('input', syncImportReplace);
-    $('#cc_replace_title_input').on('input', syncImportReplace);
-    $('#cc_replace_members_input').on('input', syncImportReplace);
-    syncImportReplace();
-});
-</script>
-            <?php
+            $this->echoImportPendingScript(false);
             $OUTPUT->footerEnd();
         } else {
             $OUTPUT->footer();
@@ -3665,6 +3684,10 @@ $(function(){
         if ( $pending !== null ) {
             Pending::clear();
         }
+        $copyPending = Pending::load($context_id, $user_id, CourseCopy::SESSION_KEY);
+        if ( $copyPending !== null ) {
+            Pending::clear(CourseCopy::SESSION_KEY);
+        }
         Courses::releaseContextAfterDelete($context_id);
 
         U::flashSuccess(__('Course deleted.'));
@@ -3717,6 +3740,26 @@ $(function(){
         global $CFG;
         $cid = (int) $contextId;
         return rtrim((string) $CFG->wwwroot, '/').'/courses/'.$cid.self::ROUTE.'/import';
+    }
+
+    /**
+     * Course Copy tab URL derived from the Export tab URL (same session query).
+     *
+     * @param mixed $export_url
+     * @return string
+     */
+    public static function copyTabUrl($export_url)
+    {
+        if ( ! is_string($export_url) || $export_url === '' ) {
+            return '';
+        }
+        $query = strpos($export_url, '?');
+        $path = $query === false ? $export_url : substr($export_url, 0, $query);
+        $tail = $query === false ? '' : substr($export_url, $query);
+        if ( substr($path, -7) === '/export' ) {
+            return substr($path, 0, -7).'/copy'.$tail;
+        }
+        return $export_url;
     }
 
     /**
@@ -3945,28 +3988,55 @@ $(function(){
     }
 
     /**
-     * Confirm, subset, or cancel a stashed cartridge (second request after upload).
+     * Replace-confirmation script shared by Import and Course Copy.
      *
+     * @param bool $copyMode
+     */
+    private function echoImportPendingScript($copyMode) {
+        $import_site_domain = self::importSiteDomain();
+        $import_course_title = self::importReplaceCourseTitle();
+        $import_course_title_norm = self::normalizeImportTitle($import_course_title);
+        $import_member_count = self::importReplaceMemberCount();
+        $import_busy_label = $copyMode ? __('Copying...') : __('Importing...');
+        $import_replace_confirm = sprintf(
+            $copyMode
+                ? __('WARNING: This permanently deletes this course\'s pages, files, quizzes, resource links, and ALL GRADEBOOK RESULTS on %s in course "%s" (%s members), then copies. Student scores cannot be recovered. Continue?')
+                : __('WARNING: This permanently deletes this course\'s pages, files, quizzes, resource links, and ALL GRADEBOOK RESULTS on %s in course "%s" (%s members), then imports. Student scores cannot be recovered. Continue?'),
+            $import_site_domain !== '' ? $import_site_domain : __('this site'),
+            $import_course_title !== '' ? $import_course_title : __('this course'),
+            $import_member_count === null ? __('unknown') : number_format($import_member_count)
+        );
+        include __DIR__ . '/templates/Settings/import_pending_js.inc.php';
+    }
+
+    /**
+     * Confirm, subset, or cancel a stashed cartridge (second request after upload or copy).
+     *
+     * @param string|null $sessionKey Pending bucket. Course copy uses its own key.
      * @return RedirectResponse
      */
-    private function importPendingPost($import_url, $action)
+    private function importPendingPost($import_url, $action, $sessionKey = null)
     {
+        $isCopy = $sessionKey === CourseCopy::SESSION_KEY;
         $token = U::get($_POST, 'cc_pending', '');
         $cid = ReqScope::currentContextId();
         $uid = ReqScope::loggedInUserId();
-        if ( ! Pending::matches($cid, $uid, $token) ) {
-            U::flashError(__('The uploaded cartridge expired. Please upload it again.'));
+        $expired = $isCopy
+            ? __('The course copy expired. Please choose the course again.')
+            : __('The uploaded cartridge expired. Please upload it again.');
+        if ( ! Pending::matches($cid, $uid, $token, $sessionKey) ) {
+            U::flashError($expired);
             return new RedirectResponse($import_url);
         }
-        $pending = Pending::load($cid, $uid);
+        $pending = Pending::load($cid, $uid, $sessionKey);
         if ( $pending === null ) {
-            U::flashError(__('The uploaded cartridge expired. Please upload it again.'));
+            U::flashError($expired);
             return new RedirectResponse($import_url);
         }
 
         if ( $action === 'cancel' ) {
-            Pending::clear();
-            U::flashSuccess(__('Upload cancelled.'));
+            Pending::clear($sessionKey);
+            U::flashSuccess($isCopy ? __('Copy cancelled.') : __('Upload cancelled.'));
             return new RedirectResponse($import_url);
         }
 
@@ -3995,7 +4065,7 @@ $(function(){
                     $pkg->close();
                 }
             } catch ( ImportException $e ) {
-                Pending::clear();
+                Pending::clear($sessionKey);
                 U::flashError($e->getMessage());
                 return new RedirectResponse($import_url);
             }
@@ -4017,11 +4087,11 @@ $(function(){
             U::flashError($e->getMessage());
             return new RedirectResponse($import_url);
         } catch ( \Throwable $e ) {
-            U::flashError(__('Import failed: ').$e->getMessage());
+            U::flashError(($isCopy ? __('Copy failed: ') : __('Import failed: ')).$e->getMessage());
             return new RedirectResponse($import_url);
         }
         $name = $pending['name'];
-        Pending::clear();
+        Pending::clear($sessionKey);
 
         $created = (int) ($row['created_count'] ?? 0);
         $dup = (int) ($row['duplicate_count'] ?? 0);
@@ -4029,7 +4099,9 @@ $(function(){
         $errn = (int) ($row['error_count'] ?? 0);
         $iid = (int) ($row['import_id'] ?? 0);
         $msg = sprintf(
-            __('Imported %1$s: %2$d created, %3$d duplicates, %4$d copies, %5$d errors (import #%6$d).'),
+            $isCopy
+                ? __('Copied %1$s: %2$d created, %3$d duplicates, %4$d copies, %5$d errors (import #%6$d).')
+                : __('Imported %1$s: %2$d created, %3$d duplicates, %4$d copies, %5$d errors (import #%6$d).'),
             $name !== '' ? $name : 'cartridge',
             $created,
             $dup,
