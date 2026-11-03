@@ -8,11 +8,12 @@ use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Pages\PageRepository;
 
 /**
  * Course home: site-wide at /home, course-mounted at /courses/{id}/home.
  *
- * Under-construction copy until widgets land. Keep HTTP and chrome here;
+ * A published main page replaces the default copy. Keep HTTP and chrome here;
  * put domain logic in Tsugi\Services\Home as this grows. Nested dispatch
  * from Courses keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
  *
@@ -46,7 +47,47 @@ class Home extends Tool {
         LTIX::getConnection();
         $this->render('index.inc.php', array(
             'course_title' => $this->courseTitle(),
+            'main_page' => $this->mainPageForHome(),
         ));
+    }
+
+    /**
+     * Main page that should stand in for the default home copy.
+     *
+     * Students only see a published main page. Instructors also see a draft,
+     * so they can tell the home replacement is in place before students can.
+     *
+     * @return array{title:string,body_html:string,published:int,edit_url:string}|null
+     */
+    protected function mainPageForHome() {
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return null;
+        }
+        $instructor = $this->isInstructor();
+        $page = PageRepository::loadMain($context_id, ! $instructor);
+        if ( ! is_array($page) ) {
+            return null;
+        }
+        $title = isset($page['title']) ? trim((string) $page['title']) : '';
+        $body = isset($page['body']) ? (string) $page['body'] : '';
+        if ( $title === '' && trim($body) === '' ) {
+            return null;
+        }
+        $edit_url = '';
+        if ( $instructor && ! empty($page['page_id']) ) {
+            $edit_url = $this->toolHome(Pages::ROUTE).'/edit/'.((int) $page['page_id']);
+        }
+        return array(
+            'title' => $title,
+            'body_html' => PageRepository::expandHtml(
+                $body,
+                $this->courseFileBaseUrl(self::ROUTE),
+                self::courseLocalPrefixes()
+            ),
+            'published' => empty($page['published']) ? 0 : 1,
+            'edit_url' => $edit_url,
+        );
     }
 
     /**

@@ -451,7 +451,7 @@ class Pages extends Tool {
                                <?= U::get($_POST, 'is_main') ? 'checked' : '' ?>>
                         This is the main page
                     </label>
-                    <p class="help-block">If checked, this page will become the main page (shown at /pages). Any existing main page will be unset.</p>
+                    <p class="help-block">If checked, this page replaces the course home and is shown at /pages. Students see it on the home page after it is published. Any existing main page will be unset.</p>
                 </div>
                 
                 <div class="form-group">
@@ -616,7 +616,7 @@ class Pages extends Tool {
                                <?= (U::get($_POST, 'is_main', $page['is_main'])) ? 'checked' : '' ?>>
                         This is the main page
                     </label>
-                    <p class="help-block">If checked, this page will become the main page (shown at /pages). Any existing main page will be unset.</p>
+                    <p class="help-block">If checked, this page replaces the course home and is shown at /pages. Students see it on the home page after it is published. Any existing main page will be unset.</p>
                 </div>
                 
                 <div class="form-group">
