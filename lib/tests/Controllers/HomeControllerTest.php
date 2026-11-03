@@ -19,6 +19,10 @@ class HomeMainPageProbe extends \Tsugi\Controllers\Home {
     public function mainPage() {
         return $this->mainPageForHome();
     }
+
+    public function heroUrl() {
+        return $this->courseHeroUrl();
+    }
 }
 
 class HomeControllerTest extends \PHPUnit\Framework\TestCase
@@ -50,9 +54,13 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
             public $calls = 0;
             public $lastSql = '';
             public $row = false;
+            public $imageRow = false;
             public function rowDie($sql, $params = array()) {
                 $this->calls++;
                 $this->lastSql = $sql;
+                if ( is_string($sql) && str_contains($sql, 'context_images') ) {
+                    return $this->imageRow;
+                }
                 return $this->row;
             }
         };
@@ -95,6 +103,41 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Django for Everybody', $html);
         $this->assertStringContainsString('This home page feature is under construction.', $html);
         $this->assertStringNotContainsString('page-content', $html);
+        $this->assertStringNotContainsString('tsugi-home-hero', $html);
+    }
+
+    public function testHeroFloatsBeforeDefaultHomeText() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
+            'main_page' => null,
+        ));
+        $imageAt = strpos($html, 'tsugi-home-hero');
+        $textAt = strpos($html, 'under construction');
+        $this->assertNotFalse($imageAt);
+        $this->assertNotFalse($textAt);
+        $this->assertLessThan($textAt, $imageAt);
+        $this->assertStringContainsString('float: right', $html);
+        $this->assertStringContainsString('http://localhost/tsugi/courses/42/image/hero?v=1', $html);
+    }
+
+    public function testHeroFloatsBeforeMainPageText() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
+            'main_page' => array(
+                'title' => 'Welcome',
+                'body_html' => '<p>Start with the syllabus.</p>',
+                'published' => 1,
+                'edit_url' => '',
+            ),
+        ));
+        $imageAt = strpos($html, 'class="tsugi-home-hero"');
+        $textAt = strpos($html, 'Start with the syllabus.');
+        $this->assertNotFalse($imageAt);
+        $this->assertNotFalse($textAt);
+        $this->assertLessThan($textAt, $imageAt);
+        $this->assertStringNotContainsString('under construction', $html);
     }
 
     public function testMainPageReplacesPlaceholderCopy() {
@@ -127,6 +170,32 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Draft home', $html);
         $this->assertStringContainsString('This page is not published.', $html);
         $this->assertStringNotContainsString('under construction', $html);
+    }
+
+    public function testCourseHeroUrlUsesMetadataNotTheBlob() {
+        global $PDOX;
+        $this->setContext(42);
+        $PDOX->imageRow = array(
+            'hero_bytes' => 1200,
+            'hero_updated_at' => '2026-09-18 01:02:03',
+            'icon_bytes' => 0,
+            'icon_updated_at' => null,
+        );
+        $probe = new HomeMainPageProbe();
+        $url = $probe->heroUrl();
+        $this->assertStringContainsString('/courses/42/image/hero', $url);
+        $this->assertStringContainsString('v=', $url);
+        $this->assertStringContainsString('context_images', $PDOX->lastSql);
+        $this->assertStringContainsString('hero_bytes', $PDOX->lastSql);
+        $this->assertDoesNotMatchRegularExpression('/\bhero\b/', $PDOX->lastSql);
+    }
+
+    public function testMissingHeroLeavesTheUrlEmpty() {
+        global $PDOX;
+        $this->setContext(42);
+        $PDOX->imageRow = false;
+        $probe = new HomeMainPageProbe();
+        $this->assertSame('', $probe->heroUrl());
     }
 
     public function testNoContextSkipsTheMainPageLookup() {

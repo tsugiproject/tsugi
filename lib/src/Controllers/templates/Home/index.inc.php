@@ -4,13 +4,27 @@
  *
  * Included from Home::render(). Expected:
  *   $course_title (context name)
+ *   $hero_url (course hero, floated beside the home text)
  *   $main_page (title, body_html, published, edit_url) when a main page replaces this screen
  * Fully-qualified names so this file does not depend on the caller's namespace.
  */
 $course_title = isset($course_title) ? trim((string) $course_title) : '';
+$hero_url = isset($hero_url) ? trim((string) $hero_url) : '';
 $main_page = (isset($main_page) && is_array($main_page)) ? $main_page : null;
+$hero_alt = $course_title !== '' ? $course_title : __('Course image');
 ?>
 <main class="container" role="main" id="main-content">
+<?php if ( $hero_url !== '' ) { ?>
+<style>
+.tsugi-home-hero {
+    float: right;
+    width: 400px;
+    max-width: 46%;
+    height: auto;
+    margin: 0 0 1em 1.25em;
+}
+</style>
+<?php } ?>
 <?php if ( $main_page ) {
     $page_title = isset($main_page['title']) ? trim((string) $main_page['title']) : '';
     $heading = $page_title !== '' ? $page_title : $course_title;
@@ -39,6 +53,9 @@ $main_page = (isset($main_page) && is_array($main_page)) ? $main_page : null;
         <p><?= __('This page is not published. Students still see the default home page.') ?></p>
     </div>
     <?php } ?>
+    <?php if ( $hero_url !== '' ) { ?>
+    <img class="tsugi-home-hero" src="<?= htmlspecialchars($hero_url) ?>" alt="<?= htmlspecialchars($hero_alt) ?>">
+    <?php } ?>
     <div class="page-content">
         <?= $body_html ?>
     </div>
@@ -46,8 +63,12 @@ $main_page = (isset($main_page) && is_array($main_page)) ? $main_page : null;
     <?php if ( $course_title !== '' ) { ?>
     <h1><?= htmlspecialchars($course_title) ?></h1>
     <?php } ?>
+    <?php if ( $hero_url !== '' ) { ?>
+    <img class="tsugi-home-hero" src="<?= htmlspecialchars($hero_url) ?>" alt="<?= htmlspecialchars($hero_alt) ?>">
+    <?php } ?>
     <p><?= __('This home page feature is under construction.') ?></p>
     <p><?= __('TODO: Write Home Controller') ?></p>
     <p><?= __('Eventually this page will hold a set of widgets and gadgets for the course. The first, and most important, will tell you exactly what to do next based on your current activity, progress, and due dates.') ?></p>
 <?php } ?>
+<div style="clear: both;"></div>
 </main>

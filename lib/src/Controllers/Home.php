@@ -7,6 +7,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 
+use Tsugi\Core\ContextImages;
 use Tsugi\Core\ReqScope;
 use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Util\CCFileBase;
@@ -49,7 +50,27 @@ class Home extends Tool {
         $this->render('index.inc.php', array(
             'course_title' => $this->courseTitle(),
             'main_page' => $this->mainPageForHome(),
+            'hero_url' => $this->courseHeroUrl(),
         ));
+    }
+
+    /**
+     * Versioned course hero URL, or empty when this course has no hero image.
+     *
+     * @return string
+     */
+    protected function courseHeroUrl() {
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return '';
+        }
+        $meta = ContextImages::metadata($context_id);
+        return ContextImages::servedUrl(
+            $context_id,
+            ContextImages::KIND_HERO,
+            $meta['hero_bytes'] ?? 0,
+            $meta['hero_updated_at'] ?? null
+        );
     }
 
     /**
