@@ -526,7 +526,8 @@ class CourseNav {
      * Top bar for a reader who is not in the course.
      *
      * No course tools, no avatar, no exit. The upper-left brand is the
-     * only link. When the catalog is on, the link text is Catalog and it
+     * only link. On a page it says Lessons and returns to this course's
+     * lessons. On the lessons, when the catalog is on, it says Catalog and
      * returns to this course's catalog page. Otherwise the text is
      * $CFG->servicename and it goes to the app home.
      *
@@ -535,16 +536,21 @@ class CourseNav {
     private static function anonymousLessonMenu() {
         global $CFG;
         $set = new MenuSet();
-        $href = self::anonymousCatalogHref();
-        if ( $href !== '' ) {
-            $label = __('Catalog');
+        if ( self::anonymousPageRequest() ) {
+            $href = Courses::lessonsUrl(ReqScope::anonymousLessonContextId());
+            $label = __('Lessons');
         } else {
-            if ( isset($CFG) && is_object($CFG) && method_exists($CFG, 'getHomeUrl') ) {
-                $href = $CFG->getHomeUrl();
-            }
-            $label = 'Home';
-            if ( isset($CFG->servicename) && is_string($CFG->servicename) && trim($CFG->servicename) !== '' ) {
-                $label = trim($CFG->servicename);
+            $href = self::anonymousCatalogHref();
+            if ( $href !== '' ) {
+                $label = __('Catalog');
+            } else {
+                if ( isset($CFG) && is_object($CFG) && method_exists($CFG, 'getHomeUrl') ) {
+                    $href = $CFG->getHomeUrl();
+                }
+                $label = 'Home';
+                if ( isset($CFG->servicename) && is_string($CFG->servicename) && trim($CFG->servicename) !== '' ) {
+                    $label = trim($CFG->servicename);
+                }
             }
         }
         $set->setHome(htmlspecialchars($label, ENT_QUOTES, 'UTF-8'), $href);
@@ -564,6 +570,22 @@ class CourseNav {
         }
         $catalog_id = CatalogRepository::publishedIdForContext(ReqScope::anonymousLessonContextId());
         return Catalog::catalogDetailUrl($catalog_id);
+    }
+
+    /**
+     * True when this anonymous read is a course page.
+     *
+     * @return bool
+     */
+    private static function anonymousPageRequest() {
+        $uri = (isset($_SERVER['REQUEST_URI']) && is_string($_SERVER['REQUEST_URI']))
+            ? $_SERVER['REQUEST_URI']
+            : '';
+        $path = parse_url($uri, PHP_URL_PATH);
+        if ( ! is_string($path) || $path === '' ) {
+            return false;
+        }
+        return (bool) preg_match('#/pages(?:/|$)#', $path);
     }
 
     /**

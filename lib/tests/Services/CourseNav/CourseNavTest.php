@@ -646,6 +646,27 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testAnonymousPageViewReturnsToLessons()
+    {
+        global $CFG;
+        $_SERVER['REQUEST_URI'] = '/courses/42/pages/syllabus';
+        $CFG->apphome = 'https://local.dj4e.com/';
+        $CFG->wwwroot = 'https://local.dj4e.com/tsugi';
+        $CFG->servicename = 'DJ4E';
+        $CFG->show_course_catalog = true;
+        ReqScope::beginAnonymousLessonView(42);
+        try {
+            $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
+            $this->assertSame('Lessons', $set->home->link);
+            $this->assertSame('https://local.dj4e.com/tsugi/courses/42/lessons', $set->home->href);
+            $this->assertFalse($set->left);
+            $this->assertFalse($set->right);
+        } finally {
+            ReqScope::endAnonymousLessonView();
+            ReqScope::reset();
+        }
+    }
+
     public function testCompileLeaveCourseClosesTheWindow()
     {
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
