@@ -242,7 +242,9 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
                 .'<a href="https://example.com/x">Abs</a>'
                 .'<a href="/keep">Root</a>'
                 .'<a href="#top">Top</a>'
-                .'<a href="mailto:a@b.test">Mail</a></p>',
+                .'<a href="mailto:a@b.test">Mail</a></p>'
+                .'<img srcset="small.png 1x, big.png 2x" alt="">'
+                .'<img srcset="https://cdn.example.com/a.png 1x, /root.png 400w" alt="">',
             'published' => 1,
             'is_main' => 1,
         );
@@ -259,6 +261,8 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('href="/keep"', $html);
         $this->assertStringContainsString('href="#top"', $html);
         $this->assertStringContainsString('href="mailto:a@b.test"', $html);
+        $this->assertStringContainsString('srcset="/courses/42/pages/small.png 1x, /courses/42/pages/big.png 2x"', $html);
+        $this->assertStringContainsString('srcset="https://cdn.example.com/a.png 1x, /root.png 400w"', $html);
     }
 
     public function testStudentHomeRequiresAPublishedMainPage() {

@@ -116,9 +116,10 @@ class Home extends Tool {
     /**
      * Point plain relative links at the course Pages URL.
      *
-     * A link such as href="next" resolves under /pages/{key} and would resolve
-     * under /home when this body is rendered there. Absolute, root-relative,
-     * fragment, and query-only URLs stay as stored.
+     * A link such as href="next" or srcset="small.png 1x" resolves under
+     * /pages/{key} and would resolve under /home when this body is rendered
+     * there. Absolute, root-relative, fragment, and query-only URLs stay as
+     * stored. srcset width and density descriptors stay with their candidate.
      *
      * @param string $html
      * @param string $pagesBase Pages URL with a trailing slash
@@ -129,9 +130,13 @@ class Home extends Tool {
             return is_string($html) ? $html : '';
         }
         $rewritten = preg_replace_callback(
-            '/\b(href|src)\s*=\s*(["\'])([^"\']*)\2/i',
+            '/\b(href|src|srcset)\s*=\s*(["\'])([^"\']*)\2/i',
             function ($match) use ($pagesBase) {
-                $resolved = self::resolveAgainstPages($pagesBase, $match[3]);
+                if ( strtolower($match[1]) === 'srcset' ) {
+                    $resolved = self::rebaseSrcset($pagesBase, $match[3]);
+                } else {
+                    $resolved = self::resolveAgainstPages($pagesBase, $match[3]);
+                }
                 if ( $resolved === null ) {
                     return $match[0];
                 }
@@ -140,6 +145,41 @@ class Home extends Tool {
             $html
         );
         return is_string($rewritten) ? $rewritten : $html;
+    }
+
+    /**
+     * Rebase each relative srcset candidate. Leave the descriptor on that candidate.
+     *
+     * @param string $pagesBase
+     * @param string $value
+     * @return string|null Null when nothing in the list is path-relative
+     */
+    private static function rebaseSrcset($pagesBase, $value) {
+        $parts = explode(',', $value);
+        $out = array();
+        $changed = false;
+        foreach ( $parts as $part ) {
+            $part = trim($part);
+            if ( $part === '' ) {
+                continue;
+            }
+            if ( preg_match('/^(.*?)(?:\s+([\d.]+x|\d+w))?$/i', $part, $match) ) {
+                $url = trim($match[1]);
+                $desc = isset($match[2]) ? $match[2] : '';
+                $resolved = self::resolveAgainstPages($pagesBase, $url);
+                if ( $resolved !== null ) {
+                    $changed = true;
+                    $url = $resolved;
+                }
+                $out[] = $desc !== '' ? ($url.' '.$desc) : $url;
+            } else {
+                $out[] = $part;
+            }
+        }
+        if ( ! $changed ) {
+            return null;
+        }
+        return implode(', ', $out);
     }
 
     /**
