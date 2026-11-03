@@ -6,7 +6,7 @@ if ( ! function_exists('__') ) {
     }
 }
 
-require_once "src/Config/ConfigInfo.php";
+require_once __DIR__ . '/../../../src/Config/ConfigInfo.php';
 
 use Tsugi\Services\Cartridge\CourseCopy;
 use Tsugi\Services\Cartridge\Package;
