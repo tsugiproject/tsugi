@@ -19,7 +19,9 @@ if ( ! isset($rows) || ! is_array($rows) || count($rows) < 1 ) {
         $hero_url = isset($row['hero_url']) ? (string) $row['hero_url'] : '';
         $icon_url = isset($row['icon_url']) ? (string) $row['icon_url'] : '';
         $short = isset($row['short_description']) ? (string) $row['short_description'] : '';
-        $cid = isset($row['catalog_id']) ? (int) $row['catalog_id'] : 0;
+        $catalog_id = isset($row['catalog_id']) ? (int) $row['catalog_id'] : 0;
+        $context_id = isset($row['context_id']) ? (int) $row['context_id'] : 0;
+        $placeholder_id = $context_id > 0 ? $context_id : $catalog_id;
         $enrolled = ! empty($row['enrolled']);
         $new_window = ! empty($row['href_new_window']);
         $target = $new_window ? ' target="_blank" rel="noopener noreferrer"' : '';
@@ -38,7 +40,7 @@ if ( ! isset($rows) || ! is_array($rows) || count($rows) < 1 ) {
             </div>
             <?php } else { ?>
             <div class="tsugi-catalog-card-hero tsugi-catalog-card-placeholder">
-                <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($cid) ?>
+                <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($placeholder_id) ?>
                 <?= $enrolled ? $star : '' ?>
                 <span class="tsugi-catalog-card-placeholder-title"><?= htmlspecialchars($title) ?></span>
             </div>
