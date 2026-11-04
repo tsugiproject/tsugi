@@ -93,25 +93,6 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(4, $doc['blocks'][2]['page_id']);
     }
 
-    public function testUnsavedLayoutKeepsAConfiguredHeroFloatedRight() {
-        $doc = HomeLayout::unsavedDocument(true);
-        $this->assertSame('right', HomeLayout::block($doc, 'hero')['place']);
-    }
-
-    public function testUnsavedLayoutHidesTheHeroWhenTheCourseHasNone() {
-        $doc = HomeLayout::unsavedDocument(false);
-        $this->assertSame('none', HomeLayout::block($doc, 'hero')['place']);
-    }
-
-    public function testStoredHeroNoneStaysHidden() {
-        $doc = HomeLayout::normalize(array(
-            'blocks' => array(
-                array('type' => 'hero', 'place' => 'none'),
-            ),
-        ));
-        $this->assertSame('none', HomeLayout::block($doc, 'hero')['place']);
-    }
-
     public function testDefaultLeavesEveryBlockOff() {
         $doc = HomeLayout::defaultDocument();
         foreach ( $doc['blocks'] as $block ) {

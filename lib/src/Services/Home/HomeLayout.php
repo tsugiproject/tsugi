@@ -248,43 +248,19 @@ class HomeLayout {
     }
 
     /**
-     * Layout shown until an instructor saves one.
-     *
-     * A course that already has a hero image keeps that image, floated right.
-     * A course with no hero stays on "none", so Home does not show the empty-image prompt.
-     * This is not used once a layout is stored. A saved "none" stays hidden.
-     *
-     * @param bool $heroConfigured
-     * @return array{blocks:list<array<string,mixed>>}
-     */
-    public static function unsavedDocument($heroConfigured) {
-        $doc = self::defaultDocument();
-        if ( ! $heroConfigured ) {
-            return $doc;
-        }
-        foreach ( $doc['blocks'] as $i => $block ) {
-            if ( ($block['type'] ?? '') === 'hero' ) {
-                $doc['blocks'][$i]['place'] = 'right';
-            }
-        }
-        return $doc;
-    }
-
-    /**
      * @param int $context_id
-     * @param bool $heroConfigured Used only when this course has no stored home layout
      * @return array{blocks:list<array<string,mixed>>}
      */
-    public static function load($context_id, $heroConfigured = false) {
+    public static function load($context_id) {
         $context_id = (int) $context_id;
         if ( $context_id < 1 ) {
-            return self::unsavedDocument(false);
+            return self::defaultDocument();
         }
         $context = new Context();
         $context->id = $context_id;
         $raw = $context->getJsonKeyLegacy(self::JSON_KEY, null);
         if ( ! is_array($raw) ) {
-            return self::unsavedDocument($heroConfigured);
+            return self::defaultDocument();
         }
         return self::normalize($raw);
     }

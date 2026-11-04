@@ -55,8 +55,7 @@ class Home extends Tool {
         LTIX::getConnection();
         $context_id = ReqScope::currentContextId();
         $instructor = $this->isInstructor();
-        $heroUrl = $this->courseHeroUrl();
-        $layout = HomeLayout::load($context_id, $heroUrl !== '');
+        $layout = HomeLayout::load($context_id);
         $hero = HomeLayout::block($layout, 'hero');
         $calendar = HomeLayout::block($layout, 'calendar');
         $dues = HomeLayout::block($layout, 'dues');
@@ -110,7 +109,7 @@ class Home extends Tool {
             'page_blocks' => $pageBlocks,
             'files' => $courseFiles,
             'file_blocks' => $fileBlocks,
-            'hero_url' => $heroPlace !== 'none' ? $heroUrl : '',
+            'hero_url' => $heroPlace !== 'none' ? $this->courseHeroUrl() : '',
             'calendar_html' => $calendarHtml,
             'dues_html' => $duesHtml,
         ));
