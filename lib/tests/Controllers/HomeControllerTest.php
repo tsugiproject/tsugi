@@ -110,7 +110,7 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
             'can_configure' => false,
         ));
         $this->assertStringContainsString('Django for Everybody', $html);
-        $this->assertStringContainsString('Please configure the home page', $html);
+        $this->assertStringNotContainsString('Please configure the home page', $html);
         $this->assertStringContainsString('tsugi-home-hero-right', $html);
         $this->assertStringContainsString('tsugi-home-hero-placeholder', $html);
         $this->assertStringNotContainsString('under construction', $html);
@@ -225,6 +225,7 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
     public function testHeroStaysOffUntilTheRadioIncludesIt() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',
+            'can_configure' => true,
             'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
             'layout' => array('blocks' => array(
                 array('type' => 'hero', 'on' => false),

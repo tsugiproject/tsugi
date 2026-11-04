@@ -522,7 +522,7 @@ foreach ( $blocks as $block ) {
         <?php
     }
 }
-if ( ! $configured ) { ?>
+if ( ! $configured && $can_configure ) { ?>
     <p><?= __('Please configure the home page') ?></p>
 <?php } ?>
 <div class="tsugi-home-clear"></div>
