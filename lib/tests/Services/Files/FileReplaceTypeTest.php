@@ -6,6 +6,15 @@ use Tsugi\Services\Files\FileRepository;
 
 class FileReplaceTypeTest extends \PHPUnit\Framework\TestCase
 {
+    public function testHomeTreatsImageContentAndExtensionsAsImages()
+    {
+        $this->assertTrue(FileRepository::isImageFile('logo.png', 'image/png'));
+        $this->assertTrue(FileRepository::isImageFile('photo.JPG', ''));
+        $this->assertTrue(FileRepository::isImageFile('blob.bin', 'image/webp; charset=binary'));
+        $this->assertFalse(FileRepository::isImageFile('notes.pdf', 'application/pdf'));
+        $this->assertFalse(FileRepository::isImageFile('notes.pdf', ''));
+    }
+
     public function testPngReplacementMustStayPng()
     {
         $png = $this->tempBytes($this->pngBytes());

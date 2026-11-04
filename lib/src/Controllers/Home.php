@@ -5,19 +5,23 @@ namespace Tsugi\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumos\Application;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 use Tsugi\Core\ContextImages;
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Files\FileRepository;
+use Tsugi\Services\Home\HomeLayout;
 use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Util\CCFileBase;
 
 /**
  * Course home: site-wide at /home, course-mounted at /courses/{id}/home.
  *
- * A published main page replaces the default copy. Keep HTTP and chrome here;
- * put domain logic in Tsugi\Services\Home as this grows. Nested dispatch
- * from Courses keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
+ * Instructors pick an ordered set of blocks (hero, pages, course files, the
+ * month calendar, and the due-date list) with the gear on this screen. Keep
+ * HTTP and chrome here. Nested dispatch from Courses keeps REQUEST_URI
+ * prefixed, so isCourseRoute() and toolHome() work.
  *
  * Parent menus (site URLs only):
  * if ( \Tsugi\Controllers\Home::showInMenu() ) {
@@ -40,6 +44,8 @@ class Home extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Home@index');
         $app->router->get($prefix.'/', 'Home@index');
+        $app->router->post($prefix, 'Home@save');
+        $app->router->post($prefix.'/', 'Home@save');
         $app->router->get('/'.self::REDIRECT, 'Home@index');
     }
 
@@ -47,11 +53,117 @@ class Home extends Tool {
     {
         $this->requireAuth();
         LTIX::getConnection();
+        $context_id = ReqScope::currentContextId();
+        $instructor = $this->isInstructor();
+        $layout = HomeLayout::load($context_id);
+        $hero = HomeLayout::block($layout, 'hero');
+        $calendar = HomeLayout::block($layout, 'calendar');
+        $dues = HomeLayout::block($layout, 'dues');
+        $pageBlocks = array();
+        foreach ( $layout['blocks'] as $block ) {
+            if ( ($block['type'] ?? '') !== 'page' ) {
+                continue;
+            }
+            $pid = (int) ($block['page_id'] ?? 0);
+            if ( $pid < 1 || array_key_exists($pid, $pageBlocks) ) {
+                continue;
+            }
+            $loaded = $this->pageForHome($pid);
+            if ( is_array($loaded) ) {
+                $pageBlocks[$pid] = $loaded;
+            }
+        }
+        $homeUrl = U::addSession($this->toolHome(self::ROUTE));
+        $calendarHtml = '';
+        $duesHtml = '';
+        if ( (is_array($calendar) && ! empty($calendar['on'])) || (is_array($dues) && ! empty($dues['on'])) ) {
+            $cal = new Calendar();
+            if ( is_array($calendar) && ! empty($calendar['on']) ) {
+                $calendarHtml = $cal->monthHtml($request, $homeUrl, true);
+            }
+            if ( is_array($dues) && ! empty($dues['on']) ) {
+                $duesHtml = $cal->listHtml(true);
+            }
+        }
+        $pages = $instructor ? PageRepository::listForPicker($context_id, false) : array();
+        $courseFiles = FileRepository::listForHome($context_id);
+        $fileBlocks = array();
+        foreach ( $courseFiles as $file ) {
+            $url = $this->courseFileUrl($file['path']);
+            if ( $url === '' ) {
+                continue;
+            }
+            $fileBlocks[$file['path']] = array(
+                'name' => $file['name'],
+                'url' => U::addSession($url),
+                'image' => ! empty($file['image']),
+            );
+        }
+        $heroPlace = is_array($hero) ? (string) ($hero['place'] ?? 'none') : 'none';
         $this->render('index.inc.php', array(
             'course_title' => $this->courseTitle(),
-            'main_page' => $this->mainPageForHome(),
-            'hero_url' => $this->courseHeroUrl(),
+            'layout' => $layout,
+            'can_configure' => $instructor,
+            'save_url' => $homeUrl,
+            'pages' => is_array($pages) ? $pages : array(),
+            'page_blocks' => $pageBlocks,
+            'files' => $courseFiles,
+            'file_blocks' => $fileBlocks,
+            'hero_url' => $heroPlace !== 'none' ? $this->courseHeroUrl() : '',
+            'calendar_html' => $calendarHtml,
+            'dues_html' => $duesHtml,
         ));
+    }
+
+    /**
+     * Save the instructor's home layout and return to this page.
+     */
+    public function save(Request $request)
+    {
+        $this->requireAuth();
+        LTIX::getConnection();
+        $home = U::addSession($this->toolHome(self::ROUTE));
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can configure the home page.'));
+            return new RedirectResponse($home);
+        }
+        $csrf = self::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $context_id = ReqScope::currentContextId();
+        $pages = PageRepository::listForPicker($context_id, false);
+        $ids = array();
+        if ( is_array($pages) ) {
+            foreach ( $pages as $page ) {
+                if ( isset($page['page_id']) ) {
+                    $ids[] = (int) $page['page_id'];
+                }
+            }
+        }
+        $paths = array();
+        foreach ( FileRepository::listForHome($context_id) as $file ) {
+            $paths[] = $file['path'];
+        }
+        HomeLayout::save($context_id, HomeLayout::fromPost($_POST, $ids, $paths));
+        U::flashSuccess(__('Home page updated.'));
+        return new RedirectResponse($home);
+    }
+
+    /**
+     * Course-mounted URL for a Files path (/courses/{id}/files/{folder}/{name}).
+     *
+     * The path stays stable when the file bytes are replaced.
+     *
+     * @param string $path
+     * @return string
+     */
+    protected function courseFileUrl($path) {
+        $href = FileRepository::hrefForPath($path);
+        if ( ! is_string($href) || $href === '' || strpos($href, Files::ROUTE) !== 0 ) {
+            return '';
+        }
+        return rtrim($this->toolHome(Files::ROUTE), '/') . substr($href, strlen(Files::ROUTE));
     }
 
     /**
@@ -74,21 +186,25 @@ class Home extends Tool {
     }
 
     /**
-     * Main page that should stand in for the default home copy.
+     * One course page chosen for the home layout.
      *
-     * Students only see a published main page. Instructors also see a draft,
-     * so they can tell the home replacement is in place before students can.
+     * Students only see it after it is published. Instructors also see a draft.
      *
+     * @param int $page_id
      * @return array{title:string,body_html:string,published:int,edit_url:string}|null
      */
-    protected function mainPageForHome() {
+    protected function pageForHome($page_id) {
         $context_id = ReqScope::currentContextId();
-        if ( $context_id < 1 ) {
+        $page_id = (int) $page_id;
+        if ( $context_id < 1 || $page_id < 1 ) {
             return null;
         }
         $instructor = $this->isInstructor();
-        $page = PageRepository::loadMain($context_id, ! $instructor);
+        $page = PageRepository::load($page_id, $context_id);
         if ( ! is_array($page) ) {
+            return null;
+        }
+        if ( ! $instructor && empty($page['published']) ) {
             return null;
         }
         $title = isset($page['title']) ? trim((string) $page['title']) : '';
