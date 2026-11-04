@@ -26,7 +26,7 @@ class HomeLayout {
     public static function defaultDocument() {
         return array(
             'blocks' => array(
-                array('type' => 'hero', 'place' => 'none'),
+                array('type' => 'hero', 'place' => 'right'),
                 array('type' => 'page', 'page_id' => 0),
                 array('type' => 'file', 'path' => '', 'place' => 'inline'),
                 array('type' => 'calendar', 'on' => false),

@@ -24,7 +24,6 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
         $doc = HomeLayout::fromPost(array(
             'home_order' => array('page', 'page'),
             'page_id' => array('99', '7'),
-            'hero' => 'none',
         ), array(7));
         $pages = array();
         foreach ( $doc['blocks'] as $block ) {
@@ -33,7 +32,7 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
             }
         }
         $this->assertSame(array(0, 7), $pages);
-        $this->assertSame('none', HomeLayout::block($doc, 'hero')['place']);
+        $this->assertSame('right', HomeLayout::block($doc, 'hero')['place']);
     }
 
     public function testFromPostKeepsEachFilePathAndPlace() {
@@ -99,7 +98,7 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
             if ( $block['type'] === 'page' ) {
                 $this->assertSame(0, $block['page_id']);
             } elseif ( $block['type'] === 'hero' ) {
-                $this->assertSame('none', $block['place']);
+                $this->assertSame('right', $block['place']);
             } elseif ( $block['type'] === 'file' ) {
                 $this->assertSame('', $block['path']);
                 $this->assertSame('inline', $block['place']);

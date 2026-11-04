@@ -95,16 +95,27 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         return ob_get_clean();
     }
 
-    public function testDefaultHomeKeepsPlaceholderCopy() {
+    public function testDefaultHomeFloatsAPlaceholderHero() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',
-            'layout' => array('blocks' => array()),
+            'context_id' => 42,
+            'hero_url' => '',
+            'layout' => array('blocks' => array(
+                array('type' => 'hero', 'place' => 'right'),
+                array('type' => 'page', 'page_id' => 0),
+                array('type' => 'file', 'path' => '', 'place' => 'inline'),
+                array('type' => 'calendar', 'on' => false),
+                array('type' => 'dues', 'on' => false),
+            )),
             'can_configure' => false,
         ));
         $this->assertStringContainsString('Django for Everybody', $html);
-        $this->assertStringContainsString('This home page feature is under construction.', $html);
+        $this->assertStringContainsString('Please configure the home page', $html);
+        $this->assertStringContainsString('tsugi-home-hero-right', $html);
+        $this->assertStringContainsString('tsugi-home-hero-placeholder', $html);
+        $this->assertStringNotContainsString('under construction', $html);
         $this->assertStringNotContainsString('page-content', $html);
-        $this->assertStringNotContainsString('class="tsugi-home-hero"', $html);
+        $this->assertStringNotContainsString('<img class="tsugi-home-hero"', $html);
         $this->assertStringNotContainsString('glyphicon-cog', $html);
     }
 
@@ -203,19 +214,25 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
             )),
         ));
         $this->assertStringNotContainsString('class="tsugi-home-hero"', $html);
-        $this->assertStringContainsString('under construction', $html);
+        $this->assertStringContainsString('Please configure the home page', $html);
     }
 
-    public function testMissingHeroTellsTheInstructor() {
+    public function testMissingHeroUsesTheCatalogPlaceholder() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',
             'can_configure' => true,
             'hero_url' => '',
+            'context_id' => 42,
             'layout' => array('blocks' => array(
-                array('type' => 'hero', 'place' => 'center'),
+                array('type' => 'hero', 'place' => 'right'),
             )),
         ));
-        $this->assertStringContainsString('does not have a hero image yet', $html);
+        $this->assertStringContainsString('tsugi-home-hero-right', $html);
+        $this->assertStringContainsString('tsugi-home-hero-placeholder', $html);
+        $this->assertStringContainsString('tsugi-course-card-placeholder-art', $html);
+        $this->assertStringContainsString('Django for Everybody', $html);
+        $this->assertStringContainsString('Please configure the home page', $html);
+        $this->assertStringNotContainsString('does not have a hero image yet', $html);
         $this->assertStringNotContainsString('under construction', $html);
     }
 

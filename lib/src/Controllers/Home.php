@@ -112,6 +112,7 @@ class Home extends Tool {
             'hero_url' => $heroPlace !== 'none' ? $this->courseHeroUrl() : '',
             'calendar_html' => $calendarHtml,
             'dues_html' => $duesHtml,
+            'context_id' => $context_id,
         ));
     }
 

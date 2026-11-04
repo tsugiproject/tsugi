@@ -25,6 +25,7 @@ $page_blocks = (isset($page_blocks) && is_array($page_blocks)) ? $page_blocks : 
 $files = (isset($files) && is_array($files)) ? $files : array();
 $file_blocks = (isset($file_blocks) && is_array($file_blocks)) ? $file_blocks : array();
 $hero_url = isset($hero_url) ? trim((string) $hero_url) : '';
+$context_id = isset($context_id) ? (int) $context_id : 0;
 $calendar_html = isset($calendar_html) ? (string) $calendar_html : '';
 $dues_html = isset($dues_html) ? (string) $dues_html : '';
 $hero_alt = $course_title !== '' ? $course_title : __('Course image');
@@ -126,6 +127,33 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 .tsugi-home-hero-left, .tsugi-home-hero-right { display: contents; }
 .tsugi-home-hero-left .tsugi-home-hero { float: left; max-width: 46%; margin: 0 1.25em 1em 0; }
 .tsugi-home-hero-right .tsugi-home-hero { float: right; max-width: 46%; margin: 0 0 1em 1.25em; }
+.tsugi-home-hero-placeholder {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    position: relative;
+    overflow: hidden;
+    background: #1b2a4a;
+    display: flex;
+    align-items: flex-end;
+}
+.tsugi-home-hero-center .tsugi-home-hero-placeholder { display: inline-flex; }
+.tsugi-home-hero-placeholder .tsugi-course-card-placeholder-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.tsugi-home-hero-placeholder-title {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2em;
+    line-height: 1.25;
+    padding: 0.85em 1em 0.9em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 8px 18px rgba(0,0,0,0.35);
+}
 .tsugi-home-file-img { max-width: 100%; height: auto; }
 .tsugi-home-file-center { text-align: center; }
 .tsugi-home-file-center .tsugi-home-file-img { display: inline-block; max-width: 400px; margin: 0 auto 1em; }
@@ -372,7 +400,7 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 })();
 </script>
 <?php
-$shown = false;
+$configured = false;
 foreach ( $blocks as $block ) {
     if ( ! is_array($block) ) {
         continue;
@@ -382,18 +410,17 @@ foreach ( $blocks as $block ) {
     if ( $type === 'hero' && ! in_array($heroPlace, array('center', 'left', 'right', 'none'), true) ) {
         $heroPlace = ! empty($block['on']) ? 'right' : 'none';
     }
-    if ( $type === 'hero' && $heroPlace !== 'none' && $hero_url !== '' ) {
-        $shown = true;
+    if ( $type === 'hero' && $heroPlace !== 'none' ) {
         ?>
 <section class="tsugi-home-block tsugi-home-hero-<?= htmlspecialchars($heroPlace) ?>" aria-label="<?= htmlspecialchars(__('Course image')) ?>">
+        <?php if ( $hero_url !== '' ) { ?>
     <img class="tsugi-home-hero" src="<?= htmlspecialchars($hero_url) ?>" alt="<?= htmlspecialchars($hero_alt) ?>">
-</section>
-        <?php
-    } elseif ( $type === 'hero' && $heroPlace !== 'none' && $hero_url === '' && $can_configure ) {
-        $shown = true;
-        ?>
-<section class="tsugi-home-block">
-    <p class="text-muted"><?= __('Include hero image is on, but this course does not have a hero image yet.') ?></p>
+        <?php } else { ?>
+    <div class="tsugi-home-hero tsugi-home-hero-placeholder">
+        <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($context_id) ?>
+        <span class="tsugi-home-hero-placeholder-title"><?= htmlspecialchars($hero_alt) ?></span>
+    </div>
+        <?php } ?>
 </section>
         <?php
     } elseif ( $type === 'page' ) {
@@ -402,7 +429,7 @@ foreach ( $blocks as $block ) {
         if ( ! $page_block ) {
             continue;
         }
-        $shown = true;
+        $configured = true;
         $page_title = isset($page_block['title']) ? trim((string) $page_block['title']) : '';
         $body_html = isset($page_block['body_html']) ? (string) $page_block['body_html'] : '';
         $published = ! empty($page_block['published']);
@@ -439,7 +466,7 @@ foreach ( $blocks as $block ) {
         if ( ! $file || empty($file['url']) ) {
             continue;
         }
-        $shown = true;
+        $configured = true;
         $fileName = isset($file['name']) ? (string) $file['name'] : $path;
         $fileUrl = (string) $file['url'];
         $filePlace = isset($block['place']) ? (string) $block['place'] : 'inline';
@@ -460,17 +487,15 @@ foreach ( $blocks as $block ) {
             <?php
         }
     } elseif ( $type === 'calendar' && ! empty($block['on']) && $calendar_html !== '' ) {
-        $shown = true;
+        $configured = true;
         echo '<section class="tsugi-home-block" aria-label="'.htmlspecialchars(__('Calendar')).'">'.$calendar_html.'</section>';
     } elseif ( $type === 'dues' && ! empty($block['on']) && $dues_html !== '' ) {
-        $shown = true;
+        $configured = true;
         echo '<section class="tsugi-home-block" aria-label="'.htmlspecialchars(__('Due dates')).'">'.$dues_html.'</section>';
     }
 }
-if ( ! $shown ) { ?>
-    <p><?= __('This home page feature is under construction.') ?></p>
-    <p><?= __('TODO: Write Home Controller') ?></p>
-    <p><?= __('Eventually this page will hold a set of widgets and gadgets for the course. The first, and most important, will tell you exactly what to do next based on your current activity, progress, and due dates.') ?></p>
+if ( ! $configured ) { ?>
+    <p><?= __('Please configure the home page') ?></p>
 <?php } ?>
 <div class="tsugi-home-clear"></div>
 </main>

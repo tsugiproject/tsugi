@@ -950,7 +950,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
 
         $driver->get($courseHome.'/home');
         $this->waitForPageText($client, $courseTitle);
-        $this->waitForPageText($client, 'This home page feature is under construction.');
+        $this->waitForPageText($client, 'Please configure the home page');
 
         $driver->get($courseHome.'/catalog');
         $this->waitForPageText($client, 'Course catalog');
