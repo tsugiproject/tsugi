@@ -80,29 +80,12 @@ class StudentNoteRepository {
             );
             return;
         }
-        $row = $PDOX->rowDie(
-            "SELECT note_id FROM {$CFG->dbprefix}lti_student_note
-             WHERE context_id = :CID AND user_id = :UID",
-            array(':CID' => $context_id, ':UID' => $user_id)
-        );
-        if ( is_array($row) && isset($row['note_id']) ) {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_student_note
-                 SET body = :BODY, updated_at = NOW()
-                 WHERE note_id = :ID AND context_id = :CID AND user_id = :UID",
-                array(
-                    ':BODY' => $body,
-                    ':ID' => (int) $row['note_id'],
-                    ':CID' => $context_id,
-                    ':UID' => $user_id,
-                )
-            );
-            return;
-        }
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_student_note
+                /*PDOX pk: note_id lk: context_id,user_id */
                 (context_id, user_id, body, updated_at)
-             VALUES (:CID, :UID, :BODY, NOW())",
+             VALUES (:CID, :UID, :BODY, NOW())
+             ON DUPLICATE KEY UPDATE body = VALUES(body), updated_at = NOW()",
             array(':CID' => $context_id, ':UID' => $user_id, ':BODY' => $body)
         );
     }
