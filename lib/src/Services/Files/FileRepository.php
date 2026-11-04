@@ -315,6 +315,66 @@ class FileRepository {
     }
 
     /**
+     * Non-private files an instructor can place on the course home.
+     *
+     * Folders and the Private tree are omitted. Every row is a file a student
+     * can open by its course path.
+     *
+     * @param mixed $context_id
+     * @return list<array{path:string,name:string,image:bool}>
+     */
+    public static function listForHome($context_id) {
+        $link_id = self::existingLinkId($context_id);
+        if ( $link_id < 1 ) {
+            return array();
+        }
+        $out = array();
+        foreach ( self::allItems($link_id, (int) $context_id) as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $meta = self::decodeMeta($row);
+            if ( $meta['kind'] !== self::KIND_FILE || self::isPrivatePath($meta['folder']) ) {
+                continue;
+            }
+            $path = self::pathFromFileRow($row);
+            if ( ! is_string($path) || $path === '' ) {
+                continue;
+            }
+            $name = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : $path;
+            $ctype = isset($row['contenttype']) && is_string($row['contenttype']) ? $row['contenttype'] : '';
+            $out[] = array(
+                'path' => $path,
+                'name' => $name,
+                'image' => self::isImageFile($name, $ctype),
+            );
+        }
+        usort($out, function ($a, $b) {
+            return strcasecmp($a['path'], $b['path']);
+        });
+        return $out;
+    }
+
+    /**
+     * True for image/* content, or a common image extension when the type is missing.
+     *
+     * @param mixed $name
+     * @param mixed $contentType
+     */
+    public static function isImageFile($name, $contentType) {
+        $ctype = strtolower(trim((string) $contentType));
+        $semi = strpos($ctype, ';');
+        if ( $semi !== false ) {
+            $ctype = trim(substr($ctype, 0, $semi));
+        }
+        if ( strpos($ctype, 'image/') === 0 ) {
+            return true;
+        }
+        $ext = strtolower(pathinfo((string) $name, PATHINFO_EXTENSION));
+        return in_array($ext, array('png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'), true);
+    }
+
+    /**
      * A non-private file with this sha in the course.
      *
      * @param string $sha256

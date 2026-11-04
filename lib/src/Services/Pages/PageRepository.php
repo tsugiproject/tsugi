@@ -262,7 +262,7 @@ class PageRepository {
      */
     public static function listForPicker($context_id, $published_only = false) {
         global $CFG, $PDOX;
-        $sql = "SELECT page_id, title, logical_key
+        $sql = "SELECT page_id, title, logical_key, published
                 FROM {$CFG->dbprefix}pages
                 WHERE context_id = :CID";
         if ( $published_only ) {

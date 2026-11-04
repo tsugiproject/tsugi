@@ -16,8 +16,8 @@ class HomeMainPageProbe extends \Tsugi\Controllers\Home {
         return $this->instructor;
     }
 
-    public function mainPage() {
-        return $this->mainPageForHome();
+    public function pageFor($page_id) {
+        return $this->pageForHome($page_id);
     }
 
     public function heroUrl() {
@@ -98,73 +98,204 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
     public function testDefaultHomeKeepsPlaceholderCopy() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',
-            'main_page' => null,
+            'layout' => array('blocks' => array()),
+            'can_configure' => false,
         ));
         $this->assertStringContainsString('Django for Everybody', $html);
         $this->assertStringContainsString('This home page feature is under construction.', $html);
         $this->assertStringNotContainsString('page-content', $html);
-        $this->assertStringNotContainsString('tsugi-home-hero', $html);
+        $this->assertStringNotContainsString('class="tsugi-home-hero"', $html);
+        $this->assertStringNotContainsString('glyphicon-cog', $html);
     }
 
-    public function testHeroFloatsBeforeDefaultHomeText() {
+    public function testInstructorGearConfiguresOrderedBlocks() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',
-            'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
-            'main_page' => null,
-        ));
-        $imageAt = strpos($html, 'tsugi-home-hero');
-        $textAt = strpos($html, 'under construction');
-        $this->assertNotFalse($imageAt);
-        $this->assertNotFalse($textAt);
-        $this->assertLessThan($textAt, $imageAt);
-        $this->assertStringContainsString('float: right', $html);
-        $this->assertStringContainsString('http://localhost/tsugi/courses/42/image/hero?v=1', $html);
-    }
-
-    public function testHeroFloatsBeforeMainPageText() {
-        $html = $this->renderHome(array(
-            'course_title' => 'Django for Everybody',
-            'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
-            'main_page' => array(
-                'title' => 'Welcome',
-                'body_html' => '<p>Start with the syllabus.</p>',
-                'published' => 1,
-                'edit_url' => '',
+            'can_configure' => true,
+            'save_url' => '/courses/42/home',
+            'layout' => array('blocks' => array(
+                array('type' => 'dues', 'on' => true),
+                array('type' => 'hero', 'on' => false),
+                array('type' => 'page', 'page_id' => 7),
+                array('type' => 'calendar', 'on' => false),
+            )),
+            'pages' => array(
+                array('page_id' => 7, 'title' => 'Welcome', 'published' => 1),
+                array('page_id' => 8, 'title' => 'Draft', 'published' => 0),
             ),
         ));
-        $imageAt = strpos($html, 'class="tsugi-home-hero"');
-        $textAt = strpos($html, 'Start with the syllabus.');
-        $this->assertNotFalse($imageAt);
-        $this->assertNotFalse($textAt);
-        $this->assertLessThan($textAt, $imageAt);
-        $this->assertStringNotContainsString('under construction', $html);
-    }
-
-    public function testMainPageReplacesPlaceholderCopy() {
-        $html = $this->renderHome(array(
-            'course_title' => 'Django for Everybody',
-            'main_page' => array(
-                'title' => 'Welcome',
-                'body_html' => '<p>Start with the syllabus.</p>',
-                'published' => 1,
-                'edit_url' => '/courses/42/pages/edit/7',
-            ),
-        ));
+        $this->assertStringContainsString('glyphicon-cog', $html);
+        $this->assertStringContainsString('Include hero image', $html);
+        $this->assertStringContainsString('Center', $html);
+        $this->assertStringContainsString('Float right', $html);
+        $this->assertStringContainsString('Float left', $html);
+        $this->assertStringContainsString('Add page', $html);
+        $this->assertStringContainsString('Show calendar', $html);
+        $this->assertStringContainsString('Show due date list', $html);
+        $this->assertStringContainsString('name="page_id[]"', $html);
         $this->assertStringContainsString('Welcome', $html);
-        $this->assertStringContainsString('<p>Start with the syllabus.</p>', $html);
+        $this->assertStringContainsString('Draft (draft)', $html);
+        $dues = strpos($html, 'value="dues"');
+        $hero = strpos($html, 'value="hero"');
+        $page = strpos($html, 'value="page"');
+        $calendar = strpos($html, 'value="calendar"');
+        $this->assertNotFalse($dues);
+        $this->assertLessThan($hero, $dues);
+        $this->assertLessThan($page, $hero);
+        $this->assertLessThan($calendar, $page);
+    }
+
+    public function testBlocksRenderInLayoutOrder() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
+            'calendar_html' => '<p>MONTH-GRID</p>',
+            'dues_html' => '<p>DUE-LIST</p>',
+            'page_blocks' => array(
+                7 => array(
+                    'title' => 'Welcome',
+                    'body_html' => '<p>Start with the syllabus.</p>',
+                    'published' => 1,
+                    'edit_url' => '/courses/42/pages/edit/7',
+                ),
+                9 => array(
+                    'title' => 'Schedule',
+                    'body_html' => '<p>Week one meets Monday.</p>',
+                    'published' => 1,
+                    'edit_url' => '',
+                ),
+            ),
+            'layout' => array('blocks' => array(
+                array('type' => 'dues', 'on' => true),
+                array('type' => 'page', 'page_id' => 7),
+                array('type' => 'page', 'page_id' => 9),
+                array('type' => 'hero', 'place' => 'right'),
+                array('type' => 'calendar', 'on' => true),
+            )),
+        ));
+        $dues = strpos($html, 'DUE-LIST');
+        $page = strpos($html, 'Start with the syllabus.');
+        $second = strpos($html, 'Week one meets Monday.');
+        $hero = strpos($html, 'class="tsugi-home-hero"');
+        $month = strpos($html, 'MONTH-GRID');
+        $this->assertNotFalse($dues);
+        $this->assertNotFalse($page);
+        $this->assertNotFalse($second);
+        $this->assertNotFalse($hero);
+        $this->assertNotFalse($month);
+        $this->assertLessThan($page, $dues);
+        $this->assertLessThan($second, $page);
+        $this->assertLessThan($hero, $second);
+        $this->assertLessThan($month, $hero);
+        $this->assertStringContainsString('tsugi-home-hero-right', $html);
+        $this->assertStringContainsString('float: right', $html);
         $this->assertStringContainsString('/courses/42/pages/edit/7', $html);
         $this->assertStringNotContainsString('under construction', $html);
         $this->assertStringNotContainsString('not published', $html);
     }
 
-    public function testUnpublishedMainPageWarnsInstructors() {
+    public function testHeroStaysOffUntilTheRadioIncludesIt() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',
-            'main_page' => array(
-                'title' => 'Draft home',
-                'body_html' => '<p>Not yet.</p>',
-                'published' => 0,
-                'edit_url' => '/courses/42/pages/edit/8',
+            'hero_url' => 'http://localhost/tsugi/courses/42/image/hero?v=1',
+            'layout' => array('blocks' => array(
+                array('type' => 'hero', 'on' => false),
+            )),
+        ));
+        $this->assertStringNotContainsString('class="tsugi-home-hero"', $html);
+        $this->assertStringContainsString('under construction', $html);
+    }
+
+    public function testMissingHeroTellsTheInstructor() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'can_configure' => true,
+            'hero_url' => '',
+            'layout' => array('blocks' => array(
+                array('type' => 'hero', 'place' => 'center'),
+            )),
+        ));
+        $this->assertStringContainsString('does not have a hero image yet', $html);
+        $this->assertStringNotContainsString('under construction', $html);
+    }
+
+    public function testImageFileFloatsAndOtherFilesOpenInANewTab() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'layout' => array('blocks' => array(
+                array('type' => 'file', 'path' => 'Public/logo.png', 'place' => 'left'),
+                array('type' => 'file', 'path' => 'Public/syllabus.pdf', 'place' => 'right'),
+                array('type' => 'file', 'path' => 'Public/banner.png', 'place' => 'inline'),
+            )),
+            'file_blocks' => array(
+                'Public/logo.png' => array(
+                    'name' => 'logo.png',
+                    'url' => '/courses/42/files/Public/logo.png',
+                    'image' => true,
+                ),
+                'Public/syllabus.pdf' => array(
+                    'name' => 'syllabus.pdf',
+                    'url' => '/courses/42/files/Public/syllabus.pdf',
+                    'image' => false,
+                ),
+                'Public/banner.png' => array(
+                    'name' => 'banner.png',
+                    'url' => '/courses/42/files/Public/banner.png',
+                    'image' => true,
+                ),
+            ),
+        ));
+        $this->assertStringContainsString('class="tsugi-home-block tsugi-home-file-left"', $html);
+        $this->assertStringContainsString('float: left', $html);
+        $this->assertStringContainsString('src="/courses/42/files/Public/logo.png"', $html);
+        $this->assertStringContainsString('class="tsugi-home-block tsugi-home-file-inline"', $html);
+        $this->assertStringContainsString('href="/courses/42/files/Public/syllabus.pdf" target="_blank" rel="noopener noreferrer"', $html);
+        $this->assertStringNotContainsString('src="/courses/42/files/Public/syllabus.pdf"', $html);
+        $this->assertStringNotContainsString('under construction', $html);
+    }
+
+    public function testFilePickerShowsPlaceOnlyForImages() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'can_configure' => true,
+            'save_url' => '/courses/42/home',
+            'layout' => array('blocks' => array(
+                array('type' => 'file', 'path' => 'Public/logo.png', 'place' => 'center'),
+                array('type' => 'file', 'path' => 'Public/syllabus.pdf', 'place' => 'inline'),
+            )),
+            'files' => array(
+                array('path' => 'Public/logo.png', 'name' => 'logo.png', 'image' => true),
+                array('path' => 'Public/syllabus.pdf', 'name' => 'syllabus.pdf', 'image' => false),
+            ),
+        ));
+        $this->assertStringContainsString('Add file', $html);
+        $this->assertStringContainsString('name="file_path[]"', $html);
+        $this->assertStringContainsString('name="file_place[]"', $html);
+        $this->assertStringContainsString('data-image="1"', $html);
+        $this->assertStringContainsString('Inline', $html);
+        $this->assertMatchesRegularExpression(
+            '/value="Public\/logo.png"[^>]*selected[\s\S]*?<fieldset class="tsugi-home-hero-choice tsugi-home-file-place">/',
+            $html
+        );
+        $this->assertMatchesRegularExpression(
+            '/value="Public\/syllabus.pdf"[^>]*selected[\s\S]*?<fieldset class="tsugi-home-hero-choice tsugi-home-file-place" hidden>/',
+            $html
+        );
+    }
+
+    public function testUnpublishedPageWarnsInstructors() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'layout' => array('blocks' => array(
+                array('type' => 'page', 'page_id' => 8),
+            )),
+            'page_blocks' => array(
+                8 => array(
+                    'title' => 'Draft home',
+                    'body_html' => '<p>Not yet.</p>',
+                    'published' => 0,
+                    'edit_url' => '/courses/42/pages/edit/8',
+                ),
             ),
         ));
         $this->assertStringContainsString('Draft home', $html);
@@ -198,10 +329,10 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('', $probe->heroUrl());
     }
 
-    public function testNoContextSkipsTheMainPageLookup() {
+    public function testNoContextSkipsThePageLookup() {
         global $PDOX;
         $probe = new HomeMainPageProbe();
-        $this->assertNull($probe->mainPage());
+        $this->assertNull($probe->pageFor(7));
         $this->assertSame(0, $PDOX->calls);
     }
 
@@ -217,7 +348,7 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         );
         $probe = new HomeMainPageProbe();
         $probe->instructor = true;
-        $page = $probe->mainPage();
+        $page = $probe->pageFor(7);
 
         $this->assertIsArray($page);
         $this->assertSame('Welcome', $page['title']);
@@ -226,7 +357,8 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Welcome home', $page['body_html']);
         $this->assertStringContainsString('files/hello.png', $page['body_html']);
         $this->assertStringNotContainsString('$IMS-CC-FILEBASE$', $page['body_html']);
-        $this->assertStringContainsString('is_main = 1', $PDOX->lastSql);
+        $this->assertStringContainsString('page_id = :PID', $PDOX->lastSql);
+        $this->assertStringNotContainsString('is_main = 1', $PDOX->lastSql);
         $this->assertStringNotContainsString('published = 1', $PDOX->lastSql);
     }
 
@@ -250,7 +382,7 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         );
         $probe = new HomeMainPageProbe();
         $probe->instructor = true;
-        $page = $probe->mainPage();
+        $page = $probe->pageFor(7);
 
         $this->assertIsArray($page);
         $html = $page['body_html'];
@@ -265,18 +397,22 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('srcset="https://cdn.example.com/a.png 1x, /root.png 400w"', $html);
     }
 
-    public function testStudentHomeRequiresAPublishedMainPage() {
+    public function testStudentSkipsAnUnpublishedPage() {
         global $PDOX;
         $this->setContext(42);
-        $PDOX->row = false;
+        $PDOX->row = array(
+            'page_id' => 7,
+            'title' => 'Welcome',
+            'body' => '<p>Welcome home</p>',
+            'published' => 0,
+        );
         $probe = new HomeMainPageProbe();
         $probe->instructor = false;
-        $this->assertNull($probe->mainPage());
-        $this->assertStringContainsString('is_main = 1', $PDOX->lastSql);
-        $this->assertStringContainsString('published = 1', $PDOX->lastSql);
+        $this->assertNull($probe->pageFor(7));
+        $this->assertStringContainsString('page_id = :PID', $PDOX->lastSql);
     }
 
-    public function testEmptyMainPageLeavesTheDefaultHome() {
+    public function testEmptyPageLeavesTheDefaultHome() {
         global $PDOX;
         $this->setContext(42);
         $PDOX->row = array(
@@ -284,10 +420,9 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
             'title' => '   ',
             'body' => '',
             'published' => 1,
-            'is_main' => 1,
         );
         $probe = new HomeMainPageProbe();
         $probe->instructor = true;
-        $this->assertNull($probe->mainPage());
+        $this->assertNull($probe->pageFor(9));
     }
 }

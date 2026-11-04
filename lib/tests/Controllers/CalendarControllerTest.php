@@ -71,4 +71,45 @@ class CalendarControllerTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertEquals('/calendar', Calendar::ROUTE, 'ROUTE constant should be /calendar');
     }
+
+    public function testDueRowsSortByDateThenTitle()
+    {
+        $rows = Calendar::sortDueRows(array(
+            array('date' => '2026-05-02', 'title' => 'B'),
+            array('date' => '2026-05-01', 'title' => 'Z'),
+            array('date' => '2026-05-02', 'title' => 'a'),
+        ));
+        $this->assertSame(array('Z', 'a', 'B'), array_column($rows, 'title'));
+    }
+
+    public function testListMarkupGroupsByDay()
+    {
+        if (!function_exists('__')) {
+            function __($s) { return $s; }
+        }
+        $html = Calendar::listMarkup(array(
+            array(
+                'date' => '2026-05-01',
+                'title' => 'Quiz',
+                'href' => '/lessons/week-1',
+                'module_title' => 'Week 1',
+                'due_mod' => 'tsugi-assignments-due-soon',
+            ),
+            array(
+                'date' => '2026-05-01',
+                'title' => 'Reading',
+                'href' => '/lessons/week-1',
+                'module_title' => 'Week 1',
+                'due_mod' => 'tsugi-assignments-due-future',
+            ),
+        ), false);
+        $this->assertStringContainsString('Due dates', $html);
+        $this->assertStringContainsString('Up next', $html);
+        $this->assertStringContainsString('May 1, 2026', $html);
+        $this->assertSame(1, substr_count($html, 'class="tsugi-due-list-date"'));
+        $quiz = strpos($html, 'Quiz');
+        $reading = strpos($html, 'Reading');
+        $this->assertNotFalse($quiz);
+        $this->assertLessThan($reading, $quiz);
+    }
 }
