@@ -20,7 +20,7 @@
         "symfony/error-handler": "7.4.8",
         "symfony/event-dispatcher": "8.0.8",
         "symfony/http-client" : ">=7.2.4 <8.1",
-        "symfony/http-foundation" : "7.4.13",
+        "symfony/http-foundation" : "7.4.19",
         "symfony/http-kernel" : "7.4.13",
         "symfony/mime" : "8.0.12",
         "symfony/polyfill-intl-idn": ">=1.38.1",
