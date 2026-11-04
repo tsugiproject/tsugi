@@ -111,7 +111,7 @@ $site_home = ! empty($site_home);
     </div>
     <?php } else { ?>
     <div class="tsugi-catalog-detail-hero tsugi-catalog-detail-placeholder">
-        <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($catalog_id) ?>
+        <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($context_id > 0 ? $context_id : $catalog_id) ?>
         <span class="tsugi-catalog-card-placeholder-title"><?= htmlspecialchars($title) ?></span>
     </div>
     <?php } ?>

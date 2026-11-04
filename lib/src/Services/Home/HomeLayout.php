@@ -9,8 +9,8 @@ use Tsugi\Services\Files\FileRepository;
  * Ordered blocks an instructor chooses for the course home page.
  *
  * Stored on lti_context.json under the "home" key so other context JSON stays put.
- * Hero, calendar, and the due-date list appear once. Page and file blocks can
- * repeat. Order is the array order.
+ * Hero, calendar, the due-date list, and a note to self appear once. Page and
+ * file blocks can repeat. Order is the array order.
  */
 class HomeLayout {
 
@@ -31,6 +31,7 @@ class HomeLayout {
                 array('type' => 'file', 'path' => '', 'place' => 'inline'),
                 array('type' => 'calendar', 'on' => false),
                 array('type' => 'dues', 'on' => false),
+                array('type' => 'notes', 'on' => false),
             ),
         );
     }
@@ -121,7 +122,7 @@ class HomeLayout {
                 'place' => self::filePlace($row['place'] ?? 'inline'),
             );
         }
-        if ( $type === 'calendar' || $type === 'dues' ) {
+        if ( $type === 'calendar' || $type === 'dues' || $type === 'notes' ) {
             return array('type' => $type, 'on' => self::flag($row['on'] ?? false));
         }
         return null;
@@ -217,9 +218,10 @@ class HomeLayout {
         $hero = self::heroPlace(array('place' => $post['hero'] ?? 'none'));
         $calendar = ! empty($post['show_calendar']);
         $dues = ! empty($post['show_dues']);
+        $notes = ! empty($post['show_notes']);
         $order = isset($post['home_order']) && is_array($post['home_order']) ? $post['home_order'] : array();
         if ( count($order) === 0 ) {
-            $order = array('hero', 'page', 'file', 'calendar', 'dues');
+            $order = array('hero', 'page', 'file', 'calendar', 'dues', 'notes');
         }
         $raw = array();
         $pageCursor = 0;
@@ -240,8 +242,16 @@ class HomeLayout {
                 $raw[] = array('type' => 'file', 'path' => $path, 'place' => $place);
             } elseif ( $type === 'hero' ) {
                 $raw[] = array('type' => 'hero', 'place' => $hero);
-            } elseif ( $type === 'calendar' || $type === 'dues' ) {
-                $raw[] = array('type' => $type, 'on' => $type === 'calendar' ? $calendar : $dues);
+            } elseif ( $type === 'calendar' || $type === 'dues' || $type === 'notes' ) {
+                $on = false;
+                if ( $type === 'calendar' ) {
+                    $on = $calendar;
+                } elseif ( $type === 'dues' ) {
+                    $on = $dues;
+                } else {
+                    $on = $notes;
+                }
+                $raw[] = array('type' => $type, 'on' => $on);
             }
         }
         return self::normalize(array('blocks' => $raw));

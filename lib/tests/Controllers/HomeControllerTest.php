@@ -205,6 +205,23 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('not published', $html);
     }
 
+    public function testStudentNotesAppearWhenTheBlockIsOn() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'notes_save_url' => '/courses/42/home/notes',
+            'student_note' => "Don't forget the midterm.",
+            'layout' => array('blocks' => array(
+                array('type' => 'notes', 'on' => true),
+            )),
+        ));
+        $this->assertStringContainsString('Note to self', $html);
+        $this->assertStringContainsString('name="student_note"', $html);
+        $this->assertStringContainsString('maxlength="500"', $html);
+        $this->assertStringContainsString('Don&#039;t forget the midterm.', $html);
+        $this->assertStringContainsString('/courses/42/home/notes', $html);
+        $this->assertStringNotContainsString('Please configure the home page', $html);
+    }
+
     public function testHeroStaysOffUntilTheRadioIncludesIt() {
         $html = $this->renderHome(array(
             'course_title' => 'Django for Everybody',

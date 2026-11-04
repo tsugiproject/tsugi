@@ -14,6 +14,8 @@
  *   $hero_url
  *   $calendar_html
  *   $dues_html
+ *   $student_note (plain text for the signed-in person)
+ *   $notes_save_url (empty unless the notes block is on)
  */
 $course_title = isset($course_title) ? trim((string) $course_title) : '';
 $layout = (isset($layout) && is_array($layout)) ? $layout : array('blocks' => array());
@@ -28,6 +30,8 @@ $hero_url = isset($hero_url) ? trim((string) $hero_url) : '';
 $context_id = isset($context_id) ? (int) $context_id : 0;
 $calendar_html = isset($calendar_html) ? (string) $calendar_html : '';
 $dues_html = isset($dues_html) ? (string) $dues_html : '';
+$student_note = isset($student_note) ? (string) $student_note : '';
+$notes_save_url = isset($notes_save_url) ? (string) $notes_save_url : '';
 $hero_alt = $course_title !== '' ? $course_title : __('Course image');
 $renderPageOptions = function ($selected) use ($pages) {
     $selected = (int) $selected;
@@ -164,6 +168,8 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 .tsugi-home-clear { clear: both; }
 .tsugi-home-block { margin: 0 0 1.5em; }
 .tsugi-home-page-title { display: flex; justify-content: space-between; align-items: center; gap: 0.75em; }
+.tsugi-home-note { max-width: 40em; }
+.tsugi-home-note textarea { max-width: 100%; }
 </style>
 <?php if ( $course_title !== '' || $can_configure ) { ?>
 <div class="tsugi-home-top">
@@ -243,6 +249,12 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
                         <?= __('Show due date list') ?>
                     </label>
                     <span class="help-block"><?= __('A simple list of assignment due dates. The same list is on the calendar page.') ?></span>
+                    <?php } elseif ( $type === 'notes' ) { ?>
+                    <label>
+                        <input type="checkbox" name="show_notes" value="1"<?= ! empty($block['on']) ? ' checked' : '' ?>>
+                        <?= __('Show note to self') ?>
+                    </label>
+                    <span class="help-block"><?= __('A short plain-text note to yourself for this course.') ?></span>
                     <?php } ?>
                 </td>
                 <td>
@@ -492,6 +504,22 @@ foreach ( $blocks as $block ) {
     } elseif ( $type === 'dues' && ! empty($block['on']) && $dues_html !== '' ) {
         $configured = true;
         echo '<section class="tsugi-home-block" aria-label="'.htmlspecialchars(__('Due dates')).'">'.$dues_html.'</section>';
+    } elseif ( $type === 'notes' && ! empty($block['on']) ) {
+        $configured = true;
+        ?>
+<section class="tsugi-home-block tsugi-home-note" aria-label="<?= htmlspecialchars(__('Note to self')) ?>">
+    <form method="post" action="<?= htmlspecialchars($notes_save_url) ?>">
+        <?= \Tsugi\Controllers\Home::csrfField() ?>
+        <h2 class="tsugi-home-page-title">
+            <span><?= __('Note to self') ?></span>
+            <button type="submit" class="btn btn-primary"><?= __('Save note') ?></button>
+        </h2>
+        <label class="sr-only" for="student_note"><?= __('Note to self') ?></label>
+        <textarea id="student_note" name="student_note" class="form-control" rows="4" maxlength="500"><?= htmlspecialchars($student_note) ?></textarea>
+        <p class="help-block"><?= __('Up to 500 characters. Plain text.') ?></p>
+    </form>
+</section>
+        <?php
     }
 }
 if ( ! $configured ) { ?>

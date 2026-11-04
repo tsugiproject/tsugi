@@ -12,6 +12,7 @@ use Tsugi\Core\ContextImages;
 use Tsugi\Core\ReqScope;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Home\HomeLayout;
+use Tsugi\Services\Notes\StudentNoteRepository;
 use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Util\CCFileBase;
 
@@ -19,9 +20,9 @@ use Tsugi\Util\CCFileBase;
  * Course home: site-wide at /home, course-mounted at /courses/{id}/home.
  *
  * Instructors pick an ordered set of blocks (hero, pages, course files, the
- * month calendar, and the due-date list) with the gear on this screen. Keep
- * HTTP and chrome here. Nested dispatch from Courses keeps REQUEST_URI
- * prefixed, so isCourseRoute() and toolHome() work.
+ * month calendar, the due-date list, and a note to self) with the gear on this
+ * screen. Keep HTTP and chrome here. Nested dispatch from Courses keeps
+ * REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
  *
  * Parent menus (site URLs only):
  * if ( \Tsugi\Controllers\Home::showInMenu() ) {
@@ -46,6 +47,7 @@ class Home extends Tool {
         $app->router->get($prefix.'/', 'Home@index');
         $app->router->post($prefix, 'Home@save');
         $app->router->post($prefix.'/', 'Home@save');
+        $app->router->post($prefix.'/notes', 'Home@saveNote');
         $app->router->get('/'.self::REDIRECT, 'Home@index');
     }
 
@@ -59,6 +61,7 @@ class Home extends Tool {
         $hero = HomeLayout::block($layout, 'hero');
         $calendar = HomeLayout::block($layout, 'calendar');
         $dues = HomeLayout::block($layout, 'dues');
+        $notes = HomeLayout::block($layout, 'notes');
         $pageBlocks = array();
         foreach ( $layout['blocks'] as $block ) {
             if ( ($block['type'] ?? '') !== 'page' ) {
@@ -99,6 +102,11 @@ class Home extends Tool {
                 'image' => ! empty($file['image']),
             );
         }
+        $notesOn = is_array($notes) && ! empty($notes['on']);
+        $studentNote = '';
+        if ( $notesOn ) {
+            $studentNote = StudentNoteRepository::load($context_id, ReqScope::loggedInUserId());
+        }
         $heroPlace = is_array($hero) ? (string) ($hero['place'] ?? 'none') : 'none';
         $this->render('index.inc.php', array(
             'course_title' => $this->courseTitle(),
@@ -113,6 +121,8 @@ class Home extends Tool {
             'calendar_html' => $calendarHtml,
             'dues_html' => $duesHtml,
             'context_id' => $context_id,
+            'student_note' => $studentNote,
+            'notes_save_url' => $notesOn ? U::addSession($this->toolHome(self::ROUTE).'/notes') : '',
         ));
     }
 
@@ -148,6 +158,35 @@ class Home extends Tool {
         }
         HomeLayout::save($context_id, HomeLayout::fromPost($_POST, $ids, $paths));
         U::flashSuccess(__('Home page updated.'));
+        return new RedirectResponse($home);
+    }
+
+    /**
+     * Save the signed-in person's note to self and return to this page.
+     */
+    public function saveNote(Request $request)
+    {
+        $this->requireAuth();
+        LTIX::getConnection();
+        $home = U::addSession($this->toolHome(self::ROUTE));
+        $csrf = self::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
+        $notes = HomeLayout::block(HomeLayout::load($context_id), 'notes');
+        if ( $context_id < 1 || $user_id < 1 || ! is_array($notes) || empty($notes['on']) ) {
+            U::flashError(__('Note to self is not on for this course.'));
+            return new RedirectResponse($home);
+        }
+        $body = StudentNoteRepository::plain(isset($_POST['student_note']) ? $_POST['student_note'] : '');
+        if ( $body === null ) {
+            U::flashError(__('A note to self is limited to 500 characters.'));
+            return new RedirectResponse($home);
+        }
+        StudentNoteRepository::save($context_id, $user_id, $body);
+        U::flashSuccess($body === '' ? __('Note to self cleared.') : __('Note to self saved.'));
         return new RedirectResponse($home);
     }
 

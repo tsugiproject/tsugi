@@ -12,7 +12,7 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
             'show_dues' => '1',
         ), array(7, 8));
 
-        $this->assertSame(array('dues', 'page', 'page', 'hero', 'calendar', 'file'), array_column($doc['blocks'], 'type'));
+        $this->assertSame(array('dues', 'page', 'page', 'hero', 'calendar', 'file', 'notes'), array_column($doc['blocks'], 'type'));
         $this->assertTrue($doc['blocks'][0]['on']);
         $this->assertSame(8, $doc['blocks'][1]['page_id']);
         $this->assertSame(7, $doc['blocks'][2]['page_id']);
@@ -60,10 +60,11 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
             'show_calendar' => '1',
             'page_id' => '8',
         ), array(8));
-        $this->assertSame(array('hero', 'page', 'file', 'calendar', 'dues'), array_column($doc['blocks'], 'type'));
+        $this->assertSame(array('hero', 'page', 'file', 'calendar', 'dues', 'notes'), array_column($doc['blocks'], 'type'));
         $this->assertSame('center', HomeLayout::block($doc, 'hero')['place']);
         $this->assertTrue(HomeLayout::block($doc, 'calendar')['on']);
         $this->assertFalse(HomeLayout::block($doc, 'dues')['on']);
+        $this->assertFalse(HomeLayout::block($doc, 'notes')['on']);
         $this->assertSame(8, HomeLayout::block($doc, 'page')['page_id']);
     }
 
@@ -86,7 +87,7 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
                 array('type' => 'page', 'page_id' => 4),
             ),
         ));
-        $this->assertSame(array('calendar', 'page', 'page', 'hero', 'file', 'dues'), array_column($doc['blocks'], 'type'));
+        $this->assertSame(array('calendar', 'page', 'page', 'hero', 'file', 'dues', 'notes'), array_column($doc['blocks'], 'type'));
         $this->assertTrue($doc['blocks'][0]['on']);
         $this->assertSame(3, $doc['blocks'][1]['page_id']);
         $this->assertSame(4, $doc['blocks'][2]['page_id']);
