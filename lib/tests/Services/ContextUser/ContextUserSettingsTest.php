@@ -99,7 +99,7 @@ class ContextUserSettingsTest extends \PHPUnit\Framework\TestCase
 
             $this->clearSettingsRequestCache();
             ContextUserSettings::load(8, 3);
-            $this->assertSame(3, $pdo->reads);
+            $this->assertSame(4, $pdo->reads);
         } finally {
             $this->clearSettingsRequestCache();
             $CFG = $previousCfg;

@@ -50,9 +50,10 @@ class ContextUserSettings {
     /**
      * @param int $context_id
      * @param int $user_id
+     * @param bool $fresh True skips the session copy. Saves use this so a write cannot clobber another device.
      * @return array{note:string,settings:array<string,mixed>}
      */
-    public static function load($context_id, $user_id) {
+    public static function load($context_id, $user_id, $fresh = false) {
         global $CFG, $PDOX;
 
         $empty = array('note' => '', 'settings' => array());
@@ -62,10 +63,10 @@ class ContextUserSettings {
             return $empty;
         }
         $key = $context_id.':'.$user_id;
-        if ( isset(self::$cache[$key]) ) {
+        if ( ! $fresh && isset(self::$cache[$key]) ) {
             return self::$cache[$key];
         }
-        $session = self::sessionRow($context_id, $user_id);
+        $session = $fresh ? null : self::sessionRow($context_id, $user_id);
         if ( $session !== null ) {
             self::$cache[$key] = $session;
             return $session;
@@ -98,7 +99,7 @@ class ContextUserSettings {
      * @param string $note Already passed through plain()
      */
     public static function saveNote($context_id, $user_id, $note) {
-        $row = self::load($context_id, $user_id);
+        $row = self::load($context_id, $user_id, true);
         $row['note'] = (string) $note;
         self::store($context_id, $user_id, $row, 'note');
     }
@@ -111,7 +112,7 @@ class ContextUserSettings {
      * @param list<string> $off
      */
     public static function saveHomeOff($context_id, $user_id, array $off) {
-        $row = self::load($context_id, $user_id);
+        $row = self::load($context_id, $user_id, true);
         $clean = array();
         foreach ( $off as $key ) {
             if ( ! is_string($key) || $key === '' || strlen($key) > 512 ) {
@@ -140,7 +141,7 @@ class ContextUserSettings {
      * @param array{home_off:list<string>,view?:string,hide_steps?:bool} $changes
      */
     public static function saveGear($context_id, $user_id, array $changes) {
-        $row = self::load($context_id, $user_id);
+        $row = self::load($context_id, $user_id, true);
         $off = isset($changes['home_off']) && is_array($changes['home_off']) ? $changes['home_off'] : array();
         $clean = array();
         foreach ( $off as $key ) {
@@ -403,8 +404,16 @@ class ContextUserSettings {
         if ( ! empty($_SESSION['isinstructor']) || ! empty($_SESSION['instructor']) ) {
             return true;
         }
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
         try {
-            return \Tsugi\Controllers\Settings::showInMenu();
+            $context_id = ReqScope::currentContextId();
+            $user_id = ReqScope::loggedInUserId();
+            if ( $context_id < 1 || $user_id < 1 ) {
+                return false;
+            }
+            return \Tsugi\Core\Membership::ensureInSession($context_id, $user_id)->isInstructor();
         } catch ( \Throwable $e ) {
             return false;
         }

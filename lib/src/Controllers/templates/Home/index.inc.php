@@ -653,7 +653,7 @@ foreach ( $home_choices as $choice ) {
         break;
     }
 }
-if ( ! $configured && $show_student_gear && ! $anything_shown ) { ?>
+if ( ! $configured && $show_student_gear && count($home_choices) > 0 && ! $anything_shown ) { ?>
     <p><?= __('Everything on the home page is hidden. Open the gear to show it again.') ?></p>
 <?php } ?>
 <div class="tsugi-home-clear"></div>

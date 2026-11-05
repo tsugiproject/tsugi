@@ -184,16 +184,17 @@ class Content extends Lessons {
     placeSelected(nav, false);
 
     if (!nav) return;
+    bindCardHits(nav);
     bindDescriptions(nav);
     var pending = 0;
     var finish = null;
     nav.addEventListener("click", function (e) {
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         if (e.target.closest(".tsugi-card-more, .tsugi-card-popup")) return;
-        var link = e.target.closest("a.tsugi-lessons-module-card-link");
-        if (!link || !nav.contains(link)) return;
-        var card = link.closest("article.card");
-        if (!card) return;
+        var card = e.target.closest("article.card");
+        if (!card || !nav.contains(card)) return;
+        var link = card.querySelector("a.tsugi-lessons-module-card-link");
+        if (!link) return;
         if (card.classList.contains("tsugi-outline-selected")) {
             e.preventDefault();
             return;
@@ -288,35 +289,59 @@ class Content extends Lessons {
         more.setAttribute("aria-expanded", "true");
         openPop = pop;
     }
+    function bindCardHits(navEl) {
+        navEl.querySelectorAll("article.card").forEach(function (card) {
+            if (card.querySelector(".tsugi-card-hit")) return;
+            var link = card.querySelector("a.tsugi-lessons-module-card-link");
+            if (!link) return;
+            var hit = document.createElement("a");
+            hit.className = "tsugi-card-hit";
+            hit.href = link.getAttribute("href") || "";
+            hit.tabIndex = -1;
+            hit.setAttribute("aria-hidden", "true");
+            card.appendChild(hit);
+        });
+    }
     function bindDescriptions(navEl) {
         var label = '.json_encode(__('Full description')).';
+        var popupId = 0;
         navEl.querySelectorAll(".tsugi-card-description").forEach(function (desc) {
             if (desc.scrollHeight <= desc.clientHeight + 1) return;
             var full = desc.textContent.replace(/\s+/g, " ").trim();
             if (!full) return;
+            var card = desc.closest("article.card");
+            if (!card) return;
+            var id = "tsugi-card-popup-" + popupId++;
             var more = document.createElement("button");
             more.type = "button";
             more.className = "tsugi-card-more";
             more.textContent = "…";
             more.setAttribute("aria-label", label);
             more.setAttribute("aria-expanded", "false");
+            more.setAttribute("aria-describedby", id);
             var pop = document.createElement("div");
+            pop.id = id;
             pop.className = "tsugi-card-popup";
             pop.setAttribute("role", "tooltip");
             pop.hidden = true;
             pop.textContent = full;
             pop._more = more;
             document.body.appendChild(pop);
-            desc.appendChild(more);
-            function open(e) {
+            card.appendChild(more);
+            more.addEventListener("click", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                if (openPop === pop) hidePop();
-                else showPop(pop, more);
-            }
-            more.addEventListener("click", open);
+                showPop(pop, more);
+            });
             more.addEventListener("mouseenter", function () { showPop(pop, more); });
             more.addEventListener("focus", function () { showPop(pop, more); });
+            more.addEventListener("blur", function () {
+                window.setTimeout(function () {
+                    if (openPop !== pop) return;
+                    if (document.activeElement === more || pop.contains(document.activeElement)) return;
+                    hidePop();
+                }, 0);
+            });
             more.addEventListener("mouseleave", function () {
                 window.setTimeout(function () {
                     if (openPop === pop && !pop.matches(":hover") && document.activeElement !== more) hidePop();
@@ -375,12 +400,14 @@ class Content extends Lessons {
 }
 .tsugi-outline-nav .card {
     display: block;
+    position: relative;
     width: auto;
     height: auto;
     max-height: none;
     margin: 0 0 0.5rem 0;
     border: 2px solid #444;
     border-radius: 0.4rem;
+    cursor: pointer;
     transition: background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .tsugi-outline-main.tsugi-outline-leave {
@@ -424,10 +451,17 @@ class Content extends Lessons {
     overflow: hidden;
     position: relative;
 }
+.tsugi-outline-nav .tsugi-card-hit {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+}
 .tsugi-outline-nav .tsugi-card-more {
     position: absolute;
-    right: 0;
-    bottom: 0;
+    right: 0.5em;
+    bottom: 0.45em;
+    z-index: 2;
     margin: 0;
     padding: 0 0.1em 0 1.15em;
     border: 0;

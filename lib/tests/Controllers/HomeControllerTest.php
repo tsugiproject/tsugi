@@ -291,6 +291,7 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('name="show_steps"', $html);
         $this->assertStringNotContainsString('name="show_steps" value="1" checked', $html);
         $this->assertStringNotContainsString('Include hero image', $html);
+        $this->assertStringNotContainsString('Everything on the home page is hidden.', $html);
     }
 
     public function testStudentHidingEverythingLeavesTheGear() {

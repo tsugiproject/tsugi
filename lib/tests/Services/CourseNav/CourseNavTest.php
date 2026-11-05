@@ -865,41 +865,47 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     public function testMenuTextStaysWithTheDefaultView()
     {
-        $_SERVER['REQUEST_URI'] = '/courses/42/home';
-        $user = new \stdClass();
-        $user->id = 3;
-        $scope = new \stdClass();
-        $scope->user = $user;
-        $current = new \ReflectionProperty(ReqScope::class, 'current');
-        $current->setValue(null, $scope);
-        \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
-            'user_id' => 3,
-            'note' => '',
-            'settings' => array('view' => 'content'),
-        ));
-        $doc = array(
-            'items' => array(
-                array('id' => 'lessons', 'left' => true, 'default' => true, 'available' => true),
-                array('id' => 'content', 'left' => true, 'available' => true),
-            ),
-        );
-        $set = CourseNav::compile($doc, 42);
-        $this->assertSame('Lessons', $set->left->menu[0]->link);
-        $this->assertStringContainsString('/content', $set->left->menu[0]->href);
+        try {
+            $_SERVER['REQUEST_URI'] = '/courses/42/home';
+            $user = new \stdClass();
+            $user->id = 3;
+            $scope = new \stdClass();
+            $scope->user = $user;
+            $current = new \ReflectionProperty(ReqScope::class, 'current');
+            $current->setValue(null, $scope);
+            \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+                'user_id' => 3,
+                'note' => '',
+                'settings' => array('view' => 'content'),
+            ));
+            $doc = array(
+                'items' => array(
+                    array('id' => 'lessons', 'left' => true, 'default' => true, 'available' => true),
+                    array('id' => 'content', 'left' => true, 'available' => true),
+                ),
+            );
+            $set = CourseNav::compile($doc, 42);
+            $this->assertSame('Lessons', $set->left->menu[0]->link);
+            $this->assertStringContainsString('/content', $set->left->menu[0]->href);
 
-        \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
-            'user_id' => 3,
-            'note' => '',
-            'settings' => array('view' => 'outline'),
-        ));
-        $ref = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
-        $ref->setValue(null, array());
-        $doc['items'][0]['default'] = false;
-        $doc['items'][] = array('id' => 'outline', 'left' => true, 'available' => true);
-        $doc['items'][1]['default'] = true;
-        $set = CourseNav::compile($doc, 42);
-        $this->assertSame('Content', $set->left->menu[0]->link);
-        $this->assertStringContainsString('/outline', $set->left->menu[0]->href);
+            \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+                'user_id' => 3,
+                'note' => '',
+                'settings' => array('view' => 'outline'),
+            ));
+            $ref = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
+            $ref->setValue(null, array());
+            $doc['items'][0]['default'] = false;
+            $doc['items'][] = array('id' => 'outline', 'left' => true, 'available' => true);
+            $doc['items'][1]['default'] = true;
+            $set = CourseNav::compile($doc, 42);
+            $this->assertSame('Content', $set->left->menu[0]->link);
+            $this->assertStringContainsString('/outline', $set->left->menu[0]->href);
+        } finally {
+            ReqScope::reset();
+            $ref = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
+            $ref->setValue(null, array());
+        }
     }
 
     public function testCompileUsesCustomHomeLabel()
