@@ -3,6 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumos\Application;
 use Tsugi\Services\Lessons\LessonsService;
 use Symfony\Component\HttpFoundation\Request;
@@ -162,6 +163,15 @@ class Outline extends Lessons {
         echo('<button type="button" class="tsugi-tree-all" data-tree-all="shut">'.htmlspecialchars(__('Contract all'), ENT_QUOTES, 'UTF-8').'</button>');
         echo("</div>\n");
 
+        $allgrades = array();
+        foreach ( GradeUtil::loadGradesCurrentUser() as $row ) {
+            $allgrades[$row['resource_link_id']] = $row['grade'];
+        }
+        $duedates = array();
+        if ( ReqScope::currentContextId() !== 0 ) {
+            $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
+        }
+
         $modules = (isset($lessons->lessons->modules) && is_array($lessons->lessons->modules))
             ? $lessons->lessons->modules : array();
         $index = 0;
@@ -189,6 +199,16 @@ class Outline extends Lessons {
             }
             $moduleTitle = isset($module->title) ? (string) $module->title : '';
             echo(htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8'));
+            $modProgress = $lessons->moduleLtiProgressPoints($module, $allgrades, $duedates);
+            self::echoModuleAggregateProgressBadge(
+                $lessons,
+                $modProgress[0],
+                $modProgress[1],
+                $modProgress[2],
+                $allgrades,
+                $duedates,
+                true
+            );
             echo('</h2></div>');
             echo('<div class="tsugi-tree-module-body" id="'.htmlspecialchars($bodyId, ENT_QUOTES, 'UTF-8').'">');
 

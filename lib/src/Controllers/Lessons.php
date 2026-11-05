@@ -1664,7 +1664,7 @@ $(function(){
      * @param array<string,array<string,mixed>> $duedates
      * @param bool $show_rollup_due_date If false (all-modules cards), status-only due badge (no date). Rollup Upcoming: show percent if above zero; at 0% cards show nothing, single-module title still shows upcoming due badge with date.
      */
-    private static function echoModuleAggregateProgressBadge(\Tsugi\Services\Lessons\LessonsService $lessons, $possible_points, $actual_points, $rlids, $allgrades, $duedates, $show_rollup_due_date = true) {
+    protected static function echoModuleAggregateProgressBadge(\Tsugi\Services\Lessons\LessonsService $lessons, $possible_points, $actual_points, $rlids, $allgrades, $duedates, $show_rollup_due_date = true) {
         if ( $possible_points <= 0 ) {
             return;
         }
