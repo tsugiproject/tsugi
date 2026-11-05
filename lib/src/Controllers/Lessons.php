@@ -2762,7 +2762,7 @@ $(function(){
         echo('<img height="16" width="16" alt="" src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
     }
 
-    private static function echoClassroomModuleInstall($anchor, $title) {
+    protected static function echoClassroomModuleInstall($anchor, $title) {
         global $CFG;
         if ( ! self::lessonsUseManifest() ) {
             return;

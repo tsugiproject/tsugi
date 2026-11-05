@@ -209,6 +209,9 @@ class Outline extends Lessons {
                 $duedates,
                 true
             );
+            if ( $anchor !== '' ) {
+                self::echoClassroomModuleInstall($anchor, $moduleTitle);
+            }
             echo('</h2></div>');
             echo('<div class="tsugi-tree-module-body" id="'.htmlspecialchars($bodyId, ENT_QUOTES, 'UTF-8').'">');
 
