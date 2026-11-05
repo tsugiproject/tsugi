@@ -170,6 +170,9 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 .tsugi-home-page-title { display: flex; justify-content: space-between; align-items: center; gap: 0.75em; }
 .tsugi-home-note { max-width: 40em; }
 .tsugi-home-note textarea { max-width: 100%; }
+.tsugi-home-note [hidden] { display: none !important; }
+.tsugi-home-note-actions { display: flex; align-items: center; gap: 0.4em; }
+.tsugi-home-note-text { white-space: pre-wrap; margin: 0; }
 </style>
 <?php if ( $course_title !== '' || $can_configure ) { ?>
 <div class="tsugi-home-top">
@@ -507,18 +510,64 @@ foreach ( $blocks as $block ) {
     } elseif ( $type === 'notes' && ! empty($block['on']) ) {
         $configured = true;
         ?>
-<section class="tsugi-home-block tsugi-home-note" aria-label="<?= htmlspecialchars(__('Note to self')) ?>">
+<section class="tsugi-home-block tsugi-home-note" id="tsugi-home-note" aria-label="<?= htmlspecialchars(__('Note to self')) ?>">
     <form method="post" action="<?= htmlspecialchars($notes_save_url) ?>">
         <?= \Tsugi\Controllers\Home::csrfField() ?>
         <h2 class="tsugi-home-page-title">
             <span><?= __('Note to self') ?></span>
-            <button type="submit" class="btn btn-primary"><?= __('Save note') ?></button>
+            <span class="tsugi-home-note-actions">
+                <button type="button" class="btn btn-primary tsugi-home-note-edit"><?= __('Edit') ?></button>
+                <button type="button" class="btn btn-default tsugi-home-note-cancel" hidden><?= __('Cancel') ?></button>
+                <button type="submit" class="btn btn-primary tsugi-home-note-save" hidden><?= __('Save') ?></button>
+            </span>
         </h2>
-        <label class="sr-only" for="student_note"><?= __('Note to self') ?></label>
-        <textarea id="student_note" name="student_note" class="form-control" rows="4" maxlength="500"><?= htmlspecialchars($student_note) ?></textarea>
-        <p class="help-block"><?= __('Up to 500 characters. Plain text.') ?></p>
+        <?php if ( $student_note !== '' ) { ?>
+        <p class="tsugi-home-note-text"><?= htmlspecialchars($student_note) ?></p>
+        <?php } ?>
+        <div class="tsugi-home-note-editor" hidden>
+            <label class="sr-only" for="student_note"><?= __('Note to self') ?></label>
+            <textarea id="student_note" name="student_note" class="form-control" rows="4" maxlength="500"><?= htmlspecialchars($student_note) ?></textarea>
+            <p class="help-block"><?= __('Up to 500 characters. Plain text.') ?></p>
+        </div>
     </form>
 </section>
+<script>
+(function () {
+    var section = document.getElementById('tsugi-home-note');
+    if (!section) return;
+    var edit = section.querySelector('.tsugi-home-note-edit');
+    var cancel = section.querySelector('.tsugi-home-note-cancel');
+    var save = section.querySelector('.tsugi-home-note-save');
+    var editor = section.querySelector('.tsugi-home-note-editor');
+    var text = section.querySelector('.tsugi-home-note-text');
+    var area = section.querySelector('textarea');
+    if (!edit || !cancel || !save || !editor || !area) return;
+    function dirty() {
+        return area.value !== area.defaultValue;
+    }
+    function openEditor() {
+        editor.hidden = false;
+        if (text) text.hidden = true;
+        edit.hidden = true;
+        save.hidden = false;
+        cancel.hidden = !dirty();
+        area.focus();
+    }
+    function closeEditor() {
+        area.value = area.defaultValue;
+        editor.hidden = true;
+        save.hidden = true;
+        cancel.hidden = true;
+        edit.hidden = false;
+        if (text) text.hidden = false;
+    }
+    edit.addEventListener('click', openEditor);
+    cancel.addEventListener('click', closeEditor);
+    area.addEventListener('input', function () {
+        cancel.hidden = !dirty();
+    });
+})();
+</script>
         <?php
     }
 }

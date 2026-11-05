@@ -218,8 +218,27 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('name="student_note"', $html);
         $this->assertStringContainsString('maxlength="500"', $html);
         $this->assertStringContainsString('Don&#039;t forget the midterm.', $html);
+        $this->assertStringContainsString('tsugi-home-note-text', $html);
+        $this->assertStringContainsString('tsugi-home-note-editor" hidden', $html);
+        $this->assertStringContainsString('>Edit</button>', $html);
         $this->assertStringContainsString('/courses/42/home/notes', $html);
         $this->assertStringNotContainsString('Please configure the home page', $html);
+    }
+
+    public function testBlankStudentNoteShowsOnlyEdit() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'notes_save_url' => '/courses/42/home/notes',
+            'student_note' => '',
+            'layout' => array('blocks' => array(
+                array('type' => 'notes', 'on' => true),
+            )),
+        ));
+        $this->assertStringContainsString('tsugi-home-note-edit', $html);
+        $this->assertStringNotContainsString('class="tsugi-home-note-text"', $html);
+        $this->assertStringContainsString('tsugi-home-note-editor" hidden', $html);
+        $this->assertStringContainsString('tsugi-home-note-save" hidden', $html);
+        $this->assertStringContainsString('tsugi-home-note-cancel" hidden', $html);
     }
 
     public function testHeroStaysOffUntilTheRadioIncludesIt() {
