@@ -18,6 +18,10 @@
  *   $notes_save_url (empty unless the notes block is on)
  *   $home_choices (key, label, shown) blocks a student can show or hide
  *   $home_off (key => true) blocks this person hid
+ *   $content_views (id, label) reading views the instructor allows, when there are two or more
+ *   $content_view (lessons, content, outline, or empty for all of them)
+ *   $steps_offer (course progress checkboxes are on)
+ *   $steps_on (this person still wants those checkboxes)
  *   $settings_save_url
  */
 $course_title = isset($course_title) ? trim((string) $course_title) : '';
@@ -37,8 +41,12 @@ $student_note = isset($student_note) ? (string) $student_note : '';
 $notes_save_url = isset($notes_save_url) ? (string) $notes_save_url : '';
 $home_choices = (isset($home_choices) && is_array($home_choices)) ? $home_choices : array();
 $home_off = (isset($home_off) && is_array($home_off)) ? $home_off : array();
+$content_views = (isset($content_views) && is_array($content_views)) ? $content_views : array();
+$content_view = isset($content_view) ? (string) $content_view : '';
+$steps_offer = ! empty($steps_offer);
+$steps_on = ! isset($steps_on) || ! empty($steps_on);
 $settings_save_url = isset($settings_save_url) ? (string) $settings_save_url : '';
-$show_student_gear = ! $can_configure && count($home_choices) > 0;
+$show_student_gear = ! $can_configure && (count($home_choices) > 0 || count($content_views) >= 2 || $steps_offer);
 $show_gear = $can_configure || $show_student_gear;
 $hero_alt = $course_title !== '' ? $course_title : __('Course image');
 $renderPageOptions = function ($selected) use ($pages) {
@@ -328,6 +336,7 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
     </summary>
     <form class="tsugi-home-config-panel tsugi-home-settings" method="post" action="<?= htmlspecialchars($settings_save_url) ?>">
         <?= \Tsugi\Controllers\Home::csrfField() ?>
+        <?php if ( count($home_choices) > 0 ) { ?>
         <p><?= __('Choose which parts of the home page you want to see. This only changes what you see.') ?></p>
         <?php foreach ( $home_choices as $choice ) {
             if ( ! is_array($choice) || empty($choice['key']) ) {
@@ -339,6 +348,32 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
         <label>
             <input type="checkbox" name="home_show[]" value="<?= htmlspecialchars($choiceKey, ENT_QUOTES, 'UTF-8') ?>"<?= ! empty($choice['shown']) ? ' checked' : '' ?>>
             <?= htmlspecialchars($choiceLabel) ?>
+        </label>
+        <?php } ?>
+        <?php } ?>
+        <?php if ( count($content_views) >= 2 ) { ?>
+        <p><?= __('How do you want to read the course? Until you pick one, the menu shows the default view.') ?></p>
+        <label>
+            <input type="radio" name="content_view" value=""<?= $content_view === '' ? ' checked' : '' ?>>
+            <?= __('Default view') ?>
+        </label>
+        <?php foreach ( $content_views as $view ) {
+            if ( ! is_array($view) || empty($view['id']) ) {
+                continue;
+            }
+            $viewId = (string) $view['id'];
+            $viewLabel = isset($view['label']) ? (string) $view['label'] : $viewId;
+            ?>
+        <label>
+            <input type="radio" name="content_view" value="<?= htmlspecialchars($viewId, ENT_QUOTES, 'UTF-8') ?>"<?= $content_view === $viewId ? ' checked' : '' ?>>
+            <?= htmlspecialchars($viewLabel) ?>
+        </label>
+        <?php } ?>
+        <?php } ?>
+        <?php if ( $steps_offer ) { ?>
+        <label>
+            <input type="checkbox" name="show_steps" value="1"<?= $steps_on ? ' checked' : '' ?>>
+            <?= __('Show progress checkboxes') ?>
         </label>
         <?php } ?>
         <button type="submit" class="btn btn-primary"><?= __('Save settings') ?></button>

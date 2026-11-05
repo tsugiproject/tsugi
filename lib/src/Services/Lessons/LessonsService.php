@@ -14,6 +14,7 @@ use \Tsugi\Services\Outbound\LtiContentService;
 use \Tsugi\Services\Quiz1\Quiz1Repository;
 
 use \Tsugi\Core\ReqScope;
+use \Tsugi\Services\ContextUser\ContextUserSettings;
 
 if ( ! class_exists(__NAMESPACE__.'\\LessonsNormalize', false) ) {
     require_once __DIR__ . '/LessonsNormalize.php';
@@ -103,6 +104,16 @@ class LessonsService {
      * The same key is the course manifest and a file-based lessons.json.
      */
     public function stepsEnabled() {
+        if ( ! $this->courseStepsOn() ) {
+            return false;
+        }
+        return ! ContextUserSettings::stepsHiddenForCurrentUser();
+    }
+
+    /**
+     * The course document's own flag. Missing means on.
+     */
+    public function courseStepsOn() {
         if ( ! isset($this->lessons) || ! is_object($this->lessons) ) {
             return true;
         }

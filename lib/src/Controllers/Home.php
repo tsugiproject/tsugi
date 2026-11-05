@@ -9,10 +9,13 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 use Tsugi\Core\ContextImages;
+use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
 use Tsugi\Services\ContextUser\ContextUserSettings;
+use Tsugi\Services\CourseNav\CourseNav;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Home\HomeLayout;
+use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Util\CCFileBase;
 
@@ -87,6 +90,27 @@ class Home extends Tool {
         $notesOn = is_array($notes) && ! empty($notes['on']) && ! isset($homeOff['notes']);
         $studentNote = $notesOn ? $prefs['note'] : '';
         $homeChoices = $instructor ? array() : $this->studentHomeChoices($layout, $pageBlocks, $fileBlocks, $homeOff);
+        $contentViews = array();
+        $contentView = '';
+        $stepsOffer = false;
+        $stepsOn = true;
+        if ( ! $instructor ) {
+            $offeredViews = CourseNav::studentContentViews(Manifest::navigationDocumentForContext($context_id));
+            $contentView = ContextUserSettings::contentView($prefs['settings']);
+            if ( $contentView !== '' && ! in_array($contentView, $offeredViews, true) ) {
+                $contentView = '';
+            }
+            if ( count($offeredViews) >= 2 ) {
+                foreach ( $offeredViews as $viewId ) {
+                    $contentViews[] = array(
+                        'id' => $viewId,
+                        'label' => self::contentViewLabel($viewId),
+                    );
+                }
+            }
+            $stepsOffer = $this->courseStepsOn();
+            $stepsOn = ! ContextUserSettings::stepsHidden($prefs['settings']);
+        }
         $heroPlace = is_array($hero) ? (string) ($hero['place'] ?? 'none') : 'none';
         $this->render('index.inc.php', array(
             'course_title' => $this->courseTitle(),
@@ -105,7 +129,13 @@ class Home extends Tool {
             'notes_save_url' => $notesOn ? U::addSession($this->toolHome(self::ROUTE).'/notes') : '',
             'home_choices' => $homeChoices,
             'home_off' => $homeOff,
-            'settings_save_url' => count($homeChoices) > 0 ? U::addSession($this->toolHome(self::ROUTE).'/settings') : '',
+            'content_views' => $contentViews,
+            'content_view' => $contentView,
+            'steps_offer' => $stepsOffer,
+            'steps_on' => $stepsOn,
+            'settings_save_url' => (count($homeChoices) > 0 || count($contentViews) >= 2 || $stepsOffer)
+                ? U::addSession($this->toolHome(self::ROUTE).'/settings')
+                : '',
         ));
     }
 
@@ -202,8 +232,10 @@ class Home extends Tool {
             $this->fileBlocksForHome($context_id),
             array()
         );
-        if ( count($choices) === 0 ) {
-            U::flashError(__('Nothing on the home page can be hidden.'));
+        $offeredViews = CourseNav::studentContentViews(Manifest::navigationDocumentForContext($context_id));
+        $stepsOffer = $this->courseStepsOn();
+        if ( count($choices) === 0 && count($offeredViews) < 2 && ! $stepsOffer ) {
+            U::flashError(__('Nothing on the home page can be changed.'));
             return new RedirectResponse($home);
         }
         $offered = array();
@@ -216,9 +248,51 @@ class Home extends Tool {
             isset($_POST['home_show']) ? $_POST['home_show'] : array(),
             ContextUserSettings::homeOff($existing['settings'])
         );
-        ContextUserSettings::saveHomeOff($context_id, $user_id, $off);
+        $changes = array('home_off' => $off);
+        if ( count($offeredViews) >= 2 ) {
+            $changes['view'] = ContextUserSettings::viewFromPost(
+                isset($_POST['content_view']) ? $_POST['content_view'] : '',
+                $offeredViews
+            );
+        }
+        if ( $stepsOffer ) {
+            $changes['hide_steps'] = empty($_POST['show_steps']);
+        }
+        ContextUserSettings::saveGear($context_id, $user_id, $changes);
         U::flashSuccess(__('Home settings saved.'));
         return new RedirectResponse($home);
+    }
+
+    /**
+     * Progress checkboxes are on unless this course's document turns them off.
+     */
+    private function courseStepsOn() {
+        $doc = Manifest::currentDocument();
+        if ( ! is_array($doc) || ! isset($doc['json']) ) {
+            return false;
+        }
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            return false;
+        }
+        if ( ! array_key_exists('steps', $decoded) ) {
+            return true;
+        }
+        return LessonsService::stepsFlag($decoded['steps']);
+    }
+
+    /**
+     * @param string $viewId
+     * @return string
+     */
+    private static function contentViewLabel($viewId) {
+        if ( $viewId === 'content' ) {
+            return __('Content');
+        }
+        if ( $viewId === 'outline' ) {
+            return __('Outline');
+        }
+        return __('Card View');
     }
 
     /**

@@ -9,6 +9,8 @@ if ( ! isset($CFG) ) exit;
 //
 // lti_student_note was an earlier name for this row. It was not shipped.
 // Upgrade drops it. Nothing is copied.
+// TODO: After January 1, 2027, remove the lti_student_note drop below
+// (the uninstall line and the upgrade that looks for the old table).
 
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lti_context_user_settings",
@@ -45,6 +47,7 @@ $DATABASE_UNINSTALL = array(
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
+    // TODO: After January 1, 2027, delete this drop of lti_student_note.
     $old = "{$CFG->dbprefix}lti_student_note";
     $exists = $PDOX->rowDie(
         "SELECT table_name FROM information_schema.tables

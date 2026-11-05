@@ -124,6 +124,8 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Home settings', $html);
         $this->assertStringContainsString('This only changes what you see.', $html);
         $this->assertStringContainsString('Save settings', $html);
+        $this->assertStringNotContainsString('How do you want to read the course?', $html);
+        $this->assertStringNotContainsString('Show progress checkboxes', $html);
         $this->assertStringContainsString('Course image', $html);
         $this->assertStringContainsString('/courses/42/home/settings', $html);
         $this->assertStringNotContainsString('Include hero image', $html);
@@ -266,6 +268,29 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('value="calendar" checked', $html);
         $this->assertStringNotContainsString('Include hero image', $html);
         $this->assertStringNotContainsString('Everything on the home page is hidden.', $html);
+    }
+
+    public function testStudentGearOffersReadingViewsAndProgressBoxes() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'settings_save_url' => '/courses/42/home/settings',
+            'content_views' => array(
+                array('id' => 'lessons', 'label' => 'Lessons'),
+                array('id' => 'outline', 'label' => 'Outline'),
+            ),
+            'content_view' => 'outline',
+            'steps_offer' => true,
+            'steps_on' => false,
+            'layout' => array('blocks' => array(
+                array('type' => 'hero', 'place' => 'none'),
+            )),
+        ));
+        $this->assertStringContainsString('How do you want to read the course?', $html);
+        $this->assertStringContainsString('name="content_view" value="outline" checked', $html);
+        $this->assertStringContainsString('Default view', $html);
+        $this->assertStringContainsString('name="show_steps"', $html);
+        $this->assertStringNotContainsString('name="show_steps" value="1" checked', $html);
+        $this->assertStringNotContainsString('Include hero image', $html);
     }
 
     public function testStudentHidingEverythingLeavesTheGear() {

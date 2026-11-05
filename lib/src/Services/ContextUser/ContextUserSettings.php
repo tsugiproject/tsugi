@@ -2,20 +2,34 @@
 
 namespace Tsugi\Services\ContextUser;
 
+use Tsugi\Core\Cache;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\ReqScope;
 
 /**
  * One row per person per course in lti_context_user_settings.
  *
  * note is plain text, at most 500 characters. settings is a JSON object.
- * The first key is home_off: HomeLayout::blockKey values this person hid
- * on the course home page. Later settings can share that object.
+ * home_off lists HomeLayout::blockKey values this person hid on the home page.
+ * view is lessons, content, or outline when they have picked one way to read
+ * the course. steps false hides the progress checkboxes the course turned on.
  *
  * A row exists only after a save. An empty note and empty settings remove it.
  */
 class ContextUserSettings {
 
     const MAX_NOTE = 500;
+
+    const VIEWS = array('lessons', 'content', 'outline');
+
+    /**
+     * One session slot for this person's row in the current course.
+     * A different course replaces it. A gear save drops it.
+     */
+    const CACHE_LOCATION = 'context_user_settings';
+
+    /** @var array<string, array{note:string,settings:array<string,mixed>}> */
+    private static $cache = array();
 
     /**
      * Plain text, trimmed, at most 500 characters. Null when the text is longer.
@@ -47,19 +61,33 @@ class ContextUserSettings {
         if ( $context_id < 1 || $user_id < 1 ) {
             return $empty;
         }
-        LTIX::getConnection();
+        $key = $context_id.':'.$user_id;
+        if ( isset(self::$cache[$key]) ) {
+            return self::$cache[$key];
+        }
+        $session = self::sessionRow($context_id, $user_id);
+        if ( $session !== null ) {
+            self::$cache[$key] = $session;
+            return $session;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            LTIX::getConnection();
+        }
         $row = $PDOX->rowDie(
             "SELECT note, settings FROM {$CFG->dbprefix}lti_context_user_settings
              WHERE context_id = :CID AND user_id = :UID",
             array(':CID' => $context_id, ':UID' => $user_id)
         );
         if ( ! is_array($row) ) {
+            self::remember($context_id, $user_id, $empty);
             return $empty;
         }
-        return array(
+        $loaded = array(
             'note' => isset($row['note']) ? (string) $row['note'] : '',
             'settings' => self::decode(isset($row['settings']) ? $row['settings'] : null),
         );
+        self::remember($context_id, $user_id, $loaded);
+        return $loaded;
     }
 
     /**
@@ -100,6 +128,107 @@ class ContextUserSettings {
             $row['settings']['home_off'] = array_keys($clean);
         }
         self::store($context_id, $user_id, $row, 'settings');
+    }
+
+    /**
+     * Save the home gear in one write: hidden blocks, reading view, and progress boxes.
+     *
+     * home_off is always replaced. view and hide_steps are applied only when present.
+     *
+     * @param int $context_id
+     * @param int $user_id
+     * @param array{home_off:list<string>,view?:string,hide_steps?:bool} $changes
+     */
+    public static function saveGear($context_id, $user_id, array $changes) {
+        $row = self::load($context_id, $user_id);
+        $off = isset($changes['home_off']) && is_array($changes['home_off']) ? $changes['home_off'] : array();
+        $clean = array();
+        foreach ( $off as $key ) {
+            if ( ! is_string($key) || $key === '' || strlen($key) > 512 ) {
+                continue;
+            }
+            $clean[$key] = true;
+            if ( count($clean) >= 200 ) {
+                break;
+            }
+        }
+        if ( count($clean) === 0 ) {
+            unset($row['settings']['home_off']);
+        } else {
+            $row['settings']['home_off'] = array_keys($clean);
+        }
+        if ( array_key_exists('view', $changes) ) {
+            $view = is_string($changes['view']) ? $changes['view'] : '';
+            if ( in_array($view, self::VIEWS, true) ) {
+                $row['settings']['view'] = $view;
+            } else {
+                unset($row['settings']['view']);
+            }
+        }
+        if ( array_key_exists('hide_steps', $changes) ) {
+            if ( ! empty($changes['hide_steps']) ) {
+                $row['settings']['steps'] = false;
+            } else {
+                unset($row['settings']['steps']);
+            }
+        }
+        self::store($context_id, $user_id, $row, 'settings');
+    }
+
+    /**
+     * lessons, content, outline, or empty when this person has not picked.
+     *
+     * @param array<string,mixed> $settings
+     * @return string
+     */
+    public static function contentView(array $settings) {
+        $view = isset($settings['view']) ? (string) $settings['view'] : '';
+        return in_array($view, self::VIEWS, true) ? $view : '';
+    }
+
+    /**
+     * A posted view, kept only when the instructor still offers it.
+     *
+     * @param mixed $raw
+     * @param list<string> $offered
+     * @return string
+     */
+    public static function viewFromPost($raw, array $offered) {
+        $view = is_string($raw) ? $raw : '';
+        if ( ! in_array($view, self::VIEWS, true) || ! in_array($view, $offered, true) ) {
+            return '';
+        }
+        return $view;
+    }
+
+    /**
+     * True when this person turned the course progress checkboxes off.
+     *
+     * @param array<string,mixed> $settings
+     */
+    public static function stepsHidden(array $settings) {
+        return isset($settings['steps']) && $settings['steps'] === false;
+    }
+
+    /**
+     * The signed-in student hid progress checkboxes. Instructors keep the course setting.
+     */
+    public static function stepsHiddenForCurrentUser() {
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
+        if ( $context_id < 1 || $user_id < 1 || self::viewerIsInstructor() ) {
+            return false;
+        }
+        global $PDOX;
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return false;
+        }
+        try {
+            $row = self::load($context_id, $user_id);
+        } catch ( \Throwable $e ) {
+            return false;
+        }
+        return self::stepsHidden($row['settings']);
     }
 
     /**
@@ -188,13 +317,17 @@ class ContextUserSettings {
         }
         $note = isset($row['note']) ? (string) $row['note'] : '';
         $settings = self::encode(isset($row['settings']) && is_array($row['settings']) ? $row['settings'] : array());
-        LTIX::getConnection();
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            LTIX::getConnection();
+        }
         if ( $note === '' && $settings === null ) {
             $PDOX->queryDie(
                 "DELETE FROM {$CFG->dbprefix}lti_context_user_settings
                  WHERE context_id = :CID AND user_id = :UID",
                 array(':CID' => $context_id, ':UID' => $user_id)
             );
+            self::remember($context_id, $user_id, array('note' => '', 'settings' => array()));
+            self::forgetSession($context_id);
             return;
         }
         $assign = $touch === 'settings'
@@ -213,6 +346,68 @@ class ContextUserSettings {
                 ':SETTINGS' => $settings,
             )
         );
+        self::remember($context_id, $user_id, array(
+            'note' => $note,
+            'settings' => self::decode($settings),
+        ));
+        self::forgetSession($context_id);
+    }
+
+    /**
+     * The session copy for this course and this person, or null on a miss.
+     * Switching course drops the previous course's slot.
+     *
+     * @return array{note:string,settings:array<string,mixed>}|null
+     */
+    private static function sessionRow($context_id, $user_id) {
+        if ( ! isset($_SESSION) || ! is_array($_SESSION) ) {
+            return null;
+        }
+        $cached = Cache::getContext(self::CACHE_LOCATION, $context_id);
+        if ( ! is_array($cached) || (int) ($cached['user_id'] ?? 0) !== (int) $user_id ) {
+            return null;
+        }
+        $settings = isset($cached['settings']) && is_array($cached['settings']) ? $cached['settings'] : array();
+        return array(
+            'note' => isset($cached['note']) ? (string) $cached['note'] : '',
+            'settings' => $settings,
+        );
+    }
+
+    /**
+     * @param array{note:string,settings:array<string,mixed>} $row
+     */
+    private static function remember($context_id, $user_id, array $row) {
+        self::$cache[$context_id.':'.$user_id] = $row;
+        if ( ! isset($_SESSION) || ! is_array($_SESSION) ) {
+            return;
+        }
+        Cache::setContext(self::CACHE_LOCATION, $context_id, array(
+            'user_id' => (int) $user_id,
+            'note' => $row['note'],
+            'settings' => $row['settings'],
+        ));
+    }
+
+    /**
+     * Drop the session copy after a gear save so the next page reads the new row.
+     */
+    private static function forgetSession($context_id) {
+        if ( ! isset($_SESSION) || ! is_array($_SESSION) ) {
+            return;
+        }
+        Cache::invalidateContext(self::CACHE_LOCATION, $context_id);
+    }
+
+    private static function viewerIsInstructor() {
+        if ( ! empty($_SESSION['isinstructor']) || ! empty($_SESSION['instructor']) ) {
+            return true;
+        }
+        try {
+            return \Tsugi\Controllers\Settings::showInMenu();
+        } catch ( \Throwable $e ) {
+            return false;
+        }
     }
 
     /**
