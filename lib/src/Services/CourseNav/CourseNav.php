@@ -8,6 +8,7 @@ use \Tsugi\Services\Catalog\CatalogRepository;
 use \Tsugi\Services\Site\Site;
 use \Tsugi\Controllers\Login;
 use Tsugi\Controllers\Settings;
+use Tsugi\Core\Manifest;
 use Tsugi\Services\StudentView\StudentView;
 use Tsugi\Core\ContextImages;
 use Tsugi\UI\Menu;
@@ -556,7 +557,9 @@ class CourseNav {
             $submenu->addLink($leaveBuilt['label'], $leaveBuilt['href'], false, $leaveBuilt['attr'] ?? false);
         }
         if ( self::maySeeSettings() ) {
-            $submenu->addLink(__('Student View'), $prefix.StudentView::ROUTE);
+            if ( Manifest::idForContext($cid) > 0 ) {
+                $submenu->addLink(__('Student View'), $prefix.StudentView::ROUTE);
+            }
             $submenu->addLink(__('Settings'), $prefix.'/settings');
         }
         if ( $logoutBuilt !== null ) {

@@ -55,9 +55,9 @@ class Student extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        echo '<main class="container" id="main-content">';
+        echo '<div class="container">';
         include __DIR__ . '/templates/Student/index.inc.php';
-        echo '</main>';
+        echo '</div>';
         $OUTPUT->footer();
     }
 
