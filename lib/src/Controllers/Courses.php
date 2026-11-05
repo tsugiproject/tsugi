@@ -732,6 +732,9 @@ class Courses extends Tool {
     }
 
     public static function enter(Application $app, Request $request, $id) {
+        if ( ! ReqScope::isLoggedIn() ) {
+            return self::loginRedirectForCourse();
+        }
         $gate = self::gateResponse();
         if ( $gate ) {
             return $gate;
@@ -972,6 +975,10 @@ class Courses extends Tool {
         if ( self::anonymousContentRequest($request, $rest)
                 && ! self::viewerAlreadyInCourse($id) && self::anonymousLessonsOpen($id) ) {
             return self::dispatchAnonymousLessons($app, $request, $id, $rest);
+        }
+
+        if ( ! ReqScope::isLoggedIn() ) {
+            return self::loginRedirectForCourse();
         }
 
         $gate = self::gateResponse();
@@ -1491,11 +1498,112 @@ class Courses extends Tool {
     }
 
     /**
-     * @param string $message
-     * @return Response
+     * Send a logged-out /courses/{id} visitor to login, and bring them back here.
+     *
+     * A Plus or LTI launch with a platform return URL goes back to that
+     * platform instead. The error return is preferred, then the launch return.
      */
+    private static function loginRedirectForCourse() {
+        $launch = self::launchErrorRedirect('Must be logged in');
+        if ( $launch !== null ) {
+            return $launch;
+        }
+        $return = LTIX::curPageUrl();
+        if ( is_string($return) && $return !== '' ) {
+            Login::setReturnUrl($return);
+        }
+        return new RedirectResponse(Login::loginUrl());
+    }
+
+    /**
+     * Platform URL for a Plus or LTI launch, or null.
+     *
+     * Same preference as an aborted launch: launch_presentation_error_return_url,
+     * then launch_presentation_return_url. Only the stored launch is used.
+     * The current request body is not a launch.
+     *
+     * @return string|null
+     */
+    private static function launchErrorReturnUrl() {
+        if ( ! ReqScope::isPlusSession() && ! ReqScope::isLtiSession() ) {
+            return null;
+        }
+        $postKey = defined('TSUGI_SESSION_LTI_POST') ? TSUGI_SESSION_LTI_POST : 'lti_post';
+        $stored = (isset($_SESSION[$postKey]) && is_array($_SESSION[$postKey])) ? $_SESSION[$postKey] : array();
+        $jwtError = null;
+        $jwtReturn = null;
+        $jwt = $_SESSION['tsugi_jwt'] ?? null;
+        if ( is_object($jwt) && isset($jwt->body) && is_object($jwt->body) ) {
+            $claim = $jwt->body->{\Tsugi\Util\LTI13::PRESENTATION_CLAIM} ?? null;
+            if ( is_object($claim) ) {
+                $jwtError = $claim->{\Tsugi\Util\LTI13::ERROR_RETURN_URL} ?? null;
+                $jwtReturn = $claim->{\Tsugi\Util\LTI13::RETURN_URL} ?? null;
+            }
+        }
+        $candidates = array(
+            $stored['launch_presentation_error_return_url'] ?? null,
+            $jwtError,
+            $stored['launch_presentation_return_url'] ?? null,
+            $jwtReturn,
+        );
+        foreach ( $candidates as $candidate ) {
+            if ( ! is_string($candidate) ) {
+                continue;
+            }
+            $url = trim($candidate);
+            if ( preg_match('#\Ahttps?://\S+\z#i', $url) ) {
+                return $url;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Redirect to the platform error return, or null when this session has none.
+     *
+     * @param string $message
+     * @return RedirectResponse|null
+     */
+    private static function launchErrorRedirect($message) {
+        $launchReturn = self::launchErrorReturnUrl();
+        if ( $launchReturn === null ) {
+            return null;
+        }
+        $fragment = '';
+        $hash = strpos($launchReturn, '#');
+        if ( $hash !== false ) {
+            $fragment = substr($launchReturn, $hash);
+            $launchReturn = substr($launchReturn, 0, $hash);
+        }
+        $launchReturn .= (strpos($launchReturn, '?') !== false) ? '&' : '?';
+        $launchReturn .= 'lti_errormsg='.rawurlencode($message).$fragment;
+        return new RedirectResponse($launchReturn);
+    }
+
+    /**
+     * Home after a course URL refuses the logged-in user.
+     */
+    private static function deniedCourseHome() {
+        $home = self::appHomeUrl();
+        if ( $home !== '' ) {
+            return $home;
+        }
+        return Login::defaultHomeUrl();
+    }
+
     private static function switchFailedResponse($message) {
-        $status = ($message === 'You are not a member of that course.') ? 403 : 400;
+        if ( $message === 'Must be logged in.' ) {
+            return self::loginRedirectForCourse();
+        }
+        if ( $message === 'You are not a member of that course.' ) {
+            $launch = self::launchErrorRedirect('You are not a member of that course.');
+            if ( $launch !== null ) {
+                return $launch;
+            }
+            U::flashError(htmlspecialchars(__('You are not a member of that course.'), ENT_QUOTES, 'UTF-8'));
+            return new RedirectResponse(U::addSession(self::deniedCourseHome()));
+        }
+        $status = 400;
         $copy = self::courseSwitchErrorCopy($message);
         $response = new Response(self::renderCourseSwitchError($copy), $status);
         $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
@@ -1508,15 +1616,6 @@ class Courses extends Tool {
      */
     private static function courseSwitchErrorCopy($message) {
         $home = self::appHomeUrl();
-        if ( $message === 'You are not a member of that course.' ) {
-            return array(
-                'title' => __('This session cannot open this course'),
-                'paragraphs' => array(
-                    __('This session may have been logged in or logged out on another tab, and the new session no longer has access to this course.'),
-                ),
-                'home' => $home,
-            );
-        }
         $text = is_string($message) && $message !== '' ? $message : __('Cannot open this course.');
         return array(
             'title' => __('Cannot open this course'),

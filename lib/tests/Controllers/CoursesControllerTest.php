@@ -634,25 +634,151 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function testMembershipFailureExplainsSessionChanged()
+    public function testLoggedOutCourseUrlGoesToLogin()
+    {
+        $previous = $_SERVER['REQUEST_URI'] ?? null;
+        $previousHost = $_SERVER['HTTP_HOST'] ?? null;
+        $previousPort = $_SERVER['SERVER_PORT'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SERVER['HTTP_HOST'] = 'localhost';
+        $_SERVER['SERVER_PORT'] = '80';
+        \Tsugi\Core\ReqScope::resetIdentity();
+        try {
+            $request = Request::create('/courses/42/home', 'GET');
+            $response = Courses::enter($this->mockApp, $request, 42);
+            $this->assertInstanceOf(\Symfony\Component\HttpFoundation\RedirectResponse::class, $response);
+            $this->assertSame(302, $response->getStatusCode());
+            $this->assertSame('http://localhost/app/login', $response->headers->get('Location'));
+            $this->assertSame('http://localhost/courses/42/home', \Tsugi\Controllers\Login::peekReturnUrl());
+        } finally {
+            if ( $previous === null ) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $previous;
+            }
+            if ( $previousHost === null ) {
+                unset($_SERVER['HTTP_HOST']);
+            } else {
+                $_SERVER['HTTP_HOST'] = $previousHost;
+            }
+            if ( $previousPort === null ) {
+                unset($_SERVER['SERVER_PORT']);
+            } else {
+                $_SERVER['SERVER_PORT'] = $previousPort;
+            }
+        }
+    }
+
+    public function testPlusLaunchWithErrorReturnSkipsLogin()
+    {
+        $_SESSION['lti'] = array(
+            'plus_context_launch' => 1,
+            'context_id' => 42,
+        );
+        $_SESSION['lti_post'] = array(
+            'launch_presentation_return_url' => 'https://lms.example/return',
+            'launch_presentation_error_return_url' => 'https://lms.example/error',
+        );
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $request = Request::create('/courses/42/home', 'GET');
+        $response = Courses::enter($this->mockApp, $request, 42);
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\RedirectResponse::class, $response);
+        $this->assertSame(
+            'https://lms.example/error?lti_errormsg=Must%20be%20logged%20in',
+            $response->headers->get('Location')
+        );
+        $this->assertNull(\Tsugi\Controllers\Login::peekReturnUrl());
+    }
+
+    public function testLtiLaunchWithoutErrorReturnUsesTheLaunchReturn()
+    {
+        $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
+        $_SESSION['lti_post'] = array(
+            'launch_presentation_return_url' => 'https://lms.example/done',
+        );
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $request = Request::create('/courses/42/home', 'GET');
+        $response = Courses::enter($this->mockApp, $request, 42);
+        $this->assertSame(
+            'https://lms.example/done?lti_errormsg=Must%20be%20logged%20in',
+            $response->headers->get('Location')
+        );
+    }
+
+    public function testLti13JwtErrorReturnSkipsLogin()
+    {
+        $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
+        $_SESSION['lti_post'] = array('id_token' => 'jwt');
+        $body = new \stdClass();
+        $body->{\Tsugi\Util\LTI13::PRESENTATION_CLAIM} = (object) array(
+            'return_url' => 'https://lms.example/return',
+            'error_return_url' => 'https://lms.example/jwt-error',
+        );
+        $_SESSION['tsugi_jwt'] = (object) array('body' => $body);
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $request = Request::create('/courses/42/home', 'GET');
+        $response = Courses::enter($this->mockApp, $request, 42);
+        $this->assertSame(
+            'https://lms.example/jwt-error?lti_errormsg=Must%20be%20logged%20in',
+            $response->headers->get('Location')
+        );
+    }
+
+    public function testPostedReturnUrlDoesNotReplaceTheStoredLaunch()
+    {
+        $_SESSION['lti'] = array(
+            'plus_context_launch' => 1,
+            'context_id' => 42,
+        );
+        $_SESSION['lti_post'] = array(
+            'launch_presentation_error_return_url' => 'https://lms.example/error?stay=1#back',
+        );
+        $_POST['launch_presentation_error_return_url'] = 'https://evil.example/phish';
+        \Tsugi\Core\ReqScope::resetIdentity();
+        try {
+            $request = Request::create('/courses/42/home', 'POST');
+            $response = Courses::enter($this->mockApp, $request, 42);
+            $this->assertSame(
+                'https://lms.example/error?stay=1&lti_errormsg=Must%20be%20logged%20in#back',
+                $response->headers->get('Location')
+            );
+        } finally {
+            unset($_POST['launch_presentation_error_return_url']);
+        }
+    }
+
+    public function testMembershipFailureSendsTheUserHome()
     {
         if ( ! function_exists('__') ) {
             require_once __DIR__.'/../../include/setup_i18n.php';
         }
         $method = new \ReflectionMethod(Courses::class, 'switchFailedResponse');
         $response = $method->invoke(null, 'You are not a member of that course.');
-        $this->assertSame(403, $response->getStatusCode());
-        $body = $response->getContent();
-        $this->assertStringContainsString('This session cannot open this course', $body);
-        $this->assertStringContainsString(
-            'This session may have been logged in or logged out on another tab, and the new session no longer has access to this course.',
-            $body
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\RedirectResponse::class, $response);
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('http://localhost/app', $response->headers->get('Location'));
+        $this->assertSame(
+            'You are not a member of that course.',
+            $_SESSION[\Tsugi\Util\U::FLASH_ERROR] ?? null
         );
-        $this->assertStringContainsString('TSUGI_SESSION_DATA', $body);
-        $this->assertStringContainsString('launch_presentation_error_return_url', $body);
-        $this->assertStringContainsString('Close Tab', $body);
-        $this->assertStringContainsString('>Continue<', $body);
-        $this->assertStringNotContainsString('You are not a member of that course.', $body);
+    }
+
+    public function testMembershipFailureOnAPlusLaunchUsesTheErrorReturn()
+    {
+        $_SESSION['lti'] = array(
+            'plus_context_launch' => 1,
+            'context_id' => 42,
+        );
+        $_SESSION['lti_post'] = array(
+            'launch_presentation_error_return_url' => 'https://lms.example/error',
+        );
+        $method = new \ReflectionMethod(Courses::class, 'switchFailedResponse');
+        $response = $method->invoke(null, 'You are not a member of that course.');
+        $this->assertSame(
+            'https://lms.example/error?lti_errormsg=You%20are%20not%20a%20member%20of%20that%20course.',
+            $response->headers->get('Location')
+        );
+        $this->assertArrayNotHasKey(\Tsugi\Util\U::FLASH_ERROR, $_SESSION);
     }
 
     public function testCourseSwitchFailureRendersTheMessage()
