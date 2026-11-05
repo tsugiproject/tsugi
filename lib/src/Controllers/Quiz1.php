@@ -546,8 +546,26 @@ class Quiz1 extends Tool {
 
         $lessons_home = $this->toolHome(\Tsugi\Controllers\Lessons::ROUTE);
         $from_module = self::moduleAnchorFromRequest();
+        $view = isset($_GET['view']) ? (string) $_GET['view'] : '';
+        $from_content = ($view === 'content');
+        $from_outline = ($view === 'outline');
+        $return_home = $lessons_home;
+        $return_route = null;
+        if ( $from_content ) {
+            $return_route = \Tsugi\Controllers\Content::ROUTE;
+        } else if ( $from_outline ) {
+            $return_route = \Tsugi\Controllers\Outline::ROUTE;
+        }
+        if ( $return_route !== null ) {
+            $at = strrpos($lessons_home, \Tsugi\Controllers\Lessons::ROUTE);
+            if ( $at !== false ) {
+                $return_home = substr($lessons_home, 0, $at).$return_route;
+            }
+        }
         if ( $from_module ) {
-            ReqScope::setReturnUrl($lessons_home.'/'.rawurlencode($from_module));
+            ReqScope::setReturnUrl($return_home.'/'.rawurlencode($from_module));
+        } else if ( $from_content || $from_outline ) {
+            ReqScope::setReturnUrl($return_home);
         }
         $requestContextLines = $this->requestContextLinesForQuiz($quiz, ! $viewing);
         $return_url = null;
@@ -556,6 +574,12 @@ class Quiz1 extends Tool {
             $return_url = $rc->launchPresentation->return_url;
         }
         $lessons_url = $return_url ? U::addSession($return_url) : '';
+        $back_label = __('Back to Lessons');
+        if ( $from_content || self::urlIsContent((string) $return_url) ) {
+            $back_label = __('Back to Content');
+        } else if ( $from_outline || self::urlIsOutline((string) $return_url) ) {
+            $back_label = __('Back to Outline');
+        }
         $can_edit = $this->instructor();
 
         $OUTPUT->header();
@@ -668,7 +692,7 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * Module anchor passed by Lessons so Back to Lessons returns to that module.
+     * Module anchor passed by Lessons so Back returns to that module.
      */
     private static function moduleAnchorFromRequest() {
         $from = isset($_GET['from']) ? trim((string) $_GET['from']) : '';
@@ -676,6 +700,33 @@ class Quiz1 extends Tool {
             return null;
         }
         return $from;
+    }
+
+    /**
+     * A return path under /content is the content view of the same module.
+     *
+     * @param string $url
+     */
+    private static function urlIsContent($url) {
+        $path = parse_url($url, PHP_URL_PATH);
+        if ( ! is_string($path) || $path === '' ) {
+            $path = $url;
+        }
+        return (bool) preg_match('#/content(?:/|$)#', $path);
+    }
+
+    /**
+     * A return path under /outline is the outline view.
+     * /grades/outline is the gradebook, not this view.
+     *
+     * @param string $url
+     */
+    private static function urlIsOutline($url) {
+        $path = parse_url($url, PHP_URL_PATH);
+        if ( ! is_string($path) || $path === '' ) {
+            $path = $url;
+        }
+        return (bool) preg_match('#(?<!/grades)/outline(?:/|$)#', $path);
     }
 
     /**

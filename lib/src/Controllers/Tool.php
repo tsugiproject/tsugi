@@ -784,12 +784,16 @@ abstract class Tool {
             Labs::ROUTE,
             LaunchController::ROUTE,
             Lessons::ROUTE,
+            Content::ROUTE,
+            Outline::ROUTE,
             Map::ROUTE,
             Pages::ROUTE,
             Quiz1::ROUTE,
             StaticFiles::ROUTE,
             Topics::ROUTE,
             '/lessons_launch',
+            '/content_launch',
+            '/outline_launch',
         );
         $out = array();
         foreach ( $routes as $route ) {
@@ -852,7 +856,7 @@ abstract class Tool {
             }
         } else {
             // Try to detect by looking for common controller routes
-            $controllerRoutes = ['/gclass', '/announcements', '/pages', '/badges', '/grades', '/home', '/lessons', '/discussions', '/topics', '/launch', '/assignments', '/files', '/map', '/login', '/logout', '/quiz1'];
+            $controllerRoutes = ['/gclass', '/announcements', '/pages', '/badges', '/grades', '/home', '/lessons', '/content', '/outline', '/discussions', '/topics', '/launch', '/assignments', '/files', '/map', '/login', '/logout', '/quiz1'];
             foreach ($controllerRoutes as $testRoute) {
                 $routePos = strpos($requestUri, $testRoute);
                 if ($routePos !== false) {

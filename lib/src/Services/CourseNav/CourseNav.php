@@ -35,6 +35,8 @@ class CourseNav {
         return array(
             'items' => array(
                 array('id' => 'lessons', 'left' => true),
+                array('id' => 'content', 'left' => true),
+                array('id' => 'outline', 'left' => true),
                 array('id' => 'files', 'left' => true),
                 array('id' => 'pages', 'left' => true),
                 array('id' => 'quiz1', 'left' => true),
@@ -141,7 +143,9 @@ class CourseNav {
      */
     public static function catalog() {
         $rows = array(
-            array('id' => 'lessons', 'kind' => 'link', 'label' => 'Lessons', 'route' => '/lessons', 'site' => false),
+            array('id' => 'lessons', 'kind' => 'link', 'label' => 'Lessons', 'settings_label' => 'Lessons view of Content', 'route' => '/lessons', 'site' => false),
+            array('id' => 'content', 'kind' => 'link', 'label' => 'Content', 'settings_label' => 'Content view of Content', 'route' => '/content', 'site' => false),
+            array('id' => 'outline', 'kind' => 'link', 'label' => 'Outline', 'settings_label' => 'Outline view of Content', 'route' => '/outline', 'site' => false),
             array('id' => 'assignments', 'kind' => 'link', 'label' => 'Assignments', 'route' => '/assignments', 'site' => false),
             array('id' => 'announcements', 'kind' => 'link', 'label' => 'Announcements', 'route' => '/announcements', 'site' => false),
             array('id' => 'files', 'kind' => 'link', 'label' => 'Files', 'route' => '/files', 'site' => false),
@@ -283,6 +287,38 @@ class CourseNav {
             $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
             $rows[] = self::editorRow($entry, $flagsById[$entry['id']] ?? $empty);
         }
+        $rows = self::moveRowAfter($rows, 'content', 'lessons');
+        return self::moveRowAfter($rows, 'outline', 'content');
+    }
+
+    /**
+     * Put one editor row immediately after another. No change when either id is missing
+     * or the row is already next.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private static function moveRowAfter(array $rows, $id, $afterId) {
+        $from = null;
+        $after = null;
+        foreach ( $rows as $i => $row ) {
+            $rowId = isset($row['id']) ? (string) $row['id'] : '';
+            if ( $rowId === $id && $from === null ) {
+                $from = $i;
+            }
+            if ( $rowId === $afterId && $after === null ) {
+                $after = $i;
+            }
+        }
+        if ( $from === null || $after === null || $from === $after + 1 ) {
+            return $rows;
+        }
+        $moved = $rows[$from];
+        array_splice($rows, $from, 1);
+        if ( $from < $after ) {
+            $after--;
+        }
+        array_splice($rows, $after + 1, 0, array($moved));
         return $rows;
     }
 

@@ -1230,7 +1230,7 @@ class Courses extends Tool {
     }
 
     /**
-     * GET /courses/{id}/lessons or /courses/{id}/lessons/{anchor}.
+     * GET /courses/{id}/lessons, /content, or /outline, or one module under any of them.
      *
      * Author, launch, and deeper paths stay on the membership gate.
      *
@@ -1239,13 +1239,25 @@ class Courses extends Tool {
      */
     public static function isAnonymousLessonRest($rest) {
         $rest = is_string($rest) ? trim($rest, '/') : '';
-        if ( $rest === 'lessons' ) {
+        return self::isAnonymousLessonTail($rest, 'lessons')
+            || self::isAnonymousLessonTail($rest, 'content')
+            || self::isAnonymousLessonTail($rest, 'outline');
+    }
+
+    /**
+     * @param string $rest
+     * @param string $head
+     * @return bool
+     */
+    private static function isAnonymousLessonTail($rest, $head) {
+        if ( $rest === $head ) {
             return true;
         }
-        if ( ! str_starts_with($rest, 'lessons/') ) {
+        $prefix = $head.'/';
+        if ( ! str_starts_with($rest, $prefix) ) {
             return false;
         }
-        $tail = substr($rest, strlen('lessons/'));
+        $tail = substr($rest, strlen($prefix));
         if ( $tail === '' || str_contains($tail, '/') || str_starts_with($tail, '_') ) {
             return false;
         }

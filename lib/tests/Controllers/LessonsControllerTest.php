@@ -4,11 +4,15 @@ require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
 require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Controllers/Lessons.php";
+require_once "src/Controllers/Content.php";
+require_once "src/Controllers/Outline.php";
 require_once "src/Config/ConfigInfo.php";
 require_once "src/Lumos/Application.php";
 require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\Lessons;
+use \Tsugi\Controllers\Content;
+use \Tsugi\Controllers\Outline;
 use \Tsugi\Lumos\Application;
 
 class LessonsControllerTest extends \PHPUnit\Framework\TestCase
@@ -221,6 +225,242 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('There is no Lessons content.', $html);
         $this->assertStringContainsString('Empty Course', $html);
         $this->assertStringNotContainsString('class="card"', $html);
+    }
+
+    public function testAuthorBackLinkFollowsOutline()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/7/content/week-2';
+        $content = new Content();
+        $method = new \ReflectionMethod(Content::class, 'authorLinkUrl');
+        $url = $method->invoke($content, 'week-2');
+        $this->assertStringContainsString('/courses/7/lessons/_author', $url);
+        $this->assertStringContainsString('from=content', $url);
+        $this->assertStringContainsString('module=week-2', $url);
+
+        $_SERVER['REQUEST_URI'] = '/courses/7/lessons/week-2';
+        $lessons = new Lessons();
+        $url = $method->invoke($lessons, 'week-2');
+        $this->assertSame('/courses/7/lessons/_author', $url);
+        $this->assertStringNotContainsString('from=', $url);
+
+        $_SERVER['REQUEST_URI'] = '/courses/7/lessons/_author';
+        $_GET['from'] = 'content';
+        $_GET['module'] = 'week-2';
+        $specMethod = new \ReflectionMethod(Lessons::class, 'authorReturnSpec');
+        $spec = $specMethod->invoke($lessons);
+        $this->assertSame('Back to Content', $spec['label']);
+        $this->assertSame('/courses/7/content/week-2', $spec['url']);
+
+        $_SERVER['REQUEST_URI'] = '/courses/7/outline/week-2';
+        $outline = new Outline();
+        $url = $method->invoke($outline, 'week-2');
+        $this->assertStringContainsString('/courses/7/lessons/_author', $url);
+        $this->assertStringContainsString('from=outline', $url);
+        $this->assertStringContainsString('module=week-2', $url);
+
+        $_SERVER['REQUEST_URI'] = '/courses/7/lessons/_author';
+        $_GET['from'] = 'outline';
+        $spec = $specMethod->invoke($lessons);
+        $this->assertSame('Back to Outline', $spec['label']);
+        $this->assertSame('/courses/7/outline/week-2', $spec['url']);
+
+        $_GET['from'] = 'content';
+        $_GET['module'] = '../settings';
+        $spec = $specMethod->invoke($lessons);
+        $this->assertSame('Back to Content', $spec['label']);
+        $this->assertSame('/courses/7/content', $spec['url']);
+
+        unset($_GET['from'], $_GET['module']);
+        $spec = $specMethod->invoke($lessons);
+        $this->assertSame('Back to Lessons', $spec['label']);
+        $this->assertSame('/courses/7/lessons', $spec['url']);
+    }
+
+    public function testQuizReturnFollowsOutline()
+    {
+        $opened = new \ReflectionMethod(Lessons::class, 'quizOpenedFromContent');
+        $outline = new \stdClass();
+        $outline->toolHome = '/courses/7/content';
+        $this->assertTrue($opened->invoke(null, $outline));
+        $lessons = new \stdClass();
+        $lessons->toolHome = '/courses/7/lessons';
+        $this->assertFalse($opened->invoke(null, $lessons));
+
+        $opened = new \ReflectionMethod(Lessons::class, 'quizReturnView');
+        $this->assertSame('outline', $opened->invoke(null, (object) array('toolHome' => '/courses/7/outline')));
+        $this->assertSame('', $opened->invoke(null, (object) array('toolHome' => '/courses/7/lessons')));
+
+        $isContent = new \ReflectionMethod(\Tsugi\Controllers\Quiz1::class, 'urlIsContent');
+        $this->assertTrue($isContent->invoke(null, '/courses/7/content/week-2'));
+        $this->assertFalse($isContent->invoke(null, '/courses/7/outline/week-2'));
+        $this->assertFalse($isContent->invoke(null, '/courses/7/lessons/week-2'));
+
+        $isOutline = new \ReflectionMethod(\Tsugi\Controllers\Quiz1::class, 'urlIsOutline');
+        $this->assertTrue($isOutline->invoke(null, '/courses/7/outline/week-2'));
+        $this->assertFalse($isOutline->invoke(null, '/courses/7/content/week-2'));
+        $this->assertFalse($isOutline->invoke(null, '/grades/outline'));
+    }
+
+    public function testOutlineRouteConstantAndRoutes() {
+        $this->assertSame('/content', Content::ROUTE);
+        $this->assertTrue(is_subclass_of(Content::class, Lessons::class));
+
+        Content::routes($this->mockApp);
+        $uris = [];
+        foreach ( $this->mockApp->router->getRoutes() as $route ) {
+            $uris[] = $route['uri'];
+        }
+        $this->assertContains('/content', $uris);
+        $this->assertContains('/content/{anchor}', $uris);
+        $this->assertContains('/content_launch/{anchor}', $uris);
+        $this->assertNotContains('/outline', $uris);
+        $this->assertNotContains('/outline_launch/{anchor}', $uris);
+    }
+
+    public function testTreeOutlineRouteAndRender() {
+        $this->assertSame('/outline', Outline::ROUTE);
+        $this->assertTrue(is_subclass_of(Outline::class, Lessons::class));
+
+        Outline::routes($this->mockApp);
+        $uris = [];
+        foreach ( $this->mockApp->router->getRoutes() as $route ) {
+            $uris[] = $route['uri'];
+        }
+        $this->assertContains('/outline', $uris);
+        $this->assertContains('/outline/{anchor}', $uris);
+        $this->assertContains('/outline_launch/{anchor}', $uris);
+
+        global $_SESSION;
+        $_SESSION = [];
+        \Tsugi\Core\ReqScope::resetIdentity();
+
+        $json = json_encode(array(
+            'title' => 'Outline Course',
+            'description' => 'Long page',
+            'modules' => array(
+                array(
+                    'title' => 'Week One',
+                    'anchor' => 'week-1',
+                    'description' => 'First module',
+                    'items' => array(
+                        array('type' => 'heading', 'title' => 'Slides'),
+                        array('type' => 'text', 'text' => 'Hello week one'),
+                    ),
+                ),
+                array(
+                    'title' => 'Secret',
+                    'anchor' => 'secret',
+                    'hidden' => true,
+                    'items' => array(
+                        array('type' => 'text', 'text' => 'Hidden module'),
+                    ),
+                ),
+                array(
+                    'title' => 'Week Two',
+                    'anchor' => 'week-2',
+                    'items' => array(
+                        array('type' => 'text', 'text' => 'Hello week two'),
+                    ),
+                ),
+            ),
+        ));
+        $lessons = \Tsugi\Services\Lessons\LessonsService::fromJson($json, 'week-2');
+        $lessons->toolHome = '/courses/7/outline';
+        $html = Outline::render($lessons, true);
+        $this->assertStringContainsString('tsugi-tree-module', $html);
+        $this->assertStringContainsString('tsugi-tree-section-head', $html);
+        $this->assertStringContainsString('Expand all', $html);
+        $this->assertStringContainsString('Contract all', $html);
+        $this->assertStringContainsString('>Slides</h2>', $html);
+        $this->assertStringContainsString('Hello week one', $html);
+        $this->assertStringContainsString('Hello week two', $html);
+        $this->assertStringNotContainsString('Hidden module', $html);
+        $this->assertStringContainsString('data-focus="1"', $html);
+        $this->assertStringContainsString('data-anchor="week-2"', $html);
+        $this->assertStringContainsString('data-tsugi-step-key="week-1"', $html);
+        $this->assertStringContainsString('data-tsugi-step-key="week-2"', $html);
+        $this->assertStringNotContainsString('data-tsugi-step-key="secret"', $html);
+        $this->assertStringNotContainsString('tsugi-lessons-pager', $html);
+        $this->assertStringNotContainsString('fa-trash', $html);
+        $this->assertSame(0, substr_count($html, 'id="tsugi-step-root"'));
+
+        $single = \Tsugi\Services\Lessons\LessonsService::fromJson($json, 'week-1');
+        $single->toolHome = '/courses/7/lessons';
+        $lessonHtml = Lessons::renderSingle($single, true);
+        $this->assertStringContainsString('<h2>Slides</h2>', $lessonHtml);
+        $this->assertStringContainsString('id="tsugi-step-root"', $lessonHtml);
+        $this->assertStringContainsString('data-tsugi-step-key="week-1"', $lessonHtml);
+        $this->assertStringNotContainsString('tsugi-tree-section', $lessonHtml);
+    }
+
+    public function testOutlineRenderUsesCardsAndOmitsPager() {
+        global $_SESSION;
+        $_SESSION = [];
+        \Tsugi\Core\ReqScope::resetIdentity();
+
+        $json = json_encode(array(
+            'title' => 'Outline Course',
+            'description' => 'Split view',
+            'modules' => array(
+                array(
+                    'title' => 'Week One',
+                    'anchor' => 'week-1',
+                    'description' => 'First module',
+                    'items' => array(
+                        array('type' => 'text', 'text' => 'Hello week one'),
+                    ),
+                ),
+                array(
+                    'title' => 'Week Two',
+                    'anchor' => 'week-2',
+                    'items' => array(
+                        array('type' => 'text', 'text' => 'Hello week two'),
+                    ),
+                ),
+            ),
+        ));
+        $lessons = \Tsugi\Services\Lessons\LessonsService::fromJson($json, 'week-2');
+        $lessons->toolHome = '/courses/7/content';
+        $_SERVER['REQUEST_URI'] = '/courses/7/content/week-2';
+
+        $html = Content::render($lessons, true);
+        $this->assertStringContainsString('tsugi-outline-nav', $html);
+        $this->assertStringContainsString('tsugi-outline-main', $html);
+        $this->assertStringContainsString('tsugi-outline-selected', $html);
+        $this->assertStringContainsString('/courses/7/content/week-1', $html);
+        $this->assertStringContainsString('/courses/7/content/week-2', $html);
+        $this->assertStringContainsString('Hello week two', $html);
+        $this->assertStringNotContainsString('Hello week one', $html);
+        $this->assertStringNotContainsString('tsugi-lessons-pager', $html);
+        $this->assertStringNotContainsString('>All<', $html);
+        $this->assertStringContainsString('aria-current="page"', $html);
+        $this->assertStringContainsString('localStorage.setItem("tsugi-content:" + base, anchor)', $html);
+        $this->assertStringContainsString('"week-2"', $html);
+    }
+
+    public function testOutlineIndexRestoresTheStoredCard()
+    {
+        require_once dirname(__DIR__, 3).'/vendor/autoload.php';
+        $_SERVER['REQUEST_URI'] = '/courses/7/content';
+        $json = json_encode(array(
+            'title' => 'Outline Course',
+            'modules' => array(
+                array('title' => 'Week One', 'anchor' => 'week-1', 'items' => array()),
+                array('title' => 'Hidden', 'anchor' => 'secret', 'hidden' => true, 'items' => array()),
+                array('title' => 'Week Two', 'anchor' => 'week-2', 'items' => array()),
+            ),
+        ));
+        $lessons = \Tsugi\Services\Lessons\LessonsService::fromJson($json);
+        $method = new \ReflectionMethod(Content::class, 'viewEntryRedirect');
+        $response = $method->invoke(new Content(), $lessons, null);
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\Response::class, $response);
+        $this->assertNotInstanceOf(\Symfony\Component\HttpFoundation\RedirectResponse::class, $response);
+        $html = $response->getContent();
+        $this->assertStringContainsString('localStorage.getItem("tsugi-content:"+', $html);
+        $this->assertStringContainsString('/courses/7/content/week-1', $html);
+        $this->assertStringContainsString('/courses/7/content/week-2', $html);
+        $this->assertStringNotContainsString('secret', $html);
+        $this->assertStringContainsString('url=/courses/7/content/week-1', $html);
     }
 
     public function testHiddenOnlyModulesAreEmpty() {

@@ -35,6 +35,8 @@ class Tsugi extends \Tsugi\Lumos\Application {
             \Tsugi\Controllers\Grades::routes($this);
             \Tsugi\Controllers\Home::routes($this);
             \Tsugi\Controllers\Lessons::routes($this);
+            \Tsugi\Controllers\Content::routes($this);
+            \Tsugi\Controllers\Outline::routes($this);
             \Tsugi\Controllers\Settings::routes($this);
             \Tsugi\Controllers\Labs::routes($this);
             \Tsugi\Controllers\LaunchController::routes($this);
