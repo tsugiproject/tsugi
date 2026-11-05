@@ -192,7 +192,7 @@ class Lessons extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         if ( $this->isInstructor() && ! ReqScope::isAnonymousLessonView() ) {
-            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
+            echo('<span style="position: fixed; right: 10px; top: 56px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
             if ( $this->canAuthorLessons() ) {
                 $author_url = $this->authorLinkUrl($anchor);
                 echo('<a href="'.htmlspecialchars($author_url).'" class="btn btn-default btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i> '.__('Author').'</a>');
@@ -445,7 +445,7 @@ class Lessons extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
+        echo('<span style="position: fixed; right: 10px; top: 56px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
         echo('<a href="'.htmlspecialchars($lessons_url).'" class="btn btn-default btn-sm"><i class="fa fa-arrow-left" aria-hidden="true"></i> '.htmlspecialchars($return['label']).'</a>');
         echo('</span>');
 

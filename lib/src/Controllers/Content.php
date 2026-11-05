@@ -104,6 +104,7 @@ class Content extends Lessons {
     }
 
     protected function openLessonsView() {
+        echo('<script>var b=document.getElementById("body_container");if(b){b.className="container-fluid tsugi-content-bleed";}</script>');
         echo('<div class="container-fluid tsugi-outline-page">');
     }
 
@@ -265,6 +266,17 @@ class Content extends Lessons {
 
     private static function echoStyles() {
         echo('<style>
+#body_container.tsugi-content-bleed {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+.tsugi-outline-page {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
 .tsugi-outline {
     display: flex;
     align-items: flex-start;
@@ -277,6 +289,7 @@ class Content extends Lessons {
     overflow-y: auto;
     position: sticky;
     top: 6.5rem;
+    padding-left: 0;
     padding-right: 0.75rem;
     border-right: 1px solid #ddd;
 }
