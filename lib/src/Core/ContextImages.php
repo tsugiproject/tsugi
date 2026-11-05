@@ -411,12 +411,55 @@ class ContextImages {
      * Decorative 16×9 SVG for an empty hero. Title is HTML overlay, not in the SVG.
      */
     public static function heroPlaceholderSvg($context_id) {
+        return '<svg class="tsugi-course-card-placeholder-art" viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
+            .self::heroPlaceholderInner($context_id)
+            .'</svg>';
+    }
+
+    /**
+     * Same decorative art as an empty course hero, cropped to a circle with initials on top.
+     *
+     * @param int $seed Passed through {@see heroPlaceholderSeed()} so each person gets a stable pattern.
+     * @param string $initials
+     * @return string
+     */
+    public static function initialsAvatarSvg($seed, $initials) {
+        $seed = (int) $seed;
+        $letters = htmlspecialchars(is_string($initials) ? $initials : '', ENT_QUOTES, 'UTF-8');
+        if ( $letters === '' ) {
+            $letters = '?';
+        }
+        $uid = 'tsugi-av-'.$seed;
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">'
+            .'<defs>'
+            .'<clipPath id="'.$uid.'-clip"><circle cx="32" cy="32" r="32"/></clipPath>'
+            .'<filter id="'.$uid.'-shadow" x="-30%" y="-30%" width="160%" height="160%">'
+            .'<feDropShadow dx="0" dy="1" stdDeviation="1.1" flood-color="#000000" flood-opacity="0.75"/>'
+            .'</filter>'
+            .'</defs>'
+            .'<g clip-path="url(#'.$uid.'-clip)">'
+            .'<svg x="0" y="0" width="64" height="64" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">'
+            .self::heroPlaceholderInner($seed)
+            .'</svg>'
+            .'<circle cx="32" cy="32" r="32" fill="#000000" opacity="0.18"/>'
+            .'</g>'
+            .'<text x="32" y="33" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" '
+            .'font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" filter="url(#'.$uid.'-shadow)">'.$letters.'</text>'
+            .'</svg>';
+    }
+
+    /**
+     * Gradient, shapes, and scrim for one hero seed. No outer svg element.
+     *
+     * @param int $context_id
+     * @return string
+     */
+    private static function heroPlaceholderInner($context_id) {
         $seed = self::heroPlaceholderSeed($context_id);
         $palettes = self::heroPalettes();
         $p = $palettes[$seed['palette']];
         $uid = 'tsugi-ph-'.$seed['id'].'-'.$seed['palette'].'-'.$seed['variant'];
-        $art = self::heroPlaceholderArt($uid, $p, $seed);
-        return '<svg class="tsugi-course-card-placeholder-art" viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'.$art.'</svg>';
+        return self::heroPlaceholderArt($uid, $p, $seed);
     }
 
     /**
