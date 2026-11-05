@@ -1578,25 +1578,33 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(\Tsugi\Services\Lessons\LessonsService::stepsFlag(null));
     }
 
-    public function testStepCheckboxesOnUngradedItemsOnly() {
+    public function testStepCheckboxesIncludeLtiLinks() {
         $video = '<li class="tsugi-lessons-module-video">Lecture</li>';
         $assignment = '<li class="tsugi-lessons-module-assignment">Spec</li>';
         $quiz = '<li class="tsugi-lessons-module-quiz1">Quiz</li>';
-        $graded = '<li class="tsugi-lessons-module-lti">Tool</li>';
-        $ungraded = '<li class="tsugi-lessons-module-lti tsugi-step">Optional tool</li>';
+        $tool = '<li class="tsugi-lessons-module-lti">Tool</li>';
+        $already = '<li class="tsugi-lessons-module-lti tsugi-step">Optional tool</li>';
         $container = '<li class="tsugi-lessons-module-videos"><ul><li class="tsugi-lessons-module-video">One</li></ul></li>';
+        $group = '<li class="tsugi-lessons-module-ltis"><ul><li class="tsugi-lessons-module-lti">Inner</li></ul></li>';
 
         $html = \Tsugi\Controllers\Lessons::applyStepCheckboxes(
-            $video.$assignment.$quiz.$graded.$ungraded.$container
+            $video.$assignment.$quiz.$tool.$already.$container.$group
         );
 
-        $this->assertSame(4, substr_count($html, 'tsugi-step-box'));
+        $this->assertSame(7, substr_count($html, 'tsugi-step-box'));
         $this->assertStringContainsString('class="tsugi-lessons-module-video tsugi-step"', $html);
         $this->assertStringContainsString('module-assignment tsugi-step', $html);
-        $this->assertStringNotContainsString('module-quiz1 tsugi-step', $html);
-        $this->assertStringNotContainsString('module-lti tsugi-step">Tool', $html);
-        $this->assertStringContainsString('module-lti tsugi-step"><input type="checkbox" class="tsugi-step-box"', $html);
+        $this->assertStringContainsString('module-quiz1 tsugi-step', $html);
+        $this->assertStringContainsString('module-lti tsugi-step"><input type="checkbox" class="tsugi-step-box" aria-label="Mark this done" autocomplete="off">Tool', $html);
+        $this->assertStringContainsString('module-lti tsugi-step"><input type="checkbox" class="tsugi-step-box" aria-label="Mark this done" autocomplete="off">Optional tool', $html);
+        $this->assertStringContainsString('module-lti tsugi-step"><input type="checkbox" class="tsugi-step-box" aria-label="Mark this done" autocomplete="off">Inner', $html);
         $this->assertStringNotContainsString('module-videos tsugi-step', $html);
+        $this->assertStringNotContainsString('module-ltis tsugi-step', $html);
+
+        $unregistered = '<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered"><span style="display: inline-flex; align-items: center;"><span class="tsugi-item-type-icon tsugi-item-type-lti"></span>Autograder (not provisioned)</span></li>';
+        $marked = \Tsugi\Controllers\Lessons::applyStepCheckboxes($unregistered);
+        $this->assertStringContainsString('class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered tsugi-step"', $marked);
+        $this->assertStringContainsString('</span><input type="checkbox" class="tsugi-step-box"', $marked);
 
         $withIcon = '<li class="tsugi-lessons-module-reference"><a><span class="tsugi-item-type-icon"><i class="fa fa-link"></i></span>Read</a></li>';
         $placed = \Tsugi\Controllers\Lessons::applyStepCheckboxes($withIcon);

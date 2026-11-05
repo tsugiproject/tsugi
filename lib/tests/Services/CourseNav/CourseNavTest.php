@@ -53,14 +53,15 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $doc['items'] as $item ) {
             $ids[] = $item['id'];
         }
-        $this->assertSame(array('lessons', 'files', 'pages', 'quiz1', 'courses_widget', 'logout'), $ids);
+        $this->assertSame(array('lessons', 'content', 'files', 'pages', 'quiz1', 'courses_widget', 'logout'), $ids);
         $this->assertTrue($doc['items'][0]['left']);
         $this->assertTrue($doc['items'][1]['left']);
         $this->assertTrue($doc['items'][2]['left']);
         $this->assertTrue($doc['items'][3]['left']);
-        $this->assertTrue($doc['items'][4]['right']);
-        $this->assertArrayNotHasKey('dropdown', $doc['items'][4]);
-        $this->assertTrue($doc['items'][5]['dropdown']);
+        $this->assertTrue($doc['items'][4]['left']);
+        $this->assertTrue($doc['items'][5]['right']);
+        $this->assertArrayNotHasKey('dropdown', $doc['items'][5]);
+        $this->assertTrue($doc['items'][6]['dropdown']);
         $this->assertNotContains('exit_course', $ids);
     }
 
@@ -308,6 +309,11 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($rows[0]['rename']);
         $this->assertFalse($rows[0]['custom']);
         $this->assertSame('lessons', $rows[1]['id']);
+        $this->assertSame('Lessons', $rows[1]['label']);
+        $this->assertSame('Lessons view of Content', $rows[1]['settings_label']);
+        $this->assertSame('content', $rows[2]['id']);
+        $this->assertSame('Content', $rows[2]['label']);
+        $this->assertSame('Content view of Content', $rows[2]['settings_label']);
         $ids = array();
         foreach ( $rows as $row ) {
             $ids[] = $row['id'];
@@ -320,6 +326,42 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('widget', $rows[$sites]['kind']);
         $this->assertTrue($rows[$sites]['right']);
         $this->assertFalse($rows[$exit]['dropdown']);
+    }
+
+    public function testEditorRowsPutsContentImmediatelyAfterLessons()
+    {
+        $doc = array(
+            'items' => array(
+                array('id' => 'files', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+                array('id' => 'content', 'right' => true),
+            ),
+        );
+        $rows = CourseNav::editorRows($doc);
+        $ids = array();
+        foreach ( $rows as $row ) {
+            $ids[] = $row['id'];
+        }
+        $lessons = array_search('lessons', $ids, true);
+        $content = array_search('content', $ids, true);
+        $this->assertNotFalse($lessons);
+        $this->assertSame($lessons + 1, $content);
+        $this->assertSame('Lessons', $rows[$lessons]['label']);
+        $this->assertSame('Lessons view of Content', $rows[$lessons]['settings_label']);
+        $this->assertSame('Content', $rows[$content]['label']);
+        $this->assertSame('Content view of Content', $rows[$content]['settings_label']);
+        $this->assertTrue($rows[$content]['right']);
+    }
+
+    public function testStoredOutlineNavIdBecomesContent()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array('id' => 'outline', 'left' => true),
+            ),
+        ));
+        $this->assertSame('content', $doc['items'][0]['id']);
+        $this->assertTrue($doc['items'][0]['left']);
     }
 
     public function testEditorRowsKeepsSitesWidgetBesideExitEvenWhenEnabled()
@@ -354,6 +396,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(
             array(
                 'lessons',
+                'content',
                 'assignments',
                 'announcements',
                 'files',
@@ -413,10 +456,10 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $doc['items'] as $item ) {
             $ids[] = $item['id'];
         }
-        $this->assertSame(array('lessons', 'files', 'pages', 'quiz1', 'courses_widget', 'logout'), $ids);
+        $this->assertSame(array('lessons', 'content', 'files', 'pages', 'quiz1', 'courses_widget', 'logout'), $ids);
         $this->assertTrue($doc['items'][0]['left']);
-        $this->assertTrue($doc['items'][4]['right']);
-        $this->assertTrue($doc['items'][5]['dropdown']);
+        $this->assertTrue($doc['items'][5]['right']);
+        $this->assertTrue($doc['items'][6]['dropdown']);
     }
 
     public function testFromPostHonorsOrderAndFlags()
@@ -562,7 +605,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $set->left->menu as $entry ) {
             $left[] = $entry->link;
         }
-        $this->assertSame(array('Lessons', 'Files', 'Pages', 'Quizzes'), $left);
+        $this->assertSame(array('Lessons', 'Content', 'Files', 'Pages', 'Quizzes'), $left);
         $this->assertNotFalse($set->right);
         $this->assertStringContainsString('<img', $set->right->menu[count($set->right->menu)-1]->link);
         $this->assertStringContainsString('gravatar.com/avatar', $set->right->menu[count($set->right->menu)-1]->link);

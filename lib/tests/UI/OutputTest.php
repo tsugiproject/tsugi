@@ -129,6 +129,7 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $OUTPUT = new Output();
         $set = $OUTPUT->defaultMenuSet();
         $this->assertTrue($this->menuSetHasLessons($set));
+        $this->assertFalse($this->menuSetHasLeftLink($set, 'Content'));
     }
 
     public function testDefaultMenuSetOmitsLessonsWithoutContextTitle() {
@@ -280,6 +281,18 @@ class OutputTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
             if ( is_string($entry->href ?? null) && preg_match('#/lessons/?$#', $entry->href) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function menuSetHasLeftLink($set, $label) {
+        if ( ! $set->left ) {
+            return false;
+        }
+        foreach ( $set->left->menu as $entry ) {
+            if ( ($entry->link ?? '') === $label ) {
                 return true;
             }
         }

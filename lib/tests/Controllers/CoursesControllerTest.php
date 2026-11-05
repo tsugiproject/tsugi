@@ -673,6 +673,14 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Courses::isAnonymousLessonRest('lessons'));
         $this->assertTrue(Courses::isAnonymousLessonRest('/lessons/'));
         $this->assertTrue(Courses::isAnonymousLessonRest('lessons/week-1'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('content'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('content/week-1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('content/week-1/extra'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('content_launch/week-1'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('outline'));
+        $this->assertTrue(Courses::isAnonymousLessonRest('outline/week-1'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('outline/week-1/extra'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('outline_launch/week-1'));
         $this->assertFalse(Courses::isAnonymousLessonRest('lessons/_author'));
         $this->assertFalse(Courses::isAnonymousLessonRest('lessons/_author/export'));
         $this->assertFalse(Courses::isAnonymousLessonRest('lessons/week-1/extra'));

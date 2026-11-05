@@ -23,35 +23,17 @@
 .tsugi-nav-editor tr.tsugi-nav-pinned .tsugi-nav-handle { visibility: hidden; cursor: default; }
 .tsugi-nav-hint { color: #666; font-size: 0.9em; margin: 0.2em 0 0; }
 .tsugi-nav-home-label { display: inline-block; width: 14em; max-width: 100%; }
-.tsugi-nav-editor tr.tsugi-nav-steps td {
-    background: #f3faf5;
-    padding-top: 0.1em;
-    padding-bottom: 0.45em;
-    box-shadow: inset 3px 0 0 #2e7d32;
-}
 .tsugi-nav-steps-label {
     display: inline-flex;
     align-items: center;
-    gap: 0.4em;
-    margin: 0 0 0 0.35em;
+    gap: 0.45em;
+    margin: 0;
     font-weight: normal;
     cursor: pointer;
 }
 .tsugi-nav-steps-label input {
     margin: 0;
-    accent-color: #2e7d32;
 }
-.tsugi-nav-steps-elbow {
-    display: inline-block;
-    width: 0.7em;
-    height: 0.7em;
-    margin-right: 0.15em;
-    border-left: 2px solid #2e7d32;
-    border-bottom: 2px solid #2e7d32;
-    border-bottom-left-radius: 2px;
-    flex: 0 0 auto;
-}
-.tsugi-nav-steps .tsugi-nav-hint { margin: 0 0 0 0.6em; }
 .tsugi-nav-editor tr.tsugi-nav-steps[hidden] { display: none; }
 </style>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>">
@@ -68,7 +50,19 @@
             </tr>
         </thead>
         <tbody>
-        <?php foreach ( $nav_rows as $row ) {
+        <?php
+        $content_nav_shown = false;
+        foreach ( $nav_rows as $nav_row ) {
+            $nav_id = $nav_row['id'] ?? '';
+            if ( $nav_id !== 'lessons' && $nav_id !== 'content' ) {
+                continue;
+            }
+            if ( ! empty($nav_row['left']) || ! empty($nav_row['right']) || ! empty($nav_row['dropdown']) ) {
+                $content_nav_shown = true;
+                break;
+            }
+        }
+        foreach ( $nav_rows as $row ) {
             $id = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
             $widget = ($row['kind'] ?? '') === 'widget';
             $chrome = ($row['kind'] ?? '') === 'chrome';
@@ -84,8 +78,12 @@
                         $homeValue = ! empty($row['custom']) ? (string) $row['label'] : '';
                         ?>
                     <input type="text" name="home" value="<?= htmlspecialchars($homeValue, ENT_QUOTES, 'UTF-8') ?>" maxlength="40" placeholder="<?= htmlspecialchars(__('Home'), ENT_QUOTES, 'UTF-8') ?>" class="form-control input-sm tsugi-nav-home-label" aria-label="<?= htmlspecialchars(__('Home label'), ENT_QUOTES, 'UTF-8') ?>">
-                    <?php } else { ?>
-                    <?= htmlspecialchars(__($row['label'])) ?>
+                    <?php } else {
+                        $shown = (isset($row['settings_label']) && is_string($row['settings_label']) && $row['settings_label'] !== '')
+                            ? $row['settings_label']
+                            : $row['label'];
+                        ?>
+                    <?= htmlspecialchars(__($shown)) ?>
                     <?php } ?>
                     <?php if ( ! empty($row['hint']) && is_string($row['hint']) ) { ?>
                         <p class="tsugi-nav-hint"><?= htmlspecialchars(__($row['hint'])) ?></p>
@@ -115,22 +113,19 @@
                 </td>
                 <?php } ?>
             </tr>
-            <?php if ( ($row['id'] ?? '') === 'lessons' ) {
+            <?php if ( ($row['id'] ?? '') === 'content' ) {
                 if ( ! isset($steps_on) ) {
                     $steps_on = true;
                 }
-                $lessons_shown = ! empty($row['left']) || ! empty($row['right']) || ! empty($row['dropdown']);
                 ?>
-            <tr class="tsugi-nav-pinned tsugi-nav-steps" data-nav-child="lessons"<?= $lessons_shown ? '' : ' hidden' ?>>
+            <tr class="tsugi-nav-pinned tsugi-nav-steps" data-nav-child="content"<?= $content_nav_shown ? '' : ' hidden' ?>>
                 <td class="tsugi-nav-handle" aria-hidden="true"></td>
                 <td colspan="5">
                     <label class="tsugi-nav-steps-label">
-                        <span class="tsugi-nav-steps-elbow" aria-hidden="true"></span>
+                        <?= __('Show content progress checkboxes') ?>
                         <input type="hidden" name="steps" value="0">
-                        <input type="checkbox" name="steps" value="1"<?= ! empty($steps_on) ? ' checked' : '' ?> aria-label="<?= htmlspecialchars(__('Show progress boxes'), ENT_QUOTES, 'UTF-8') ?>">
-                        <?= __('Show progress boxes') ?>
+                        <input type="checkbox" name="steps" value="1"<?= ! empty($steps_on) ? ' checked' : '' ?> aria-label="<?= htmlspecialchars(__('Show content progress checkboxes'), ENT_QUOTES, 'UTF-8') ?>">
                     </label>
-                    <span class="tsugi-nav-hint"><?= __('Lectures, readings, and assignment links. Checks stay in this browser.') ?></span>
                 </td>
             </tr>
             <?php } ?>
@@ -177,49 +172,51 @@
     tbody.addEventListener('dragend', function () {
         if (dragging) dragging.classList.remove('tsugi-nav-dragging');
         dragging = null;
-        keepStepsUnderLessons();
+        keepStepsUnderContent();
     });
     tbody.addEventListener('dragover', function (e) {
         e.preventDefault();
         var tr = e.target.closest('tr');
         if (!tr || tr === dragging || !dragging) return;
-        if (tr.getAttribute('data-nav-child') === 'lessons') {
+        if (tr.getAttribute('data-nav-child') === 'content') {
             tr = tr.previousElementSibling;
         }
         if (!tr || tr === dragging || tr.classList.contains('tsugi-nav-pinned')) return;
         var rect = tr.getBoundingClientRect();
         var next = (e.clientY - rect.top) > (rect.height / 2);
         tbody.insertBefore(dragging, next ? tr.nextSibling : tr);
-        keepStepsUnderLessons();
+        keepStepsUnderContent();
     });
 
-    function keepStepsUnderLessons() {
-        var lessons = tbody.querySelector('tr[data-nav-id="lessons"]');
-        var steps = tbody.querySelector('tr[data-nav-child="lessons"]');
-        if (!lessons || !steps || lessons.nextElementSibling === steps) return;
-        lessons.insertAdjacentElement('afterend', steps);
+    function keepStepsUnderContent() {
+        var contentRow = tbody.querySelector('tr[data-nav-id="content"]');
+        var steps = tbody.querySelector('tr[data-nav-child="content"]');
+        if (!contentRow || !steps || contentRow.nextElementSibling === steps) return;
+        contentRow.insertAdjacentElement('afterend', steps);
     }
 
-    function lessonsIsShown() {
-        var row = tbody.querySelector('tr[data-nav-id="lessons"]');
+    function rowIsPlaced(id) {
+        var row = tbody.querySelector('tr[data-nav-id="' + id + '"]');
         if (!row) return false;
         var places = ['left', 'right', 'dropdown'];
         for (var i = 0; i < places.length; i++) {
-            var box = row.querySelector('input[name="nav[lessons][' + places[i] + ']"]');
+            var box = row.querySelector('input[name="nav[' + id + '][' + places[i] + ']"]');
             if (box && box.checked) return true;
         }
         return false;
     }
 
     function syncProgressBoxes() {
-        var steps = tbody.querySelector('tr[data-nav-child="lessons"]');
+        var steps = tbody.querySelector('tr[data-nav-child="content"]');
         if (!steps) return;
-        if (lessonsIsShown()) steps.removeAttribute('hidden');
+        if (rowIsPlaced('lessons') || rowIsPlaced('content')) steps.removeAttribute('hidden');
         else steps.setAttribute('hidden', 'hidden');
     }
 
-    var lessonsRow = tbody.querySelector('tr[data-nav-id="lessons"]');
-    if (lessonsRow) lessonsRow.addEventListener('change', syncProgressBoxes);
+    ['lessons', 'content'].forEach(function (id) {
+        var row = tbody.querySelector('tr[data-nav-id="' + id + '"]');
+        if (row) row.addEventListener('change', syncProgressBoxes);
+    });
     syncProgressBoxes();
 })();
 </script>
