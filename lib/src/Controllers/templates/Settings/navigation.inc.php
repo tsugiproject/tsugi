@@ -5,7 +5,7 @@
  * Expected: $nav_rows (CourseNav::editorRows), $save_url
  */
 ?>
-<p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Settings is always in the avatar menu before Logout and is instructors only.') ?></p>
+<p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Student View is always in the avatar menu before Settings, and Settings is always before Logout. Both are instructors only.') ?></p>
 <p><?= __('Check where each tool should appear. Instructor only hides that item from students. Widgets can only sit in the top left or top right, not under the avatar.') ?></p>
 <style>
 .tsugi-nav-editor { width: 100%; max-width: 56em; border-collapse: separate; border-spacing: 0; }

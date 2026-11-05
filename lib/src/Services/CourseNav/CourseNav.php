@@ -8,6 +8,8 @@ use \Tsugi\Services\Catalog\CatalogRepository;
 use \Tsugi\Services\Site\Site;
 use \Tsugi\Controllers\Login;
 use Tsugi\Controllers\Settings;
+use Tsugi\Core\Manifest;
+use Tsugi\Services\StudentView\StudentView;
 use Tsugi\Core\ContextImages;
 use Tsugi\UI\Menu;
 use Tsugi\UI\MenuSet;
@@ -18,7 +20,7 @@ use Tsugi\Core\ReqScope;
 /**
  * Teacher-edited course top nav: catalog, normalize, compile to MenuSet.
  *
- * Locked chrome (Home slot, Avatar, Settings) is not stored as items.
+ * Locked chrome (Home slot, Avatar, Student View, Settings) is not stored as items.
  * An optional `home` string renames the Home label. Optional items have
  * left / right / dropdown flags (widgets: left / right only).
  */
@@ -275,6 +277,13 @@ class CourseNav {
                 continue;
             }
             if ( ! $injectedSettings ) {
+                $rows[] = array(
+                    'id' => 'student',
+                    'kind' => 'chrome',
+                    'label' => 'Student View',
+                    'pin' => 'last',
+                    'hint' => 'Always in the avatar menu before Settings. Instructors only.',
+                );
                 $rows[] = array(
                     'id' => 'settings',
                     'kind' => 'chrome',
@@ -548,6 +557,9 @@ class CourseNav {
             $submenu->addLink($leaveBuilt['label'], $leaveBuilt['href'], false, $leaveBuilt['attr'] ?? false);
         }
         if ( self::maySeeSettings() ) {
+            if ( Manifest::idForContext($cid) > 0 ) {
+                $submenu->addLink(__('Student View'), $prefix.StudentView::ROUTE);
+            }
             $submenu->addLink(__('Settings'), $prefix.'/settings');
         }
         if ( $logoutBuilt !== null ) {

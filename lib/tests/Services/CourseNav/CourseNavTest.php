@@ -300,8 +300,12 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('logout', $rows[count($rows)-1]['id']);
         $this->assertSame('login', $rows[count($rows)-2]['id']);
         $this->assertSame('settings', $rows[count($rows)-3]['id']);
-        $this->assertSame('roster', $rows[count($rows)-4]['id']);
+        $this->assertSame('student', $rows[count($rows)-4]['id']);
+        $this->assertSame('Student View', $rows[count($rows)-4]['label']);
+        $this->assertSame('roster', $rows[count($rows)-5]['id']);
         $this->assertSame('chrome', $rows[count($rows)-3]['kind']);
+        $this->assertSame('chrome', $rows[count($rows)-4]['kind']);
+        $this->assertStringContainsString('before Settings', $rows[count($rows)-4]['hint']);
         $this->assertTrue($rows[count($rows)-1]['dropdown']);
         $this->assertStringContainsString('not logged in', $rows[count($rows)-2]['hint']);
         $this->assertStringContainsString('logged in', $rows[count($rows)-1]['hint']);

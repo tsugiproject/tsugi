@@ -344,7 +344,8 @@ abstract class Tool {
         if ( $sendEmail && isset($_SESSION['email']) && $_SESSION['email'] !== '' ) {
             $parms['lis_person_contact_email_primary'] = $_SESSION['email'];
         }
-        if ( isset($_SESSION['avatar']) ) {
+        if ( isset($_SESSION['avatar']) && is_string($_SESSION['avatar'])
+                && strncmp($_SESSION['avatar'], 'data:', 5) !== 0 ) {
             $parms['user_image'] = $_SESSION['avatar'];
         }
 

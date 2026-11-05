@@ -251,7 +251,7 @@ class Output {
         // If we are in an iframe use different margins
 ?>
 </head>
-<body prefix="oer: http://oerschema.org">
+<body<?= \Tsugi\Services\StudentView\StudentView::bodyAttribute() ?> prefix="oer: http://oerschema.org">
 <a href="#main-content" class="skip-link"><?= _m('Skip to main content') ?></a>
 <div id="body_container">
 <script>
@@ -592,7 +592,9 @@ $('a').each(function (x) {
             unset($_SESSION['lti.gradeChangeNotify']);
         }
 
-        echo("\n</main>\n</div></body>\n</html>\n");
+        echo("\n</main>\n</div>\n");
+        echo(\Tsugi\Services\StudentView\StudentView::barHtml());
+        echo("</body>\n</html>\n");
 
         $ob_output = ob_get_contents();
         ob_end_clean();
@@ -1668,6 +1670,7 @@ $( function() {
         $ret .= self::getThemeCss($theme);
         $ret .= '<link href="'.$s.'/css/tsugi2.css?v=20261105" rel="stylesheet">'."\n";
         $ret .= self::navbarAlignCss();
+        $ret .= \Tsugi\Services\StudentView\StudentView::css();
         if ( isset($CFG->extra_css) ) {
             $ret .= '<style>'."\n".$CFG->extra_css."\n</style>\n";
         }
