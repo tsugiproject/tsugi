@@ -9,10 +9,13 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 use Tsugi\Core\ContextImages;
+use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\ContextUser\ContextUserSettings;
+use Tsugi\Services\CourseNav\CourseNav;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Home\HomeLayout;
-use Tsugi\Services\Notes\StudentNoteRepository;
+use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Util\CCFileBase;
 
@@ -21,8 +24,9 @@ use Tsugi\Util\CCFileBase;
  *
  * Instructors pick an ordered set of blocks (hero, pages, course files, the
  * month calendar, the due-date list, and a note to self) with the gear on this
- * screen. Keep HTTP and chrome here. Nested dispatch from Courses keeps
- * REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
+ * screen. Students use that same gear to show or hide the blocks the
+ * instructor placed. Keep HTTP and chrome here. Nested dispatch from Courses
+ * keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
  *
  * Parent menus (site URLs only):
  * if ( \Tsugi\Controllers\Home::showInMenu() ) {
@@ -48,6 +52,7 @@ class Home extends Tool {
         $app->router->post($prefix, 'Home@save');
         $app->router->post($prefix.'/', 'Home@save');
         $app->router->post($prefix.'/notes', 'Home@saveNote');
+        $app->router->post($prefix.'/settings', 'Home@saveSettings');
         $app->router->get('/'.self::REDIRECT, 'Home@index');
     }
 
@@ -62,50 +67,49 @@ class Home extends Tool {
         $calendar = HomeLayout::block($layout, 'calendar');
         $dues = HomeLayout::block($layout, 'dues');
         $notes = HomeLayout::block($layout, 'notes');
-        $pageBlocks = array();
-        foreach ( $layout['blocks'] as $block ) {
-            if ( ($block['type'] ?? '') !== 'page' ) {
-                continue;
-            }
-            $pid = (int) ($block['page_id'] ?? 0);
-            if ( $pid < 1 || array_key_exists($pid, $pageBlocks) ) {
-                continue;
-            }
-            $loaded = $this->pageForHome($pid);
-            if ( is_array($loaded) ) {
-                $pageBlocks[$pid] = $loaded;
-            }
-        }
+        $pageBlocks = $this->pageBlocksForLayout($layout);
+        $prefs = ContextUserSettings::load($context_id, ReqScope::loggedInUserId());
+        $homeOff = $instructor ? array() : ContextUserSettings::homeOff($prefs['settings']);
         $homeUrl = U::addSession($this->toolHome(self::ROUTE));
         $calendarHtml = '';
         $duesHtml = '';
-        if ( (is_array($calendar) && ! empty($calendar['on'])) || (is_array($dues) && ! empty($dues['on'])) ) {
+        $calendarOn = is_array($calendar) && ! empty($calendar['on']) && ! isset($homeOff['calendar']);
+        $duesOn = is_array($dues) && ! empty($dues['on']) && ! isset($homeOff['dues']);
+        if ( $calendarOn || $duesOn ) {
             $cal = new Calendar();
-            if ( is_array($calendar) && ! empty($calendar['on']) ) {
+            if ( $calendarOn ) {
                 $calendarHtml = $cal->monthHtml($request, $homeUrl, true);
             }
-            if ( is_array($dues) && ! empty($dues['on']) ) {
+            if ( $duesOn ) {
                 $duesHtml = $cal->listHtml(true);
             }
         }
         $pages = $instructor ? PageRepository::listForPicker($context_id, false) : array();
         $courseFiles = FileRepository::listForHome($context_id);
-        $fileBlocks = array();
-        foreach ( $courseFiles as $file ) {
-            $url = $this->courseFileUrl($file['path']);
-            if ( $url === '' ) {
-                continue;
+        $fileBlocks = $this->fileBlocksForHome($context_id, $courseFiles);
+        $notesOn = is_array($notes) && ! empty($notes['on']) && ! isset($homeOff['notes']);
+        $studentNote = $notesOn ? $prefs['note'] : '';
+        $homeChoices = $instructor ? array() : $this->studentHomeChoices($layout, $pageBlocks, $fileBlocks, $homeOff);
+        $contentViews = array();
+        $contentView = '';
+        $stepsOffer = false;
+        $stepsOn = true;
+        if ( ! $instructor ) {
+            $offeredViews = CourseNav::studentContentViews(Manifest::navigationDocumentForContext($context_id));
+            $contentView = ContextUserSettings::contentView($prefs['settings']);
+            if ( $contentView !== '' && ! in_array($contentView, $offeredViews, true) ) {
+                $contentView = '';
             }
-            $fileBlocks[$file['path']] = array(
-                'name' => $file['name'],
-                'url' => U::addSession($url),
-                'image' => ! empty($file['image']),
-            );
-        }
-        $notesOn = is_array($notes) && ! empty($notes['on']);
-        $studentNote = '';
-        if ( $notesOn ) {
-            $studentNote = StudentNoteRepository::load($context_id, ReqScope::loggedInUserId());
+            if ( count($offeredViews) >= 2 ) {
+                foreach ( $offeredViews as $viewId ) {
+                    $contentViews[] = array(
+                        'id' => $viewId,
+                        'label' => self::contentViewLabel($viewId),
+                    );
+                }
+            }
+            $stepsOffer = $this->courseStepsOn();
+            $stepsOn = ! ContextUserSettings::stepsHidden($prefs['settings']);
         }
         $heroPlace = is_array($hero) ? (string) ($hero['place'] ?? 'none') : 'none';
         $this->render('index.inc.php', array(
@@ -123,6 +127,15 @@ class Home extends Tool {
             'context_id' => $context_id,
             'student_note' => $studentNote,
             'notes_save_url' => $notesOn ? U::addSession($this->toolHome(self::ROUTE).'/notes') : '',
+            'home_choices' => $homeChoices,
+            'home_off' => $homeOff,
+            'content_views' => $contentViews,
+            'content_view' => $contentView,
+            'steps_offer' => $stepsOffer,
+            'steps_on' => $stepsOn,
+            'settings_save_url' => (count($homeChoices) > 0 || count($contentViews) >= 2 || $stepsOffer)
+                ? U::addSession($this->toolHome(self::ROUTE).'/settings')
+                : '',
         ));
     }
 
@@ -180,14 +193,236 @@ class Home extends Tool {
             U::flashError(__('Note to self is not on for this course.'));
             return new RedirectResponse($home);
         }
-        $body = StudentNoteRepository::plain(isset($_POST['student_note']) ? $_POST['student_note'] : '');
+        $body = ContextUserSettings::plain(isset($_POST['student_note']) ? $_POST['student_note'] : '');
         if ( $body === null ) {
             U::flashError(__('A note to self is limited to 500 characters.'));
             return new RedirectResponse($home);
         }
-        StudentNoteRepository::save($context_id, $user_id, $body);
+        ContextUserSettings::saveNote($context_id, $user_id, $body);
         U::flashSuccess($body === '' ? __('Note to self cleared.') : __('Note to self saved.'));
         return new RedirectResponse($home);
+    }
+
+    /**
+     * Save which placed home blocks this person wants to see.
+     */
+    public function saveSettings(Request $request)
+    {
+        $this->requireAuth();
+        LTIX::getConnection();
+        $home = U::addSession($this->toolHome(self::ROUTE));
+        $csrf = self::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
+        if ( $context_id < 1 || $user_id < 1 ) {
+            U::flashError(__('Home settings need a course.'));
+            return new RedirectResponse($home);
+        }
+        if ( $this->isInstructor() ) {
+            U::flashError(__('Instructors configure the home page with the gear.'));
+            return new RedirectResponse($home);
+        }
+        $layout = HomeLayout::load($context_id);
+        $choices = $this->studentHomeChoices(
+            $layout,
+            $this->pageBlocksForLayout($layout),
+            $this->fileBlocksForHome($context_id),
+            array()
+        );
+        $offeredViews = CourseNav::studentContentViews(Manifest::navigationDocumentForContext($context_id));
+        $stepsOffer = $this->courseStepsOn();
+        if ( count($choices) === 0 && count($offeredViews) < 2 && ! $stepsOffer ) {
+            U::flashError(__('Nothing on the home page can be changed.'));
+            return new RedirectResponse($home);
+        }
+        $offered = array();
+        foreach ( $choices as $choice ) {
+            $offered[] = $choice['key'];
+        }
+        $existing = ContextUserSettings::load($context_id, $user_id);
+        $off = ContextUserSettings::homeOffFromPost(
+            $offered,
+            isset($_POST['home_show']) ? $_POST['home_show'] : array(),
+            ContextUserSettings::homeOff($existing['settings'])
+        );
+        $changes = array('home_off' => $off);
+        if ( count($offeredViews) >= 2 ) {
+            $changes['view'] = ContextUserSettings::viewFromPost(
+                isset($_POST['content_view']) ? $_POST['content_view'] : '',
+                $offeredViews
+            );
+        }
+        if ( $stepsOffer ) {
+            $changes['hide_steps'] = empty($_POST['show_steps']);
+        }
+        ContextUserSettings::saveGear($context_id, $user_id, $changes);
+        U::flashSuccess(__('Home settings saved.'));
+        return new RedirectResponse($home);
+    }
+
+    /**
+     * Progress checkboxes are on unless this course's document turns them off.
+     */
+    private function courseStepsOn() {
+        $doc = Manifest::currentDocument();
+        if ( ! is_array($doc) || ! isset($doc['json']) ) {
+            return false;
+        }
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            return false;
+        }
+        if ( ! array_key_exists('steps', $decoded) ) {
+            return true;
+        }
+        return LessonsService::stepsFlag($decoded['steps']);
+    }
+
+    /**
+     * @param string $viewId
+     * @return string
+     */
+    private static function contentViewLabel($viewId) {
+        if ( $viewId === 'content' ) {
+            return __('Content');
+        }
+        if ( $viewId === 'outline' ) {
+            return __('Outline');
+        }
+        return __('Card View');
+    }
+
+    /**
+     * Pages the current viewer can see, keyed by page id.
+     *
+     * @param array<string,mixed> $layout
+     * @return array<int,array<string,mixed>>
+     */
+    private function pageBlocksForLayout(array $layout) {
+        $pageBlocks = array();
+        $blocks = isset($layout['blocks']) && is_array($layout['blocks']) ? $layout['blocks'] : array();
+        foreach ( $blocks as $block ) {
+            if ( ! is_array($block) || ($block['type'] ?? '') !== 'page' ) {
+                continue;
+            }
+            $pid = (int) ($block['page_id'] ?? 0);
+            if ( $pid < 1 || array_key_exists($pid, $pageBlocks) ) {
+                continue;
+            }
+            $loaded = $this->pageForHome($pid);
+            if ( is_array($loaded) ) {
+                $pageBlocks[$pid] = $loaded;
+            }
+        }
+        return $pageBlocks;
+    }
+
+    /**
+     * Non-private course files the home page can link, keyed by path.
+     *
+     * @param int $context_id
+     * @param list<array<string,mixed>>|null $courseFiles
+     * @return array<string,array{name:string,url:string,image:bool}>
+     */
+    private function fileBlocksForHome($context_id, $courseFiles = null) {
+        if ( ! is_array($courseFiles) ) {
+            $courseFiles = FileRepository::listForHome((int) $context_id);
+        }
+        $fileBlocks = array();
+        foreach ( $courseFiles as $file ) {
+            if ( ! is_array($file) || ! isset($file['path']) ) {
+                continue;
+            }
+            $url = $this->courseFileUrl($file['path']);
+            if ( $url === '' ) {
+                continue;
+            }
+            $fileBlocks[$file['path']] = array(
+                'name' => isset($file['name']) ? (string) $file['name'] : (string) $file['path'],
+                'url' => U::addSession($url),
+                'image' => ! empty($file['image']),
+            );
+        }
+        return $fileBlocks;
+    }
+
+    /**
+     * Blocks a student can show or hide. Empty slots and unpublished pages are left out.
+     *
+     * @param array<string,mixed> $layout
+     * @param array<int,array<string,mixed>> $pageBlocks
+     * @param array<string,array<string,mixed>> $fileBlocks
+     * @param array<string,bool> $off
+     * @return list<array{key:string,label:string,shown:bool}>
+     */
+    private function studentHomeChoices(array $layout, array $pageBlocks, array $fileBlocks, array $off) {
+        $blocks = isset($layout['blocks']) && is_array($layout['blocks']) ? $layout['blocks'] : array();
+        $choices = array();
+        $seen = array();
+        foreach ( $blocks as $block ) {
+            if ( ! is_array($block) ) {
+                continue;
+            }
+            $key = HomeLayout::blockKey($block);
+            if ( $key === null || isset($seen[$key]) ) {
+                continue;
+            }
+            $label = $this->homeChoiceLabel($block, $pageBlocks, $fileBlocks);
+            if ( $label === null ) {
+                continue;
+            }
+            $seen[$key] = true;
+            $choices[] = array(
+                'key' => $key,
+                'label' => $label,
+                'shown' => empty($off[$key]),
+            );
+        }
+        return $choices;
+    }
+
+    /**
+     * Label for one placed block, or null when this viewer should not be offered it.
+     *
+     * @param array<string,mixed> $block
+     * @param array<int,array<string,mixed>> $pageBlocks
+     * @param array<string,array<string,mixed>> $fileBlocks
+     * @return string|null
+     */
+    private function homeChoiceLabel(array $block, array $pageBlocks, array $fileBlocks) {
+        $type = (string) ($block['type'] ?? '');
+        if ( $type === 'hero' ) {
+            return __('Course image');
+        }
+        if ( $type === 'calendar' ) {
+            return __('Calendar');
+        }
+        if ( $type === 'dues' ) {
+            return __('Due dates');
+        }
+        if ( $type === 'notes' ) {
+            return __('Note to self');
+        }
+        if ( $type === 'page' ) {
+            $pid = (int) ($block['page_id'] ?? 0);
+            if ( $pid < 1 || ! isset($pageBlocks[$pid]) || ! is_array($pageBlocks[$pid]) ) {
+                return null;
+            }
+            $title = trim((string) ($pageBlocks[$pid]['title'] ?? ''));
+            return $title !== '' ? $title : __('Untitled');
+        }
+        if ( $type === 'file' ) {
+            $path = isset($block['path']) ? (string) $block['path'] : '';
+            if ( $path === '' || ! isset($fileBlocks[$path]) || ! is_array($fileBlocks[$path]) ) {
+                return null;
+            }
+            $name = trim((string) ($fileBlocks[$path]['name'] ?? ''));
+            return $name !== '' ? $name : $path;
+        }
+        return null;
     }
 
     /**

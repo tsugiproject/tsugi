@@ -7,6 +7,7 @@
 ?>
 <p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Student View is always in the avatar menu before Settings, and Settings is always before Logout. Both are instructors only.') ?></p>
 <p><?= __('Check where each tool should appear. Instructor only hides that item from students. Widgets can only sit in the top left or top right, not under the avatar.') ?></p>
+<p><?= __('Lessons stays under Home. Students see one link: the default view, or an available view they pick on Home. If none is marked default, Card View is the default. Check Instructor test on a view to add a test link in your avatar menu. Students do not see test links.') ?></p>
 <style>
 .tsugi-nav-editor { width: 100%; max-width: 56em; border-collapse: separate; border-spacing: 0; }
 .tsugi-nav-editor th, .tsugi-nav-editor td { padding: 0.4em 0.6em; vertical-align: middle; }
@@ -34,7 +35,13 @@
 .tsugi-nav-steps-label input {
     margin: 0;
 }
-.tsugi-nav-editor tr.tsugi-nav-steps[hidden] { display: none; }
+.tsugi-nav-editor tr.tsugi-nav-lessons td { vertical-align: top; }
+.tsugi-nav-editor tr.tsugi-nav-lessons .tsugi-nav-place { margin-top: 0.45em; }
+.tsugi-nav-view-list { margin-top: 0.7em; }
+.tsugi-nav-steps[hidden] { display: none; }
+.tsugi-nav-view-row { margin: 0.35em 0; }
+.tsugi-nav-view-name { display: inline-block; min-width: 8em; }
+.tsugi-nav-view-row label { font-weight: normal; margin-right: 0.8em; }
 </style>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
@@ -51,18 +58,55 @@
         </thead>
         <tbody>
         <?php
-        $content_nav_shown = false;
-        foreach ( $nav_rows as $nav_row ) {
-            $nav_id = $nav_row['id'] ?? '';
-            if ( $nav_id !== 'lessons' && $nav_id !== 'content' && $nav_id !== 'outline' ) {
+        $view_by_id = array();
+        foreach ( $nav_rows as $view_row ) {
+            $view_id = $view_row['id'] ?? '';
+            if ( $view_id === 'lessons' || $view_id === 'content' || $view_id === 'outline' ) {
+                $view_by_id[$view_id] = $view_row;
+            }
+        }
+        $view_place = array('left' => false, 'right' => false, 'dropdown' => false);
+        $view_placed = array();
+        foreach ( array('lessons', 'content', 'outline') as $view_id ) {
+            $view_row = $view_by_id[$view_id] ?? array();
+            $view_on = ! empty($view_row['left']) || ! empty($view_row['right']) || ! empty($view_row['dropdown']);
+            if ( ! $view_on ) {
                 continue;
             }
-            if ( ! empty($nav_row['left']) || ! empty($nav_row['right']) || ! empty($nav_row['dropdown']) ) {
-                $content_nav_shown = true;
+            $view_placed[] = $view_row;
+            foreach ( array('left', 'right', 'dropdown') as $place_key ) {
+                if ( ! empty($view_row[$place_key]) ) {
+                    $view_place[$place_key] = true;
+                }
+            }
+        }
+        $view_instructor = count($view_placed) > 0;
+        foreach ( $view_placed as $view_row ) {
+            if ( empty($view_row['instructor']) ) {
+                $view_instructor = false;
                 break;
             }
         }
+        $view_any = false;
+        $view_has_default = false;
+        foreach ( array('lessons', 'content', 'outline') as $view_id ) {
+            $view_row = $view_by_id[$view_id] ?? array();
+            $view_on = ! empty($view_row['left']) || ! empty($view_row['right']) || ! empty($view_row['dropdown']);
+            $view_explicit = array_key_exists('default', $view_row) || array_key_exists('available', $view_row) || array_key_exists('test', $view_row);
+            $view_default_on = $view_on && ($view_explicit ? ! empty($view_row['default']) : true);
+            if ( $view_default_on ) {
+                $view_has_default = true;
+            }
+            if ( $view_on && ($view_explicit ? ( ! empty($view_row['default']) || ! empty($view_row['available']) || ! empty($view_row['test']) ) : true) ) {
+                $view_any = true;
+            }
+        }
+        $card_fallback = ! $view_has_default && count($view_placed) > 0;
         foreach ( $nav_rows as $row ) {
+            $row_id = $row['id'] ?? '';
+            if ( $row_id === 'lessons' || $row_id === 'content' || $row_id === 'outline' ) {
+                continue;
+            }
             $id = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
             $widget = ($row['kind'] ?? '') === 'widget';
             $chrome = ($row['kind'] ?? '') === 'chrome';
@@ -113,20 +157,49 @@
                 </td>
                 <?php } ?>
             </tr>
-            <?php if ( ($row['id'] ?? '') === 'outline' ) {
+            <?php if ( $row_id === 'home' ) {
                 if ( ! isset($steps_on) ) {
                     $steps_on = true;
                 }
                 ?>
-            <tr class="tsugi-nav-pinned tsugi-nav-steps" data-nav-child="outline"<?= $content_nav_shown ? '' : ' hidden' ?>>
-                <td class="tsugi-nav-handle" aria-hidden="true"></td>
-                <td colspan="5">
-                    <label class="tsugi-nav-steps-label">
-                        <?= __('Show content progress checkboxes') ?>
-                        <input type="hidden" name="steps" value="0">
-                        <input type="checkbox" name="steps" value="1"<?= ! empty($steps_on) ? ' checked' : '' ?> aria-label="<?= htmlspecialchars(__('Show content progress checkboxes'), ENT_QUOTES, 'UTF-8') ?>">
-                    </label>
+            <tr class="tsugi-nav-pinned tsugi-nav-lessons" data-nav-id="course_views">
+                <td class="tsugi-nav-handle" title="<?= htmlspecialchars(__('Stays under Home')) ?>">&#8942;</td>
+                <td>
+                    <input type="hidden" name="nav_order[]" value="course_views">
+                    <?= __('Lessons') ?>
+                    <div class="tsugi-nav-view-list">
+                    <?php foreach ( array('lessons', 'content', 'outline') as $view_id ) {
+                        $view_row = $view_by_id[$view_id] ?? array();
+                        $view_on = ! empty($view_row['left']) || ! empty($view_row['right']) || ! empty($view_row['dropdown']);
+                        $view_explicit = array_key_exists('default', $view_row) || array_key_exists('available', $view_row) || array_key_exists('test', $view_row);
+                        $view_default = ($view_id === 'lessons' && $card_fallback)
+                            || ($view_on && ($view_explicit ? ! empty($view_row['default']) : true));
+                        $view_available = $view_on && ($view_explicit ? ! empty($view_row['available']) : true);
+                        $view_test = $view_on && ! empty($view_row['test']);
+                        $view_name = (isset($view_row['settings_label']) && is_string($view_row['settings_label']) && $view_row['settings_label'] !== '')
+                            ? $view_row['settings_label']
+                            : ($view_row['label'] ?? $view_id);
+                        ?>
+                    <div class="tsugi-nav-view-row">
+                        <span class="tsugi-nav-view-name"><?= htmlspecialchars(__($view_name)) ?></span>
+                        <label><input type="checkbox" name="view_default[<?= htmlspecialchars($view_id) ?>]" value="1"<?= $view_default ? ' checked' : '' ?>> <?= __('Default') ?></label>
+                        <label><input type="checkbox" name="view_available[<?= htmlspecialchars($view_id) ?>]" value="1"<?= $view_available ? ' checked' : '' ?>> <?= __('Available') ?></label>
+                        <label><input type="checkbox" name="view_test[<?= htmlspecialchars($view_id) ?>]" value="1"<?= $view_test ? ' checked' : '' ?>> <?= __('Instructor test') ?></label>
+                    </div>
+                    <?php } ?>
+                    <div class="tsugi-nav-steps" data-nav-child="course_views"<?= $view_any ? '' : ' hidden' ?>>
+                        <label class="tsugi-nav-steps-label">
+                            <?= __('Show content progress checkboxes') ?>
+                            <input type="hidden" name="steps" value="0">
+                            <input type="checkbox" name="steps" value="1"<?= ! empty($steps_on) ? ' checked' : '' ?> aria-label="<?= htmlspecialchars(__('Show content progress checkboxes'), ENT_QUOTES, 'UTF-8') ?>">
+                        </label>
+                    </div>
+                    </div>
                 </td>
+                <td><input type="checkbox" class="tsugi-nav-place" name="nav[course_views][left]" value="1"<?= ! empty($view_place['left']) ? ' checked' : '' ?>></td>
+                <td><input type="checkbox" class="tsugi-nav-place" name="nav[course_views][right]" value="1"<?= ! empty($view_place['right']) ? ' checked' : '' ?>></td>
+                <td><input type="checkbox" class="tsugi-nav-place" name="nav[course_views][dropdown]" value="1"<?= ! empty($view_place['dropdown']) ? ' checked' : '' ?>></td>
+                <td><input type="checkbox" class="tsugi-nav-place" name="nav[course_views][instructor]" value="1"<?= $view_instructor ? ' checked' : '' ?>></td>
             </tr>
             <?php } ?>
         <?php } ?>
@@ -172,50 +245,33 @@
     tbody.addEventListener('dragend', function () {
         if (dragging) dragging.classList.remove('tsugi-nav-dragging');
         dragging = null;
-        keepStepsUnderOutline();
     });
     tbody.addEventListener('dragover', function (e) {
         e.preventDefault();
         var tr = e.target.closest('tr');
         if (!tr || tr === dragging || !dragging) return;
-        if (tr.getAttribute('data-nav-child') === 'outline') {
-            tr = tr.previousElementSibling;
-        }
-        if (!tr || tr === dragging || tr.classList.contains('tsugi-nav-pinned')) return;
+        if (tr.classList.contains('tsugi-nav-pinned')) return;
         var rect = tr.getBoundingClientRect();
         var next = (e.clientY - rect.top) > (rect.height / 2);
         tbody.insertBefore(dragging, next ? tr.nextSibling : tr);
-        keepStepsUnderOutline();
     });
 
-    function keepStepsUnderOutline() {
-        var outlineRow = tbody.querySelector('tr[data-nav-id="outline"]');
-        var steps = tbody.querySelector('tr[data-nav-child="outline"]');
-        if (!outlineRow || !steps || outlineRow.nextElementSibling === steps) return;
-        outlineRow.insertAdjacentElement('afterend', steps);
-    }
-
-    function rowIsPlaced(id) {
-        var row = tbody.querySelector('tr[data-nav-id="' + id + '"]');
-        if (!row) return false;
-        var places = ['left', 'right', 'dropdown'];
-        for (var i = 0; i < places.length; i++) {
-            var box = row.querySelector('input[name="nav[' + id + '][' + places[i] + ']"]');
-            if (box && box.checked) return true;
-        }
-        return false;
-    }
-
     function syncProgressBoxes() {
-        var steps = tbody.querySelector('tr[data-nav-child="outline"]');
+        var steps = tbody.querySelector('[data-nav-child="course_views"]');
         if (!steps) return;
-        if (rowIsPlaced('lessons') || rowIsPlaced('content') || rowIsPlaced('outline')) steps.removeAttribute('hidden');
+        var on = false;
+        tbody.querySelectorAll('input[name^="view_default["], input[name^="view_available["], input[name^="view_test["]').forEach(function (box) {
+            if (box.checked) on = true;
+        });
+        if (on) steps.removeAttribute('hidden');
         else steps.setAttribute('hidden', 'hidden');
     }
 
-    ['lessons', 'content', 'outline'].forEach(function (id) {
-        var row = tbody.querySelector('tr[data-nav-id="' + id + '"]');
-        if (row) row.addEventListener('change', syncProgressBoxes);
+    tbody.addEventListener('change', function (e) {
+        var name = e.target && e.target.name ? e.target.name : '';
+        if (name.indexOf('view_default[') === 0 || name.indexOf('view_available[') === 0 || name.indexOf('view_test[') === 0) {
+            syncProgressBoxes();
+        }
     });
     syncProgressBoxes();
 })();

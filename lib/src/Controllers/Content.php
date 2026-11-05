@@ -138,7 +138,6 @@ class Content extends Lessons {
         if ( ReqScope::currentContextId() !== 0 ) {
             $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
-        $gclass = self::isGoogleClassroomInstructor();
         $base = rtrim((string) $lessons->toolHome, '/');
         $current = isset($lessons->anchor) ? (string) $lessons->anchor : '';
 
@@ -157,7 +156,7 @@ class Content extends Lessons {
             $anchor = isset($module->anchor) ? (string) $module->anchor : '';
             $href = $base.'/'.urlencode($anchor);
             $selected = $anchor !== '' && $anchor === $current;
-            self::echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $gclass, $href, $selected);
+            self::echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $href, $selected);
         }
         echo("</nav>\n");
         echo('<div class="tsugi-outline-main">'."\n");
@@ -184,14 +183,17 @@ class Content extends Lessons {
     placeSelected(nav, false);
 
     if (!nav) return;
+    bindCardHits(nav);
+    bindDescriptions(nav);
     var pending = 0;
     var finish = null;
     nav.addEventListener("click", function (e) {
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        var link = e.target.closest("a.tsugi-lessons-module-card-link");
-        if (!link || !nav.contains(link)) return;
-        var card = link.closest("article.card");
-        if (!card) return;
+        if (e.target.closest(".tsugi-card-more, .tsugi-card-popup")) return;
+        var card = e.target.closest("article.card");
+        if (!card || !nav.contains(card)) return;
+        var link = card.querySelector("a.tsugi-lessons-module-card-link");
+        if (!link) return;
         if (card.classList.contains("tsugi-outline-selected")) {
             e.preventDefault();
             return;
@@ -260,6 +262,104 @@ class Content extends Lessons {
         }
         navEl.scrollTop = top;
     }
+
+    var openPop = null;
+    function hidePop() {
+        if (!openPop) return;
+        openPop.hidden = true;
+        if (openPop._more) openPop._more.setAttribute("aria-expanded", "false");
+        openPop = null;
+    }
+    function showPop(pop, more) {
+        if (openPop && openPop !== pop) hidePop();
+        pop.hidden = false;
+        var rect = more.getBoundingClientRect();
+        var left = Math.max(8, rect.left - 8);
+        var top = rect.bottom + 4;
+        pop.style.left = left + "px";
+        pop.style.top = top + "px";
+        var box = pop.getBoundingClientRect();
+        if (box.right > window.innerWidth - 8) {
+            pop.style.left = Math.max(8, window.innerWidth - box.width - 8) + "px";
+        }
+        if (box.bottom > window.innerHeight - 8) {
+            pop.style.top = Math.max(8, rect.top - box.height - 4) + "px";
+        }
+        more.setAttribute("aria-expanded", "true");
+        openPop = pop;
+    }
+    function bindCardHits(navEl) {
+        navEl.querySelectorAll("article.card").forEach(function (card) {
+            if (card.querySelector(".tsugi-card-hit")) return;
+            var link = card.querySelector("a.tsugi-lessons-module-card-link");
+            if (!link) return;
+            var hit = document.createElement("a");
+            hit.className = "tsugi-card-hit";
+            hit.href = link.getAttribute("href") || "";
+            hit.tabIndex = -1;
+            hit.setAttribute("aria-hidden", "true");
+            card.appendChild(hit);
+        });
+    }
+    function bindDescriptions(navEl) {
+        var label = '.json_encode(__('Full description')).';
+        var popupId = 0;
+        navEl.querySelectorAll(".tsugi-card-description").forEach(function (desc) {
+            if (desc.scrollHeight <= desc.clientHeight + 1) return;
+            var full = desc.textContent.replace(/\s+/g, " ").trim();
+            if (!full) return;
+            var card = desc.closest("article.card");
+            if (!card) return;
+            var id = "tsugi-card-popup-" + popupId++;
+            var more = document.createElement("button");
+            more.type = "button";
+            more.className = "tsugi-card-more";
+            more.textContent = "…";
+            more.setAttribute("aria-label", label);
+            more.setAttribute("aria-expanded", "false");
+            more.setAttribute("aria-describedby", id);
+            var pop = document.createElement("div");
+            pop.id = id;
+            pop.className = "tsugi-card-popup";
+            pop.setAttribute("role", "tooltip");
+            pop.hidden = true;
+            pop.textContent = full;
+            pop._more = more;
+            document.body.appendChild(pop);
+            card.appendChild(more);
+            more.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showPop(pop, more);
+            });
+            more.addEventListener("mouseenter", function () { showPop(pop, more); });
+            more.addEventListener("focus", function () { showPop(pop, more); });
+            more.addEventListener("blur", function () {
+                window.setTimeout(function () {
+                    if (openPop !== pop) return;
+                    if (document.activeElement === more || pop.contains(document.activeElement)) return;
+                    hidePop();
+                }, 0);
+            });
+            more.addEventListener("mouseleave", function () {
+                window.setTimeout(function () {
+                    if (openPop === pop && !pop.matches(":hover") && document.activeElement !== more) hidePop();
+                }, 180);
+            });
+            pop.addEventListener("mouseleave", function () {
+                if (document.activeElement !== more) hidePop();
+            });
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") hidePop();
+        });
+        navEl.addEventListener("scroll", hidePop);
+        document.addEventListener("click", function (e) {
+            if (!openPop) return;
+            if (e.target.closest(".tsugi-card-more, .tsugi-card-popup")) return;
+            hidePop();
+        });
+    }
 })();
 </script>'."\n");
     }
@@ -274,7 +374,7 @@ class Content extends Lessons {
 .tsugi-outline-page {
     margin-left: 0;
     margin-right: 0;
-    padding-left: 0;
+    padding-left: 1rem;
     padding-right: 0;
 }
 .tsugi-outline {
@@ -299,10 +399,14 @@ class Content extends Lessons {
 }
 .tsugi-outline-nav .card {
     display: block;
+    position: relative;
     width: auto;
     height: auto;
     max-height: none;
     margin: 0 0 0.5rem 0;
+    border: 2px solid #444;
+    border-radius: 0.4rem;
+    cursor: pointer;
     transition: background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .tsugi-outline-main.tsugi-outline-leave {
@@ -326,12 +430,64 @@ class Content extends Lessons {
     }
 }
 .tsugi-outline-nav .card > div {
+    position: relative;
     height: auto;
-    max-height: 7.5rem;
+    max-height: none;
+    overflow: visible;
 }
 .tsugi-outline-nav .tsugi-lessons-module-card-link {
     display: block;
+    overflow: visible;
+}
+.tsugi-outline-nav .tsugi-lessons-module-card-link br {
+    display: none;
+}
+.tsugi-outline-nav .tsugi-card-description {
+    clear: both;
+    margin: 0;
+    line-height: 1.35;
+    max-height: 2.7em;
     overflow: hidden;
+    position: relative;
+}
+.tsugi-outline-nav .tsugi-card-hit {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+}
+.tsugi-outline-nav .tsugi-card-more {
+    position: absolute;
+    right: 0.5em;
+    bottom: 0.45em;
+    z-index: 2;
+    margin: 0;
+    padding: 0 0.1em 0 1.15em;
+    border: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0), #fff 0.7em);
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+.tsugi-outline-nav .card.tsugi-outline-selected .tsugi-card-more {
+    background: linear-gradient(90deg, rgba(244,248,251,0), #f4f8fb 0.7em);
+}
+.tsugi-card-popup {
+    position: fixed;
+    z-index: 40;
+    max-width: 20rem;
+    max-height: 14rem;
+    overflow: auto;
+    margin: 0;
+    padding: 0.5rem 0.7rem;
+    background: #fff;
+    color: #222;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.16);
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 .tsugi-outline-nav .card.tsugi-outline-selected {
     border: 2px solid #337ab7;

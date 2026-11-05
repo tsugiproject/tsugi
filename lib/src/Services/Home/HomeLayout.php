@@ -164,6 +164,37 @@ class HomeLayout {
     }
 
     /**
+     * Stable id for a block the instructor placed, or null for an empty slot.
+     *
+     * Hero, calendar, due dates, and the note use their type. A page is
+     * page:{id}. A file is file:{path}.
+     *
+     * @param array<string,mixed> $block
+     * @return string|null
+     */
+    public static function blockKey(array $block) {
+        $type = (string) ($block['type'] ?? '');
+        if ( $type === 'hero' ) {
+            return self::heroPlace($block) === 'none' ? null : 'hero';
+        }
+        if ( $type === 'page' ) {
+            $page_id = isset($block['page_id']) ? (int) $block['page_id'] : 0;
+            return $page_id > 0 ? ('page:'.$page_id) : null;
+        }
+        if ( $type === 'file' ) {
+            $path = FileRepository::normalizeFilePath(isset($block['path']) ? (string) $block['path'] : '');
+            if ( ! is_string($path) || $path === '' ) {
+                return null;
+            }
+            return 'file:'.$path;
+        }
+        if ( ($type === 'calendar' || $type === 'dues' || $type === 'notes') && self::flag($block['on'] ?? false) ) {
+            return $type;
+        }
+        return null;
+    }
+
+    /**
      * @param array<string,mixed> $doc
      * @return array<string,mixed>|null
      */

@@ -315,13 +315,13 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($rows[0]['custom']);
         $this->assertSame('lessons', $rows[1]['id']);
         $this->assertSame('Lessons', $rows[1]['label']);
-        $this->assertSame('Lessons view of Content', $rows[1]['settings_label']);
+        $this->assertSame('Card View', $rows[1]['settings_label']);
         $this->assertSame('content', $rows[2]['id']);
         $this->assertSame('Content', $rows[2]['label']);
-        $this->assertSame('Content view of Content', $rows[2]['settings_label']);
+        $this->assertSame('Content', $rows[2]['settings_label']);
         $this->assertSame('outline', $rows[3]['id']);
         $this->assertSame('Outline', $rows[3]['label']);
-        $this->assertSame('Outline view of Content', $rows[3]['settings_label']);
+        $this->assertSame('Outline', $rows[3]['settings_label']);
         $ids = array();
         foreach ( $rows as $row ) {
             $ids[] = $row['id'];
@@ -355,15 +355,15 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertNotFalse($lessons);
         $this->assertSame($lessons + 1, $content);
         $this->assertSame('Lessons', $rows[$lessons]['label']);
-        $this->assertSame('Lessons view of Content', $rows[$lessons]['settings_label']);
+        $this->assertSame('Card View', $rows[$lessons]['settings_label']);
         $this->assertSame('Content', $rows[$content]['label']);
-        $this->assertSame('Content view of Content', $rows[$content]['settings_label']);
+        $this->assertSame('Content', $rows[$content]['settings_label']);
         $this->assertTrue($rows[$content]['right']);
         $outline = array_search('outline', $ids, true);
         $this->assertNotFalse($outline);
         $this->assertSame($content + 1, $outline);
         $this->assertSame('Outline', $rows[$outline]['label']);
-        $this->assertSame('Outline view of Content', $rows[$outline]['settings_label']);
+        $this->assertSame('Outline', $rows[$outline]['settings_label']);
     }
 
     public function testStoredOutlineNavIdStaysOutline()
@@ -474,6 +474,122 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($doc['items'][0]['left']);
         $this->assertTrue($doc['items'][6]['right']);
         $this->assertTrue($doc['items'][7]['dropdown']);
+    }
+
+    public function testFromPostStoresCourseViewsInOnePlace()
+    {
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('course_views', 'files', 'logout'),
+            'nav' => array(
+                'course_views' => array('right' => '1', 'dropdown' => '1'),
+                'files' => array('left' => '1'),
+                'logout' => array('dropdown' => '1'),
+            ),
+            'view_default' => array(
+                'lessons' => '1',
+            ),
+            'view_available' => array(
+                'lessons' => '1',
+                'outline' => '1',
+            ),
+            'view_test' => array(
+                'content' => '1',
+                'outline' => '1',
+            ),
+        ));
+        $this->assertSame(array('lessons', 'content', 'outline', 'files', 'logout'), array_column($doc['items'], 'id'));
+        $this->assertTrue($doc['items'][0]['right']);
+        $this->assertTrue($doc['items'][0]['dropdown']);
+        $this->assertTrue($doc['items'][0]['default']);
+        $this->assertTrue($doc['items'][0]['available']);
+        $this->assertArrayNotHasKey('instructor', $doc['items'][0]);
+        $this->assertTrue($doc['items'][1]['test']);
+        $this->assertArrayNotHasKey('default', $doc['items'][1]);
+        $this->assertArrayNotHasKey('available', $doc['items'][1]);
+        $this->assertTrue($doc['items'][2]['right']);
+        $this->assertTrue($doc['items'][2]['available']);
+        $this->assertTrue($doc['items'][2]['test']);
+        $this->assertArrayNotHasKey('default', $doc['items'][2]);
+    }
+
+    public function testMissingDefaultUsesCardView()
+    {
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('course_views'),
+            'nav' => array(
+                'course_views' => array('left' => '1'),
+            ),
+            'view_available' => array(
+                'content' => '1',
+            ),
+            'view_test' => array(
+                'outline' => '1',
+            ),
+        ));
+        $this->assertSame(array('lessons', 'content', 'outline'), array_column($doc['items'], 'id'));
+        $this->assertTrue($doc['items'][0]['default']);
+        $this->assertTrue($doc['items'][0]['left']);
+
+        $shown = CourseNav::applyContentView(array(
+            'items' => array(
+                array('id' => 'content', 'left' => true, 'available' => true),
+                array('id' => 'files', 'left' => true),
+            ),
+        ), '');
+        $this->assertSame(array('lessons', 'files'), array_column($shown['items'], 'id'));
+        $this->assertTrue($shown['items'][0]['default']);
+    }
+
+    public function testApplyContentViewKeepsTheChosenReading()
+    {
+        $doc = array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true),
+                array('id' => 'content', 'left' => true),
+                array('id' => 'outline', 'left' => true, 'instructor' => true),
+                array('id' => 'files', 'left' => true),
+            ),
+        );
+        $same = CourseNav::applyContentView($doc, '');
+        $this->assertSame(array('lessons', 'files'), array_column($same['items'], 'id'));
+
+        $picked = CourseNav::applyContentView($doc, 'content');
+        $this->assertSame(array('content', 'files'), array_column($picked['items'], 'id'));
+        $this->assertSame('Lessons', $picked['items'][0]['nav_label']);
+
+        $missing = CourseNav::applyContentView($doc, 'outline');
+        $this->assertSame(array('lessons', 'files'), array_column($missing['items'], 'id'));
+    }
+
+    public function testApplyContentViewShowsDefaultsUntilPicked()
+    {
+        $doc = array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true, 'default' => true, 'available' => true),
+                array('id' => 'content', 'left' => true, 'available' => true),
+                array('id' => 'outline', 'left' => true, 'instructor' => true, 'available' => true),
+                array('id' => 'files', 'left' => true),
+            ),
+        );
+        $shown = CourseNav::applyContentView($doc, '');
+        $this->assertSame(array('lessons', 'files'), array_column($shown['items'], 'id'));
+
+        $picked = CourseNav::applyContentView($doc, 'content');
+        $this->assertSame(array('content', 'files'), array_column($picked['items'], 'id'));
+        $this->assertSame('Lessons', $picked['items'][0]['nav_label']);
+        $this->assertSame(array('lessons', 'content'), CourseNav::studentContentViews($doc));
+    }
+
+    public function testStudentContentViewsSkipsInstructorOnly()
+    {
+        $views = CourseNav::studentContentViews(array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true),
+                array('id' => 'content', 'left' => true, 'instructor' => true),
+                array('id' => 'outline', 'dropdown' => true),
+            ),
+        ));
+        $this->assertSame(array('lessons', 'outline'), $views);
     }
 
     public function testFromPostHonorsOrderAndFlags()
@@ -619,7 +735,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $set->left->menu as $entry ) {
             $left[] = $entry->link;
         }
-        $this->assertSame(array('Lessons', 'Content', 'Outline', 'Files', 'Pages', 'Quizzes'), $left);
+        $this->assertSame(array('Lessons', 'Files', 'Pages', 'Quizzes'), $left);
         $this->assertNotFalse($set->right);
         $this->assertStringContainsString('<img', $set->right->menu[count($set->right->menu)-1]->link);
         $this->assertStringContainsString('gravatar.com/avatar', $set->right->menu[count($set->right->menu)-1]->link);
@@ -747,6 +863,51 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('window.close()', $found->attr);
     }
 
+    public function testMenuTextStaysWithTheDefaultView()
+    {
+        try {
+            $_SERVER['REQUEST_URI'] = '/courses/42/home';
+            $user = new \stdClass();
+            $user->id = 3;
+            $scope = new \stdClass();
+            $scope->user = $user;
+            $current = new \ReflectionProperty(ReqScope::class, 'current');
+            $current->setValue(null, $scope);
+            \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+                'user_id' => 3,
+                'note' => '',
+                'settings' => array('view' => 'content'),
+            ));
+            $doc = array(
+                'items' => array(
+                    array('id' => 'lessons', 'left' => true, 'default' => true, 'available' => true),
+                    array('id' => 'content', 'left' => true, 'available' => true),
+                ),
+            );
+            $set = CourseNav::compile($doc, 42);
+            $this->assertSame('Lessons', $set->left->menu[0]->link);
+            $this->assertStringContainsString('/content', $set->left->menu[0]->href);
+
+            \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+                'user_id' => 3,
+                'note' => '',
+                'settings' => array('view' => 'outline'),
+            ));
+            $ref = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
+            $ref->setValue(null, array());
+            $doc['items'][0]['default'] = false;
+            $doc['items'][] = array('id' => 'outline', 'left' => true, 'available' => true);
+            $doc['items'][1]['default'] = true;
+            $set = CourseNav::compile($doc, 42);
+            $this->assertSame('Content', $set->left->menu[0]->link);
+            $this->assertStringContainsString('/outline', $set->left->menu[0]->href);
+        } finally {
+            ReqScope::reset();
+            $ref = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
+            $ref->setValue(null, array());
+        }
+    }
+
     public function testCompileUsesCustomHomeLabel()
     {
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
@@ -794,6 +955,46 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertContains('Files', $left);
         $this->assertContains('Lessons', $left);
+    }
+
+    public function testInstructorTestViewsSitInTheAvatarMenu()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Pat';
+        $_SESSION['isinstructor'] = true;
+        $doc = array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true, 'default' => true, 'available' => true, 'test' => true),
+                array('id' => 'content', 'left' => true, 'available' => true, 'test' => true),
+                array('id' => 'outline', 'left' => true, 'test' => true),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[] = $entry->link;
+        }
+        $this->assertSame(array('Lessons'), $left);
+        $labels = array();
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+        }
+        $this->assertContains('Content (test)', $labels);
+        $this->assertContains('Outline (test)', $labels);
+        $this->assertNotContains('Lessons (test)', $labels);
+        $this->assertSame('http://localhost/courses/42/content', $this->dropdownHref($set, 'Content (test)'));
+
+        unset($_SESSION['isinstructor']);
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[] = $entry->link;
+        }
+        $this->assertSame(array('Lessons'), $left);
+        $this->assertNotContains('Content (test)', $this->navLabels($set));
     }
 
     public function testCompileShowsLoginOnlyWhenLoggedOut()

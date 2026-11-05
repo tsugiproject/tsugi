@@ -5,7 +5,7 @@
  * Included from Home::render(). Expected:
  *   $course_title
  *   $layout (HomeLayout document)
- *   $can_configure (instructors see the gear)
+ *   $can_configure (instructors see the configure gear)
  *   $save_url
  *   $pages (page_id, title, published)
  *   $page_blocks (page_id => title, body_html, published, edit_url)
@@ -16,6 +16,13 @@
  *   $dues_html
  *   $student_note (plain text for the signed-in person)
  *   $notes_save_url (empty unless the notes block is on)
+ *   $home_choices (key, label, shown) blocks a student can show or hide
+ *   $home_off (key => true) blocks this person hid
+ *   $content_views (id, label) reading views the instructor allows, when there are two or more
+ *   $content_view (lessons, content, outline, or empty for all of them)
+ *   $steps_offer (course progress checkboxes are on)
+ *   $steps_on (this person still wants those checkboxes)
+ *   $settings_save_url
  */
 $course_title = isset($course_title) ? trim((string) $course_title) : '';
 $layout = (isset($layout) && is_array($layout)) ? $layout : array('blocks' => array());
@@ -32,6 +39,15 @@ $calendar_html = isset($calendar_html) ? (string) $calendar_html : '';
 $dues_html = isset($dues_html) ? (string) $dues_html : '';
 $student_note = isset($student_note) ? (string) $student_note : '';
 $notes_save_url = isset($notes_save_url) ? (string) $notes_save_url : '';
+$home_choices = (isset($home_choices) && is_array($home_choices)) ? $home_choices : array();
+$home_off = (isset($home_off) && is_array($home_off)) ? $home_off : array();
+$content_views = (isset($content_views) && is_array($content_views)) ? $content_views : array();
+$content_view = isset($content_view) ? (string) $content_view : '';
+$steps_offer = ! empty($steps_offer);
+$steps_on = ! isset($steps_on) || ! empty($steps_on);
+$settings_save_url = isset($settings_save_url) ? (string) $settings_save_url : '';
+$show_student_gear = ! $can_configure && (count($home_choices) > 0 || count($content_views) >= 2 || $steps_offer);
+$show_gear = $can_configure || $show_student_gear;
 $hero_alt = $course_title !== '' ? $course_title : __('Course image');
 $renderPageOptions = function ($selected) use ($pages) {
     $selected = (int) $selected;
@@ -89,7 +105,7 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
         .'<fieldset class="tsugi-home-hero-choice tsugi-home-file-place"'.($selectedImage ? '' : ' hidden').'><legend>'.htmlspecialchars(__('Place image')).'</legend>'.$radios.'</fieldset>';
 };
 ?>
-<main class="container<?= $can_configure ? ' tsugi-home-has-gear' : '' ?>" role="main" id="main-content">
+<main class="container<?= $show_gear ? ' tsugi-home-has-gear' : '' ?>" role="main" id="main-content">
 <style>
 .tsugi-home-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.25em 0.75em; }
 .tsugi-home-top > h1 { flex: 1 1 auto; margin-top: 0; }
@@ -173,8 +189,10 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 .tsugi-home-note [hidden] { display: none !important; }
 .tsugi-home-note-actions { display: flex; align-items: center; gap: 0.4em; }
 .tsugi-home-note-text { white-space: pre-wrap; margin: 0; }
+.tsugi-home-settings label { font-weight: normal; display: block; margin: 0.35em 0; }
+.tsugi-home-settings .btn { margin-top: 0.75em; }
 </style>
-<?php if ( $course_title !== '' || $can_configure ) { ?>
+<?php if ( $course_title !== '' || $show_gear ) { ?>
 <div class="tsugi-home-top">
 <?php if ( $course_title !== '' ) { ?>
 <h1><?= htmlspecialchars($course_title) ?></h1>
@@ -311,6 +329,56 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
         <button type="submit" class="btn btn-primary"><?= __('Save home page') ?></button>
     </form>
 </details>
+<?php } elseif ( $show_student_gear ) { ?>
+<details class="tsugi-home-config">
+    <summary class="tsugi-home-gear" aria-label="<?= htmlspecialchars(__('Home settings')) ?>">
+        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+    </summary>
+    <form class="tsugi-home-config-panel tsugi-home-settings" method="post" action="<?= htmlspecialchars($settings_save_url) ?>">
+        <?= \Tsugi\Controllers\Home::csrfField() ?>
+        <?php if ( count($home_choices) > 0 ) { ?>
+        <p><?= __('Choose which parts of the home page you want to see. This only changes what you see.') ?></p>
+        <?php foreach ( $home_choices as $choice ) {
+            if ( ! is_array($choice) || empty($choice['key']) ) {
+                continue;
+            }
+            $choiceKey = (string) $choice['key'];
+            $choiceLabel = isset($choice['label']) ? (string) $choice['label'] : $choiceKey;
+            ?>
+        <label>
+            <input type="checkbox" name="home_show[]" value="<?= htmlspecialchars($choiceKey, ENT_QUOTES, 'UTF-8') ?>"<?= ! empty($choice['shown']) ? ' checked' : '' ?>>
+            <?= htmlspecialchars($choiceLabel) ?>
+        </label>
+        <?php } ?>
+        <?php } ?>
+        <?php if ( count($content_views) >= 2 ) { ?>
+        <p><?= __('How do you want to read the course? Until you pick one, the menu shows the default view.') ?></p>
+        <label>
+            <input type="radio" name="content_view" value=""<?= $content_view === '' ? ' checked' : '' ?>>
+            <?= __('Default view') ?>
+        </label>
+        <?php foreach ( $content_views as $view ) {
+            if ( ! is_array($view) || empty($view['id']) ) {
+                continue;
+            }
+            $viewId = (string) $view['id'];
+            $viewLabel = isset($view['label']) ? (string) $view['label'] : $viewId;
+            ?>
+        <label>
+            <input type="radio" name="content_view" value="<?= htmlspecialchars($viewId, ENT_QUOTES, 'UTF-8') ?>"<?= $content_view === $viewId ? ' checked' : '' ?>>
+            <?= htmlspecialchars($viewLabel) ?>
+        </label>
+        <?php } ?>
+        <?php } ?>
+        <?php if ( $steps_offer ) { ?>
+        <label>
+            <input type="checkbox" name="show_steps" value="1"<?= $steps_on ? ' checked' : '' ?>>
+            <?= __('Show progress checkboxes') ?>
+        </label>
+        <?php } ?>
+        <button type="submit" class="btn btn-primary"><?= __('Save settings') ?></button>
+    </form>
+</details>
 <?php } ?>
 </div>
 <?php } ?>
@@ -418,6 +486,10 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 $configured = false;
 foreach ( $blocks as $block ) {
     if ( ! is_array($block) ) {
+        continue;
+    }
+    $blockKey = \Tsugi\Services\Home\HomeLayout::blockKey($block);
+    if ( $blockKey !== null && isset($home_off[$blockKey]) ) {
         continue;
     }
     $type = (string) ($block['type'] ?? '');
@@ -573,6 +645,16 @@ foreach ( $blocks as $block ) {
 }
 if ( ! $configured && $can_configure ) { ?>
     <p><?= __('Please configure the home page') ?></p>
+<?php }
+$anything_shown = false;
+foreach ( $home_choices as $choice ) {
+    if ( is_array($choice) && ! empty($choice['shown']) ) {
+        $anything_shown = true;
+        break;
+    }
+}
+if ( ! $configured && $show_student_gear && count($home_choices) > 0 && ! $anything_shown ) { ?>
+    <p><?= __('Everything on the home page is hidden. Open the gear to show it again.') ?></p>
 <?php } ?>
 <div class="tsugi-home-clear"></div>
 </main>

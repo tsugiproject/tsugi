@@ -9,6 +9,7 @@ use \Tsugi\Services\Site\Site;
 use \Tsugi\Controllers\Login;
 use Tsugi\Controllers\Settings;
 use Tsugi\Core\Manifest;
+use Tsugi\Services\ContextUser\ContextUserSettings;
 use Tsugi\Services\StudentView\StudentView;
 use Tsugi\Core\ContextImages;
 use Tsugi\UI\Menu;
@@ -117,6 +118,15 @@ class CourseNav {
             if ( ! empty($entry['instructor_locked']) || ! empty($row['instructor']) ) {
                 $item['instructor'] = true;
             }
+            if ( ! empty($row['default']) ) {
+                $item['default'] = true;
+            }
+            if ( ! empty($row['available']) ) {
+                $item['available'] = true;
+            }
+            if ( ! empty($row['test']) ) {
+                $item['test'] = true;
+            }
             if ( empty($item['left']) && empty($item['right']) && empty($item['dropdown']) ) {
                 continue;
             }
@@ -145,9 +155,9 @@ class CourseNav {
      */
     public static function catalog() {
         $rows = array(
-            array('id' => 'lessons', 'kind' => 'link', 'label' => 'Lessons', 'settings_label' => 'Lessons view of Content', 'route' => '/lessons', 'site' => false),
-            array('id' => 'content', 'kind' => 'link', 'label' => 'Content', 'settings_label' => 'Content view of Content', 'route' => '/content', 'site' => false),
-            array('id' => 'outline', 'kind' => 'link', 'label' => 'Outline', 'settings_label' => 'Outline view of Content', 'route' => '/outline', 'site' => false),
+            array('id' => 'lessons', 'kind' => 'link', 'label' => 'Lessons', 'settings_label' => 'Card View', 'route' => '/lessons', 'site' => false),
+            array('id' => 'content', 'kind' => 'link', 'label' => 'Content', 'settings_label' => 'Content', 'route' => '/content', 'site' => false),
+            array('id' => 'outline', 'kind' => 'link', 'label' => 'Outline', 'settings_label' => 'Outline', 'route' => '/outline', 'site' => false),
             array('id' => 'assignments', 'kind' => 'link', 'label' => 'Assignments', 'route' => '/assignments', 'site' => false),
             array('id' => 'announcements', 'kind' => 'link', 'label' => 'Announcements', 'route' => '/announcements', 'site' => false),
             array('id' => 'files', 'kind' => 'link', 'label' => 'Files', 'route' => '/files', 'site' => false),
@@ -217,12 +227,22 @@ class CourseNav {
             if ( $id === '' || ! isset($known[$id]) || isset($flagsById[$id]) ) {
                 continue;
             }
-            $flagsById[$id] = array(
+            $flags = array(
                 'left' => ! empty($item['left']),
                 'right' => ! empty($item['right']),
                 'dropdown' => ! empty($item['dropdown']),
                 'instructor' => ! empty($item['instructor']),
             );
+            if ( array_key_exists('default', $item) ) {
+                $flags['default'] = ! empty($item['default']);
+            }
+            if ( array_key_exists('available', $item) ) {
+                $flags['available'] = ! empty($item['available']);
+            }
+            if ( array_key_exists('test', $item) ) {
+                $flags['test'] = ! empty($item['test']);
+            }
+            $flagsById[$id] = $flags;
         }
         $homeCustom = self::sanitizeHomeLabel($doc['home'] ?? null);
         $rows = array(
@@ -341,6 +361,270 @@ class CourseNav {
     }
 
     /**
+     * Lessons, Content, and Outline. One menu slot, three ways to read the course.
+     *
+     * @return list<string>
+     */
+    public static function contentViewIds() {
+        return array('lessons', 'content', 'outline');
+    }
+
+    /**
+     * Views a student may choose. Instructor-only rows are left out.
+     * A view is included when it is marked default or available. Older rows
+     * with neither key count as both.
+     *
+     * @param array<string, mixed> $doc
+     * @return list<string>
+     */
+    public static function studentContentViews(array $doc) {
+        $doc = self::normalize($doc);
+        $placed = array();
+        foreach ( $doc['items'] as $item ) {
+            if ( ! self::isStudentContentItem($item) ) {
+                continue;
+            }
+            $id = (string) $item['id'];
+            if ( isset($placed[$id]) ) {
+                continue;
+            }
+            if ( ! self::contentViewFlag($item, 'default') && ! self::contentViewFlag($item, 'available') ) {
+                continue;
+            }
+            $placed[$id] = true;
+        }
+        $out = array();
+        foreach ( self::contentViewIds() as $id ) {
+            if ( isset($placed[$id]) ) {
+                $out[] = $id;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Students get one reading link: the view they picked, or the default.
+     * Other reading views are removed, including instructor test links.
+     *
+     * @param array<string, mixed> $doc
+     * @param mixed $preferred
+     * @return array<string, mixed>
+     */
+    public static function applyContentView(array $doc, $preferred) {
+        $doc = self::normalize($doc);
+        $defaultId = self::navContentView($doc, '');
+        $primary = self::navContentView($doc, is_string($preferred) ? $preferred : '');
+        $doc = self::keepContentView($doc, $primary);
+        return self::stampDefaultLabel($doc, $defaultId);
+    }
+
+    /**
+     * The one reading link for the top menu, and the other views an instructor
+     * asked to test. Test views are not part of the document items.
+     *
+     * @param array<string, mixed> $doc
+     * @return array{0: array<string, mixed>, 1: list<string>}
+     */
+    private static function instructorContentViews(array $doc) {
+        $doc = self::normalize($doc);
+        $primary = self::navContentView($doc, '');
+        $tests = array();
+        foreach ( self::contentViewIds() as $id ) {
+            if ( $id === $primary ) {
+                continue;
+            }
+            foreach ( $doc['items'] as $item ) {
+                if ( ! self::isPlacedContentItem($item) || (string) $item['id'] !== $id ) {
+                    continue;
+                }
+                if ( ! empty($item['test']) ) {
+                    $tests[] = $id;
+                }
+                break;
+            }
+        }
+        return array(self::stampDefaultLabel(self::keepContentView($doc, $primary), $primary), $tests);
+    }
+
+    /**
+     * The menu words stay with the course default. The link can be another view.
+     *
+     * @param array<string, mixed> $doc
+     * @param string $defaultId
+     * @return array<string, mixed>
+     */
+    private static function stampDefaultLabel(array $doc, $defaultId) {
+        $entry = self::catalogById()[$defaultId] ?? null;
+        if ( ! is_array($entry) || ! isset($entry['label']) || ! is_string($entry['label']) || $entry['label'] === '' ) {
+            return $doc;
+        }
+        foreach ( $doc['items'] as $i => $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( ! in_array($id, self::contentViewIds(), true) ) {
+                continue;
+            }
+            $doc['items'][$i]['nav_label'] = $entry['label'];
+        }
+        return $doc;
+    }
+
+    /**
+     * @param array<string, mixed> $doc
+     * @return array<string, mixed>
+     */
+    private static function keepContentView(array $doc, $primary) {
+        if ( $primary === 'lessons' ) {
+            $doc = self::ensureCardView($doc);
+        }
+        $items = array();
+        foreach ( $doc['items'] as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( in_array($id, self::contentViewIds(), true) && $id !== $primary ) {
+                continue;
+            }
+            $items[] = $item;
+        }
+        $doc['items'] = $items;
+        return $doc;
+    }
+
+    /**
+     * Card View uses the same menu place as the other reading views when it
+     * was not stored on its own.
+     *
+     * @param array<string, mixed> $doc
+     * @return array<string, mixed>
+     */
+    private static function ensureCardView(array $doc) {
+        foreach ( $doc['items'] as $item ) {
+            if ( self::isPlacedContentItem($item) && (string) $item['id'] === 'lessons' ) {
+                return $doc;
+            }
+        }
+        $donor = null;
+        foreach ( $doc['items'] as $item ) {
+            if ( self::isPlacedContentItem($item) ) {
+                $donor = $item;
+                break;
+            }
+        }
+        if ( ! is_array($donor) ) {
+            return $doc;
+        }
+        $card = array('id' => 'lessons', 'default' => true);
+        foreach ( array('left', 'right', 'dropdown', 'instructor') as $flag ) {
+            if ( ! empty($donor[$flag]) ) {
+                $card[$flag] = true;
+            }
+        }
+        $items = array();
+        $inserted = false;
+        foreach ( $doc['items'] as $item ) {
+            if ( ! $inserted && self::isPlacedContentItem($item) ) {
+                $items[] = $card;
+                $inserted = true;
+            }
+            $items[] = $item;
+        }
+        $doc['items'] = $items;
+        return $doc;
+    }
+
+    /**
+     * A student's pick when it is allowed, otherwise the default view.
+     * When Lessons is on and no view is marked default, Card View is the link.
+     *
+     * @param array<string, mixed> $doc
+     * @param string $preferred
+     * @return string
+     */
+    private static function navContentView(array $doc, $preferred) {
+        if ( $preferred !== '' && in_array($preferred, self::studentContentViews($doc), true) ) {
+            return $preferred;
+        }
+        $placed = false;
+        foreach ( self::contentViewIds() as $id ) {
+            foreach ( $doc['items'] as $item ) {
+                if ( ! self::isPlacedContentItem($item) || (string) $item['id'] !== $id ) {
+                    continue;
+                }
+                $placed = true;
+                if ( self::contentViewFlag($item, 'default') ) {
+                    return $id;
+                }
+            }
+        }
+        return $placed ? 'lessons' : '';
+    }
+
+    /**
+     * @param mixed $item
+     */
+    private static function isStudentContentItem($item) {
+        if ( ! is_array($item) ) {
+            return false;
+        }
+        $id = isset($item['id']) ? (string) $item['id'] : '';
+        if ( ! in_array($id, self::contentViewIds(), true) || ! empty($item['instructor']) ) {
+            return false;
+        }
+        return ! empty($item['left']) || ! empty($item['right']) || ! empty($item['dropdown']);
+    }
+
+    /**
+     * @param mixed $item
+     */
+    private static function isPlacedContentItem($item) {
+        if ( ! is_array($item) ) {
+            return false;
+        }
+        $id = isset($item['id']) ? (string) $item['id'] : '';
+        if ( ! in_array($id, self::contentViewIds(), true) ) {
+            return false;
+        }
+        return ! empty($item['left']) || ! empty($item['right']) || ! empty($item['dropdown']);
+    }
+
+    /**
+     * Explicit default/available/test flags win. A placed row from before those
+     * flags existed counts as default and available, not as an instructor test link.
+     *
+     * @param array<string, mixed> $item
+     * @param string $flag default|available|test
+     */
+    private static function contentViewFlag(array $item, $flag) {
+        $explicit = array_key_exists('default', $item)
+            || array_key_exists('available', $item)
+            || array_key_exists('test', $item);
+        if ( $explicit ) {
+            return ! empty($item[$flag]);
+        }
+        return $flag === 'default' || $flag === 'available';
+    }
+
+    /**
+     * Avatar label for a reading view the instructor is testing.
+     *
+     * @param string $id
+     * @return string
+     */
+    private static function contentTestLabel($id) {
+        if ( $id === 'content' ) {
+            return __('Content (test)');
+        }
+        if ( $id === 'outline' ) {
+            return __('Outline (test)');
+        }
+        return __('Lessons (test)');
+    }
+
+    /**
      * @param array<string, mixed> $post
      * @return array<string, mixed>
      */
@@ -355,9 +639,31 @@ class CourseNav {
         }
         $items = array();
         $seen = array();
+        $hasViews = false;
+        foreach ( $order as $id ) {
+            if ( (is_string($id) || is_int($id)) && (string) $id === 'course_views' ) {
+                $hasViews = true;
+                break;
+            }
+        }
         foreach ( $order as $id ) {
             $id = is_string($id) || is_int($id) ? (string) $id : '';
             if ( $id === '' || isset($seen[$id]) ) {
+                continue;
+            }
+            if ( $id === 'course_views' ) {
+                $seen[$id] = true;
+                foreach ( self::contentViewsFromPost($post) as $viewItem ) {
+                    $vid = $viewItem['id'];
+                    if ( isset($seen[$vid]) ) {
+                        continue;
+                    }
+                    $seen[$vid] = true;
+                    $items[] = $viewItem;
+                }
+                continue;
+            }
+            if ( $hasViews && in_array($id, self::contentViewIds(), true) ) {
                 continue;
             }
             $seen[$id] = true;
@@ -499,6 +805,12 @@ class CourseNav {
     public static function compile(array $doc, $context_id) {
         $cid = (int) $context_id;
         $doc = self::normalize($doc);
+        $testViews = array();
+        if ( ! self::isCourseInstructor() ) {
+            $doc = self::applyContentView($doc, self::studentContentView($cid));
+        } else {
+            list($doc, $testViews) = self::instructorContentViews($doc);
+        }
         if ( ReqScope::isAnonymousLessonView() ) {
             return self::anonymousLessonMenu();
         }
@@ -555,6 +867,13 @@ class CourseNav {
         }
         if ( $leaveBuilt !== null ) {
             $submenu->addLink($leaveBuilt['label'], $leaveBuilt['href'], false, $leaveBuilt['attr'] ?? false);
+        }
+        foreach ( $testViews as $testId ) {
+            $built = self::linkEntry($known, array('id' => $testId), $prefix);
+            if ( $built === null ) {
+                continue;
+            }
+            $submenu->addLink(self::contentTestLabel($testId), $built['href'], false, false);
         }
         if ( self::maySeeSettings() ) {
             if ( Manifest::idForContext($cid) > 0 ) {
@@ -722,7 +1041,11 @@ class CourseNav {
         } else {
             $href = $prefix.$route;
         }
-        return array('label' => __($entry['label']), 'href' => $href);
+        $label = $entry['label'];
+        if ( isset($item['nav_label']) && is_string($item['nav_label']) && $item['nav_label'] !== '' ) {
+            $label = $item['nav_label'];
+        }
+        return array('label' => __($label), 'href' => $href);
     }
 
     /**
@@ -841,6 +1164,122 @@ class CourseNav {
             return true;
         }
         return self::maySeeSettings();
+    }
+
+    /**
+     * The signed-in student's saved view, or empty when they have not picked one.
+     *
+     * @param int $context_id
+     * @return string
+     */
+    private static function studentContentView($context_id) {
+        $context_id = (int) $context_id;
+        $user_id = ReqScope::loggedInUserId();
+        if ( $context_id < 1 || $user_id < 1 ) {
+            return '';
+        }
+        try {
+            $row = ContextUserSettings::load($context_id, $user_id);
+        } catch ( \Throwable $e ) {
+            return '';
+        }
+        return ContextUserSettings::contentView($row['settings']);
+    }
+
+    /**
+     * Card View, Content, and Outline from the Lessons group.
+     * They share one placement. A view is stored when it is default, available, or an instructor test link.
+     *
+     * @param array<string, mixed> $post
+     * @return list<array<string, mixed>>
+     */
+    private static function contentViewsFromPost(array $post) {
+        $nav = $post['nav'] ?? array();
+        $flags = (is_array($nav) && isset($nav['course_views']) && is_array($nav['course_views']))
+            ? $nav['course_views']
+            : array();
+        $left = ! empty($flags['left']);
+        $right = ! empty($flags['right']);
+        $dropdown = ! empty($flags['dropdown']);
+        if ( ! $left && ! $right && ! $dropdown ) {
+            return array();
+        }
+        $defaults = $post['view_default'] ?? array();
+        $available = $post['view_available'] ?? array();
+        $tests = $post['view_test'] ?? array();
+        if ( ! is_array($defaults) ) {
+            $defaults = array();
+        }
+        if ( ! is_array($available) ) {
+            $available = array();
+        }
+        if ( ! is_array($tests) ) {
+            $tests = array();
+        }
+        $instructor = ! empty($flags['instructor']);
+        $items = array();
+        foreach ( self::contentViewIds() as $id ) {
+            $isDefault = ! empty($defaults[$id]);
+            $isAvailable = ! empty($available[$id]);
+            $isTest = ! empty($tests[$id]);
+            if ( ! $isDefault && ! $isAvailable && ! $isTest ) {
+                continue;
+            }
+            $item = array('id' => $id);
+            if ( $left ) {
+                $item['left'] = true;
+            }
+            if ( $right ) {
+                $item['right'] = true;
+            }
+            if ( $dropdown ) {
+                $item['dropdown'] = true;
+            }
+            if ( $instructor ) {
+                $item['instructor'] = true;
+            }
+            if ( $isDefault ) {
+                $item['default'] = true;
+            }
+            if ( $isAvailable ) {
+                $item['available'] = true;
+            }
+            if ( $isTest ) {
+                $item['test'] = true;
+            }
+            $items[] = $item;
+        }
+        $hasDefault = false;
+        foreach ( $items as $item ) {
+            if ( ! empty($item['default']) ) {
+                $hasDefault = true;
+                break;
+            }
+        }
+        if ( $hasDefault ) {
+            return $items;
+        }
+        foreach ( $items as $i => $item ) {
+            if ( $item['id'] === 'lessons' ) {
+                $items[$i]['default'] = true;
+                return $items;
+            }
+        }
+        $card = array('id' => 'lessons', 'default' => true);
+        if ( $left ) {
+            $card['left'] = true;
+        }
+        if ( $right ) {
+            $card['right'] = true;
+        }
+        if ( $dropdown ) {
+            $card['dropdown'] = true;
+        }
+        if ( $instructor ) {
+            $card['instructor'] = true;
+        }
+        array_unshift($items, $card);
+        return $items;
     }
 
     private static function siteUrl($route) {

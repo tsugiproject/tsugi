@@ -108,6 +108,10 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
                 array('type' => 'dues', 'on' => false),
             )),
             'can_configure' => false,
+            'settings_save_url' => '/courses/42/home/settings',
+            'home_choices' => array(
+                array('key' => 'hero', 'label' => 'Course image', 'shown' => true),
+            ),
         ));
         $this->assertStringContainsString('Django for Everybody', $html);
         $this->assertStringNotContainsString('Please configure the home page', $html);
@@ -116,7 +120,17 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('under construction', $html);
         $this->assertStringNotContainsString('page-content', $html);
         $this->assertStringNotContainsString('<img class="tsugi-home-hero"', $html);
-        $this->assertStringNotContainsString('glyphicon-cog', $html);
+        $this->assertStringContainsString('glyphicon-cog', $html);
+        $this->assertStringContainsString('Home settings', $html);
+        $this->assertStringContainsString('This only changes what you see.', $html);
+        $this->assertStringContainsString('Save settings', $html);
+        $this->assertStringNotContainsString('How do you want to read the course?', $html);
+        $this->assertStringNotContainsString('Show progress checkboxes', $html);
+        $this->assertStringContainsString('Course image', $html);
+        $this->assertStringContainsString('/courses/42/home/settings', $html);
+        $this->assertStringNotContainsString('Include hero image', $html);
+        $this->assertStringNotContainsString('Add page', $html);
+        $this->assertStringNotContainsString('Everything on the home page is hidden.', $html);
     }
 
     public function testInstructorGearConfiguresOrderedBlocks() {
@@ -223,6 +237,79 @@ class HomeControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('>Edit</button>', $html);
         $this->assertStringContainsString('/courses/42/home/notes', $html);
         $this->assertStringNotContainsString('Please configure the home page', $html);
+    }
+
+    public function testStudentGearHidesABlockTheyTurnedOff() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'settings_save_url' => '/courses/42/home/settings',
+            'calendar_html' => '<p>MONTH-GRID</p>',
+            'dues_html' => '<p>DUE-LIST</p>',
+            'student_note' => 'Keep this.',
+            'notes_save_url' => '/courses/42/home/notes',
+            'home_off' => array('calendar' => true, 'notes' => true),
+            'home_choices' => array(
+                array('key' => 'calendar', 'label' => 'Calendar', 'shown' => false),
+                array('key' => 'dues', 'label' => 'Due dates', 'shown' => true),
+                array('key' => 'notes', 'label' => 'Note to self', 'shown' => false),
+            ),
+            'layout' => array('blocks' => array(
+                array('type' => 'calendar', 'on' => true),
+                array('type' => 'dues', 'on' => true),
+                array('type' => 'notes', 'on' => true),
+            )),
+        ));
+        $this->assertStringNotContainsString('MONTH-GRID', $html);
+        $this->assertStringContainsString('DUE-LIST', $html);
+        $this->assertStringNotContainsString('Keep this.', $html);
+        $this->assertStringNotContainsString('name="student_note"', $html);
+        $this->assertStringContainsString('name="home_show[]" value="calendar"', $html);
+        $this->assertStringContainsString('value="dues" checked', $html);
+        $this->assertStringNotContainsString('value="calendar" checked', $html);
+        $this->assertStringNotContainsString('Include hero image', $html);
+        $this->assertStringNotContainsString('Everything on the home page is hidden.', $html);
+    }
+
+    public function testStudentGearOffersReadingViewsAndProgressBoxes() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'settings_save_url' => '/courses/42/home/settings',
+            'content_views' => array(
+                array('id' => 'lessons', 'label' => 'Lessons'),
+                array('id' => 'outline', 'label' => 'Outline'),
+            ),
+            'content_view' => 'outline',
+            'steps_offer' => true,
+            'steps_on' => false,
+            'layout' => array('blocks' => array(
+                array('type' => 'hero', 'place' => 'none'),
+            )),
+        ));
+        $this->assertStringContainsString('How do you want to read the course?', $html);
+        $this->assertStringContainsString('name="content_view" value="outline" checked', $html);
+        $this->assertStringContainsString('Default view', $html);
+        $this->assertStringContainsString('name="show_steps"', $html);
+        $this->assertStringNotContainsString('name="show_steps" value="1" checked', $html);
+        $this->assertStringNotContainsString('Include hero image', $html);
+        $this->assertStringNotContainsString('Everything on the home page is hidden.', $html);
+    }
+
+    public function testStudentHidingEverythingLeavesTheGear() {
+        $html = $this->renderHome(array(
+            'course_title' => 'Django for Everybody',
+            'settings_save_url' => '/courses/42/home/settings',
+            'home_off' => array('hero' => true),
+            'home_choices' => array(
+                array('key' => 'hero', 'label' => 'Course image', 'shown' => false),
+            ),
+            'layout' => array('blocks' => array(
+                array('type' => 'hero', 'place' => 'right'),
+            )),
+        ));
+        $this->assertStringNotContainsString('tsugi-home-block tsugi-home-hero', $html);
+        $this->assertStringContainsString('Everything on the home page is hidden.', $html);
+        $this->assertStringContainsString('glyphicon-cog', $html);
+        $this->assertStringContainsString('value="hero"', $html);
     }
 
     public function testBlankStudentNoteShowsOnlyEdit() {

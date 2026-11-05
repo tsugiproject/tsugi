@@ -2366,11 +2366,10 @@ $(function(){
      * @param int $count Visible position, starting at 1
      * @param array<string,float> $allgrades
      * @param array<string,array<string,mixed>> $duedates
-     * @param bool $gclass
      * @param string $href
      * @param bool $selected
      */
-    protected static function echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $gclass, $href, $selected = false) {
+    protected static function echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $href, $selected = false) {
         $modProgress = $lessons->moduleLtiProgressPoints($module, $allgrades, $duedates);
         $possible_points = $modProgress[0];
         $actual_points = $modProgress[1];
@@ -2406,9 +2405,6 @@ $(function(){
         echo($link_label);
         self::echoModuleAggregateProgressBadge($lessons, $possible_points, $actual_points, $rlids, $allgrades, $duedates, false);
         echo("</a>\n");
-        if ( $gclass && isset($module->anchor) ) {
-            self::echoClassroomModuleInstall((string) $module->anchor, (string) ($module->title ?? ''));
-        }
         if ( isset($module->description) ) {
             $desc = $module->description;
             if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
@@ -2459,7 +2455,7 @@ $(function(){
 
             $count++;
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
-            self::echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $gclass, $href, false);
+            self::echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $href, false);
         }
         echo('</div> <!-- box -->'."\n");
         echo('</div> <!-- typeof="Course" -->'."\n");
@@ -2766,7 +2762,7 @@ $(function(){
         echo('<img height="16" width="16" alt="" src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
     }
 
-    private static function echoClassroomModuleInstall($anchor, $title) {
+    protected static function echoClassroomModuleInstall($anchor, $title) {
         global $CFG;
         if ( ! self::lessonsUseManifest() ) {
             return;
