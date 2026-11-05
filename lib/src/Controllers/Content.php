@@ -138,7 +138,6 @@ class Content extends Lessons {
         if ( ReqScope::currentContextId() !== 0 ) {
             $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
-        $gclass = self::isGoogleClassroomInstructor();
         $base = rtrim((string) $lessons->toolHome, '/');
         $current = isset($lessons->anchor) ? (string) $lessons->anchor : '';
 
@@ -157,7 +156,7 @@ class Content extends Lessons {
             $anchor = isset($module->anchor) ? (string) $module->anchor : '';
             $href = $base.'/'.urlencode($anchor);
             $selected = $anchor !== '' && $anchor === $current;
-            self::echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $gclass, $href, $selected);
+            self::echoModuleCard($lessons, $module, $count, $allgrades, $duedates, $href, $selected);
         }
         echo("</nav>\n");
         echo('<div class="tsugi-outline-main">'."\n");
