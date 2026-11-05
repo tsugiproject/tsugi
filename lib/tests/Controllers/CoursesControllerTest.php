@@ -724,6 +724,52 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    public function testStaleJwtDoesNotOverrideTheCurrentLti11Return()
+    {
+        $previous = $_SERVER['REQUEST_URI'] ?? null;
+        $previousHost = $_SERVER['HTTP_HOST'] ?? null;
+        $previousPort = $_SERVER['SERVER_PORT'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SERVER['HTTP_HOST'] = 'localhost';
+        $_SERVER['SERVER_PORT'] = '80';
+        $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
+        $_SESSION['lti_post'] = array(
+            'lti_message_type' => 'basic-lti-launch-request',
+            'lti_version' => 'LTI-1p0',
+            'launch_presentation_return_url' => 'https://lms.example/current',
+        );
+        $body = new \stdClass();
+        $body->{\Tsugi\Util\LTI13::PRESENTATION_CLAIM} = (object) array(
+            'error_return_url' => 'https://old-platform.example/error',
+        );
+        $_SESSION['tsugi_jwt'] = (object) array('body' => $body);
+        \Tsugi\Core\ReqScope::resetIdentity();
+        try {
+            $request = Request::create('/courses/42/home', 'GET');
+            $response = Courses::enter($this->mockApp, $request, 42);
+            $this->assertSame(
+                'https://lms.example/current?lti_errormsg=Must%20be%20logged%20in',
+                $response->headers->get('Location')
+            );
+        } finally {
+            if ( $previous === null ) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $previous;
+            }
+            if ( $previousHost === null ) {
+                unset($_SERVER['HTTP_HOST']);
+            } else {
+                $_SERVER['HTTP_HOST'] = $previousHost;
+            }
+            if ( $previousPort === null ) {
+                unset($_SERVER['SERVER_PORT']);
+            } else {
+                $_SERVER['SERVER_PORT'] = $previousPort;
+            }
+        }
+    }
+
     public function testPostedReturnUrlDoesNotReplaceTheStoredLaunch()
     {
         $_SESSION['lti'] = array(

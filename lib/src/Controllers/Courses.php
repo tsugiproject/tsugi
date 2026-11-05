@@ -1532,7 +1532,9 @@ class Courses extends Tool {
         $stored = (isset($_SESSION[$postKey]) && is_array($_SESSION[$postKey])) ? $_SESSION[$postKey] : array();
         $jwtError = null;
         $jwtReturn = null;
-        $jwt = $_SESSION['tsugi_jwt'] ?? null;
+        // A later LTI 1.1 launch replaces lti_post and leaves tsugi_jwt in place.
+        $idToken = $stored['id_token'] ?? null;
+        $jwt = (is_string($idToken) && $idToken !== '') ? ($_SESSION['tsugi_jwt'] ?? null) : null;
         if ( is_object($jwt) && isset($jwt->body) && is_object($jwt->body) ) {
             $claim = $jwt->body->{\Tsugi\Util\LTI13::PRESENTATION_CLAIM} ?? null;
             if ( is_object($claim) ) {
