@@ -93,6 +93,19 @@ class HomeLayoutTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(4, $doc['blocks'][2]['page_id']);
     }
 
+    public function testBlockKeyIgnoresEmptySlots() {
+        $this->assertSame('hero', HomeLayout::blockKey(array('type' => 'hero', 'place' => 'left')));
+        $this->assertNull(HomeLayout::blockKey(array('type' => 'hero', 'place' => 'none')));
+        $this->assertSame('hero', HomeLayout::blockKey(array('type' => 'hero', 'on' => true)));
+        $this->assertSame('page:7', HomeLayout::blockKey(array('type' => 'page', 'page_id' => 7)));
+        $this->assertNull(HomeLayout::blockKey(array('type' => 'page', 'page_id' => 0)));
+        $this->assertSame('file:Public/logo.png', HomeLayout::blockKey(array('type' => 'file', 'path' => 'Public/logo.png')));
+        $this->assertNull(HomeLayout::blockKey(array('type' => 'file', 'path' => '')));
+        $this->assertSame('calendar', HomeLayout::blockKey(array('type' => 'calendar', 'on' => true)));
+        $this->assertNull(HomeLayout::blockKey(array('type' => 'dues', 'on' => false)));
+        $this->assertSame('notes', HomeLayout::blockKey(array('type' => 'notes', 'on' => '1')));
+    }
+
     public function testDefaultLeavesEveryBlockOff() {
         $doc = HomeLayout::defaultDocument();
         foreach ( $doc['blocks'] as $block ) {
