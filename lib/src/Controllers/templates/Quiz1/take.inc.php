@@ -7,7 +7,7 @@
  *
  * Expected: $quiz, $home, $lessons_url, $can_edit, $result (null or grade array),
  * $requestContextLines (label => text), $viewing (instructor preview),
- * $printing (clean paper layout), $from_module, $from_content, $back_label
+ * $printing (clean paper layout), $from_module, $from_content, $from_outline, $back_label
  */
 $questions = $quiz->orderedQuestions();
 $submitted = $result !== null;
@@ -17,7 +17,9 @@ $action = $viewing ? $home.'/'.$quiz->id.'/view' : $home.'/link/'.$quiz->link_id
 if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
     $action .= (str_contains($action, '?') ? '&' : '?').'from='.rawurlencode($from_module);
 }
-if ( ! empty($from_content) ) {
+if ( ! empty($from_outline) ) {
+    $action .= (str_contains($action, '?') ? '&' : '?').'view=outline';
+} else if ( ! empty($from_content) ) {
     $action .= (str_contains($action, '?') ? '&' : '?').'view=content';
 }
 $action = \Tsugi\Util\U::addSession($action);

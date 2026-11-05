@@ -36,6 +36,7 @@ class CourseNav {
             'items' => array(
                 array('id' => 'lessons', 'left' => true),
                 array('id' => 'content', 'left' => true),
+                array('id' => 'outline', 'left' => true),
                 array('id' => 'files', 'left' => true),
                 array('id' => 'pages', 'left' => true),
                 array('id' => 'quiz1', 'left' => true),
@@ -87,9 +88,6 @@ class CourseNav {
                 continue;
             }
             $id = isset($row['id']) ? (string) $row['id'] : '';
-            if ( $id === 'outline' ) {
-                $id = 'content';
-            }
             if ( $id === '' || isset($seen[$id]) || ! isset($known[$id]) ) {
                 continue;
             }
@@ -147,6 +145,7 @@ class CourseNav {
         $rows = array(
             array('id' => 'lessons', 'kind' => 'link', 'label' => 'Lessons', 'settings_label' => 'Lessons view of Content', 'route' => '/lessons', 'site' => false),
             array('id' => 'content', 'kind' => 'link', 'label' => 'Content', 'settings_label' => 'Content view of Content', 'route' => '/content', 'site' => false),
+            array('id' => 'outline', 'kind' => 'link', 'label' => 'Outline', 'settings_label' => 'Outline view of Content', 'route' => '/outline', 'site' => false),
             array('id' => 'assignments', 'kind' => 'link', 'label' => 'Assignments', 'route' => '/assignments', 'site' => false),
             array('id' => 'announcements', 'kind' => 'link', 'label' => 'Announcements', 'route' => '/announcements', 'site' => false),
             array('id' => 'files', 'kind' => 'link', 'label' => 'Files', 'route' => '/files', 'site' => false),
@@ -288,7 +287,8 @@ class CourseNav {
             $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
             $rows[] = self::editorRow($entry, $flagsById[$entry['id']] ?? $empty);
         }
-        return self::moveRowAfter($rows, 'content', 'lessons');
+        $rows = self::moveRowAfter($rows, 'content', 'lessons');
+        return self::moveRowAfter($rows, 'outline', 'content');
     }
 
     /**

@@ -54,7 +54,7 @@
         $content_nav_shown = false;
         foreach ( $nav_rows as $nav_row ) {
             $nav_id = $nav_row['id'] ?? '';
-            if ( $nav_id !== 'lessons' && $nav_id !== 'content' ) {
+            if ( $nav_id !== 'lessons' && $nav_id !== 'content' && $nav_id !== 'outline' ) {
                 continue;
             }
             if ( ! empty($nav_row['left']) || ! empty($nav_row['right']) || ! empty($nav_row['dropdown']) ) {
@@ -113,12 +113,12 @@
                 </td>
                 <?php } ?>
             </tr>
-            <?php if ( ($row['id'] ?? '') === 'content' ) {
+            <?php if ( ($row['id'] ?? '') === 'outline' ) {
                 if ( ! isset($steps_on) ) {
                     $steps_on = true;
                 }
                 ?>
-            <tr class="tsugi-nav-pinned tsugi-nav-steps" data-nav-child="content"<?= $content_nav_shown ? '' : ' hidden' ?>>
+            <tr class="tsugi-nav-pinned tsugi-nav-steps" data-nav-child="outline"<?= $content_nav_shown ? '' : ' hidden' ?>>
                 <td class="tsugi-nav-handle" aria-hidden="true"></td>
                 <td colspan="5">
                     <label class="tsugi-nav-steps-label">
@@ -172,27 +172,27 @@
     tbody.addEventListener('dragend', function () {
         if (dragging) dragging.classList.remove('tsugi-nav-dragging');
         dragging = null;
-        keepStepsUnderContent();
+        keepStepsUnderOutline();
     });
     tbody.addEventListener('dragover', function (e) {
         e.preventDefault();
         var tr = e.target.closest('tr');
         if (!tr || tr === dragging || !dragging) return;
-        if (tr.getAttribute('data-nav-child') === 'content') {
+        if (tr.getAttribute('data-nav-child') === 'outline') {
             tr = tr.previousElementSibling;
         }
         if (!tr || tr === dragging || tr.classList.contains('tsugi-nav-pinned')) return;
         var rect = tr.getBoundingClientRect();
         var next = (e.clientY - rect.top) > (rect.height / 2);
         tbody.insertBefore(dragging, next ? tr.nextSibling : tr);
-        keepStepsUnderContent();
+        keepStepsUnderOutline();
     });
 
-    function keepStepsUnderContent() {
-        var contentRow = tbody.querySelector('tr[data-nav-id="content"]');
-        var steps = tbody.querySelector('tr[data-nav-child="content"]');
-        if (!contentRow || !steps || contentRow.nextElementSibling === steps) return;
-        contentRow.insertAdjacentElement('afterend', steps);
+    function keepStepsUnderOutline() {
+        var outlineRow = tbody.querySelector('tr[data-nav-id="outline"]');
+        var steps = tbody.querySelector('tr[data-nav-child="outline"]');
+        if (!outlineRow || !steps || outlineRow.nextElementSibling === steps) return;
+        outlineRow.insertAdjacentElement('afterend', steps);
     }
 
     function rowIsPlaced(id) {
@@ -207,13 +207,13 @@
     }
 
     function syncProgressBoxes() {
-        var steps = tbody.querySelector('tr[data-nav-child="content"]');
+        var steps = tbody.querySelector('tr[data-nav-child="outline"]');
         if (!steps) return;
-        if (rowIsPlaced('lessons') || rowIsPlaced('content')) steps.removeAttribute('hidden');
+        if (rowIsPlaced('lessons') || rowIsPlaced('content') || rowIsPlaced('outline')) steps.removeAttribute('hidden');
         else steps.setAttribute('hidden', 'hidden');
     }
 
-    ['lessons', 'content'].forEach(function (id) {
+    ['lessons', 'content', 'outline'].forEach(function (id) {
         var row = tbody.querySelector('tr[data-nav-id="' + id + '"]');
         if (row) row.addEventListener('change', syncProgressBoxes);
     });

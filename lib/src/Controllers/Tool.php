@@ -785,6 +785,7 @@ abstract class Tool {
             LaunchController::ROUTE,
             Lessons::ROUTE,
             Content::ROUTE,
+            Outline::ROUTE,
             Map::ROUTE,
             Pages::ROUTE,
             Quiz1::ROUTE,
@@ -792,7 +793,6 @@ abstract class Tool {
             Topics::ROUTE,
             '/lessons_launch',
             '/content_launch',
-            '/outline',
             '/outline_launch',
         );
         $out = array();

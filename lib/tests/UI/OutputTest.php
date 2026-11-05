@@ -130,6 +130,7 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $set = $OUTPUT->defaultMenuSet();
         $this->assertTrue($this->menuSetHasLessons($set));
         $this->assertFalse($this->menuSetHasLeftLink($set, 'Content'));
+        $this->assertFalse($this->menuSetHasLeftLink($set, 'Outline'));
     }
 
     public function testDefaultMenuSetOmitsLessonsWithoutContextTitle() {

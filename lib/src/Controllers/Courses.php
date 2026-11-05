@@ -1230,8 +1230,7 @@ class Courses extends Tool {
     }
 
     /**
-     * GET /courses/{id}/lessons, /courses/{id}/content, or one module under either.
-     * /outline is the old content path.
+     * GET /courses/{id}/lessons, /content, or /outline, or one module under any of them.
      *
      * Author, launch, and deeper paths stay on the membership gate.
      *

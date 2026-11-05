@@ -406,7 +406,7 @@ EOF;
             .'<script src="'.$s.'/js/jquery.timeago-1.6.3.js"></script>'."\n"
             .'<script src="'.$s.'/js/handlebars-v4.0.2.js"></script>'."\n"
             .'<script src="'.$s.'/tmpljs-3.8.0/tmpl.min.js"></script>'."\n"
-            .'<script src="'.$s.'/js/tsugiscripts.js"></script>'."\n";
+            .'<script src="'.$s.'/js/tsugiscripts.js?v=20261105"></script>'."\n";
     }
 
     function footerStart() {
@@ -1666,7 +1666,7 @@ $( function() {
             $ret .= '<link href="'.htmlspecialchars($theme["font-url"]).'" rel="stylesheet">'."\n";
         }
         $ret .= self::getThemeCss($theme);
-        $ret .= '<link href="'.$s.'/css/tsugi2.css" rel="stylesheet">'."\n";
+        $ret .= '<link href="'.$s.'/css/tsugi2.css?v=20261105" rel="stylesheet">'."\n";
         $ret .= self::navbarAlignCss();
         if ( isset($CFG->extra_css) ) {
             $ret .= '<style>'."\n".$CFG->extra_css."\n</style>\n";

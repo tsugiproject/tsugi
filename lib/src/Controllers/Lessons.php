@@ -149,7 +149,7 @@ class Lessons extends Tool {
     {
         global $OUTPUT;
 
-        $l = Manifest::currentLessons($anchor);
+        $l = $this->loadViewLessons($anchor);
         if ( ! $l ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
@@ -207,8 +207,18 @@ class Lessons extends Tool {
         static::render($l);
         $this->closeLessonsView();
         $OUTPUT->footerStart();
-        self::footer($l);
+        static::footer($l);
         $OUTPUT->footerEnd();
+    }
+
+    /**
+     * Lessons and Content load the requested module. Outline loads the whole document.
+     *
+     * @param mixed $anchor
+     * @return LessonsService|false
+     */
+    protected function loadViewLessons($anchor) {
+        return Manifest::currentLessons($anchor);
     }
 
     /**
@@ -255,21 +265,35 @@ class Lessons extends Tool {
     }
 
     /**
-     * Author stays on /lessons/_author. Opened from Content, the link carries
-     * the module so Back returns there.
+     * Author stays on /lessons/_author. Opened from Content or Outline, the
+     * link carries the module so Back returns to that view.
      *
      * @param mixed $anchor
      */
     private function authorLinkUrl($anchor) {
         $url = $this->toolHome(self::ROUTE) . '/_author';
-        if ( static::ROUTE !== Content::ROUTE ) {
+        $from = $this->authorFromView();
+        if ( $from === null ) {
             return U::addSession($url);
         }
-        $url = U::add_url_parm($url, 'from', 'content');
+        $url = U::add_url_parm($url, 'from', $from);
         if ( self::isLessonAnchor($anchor) ) {
             $url = U::add_url_parm($url, 'module', (string) $anchor);
         }
         return U::addSession($url);
+    }
+
+    /**
+     * @return string|null content, outline, or null when this is Lessons
+     */
+    private function authorFromView() {
+        if ( static::ROUTE === Content::ROUTE ) {
+            return 'content';
+        }
+        if ( static::ROUTE === Outline::ROUTE ) {
+            return 'outline';
+        }
+        return null;
     }
 
     /**
@@ -280,7 +304,13 @@ class Lessons extends Tool {
     private function authorReturnSpec() {
         $from = (isset($_GET['from']) && is_string($_GET['from'])) ? $_GET['from'] : '';
         $module = (isset($_GET['module']) && is_string($_GET['module'])) ? $_GET['module'] : '';
-        if ( $from !== 'content' && $from !== 'outline' ) {
+        if ( $from === 'content' ) {
+            $route = Content::ROUTE;
+            $label = __('Back to Content');
+        } else if ( $from === 'outline' ) {
+            $route = Outline::ROUTE;
+            $label = __('Back to Outline');
+        } else {
             return array(
                 'from' => '',
                 'module' => '',
@@ -292,7 +322,7 @@ class Lessons extends Tool {
         $url = $lessonsHome;
         $at = strrpos($lessonsHome, self::ROUTE);
         if ( $at !== false ) {
-            $url = substr($lessonsHome, 0, $at) . Content::ROUTE;
+            $url = substr($lessonsHome, 0, $at) . $route;
         }
         $kept = '';
         if ( self::isLessonAnchor($module) ) {
@@ -300,9 +330,9 @@ class Lessons extends Tool {
             $url .= '/'.rawurlencode($module);
         }
         return array(
-            'from' => 'content',
+            'from' => $from,
             'module' => $kept,
-            'label' => __('Back to Content'),
+            'label' => $label,
             'url' => $url,
         );
     }
@@ -1778,6 +1808,55 @@ $(function(){
         echo("</ul></div>\n");
     }
 
+    /**
+     * Content and Outline omit the previous / all / next bar.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @param object $module
+     * @param array<string,float> $allgrades
+     * @param array<string,array<string,mixed>> $duedates
+     */
+    protected static function echoSingleModuleChrome($lessons, $module, $allgrades, $duedates) {
+        static::echoModulePager($lessons);
+        self::echoModuleTitleBarMatchingCard($lessons, $module, $allgrades, $duedates);
+    }
+
+    /**
+     * One step root per module. Outline omits the id so a long page can have several.
+     */
+    protected static function includeStepRoot() {
+        return true;
+    }
+
+    protected static function stepRootUsesId() {
+        return true;
+    }
+
+    /**
+     * The anchor is the checkbox store shared by Lessons, Content, and Outline.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     */
+    protected static function echoStepRootOpen($lessons) {
+        $anchor = '';
+        if ( isset($lessons->module->anchor) ) {
+            $anchor = (string) $lessons->module->anchor;
+        }
+        $id = static::stepRootUsesId() ? ' id="tsugi-step-root"' : '';
+        $key = htmlspecialchars($anchor, ENT_QUOTES, 'UTF-8');
+        echo('<div'.$id.' data-tsugi-step-root data-tsugi-step-key="'.$key.'">'."\n");
+    }
+
+    /**
+     * Google Classroom install dialog. Outline emits this once for the page.
+     */
+    protected static function echoSingleClassroomChrome() {
+        if ( self::isGoogleClassroomInstructor() && isset($_SESSION['gc_count']) ) {
+            echo('<script src="https://apis.google.com/js/platform.js" async defer></script>'."\n");
+            self::echoClassroomInstallDialog();
+        }
+    }
+
     /*
      * render a lesson
      */
@@ -1785,7 +1864,6 @@ $(function(){
         global $CFG, $OUTPUT;
         ob_start();
         $gclass = self::isGoogleClassroomInstructor();
-
         $module = $lessons->module;
         
         // Ensure module is set
@@ -1811,12 +1889,8 @@ $(function(){
         }
         $lessons->setModuleProgressContext($allgrades, $moduleDueDates);
 
-	if ( $gclass && isset($_SESSION['gc_count']) ) {
-            echo('<script src="https://apis.google.com/js/platform.js" async defer></script>'."\n");
-            self::echoClassroomInstallDialog();
-        }
-            static::echoModulePager($lessons);
-            self::echoModuleTitleBarMatchingCard($lessons, $module, $allgrades, $moduleDueDates);
+            static::echoSingleClassroomChrome();
+            static::echoSingleModuleChrome($lessons, $module, $allgrades, $moduleDueDates);
 
             // Check if module uses items array (new format)
             // Direct access to items property - json_decode creates stdClass objects, arrays stay as arrays
@@ -1835,7 +1909,7 @@ $(function(){
             
             // Check debug flag
             $debug_conversion = $CFG->getExtension('lessons_debug_conversion', false);
-            $stepRoot = $lessons->stepsEnabled();
+            $stepRoot = $lessons->stepsEnabled() && static::includeStepRoot();
             $openedStepRoot = false;
             
             if ( $has_items ) {
@@ -1848,7 +1922,7 @@ $(function(){
                     echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
                 }
                 if ( $stepRoot ) {
-                    echo('<div id="tsugi-step-root">'."\n");
+                    static::echoStepRootOpen($lessons);
                     $openedStepRoot = true;
                 }
                 
@@ -1856,6 +1930,7 @@ $(function(){
                 // outside the list. One <ul> runs until the next heading — subtype
                 // does not start a new list.
                 $in_list = false;
+                $sectionOpen = false;
                 foreach($items_array as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
                     // Skip malformed items (e.g., objects that should be arrays)
@@ -1868,6 +1943,19 @@ $(function(){
                     $is_text = ($type == 'text');
                     $in_content_list = ( ! $is_heading && ! $is_text
                         && LessonsNormalize::sectionGroup($item_obj) );
+
+                    if ( $is_heading ) {
+                        if ( $in_list ) {
+                            echo("</ul>\n");
+                            $in_list = false;
+                        }
+                        if ( $sectionOpen ) {
+                            static::closeHeadingSection();
+                        }
+                        static::openHeadingSection($item_obj);
+                        $sectionOpen = true;
+                        continue;
+                    }
 
                     if ( ! $in_content_list ) {
                         if ( $in_list ) {
@@ -1888,6 +1976,9 @@ $(function(){
 
                 if ( $in_list ) {
                     echo("</ul>\n");
+                }
+                if ( $sectionOpen ) {
+                    static::closeHeadingSection();
                 }
                 if ( $openedStepRoot ) {
                     echo("</div>\n");
@@ -1932,7 +2023,7 @@ $(function(){
 
             $legacyStepRoot = false;
             if ( $stepRoot && ! $openedStepRoot ) {
-                echo('<div id="tsugi-step-root">'."\n");
+                static::echoStepRootOpen($lessons);
                 $legacyStepRoot = true;
             }
             echo("<ul>\n");
@@ -3301,6 +3392,29 @@ $(function(){
     }
 
     /**
+     * A heading sits outside the content list. Outline wraps it in an expando.
+     *
+     * @param object $item
+     */
+    protected static function openHeadingSection($item) {
+        static::echoItemHeading($item);
+    }
+
+    protected static function closeHeadingSection() {
+    }
+
+    /**
+     * @param object|array<string,mixed> $item
+     */
+    protected static function echoItemHeading($item) {
+        if ( is_array($item) ) {
+            $item = (object) $item;
+        }
+        $item = LessonsNormalize::normalizeItemObject($item);
+        self::renderItemHeader($item);
+    }
+
+    /**
      * Render a header item
      */
     private static function renderItemHeader($item) {
@@ -3844,17 +3958,34 @@ $(function(){
     }
 
     /**
-     * Content sets toolHome to its own path. A quiz opened from there returns there.
+     * Content and Outline set toolHome to their own path. A quiz opened from
+     * there returns to that view.
      *
+     * @param object $lessons
+     * @return string content, outline, or empty
+     */
+    private static function quizReturnView($lessons) {
+        if ( ! is_object($lessons) || ! isset($lessons->toolHome) || ! is_string($lessons->toolHome) ) {
+            return '';
+        }
+        $home = rtrim($lessons->toolHome, '/');
+        if ( $home === '' ) {
+            return '';
+        }
+        if ( substr($home, -strlen(Content::ROUTE)) === Content::ROUTE ) {
+            return 'content';
+        }
+        if ( substr($home, -strlen(Outline::ROUTE)) === Outline::ROUTE ) {
+            return 'outline';
+        }
+        return '';
+    }
+
+    /**
      * @param object $lessons
      */
     private static function quizOpenedFromContent($lessons) {
-        if ( ! is_object($lessons) || ! isset($lessons->toolHome) || ! is_string($lessons->toolHome) ) {
-            return false;
-        }
-        $home = rtrim($lessons->toolHome, '/');
-        $route = Content::ROUTE;
-        return $home !== '' && substr($home, -strlen($route)) === $route;
+        return self::quizReturnView($lessons) === 'content';
     }
 
     /**
@@ -3989,8 +4120,9 @@ $(function(){
                     if ( preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/', $anchor) ) {
                         $href .= (str_contains($href, '?') ? '&' : '?').'from='.rawurlencode($anchor);
                     }
-                    if ( self::quizOpenedFromContent($lessons) ) {
-                        $href .= (str_contains($href, '?') ? '&' : '?').'view=content';
+                    $quizView = self::quizReturnView($lessons);
+                    if ( $quizView === 'content' || $quizView === 'outline' ) {
+                        $href .= (str_contains($href, '?') ? '&' : '?').'view='.$quizView;
                     }
                 }
             }
@@ -4121,12 +4253,21 @@ $(function(){
         if ( $lessons->stepsEnabled() ) {
             $html = self::applyStepCheckboxes($html);
         }
-        $html .= self::classroomInstallLinksToggleMarkup($lessons);
+        $html .= static::classroomToggleMarkup($lessons);
         if ( $buffer ) {
             return $html;
         }
         echo($html);
         return null;
+    }
+
+    /**
+     * Show / hide classroom install links. Outline emits this once for the page.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     */
+    protected static function classroomToggleMarkup($lessons) {
+        return self::classroomInstallLinksToggleMarkup($lessons);
     }
 
     /**

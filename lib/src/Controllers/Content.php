@@ -7,7 +7,6 @@ use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumos\Application;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Util\U;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -29,35 +28,6 @@ class Content extends Lessons {
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
             return Content::launch($app, $anchor);
         });
-        if ( $prefix === self::ROUTE ) {
-            self::legacyContentRoutes($app);
-        }
-    }
-
-    /**
-     * Old /outline addresses go to /content.
-     */
-    private static function legacyContentRoutes(Application $app) {
-        $go = function(Request $request, $anchor = null, $path = null) {
-            return self::redirectLegacyContent();
-        };
-        $app->router->get('/outline', $go);
-        $app->router->get('/outline/', $go);
-        $app->router->get('/outline/{anchor}', $go);
-        $app->router->get('/outline/{anchor}/{path:.*}', $go);
-        $app->router->get('/outline_launch/{anchor}', $go);
-    }
-
-    /**
-     * @return RedirectResponse
-     */
-    public static function redirectLegacyContent() {
-        $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '/outline';
-        $updated = preg_replace('#/outline(_launch)?(?=/|$|\?)#', '/content$1', $uri, 1);
-        if ( ! is_string($updated) || $updated === $uri ) {
-            $updated = '/content';
-        }
-        return new RedirectResponse($updated, 301);
     }
 
     /**
