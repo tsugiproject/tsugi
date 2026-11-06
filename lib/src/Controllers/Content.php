@@ -13,8 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Lessons with the module cards in a left column and the selected module on the right.
  *
- * Module HTML is {@see Lessons::renderSingle()}. The previous / all / next pager is omitted.
- * Choosing a card is how you move between modules.
+ * Module HTML is {@see Lessons::renderSingle()}. Previous and Next match the card
+ * view, without the All button. Choosing a card also moves between modules.
  */
 class Content extends Lessons {
 
@@ -108,7 +108,8 @@ class Content extends Lessons {
         echo('<div class="container-fluid tsugi-outline-page">');
     }
 
-    protected static function echoModulePager($lessons) {
+    protected static function echoModulePager($lessons, $showAll = true) {
+        parent::echoModulePager($lessons, false);
     }
 
     public static function render(LessonsService $lessons, $buffer=false) {

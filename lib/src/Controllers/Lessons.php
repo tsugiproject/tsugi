@@ -1779,11 +1779,12 @@ $(function(){
     }
 
     /**
-     * Previous / All / Next. Content replaces this with the card column.
+     * Previous / All / Next. Content uses the same bar without All.
      *
      * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @param bool $showAll Card view includes All. Content leaves it off.
      */
-    protected static function echoModulePager($lessons) {
+    protected static function echoModulePager($lessons, $showAll = true) {
         if ( $lessons->getSetting('prev-next') == "right" ) {
             echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
         } else if ( $lessons->getSetting('prev-next') == "left" ) {
@@ -1798,7 +1799,9 @@ $(function(){
             $prev = $all . '/' . urlencode($lessons->lessons->modules[$lessons->position-2]->anchor);
             echo('<li class="previous"><a href="'.$prev.'">&larr; '.__('Previous').'</a></li>'."\n");
         }
-        echo('<li><a href="'.$all.'">'.__('All').' ('.$lessons->position.' / '.count($lessons->lessons->modules).')</a></li>');
+        if ( $showAll ) {
+            echo('<li><a href="'.$all.'">'.__('All').' ('.$lessons->position.' / '.count($lessons->lessons->modules).')</a></li>');
+        }
         if ( $lessons->position >= count($lessons->lessons->modules) ) {
             echo('<li class="next" style="visibility:hidden" aria-hidden="true">&rarr; '.__('Next').'</li>'."\n");
         } else {
@@ -1809,7 +1812,7 @@ $(function(){
     }
 
     /**
-     * Content and Outline omit the previous / all / next bar.
+     * Outline omits this bar. Content keeps Previous and Next.
      *
      * @param \Tsugi\Services\Lessons\LessonsService $lessons
      * @param object $module

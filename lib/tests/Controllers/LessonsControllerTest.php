@@ -393,7 +393,7 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('tsugi-tree-section', $lessonHtml);
     }
 
-    public function testOutlineRenderUsesCardsAndOmitsPager() {
+    public function testContentRenderShowsPrevNextWithoutAll() {
         global $_SESSION;
         $_SESSION = [];
         \Tsugi\Core\ReqScope::resetIdentity();
@@ -431,11 +431,22 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('/courses/7/content/week-2', $html);
         $this->assertStringContainsString('Hello week two', $html);
         $this->assertStringNotContainsString('Hello week one', $html);
-        $this->assertStringNotContainsString('tsugi-lessons-pager', $html);
+        $this->assertStringContainsString('tsugi-lessons-pager', $html);
+        $this->assertStringContainsString('href="/courses/7/content/week-1">&larr; Previous</a>', $html);
+        $this->assertStringContainsString('aria-hidden="true">&rarr; Next</li>', $html);
         $this->assertStringNotContainsString('>All<', $html);
+        $this->assertStringNotContainsString('>All (', $html);
         $this->assertStringContainsString('aria-current="page"', $html);
         $this->assertStringContainsString('localStorage.setItem("tsugi-content:" + base, anchor)', $html);
         $this->assertStringContainsString('"week-2"', $html);
+
+        $first = \Tsugi\Services\Lessons\LessonsService::fromJson($json, 'week-1');
+        $first->toolHome = '/courses/7/content';
+        $_SERVER['REQUEST_URI'] = '/courses/7/content/week-1';
+        $firstHtml = Content::render($first, true);
+        $this->assertStringContainsString('aria-hidden="true">&larr; Previous</li>', $firstHtml);
+        $this->assertStringContainsString('href="/courses/7/content/week-2">&rarr; Next</a>', $firstHtml);
+        $this->assertStringNotContainsString('>All (', $firstHtml);
     }
 
     public function testOutlineIndexRestoresTheStoredCard()
