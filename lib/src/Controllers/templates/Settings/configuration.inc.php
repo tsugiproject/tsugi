@@ -36,7 +36,7 @@ if ( ! isset($course_title) || ! is_string($course_title) ) {
             <input type="checkbox" name="anonymous_lessons" id="anonymous_lessons" value="1"<?= $anonymous_lessons ? ' checked' : '' ?>>
             <?= htmlspecialchars(__('Allow anonymous viewing of lessons')) ?>
         </label>
-        <p class="help-block"><?= __('Anyone can open the lessons in this course, including people who are not logged in and people who are not in the class. The catalog can offer a preview of those lessons. Files a student can open are included. Private files stay closed. Published pages are included. Unpublished pages stay closed. Discussions and external tools show Login Required. Quizzes stay closed.') ?></p>
+        <p class="help-block"><?= __('Anyone can open the lessons in this course, including people who are not logged in and people who are not in the class. The catalog can offer a preview of those lessons. Course files show Login Required, and a file URL still requires a login. Published pages are included. Unpublished pages stay closed. Discussions and external tools show Login Required. Quizzes stay closed.') ?></p>
     </div>
     <p>
         <button type="submit" class="btn btn-primary"><?= __('Save') ?></button>

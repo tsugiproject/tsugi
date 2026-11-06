@@ -13,8 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Lessons with the module cards in a left column and the selected module on the right.
  *
- * Module HTML is {@see Lessons::renderSingle()}. The previous / all / next pager is omitted.
- * Choosing a card is how you move between modules.
+ * Module HTML is {@see Lessons::renderSingle()}. Previous and Next match the card
+ * view, without the All button. Choosing a card also moves between modules.
  */
 class Content extends Lessons {
 
@@ -85,10 +85,7 @@ class Content extends Lessons {
         }
         $base = rtrim($this->toolHome(static::ROUTE), '/');
         foreach ( $lessons->lessons->modules as $module ) {
-            if ( isset($module->hidden) && $module->hidden ) {
-                continue;
-            }
-            if ( isset($module->login) && $module->login && ! ReqScope::isLoggedIn() ) {
+            if ( ! self::contentModuleVisible($module) ) {
                 continue;
             }
             if ( ! isset($module->anchor) || (string) $module->anchor === '' ) {
@@ -108,7 +105,59 @@ class Content extends Lessons {
         echo('<div class="container-fluid tsugi-outline-page">');
     }
 
-    protected static function echoModulePager($lessons) {
+    protected static function echoModulePager($lessons, $showAll = true) {
+        parent::echoModulePager($lessons, false);
+    }
+
+    /**
+     * A module the Content sidebar shows.
+     *
+     * Hidden modules stay off the rail. A login-only module stays off until
+     * the reader is signed in.
+     *
+     * @param mixed $module
+     */
+    private static function contentModuleVisible($module) {
+        if ( ! is_object($module) ) {
+            return false;
+        }
+        if ( isset($module->hidden) && $module->hidden ) {
+            return false;
+        }
+        if ( isset($module->login) && $module->login && ! ReqScope::isLoggedIn() ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Previous and Next stay on the sidebar list, skipping hidden modules
+     * and login-only modules when the reader is signed out.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @return array{0:?string,1:?string}
+     */
+    protected static function pagerStepAnchors($lessons) {
+        $modules = (isset($lessons->lessons->modules) && is_array($lessons->lessons->modules))
+            ? $lessons->lessons->modules : array();
+        $visible = array();
+        foreach ( $modules as $module ) {
+            if ( ! self::contentModuleVisible($module) ) {
+                continue;
+            }
+            if ( ! isset($module->anchor) || (string) $module->anchor === '' ) {
+                continue;
+            }
+            $visible[] = (string) $module->anchor;
+        }
+        $current = isset($lessons->anchor) ? (string) $lessons->anchor : '';
+        $index = array_search($current, $visible, true);
+        if ( $index === false ) {
+            return array(null, null);
+        }
+        $prev = $index > 0 ? $visible[$index - 1] : null;
+        $next = ($index < count($visible) - 1) ? $visible[$index + 1] : null;
+        return array($prev, $next);
     }
 
     public static function render(LessonsService $lessons, $buffer=false) {
@@ -146,10 +195,7 @@ class Content extends Lessons {
         echo('<nav class="tsugi-outline-nav" aria-label="'.htmlspecialchars(__('Modules'), ENT_QUOTES, 'UTF-8').'">'."\n");
         $count = 0;
         foreach ( $lessons->lessons->modules as $module ) {
-            if ( isset($module->hidden) && $module->hidden ) {
-                continue;
-            }
-            if ( isset($module->login) && $module->login && ! ReqScope::isLoggedIn() ) {
+            if ( ! self::contentModuleVisible($module) ) {
                 continue;
             }
             $count++;

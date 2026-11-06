@@ -1779,11 +1779,12 @@ $(function(){
     }
 
     /**
-     * Previous / All / Next. Content replaces this with the card column.
+     * Previous / All / Next. Content uses the same bar without All.
      *
      * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @param bool $showAll Card view includes All. Content leaves it off.
      */
-    protected static function echoModulePager($lessons) {
+    protected static function echoModulePager($lessons, $showAll = true) {
         if ( $lessons->getSetting('prev-next') == "right" ) {
             echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
         } else if ( $lessons->getSetting('prev-next') == "left" ) {
@@ -1792,24 +1793,51 @@ $(function(){
             echo('<div typeof="oer:Lesson" style="padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
         }
         $all = U::get_rest_parent();
-        if ( $lessons->position == 1 ) {
+        list($prevAnchor, $nextAnchor) = static::pagerStepAnchors($lessons);
+        if ( $prevAnchor === null || $prevAnchor === '' ) {
             echo('<li class="previous" style="visibility:hidden" aria-hidden="true">&larr; '.__('Previous').'</li>'."\n");
         } else {
-            $prev = $all . '/' . urlencode($lessons->lessons->modules[$lessons->position-2]->anchor);
+            $prev = $all . '/' . urlencode($prevAnchor);
             echo('<li class="previous"><a href="'.$prev.'">&larr; '.__('Previous').'</a></li>'."\n");
         }
-        echo('<li><a href="'.$all.'">'.__('All').' ('.$lessons->position.' / '.count($lessons->lessons->modules).')</a></li>');
-        if ( $lessons->position >= count($lessons->lessons->modules) ) {
+        if ( $showAll ) {
+            echo('<li><a href="'.$all.'">'.__('All').' ('.$lessons->position.' / '.count($lessons->lessons->modules).')</a></li>');
+        }
+        if ( $nextAnchor === null || $nextAnchor === '' ) {
             echo('<li class="next" style="visibility:hidden" aria-hidden="true">&rarr; '.__('Next').'</li>'."\n");
         } else {
-            $next = $all . '/' . urlencode($lessons->lessons->modules[$lessons->position]->anchor);
+            $next = $all . '/' . urlencode($nextAnchor);
             echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
         }
         echo("</ul></div>\n");
     }
 
     /**
-     * Content and Outline omit the previous / all / next bar.
+     * Anchors on either side of the open module.
+     *
+     * Card view steps through every module. Content overrides this and
+     * stays on the modules its sidebar shows.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @return array{0:?string,1:?string}
+     */
+    protected static function pagerStepAnchors($lessons) {
+        $modules = (isset($lessons->lessons->modules) && is_array($lessons->lessons->modules))
+            ? $lessons->lessons->modules : array();
+        $pos = (int) $lessons->position;
+        $prev = null;
+        $next = null;
+        if ( $pos > 1 && isset($modules[$pos - 2]) && isset($modules[$pos - 2]->anchor) ) {
+            $prev = (string) $modules[$pos - 2]->anchor;
+        }
+        if ( $pos >= 1 && $pos < count($modules) && isset($modules[$pos]) && isset($modules[$pos]->anchor) ) {
+            $next = (string) $modules[$pos]->anchor;
+        }
+        return array($prev, $next);
+    }
+
+    /**
+     * Outline omits this bar. Content keeps Previous and Next.
      *
      * @param \Tsugi\Services\Lessons\LessonsService $lessons
      * @param object $module
@@ -3339,6 +3367,15 @@ $(function(){
      * @param string $href Expanded URL (not yet HTML-encoded)
      */
     private static function renderWebLinkOpenControl($item, $href, $title, $icon_key, $css_class='tsugi-lessons-link') {
+        if ( ReqScope::isAnonymousLessonView() && FileRepository::isUploadedFileHref($href) ) {
+            echo('<span style="display: inline-flex; align-items: center;">');
+            if ( $icon_key !== null && $icon_key !== false ) {
+                self::renderItemIcon($icon_key);
+            }
+            echo(htmlentities($title).' ('.__('Login Required').')');
+            echo('</span>');
+            return;
+        }
         $safe_href = self::safeWebHref($href);
         $mode = self::webLinkOpenMode($item);
         if ( $mode === 'modal' && $safe_href !== '' ) {

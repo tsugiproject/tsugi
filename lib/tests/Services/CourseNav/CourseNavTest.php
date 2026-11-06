@@ -512,6 +512,46 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayNotHasKey('default', $doc['items'][2]);
     }
 
+    public function testOnlyOneReadingViewStaysDefault()
+    {
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('course_views'),
+            'nav' => array(
+                'course_views' => array('left' => '1'),
+            ),
+            'view_default' => array(
+                'content' => '1',
+                'outline' => '1',
+            ),
+            'view_available' => array(
+                'outline' => '1',
+            ),
+        ));
+        $byId = array();
+        foreach ( $doc['items'] as $item ) {
+            $byId[$item['id']] = $item;
+        }
+        $this->assertTrue($byId['content']['default']);
+        $this->assertArrayNotHasKey('default', $byId['outline']);
+        $this->assertTrue($byId['outline']['available']);
+        $this->assertArrayNotHasKey('lessons', $byId);
+
+        $stored = CourseNav::documentFromJson(json_encode(array(
+            'items' => array(
+                array('id' => 'outline', 'left' => true, 'default' => true),
+                array('id' => 'content', 'left' => true, 'default' => true, 'available' => true),
+                array('id' => 'files', 'left' => true),
+            ),
+        )));
+        $loaded = array();
+        foreach ( $stored['items'] as $item ) {
+            $loaded[$item['id']] = $item;
+        }
+        $this->assertTrue($loaded['content']['default']);
+        $this->assertArrayNotHasKey('outline', $loaded);
+        $this->assertSame(array('content', 'files'), array_column($stored['items'], 'id'));
+    }
+
     public function testMissingDefaultUsesCardView()
     {
         $doc = CourseNav::fromPost(array(

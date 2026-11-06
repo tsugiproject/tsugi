@@ -737,11 +737,14 @@ class LessonsService {
     }
 
     /**
-     * LTI assignment totals for module progress (items array, else legacy lti).
+     * Graded-link totals for module progress (items array, else legacy lti).
+     *
+     * A published quiz counts, the same as a graded LTI launch or a content
+     * row that can return a grade. Discussions, files, and pages do not.
      * When $duedates_for_display is non-empty ({@see GradeUtil::loadDueDatesForDisplay}), only
      * resource links with a non-empty end_datetime in the current context are counted (due-date mode).
-     * When it is empty (no course due dates, or the learner has hidden due dates), every graded LTI
-     * launch in the module counts so percent-complete badges still work.
+     * When it is empty (no course due dates, or the learner has hidden due dates), every graded
+     * link in the module counts so percent-complete badges still work.
      * LTI entries with "result": false are excluded from points, actuals, and rollup rlids.
      *
      * @param array<string,array<string,mixed>> $duedates_for_display
@@ -754,20 +757,9 @@ class LessonsService {
         $require_scheduled = ($duedates_for_display !== array());
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
-                $contentRow = self::contentAssignmentRow($item);
-                if ( $contentRow !== null ) {
-                    if ( empty($contentRow['graded']) ) {
-                        continue;
-                    }
-                    $resourceLinkId = $contentRow['resource_link_id'];
-                } else {
-                    if ( ! LessonsNormalize::isAssignmentLti($item) ) {
-                        continue;
-                    }
-                    if ( ! self::ltiLaunchIsGraded($item) ) {
-                        continue;
-                    }
-                    $resourceLinkId = $item->resource_link_id;
+                $resourceLinkId = $this->gradedProgressLinkId($item);
+                if ( $resourceLinkId === null || $resourceLinkId === '' ) {
+                    continue;
                 }
                 if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($resourceLinkId, $duedates_for_display) ) {
                     continue;
@@ -801,6 +793,46 @@ class LessonsService {
             }
         }
         return array($possible, $actual, $rlids);
+    }
+
+    /**
+     * Resource link id for one gradable lesson item, or null when it does not count.
+     *
+     * A published native quiz uses the quiz's grade-book key. An lti_content
+     * row counts when it can return a grade. An LTI launch counts unless the
+     * lesson marks it ungraded. A discussion is not a grade.
+     *
+     * @param mixed $item
+     * @return string|null
+     */
+    private function gradedProgressLinkId($item) {
+        if ( is_array($item) ) {
+            $item = (object) $item;
+        }
+        if ( ! is_object($item) ) {
+            return null;
+        }
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            $quizId = LessonsNormalize::quizIdOf($item);
+            if ( $quizId < 1 || ! $this->quiz1IsPublished($quizId) ) {
+                return null;
+            }
+            $key = Quiz1Repository::resourceLinkId($quizId, ReqScope::currentContextIdLegacy());
+            return $key !== '' ? $key : null;
+        }
+        $contentRow = self::contentAssignmentRow($item);
+        if ( $contentRow !== null ) {
+            if ( empty($contentRow['graded']) ) {
+                return null;
+            }
+            $resourceLinkId = trim((string) $contentRow['resource_link_id']);
+            return $resourceLinkId !== '' ? $resourceLinkId : null;
+        }
+        if ( ! LessonsNormalize::isAssignmentLti($item) || ! self::ltiLaunchIsGraded($item) ) {
+            return null;
+        }
+        $resourceLinkId = trim((string) $item->resource_link_id);
+        return $resourceLinkId !== '' ? $resourceLinkId : null;
     }
 
     /**

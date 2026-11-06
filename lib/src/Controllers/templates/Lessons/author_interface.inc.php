@@ -61,6 +61,27 @@
     display: none;
 }
 
+.author-fold-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0 0 14px;
+}
+
+.author-fold-toolbar button {
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.12rem 0.55rem;
+    cursor: pointer;
+}
+
+.author-fold-toolbar button:hover {
+    background: #f0f0f0;
+}
+
 .module-container {
     background: white;
     border: 1px solid #ddd;
@@ -760,6 +781,11 @@
                 <button type="button" class="btn" onclick="document.getElementById('lessons-import-file').click()"><?= __('Import lessons.json') ?></button>
             </form>
         </div>
+    </div>
+
+    <div class="author-fold-toolbar">
+        <button type="button" onclick="setAuthorFolds(true)"><?= __('Expand all') ?></button>
+        <button type="button" onclick="setAuthorFolds(false)"><?= __('Collapse all') ?></button>
     </div>
 
     <div id="modules-container">
@@ -2393,6 +2419,7 @@ $(document).ready(function() {
     loadCoursePages().catch(function() {});
     renderModules();
     setupSortable();
+    authorWatchPlace();
 
     var importFile = document.getElementById('lessons-import-file');
     if (importFile) {
@@ -2619,6 +2646,163 @@ function syncDataAndRender() {
     }, 50); // Small delay to ensure DOM is settled
 }
 
+function authorFoldPrefix() {
+    return 'tsugi-author:' + (window.location.pathname || '');
+}
+
+function authorPlaceKey() {
+    return authorFoldPrefix() + ':place';
+}
+
+function authorModuleId(module, moduleIndex) {
+    const anchor = module && module.anchor ? String(module.anchor).trim() : '';
+    return anchor !== '' ? anchor : ('n' + moduleIndex);
+}
+
+function authorModuleFoldKey(module, moduleIndex) {
+    return authorFoldPrefix() + ':m:' + authorModuleId(module, moduleIndex);
+}
+
+function authorHeaderFoldKey(module, moduleIndex, headerOrdinal) {
+    return authorFoldPrefix() + ':h:' + authorModuleId(module, moduleIndex) + '|' + headerOrdinal;
+}
+
+function authorAttr(value) {
+    return escapeHtml(value).replace(/"/g, '&quot;');
+}
+
+function authorFoldIsShut(key) {
+    try {
+        return localStorage.getItem(key) === '0';
+    } catch (e) {
+        return false;
+    }
+}
+
+function authorFoldStore(key, open) {
+    if (!key) return;
+    try {
+        if (open) localStorage.removeItem(key);
+        else localStorage.setItem(key, '0');
+    } catch (e) {}
+}
+
+function authorForgetFoldKeys() {
+    const prefix = authorFoldPrefix() + ':';
+    const place = authorPlaceKey();
+    const drop = [];
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.indexOf(prefix) === 0 && key !== place) drop.push(key);
+        }
+        drop.forEach(function(key) { localStorage.removeItem(key); });
+    } catch (e) {}
+}
+
+function setAuthorFolds(open) {
+    if (open) {
+        authorForgetFoldKeys();
+    } else {
+        document.querySelectorAll('.expand-toggle, .header-toggle').forEach(function(btn) {
+            authorFoldStore(btn.getAttribute('data-fold-key'), false);
+        });
+    }
+    renderModules();
+    authorSavePlace();
+}
+
+var authorPlaceReady = false;
+var authorPlaceRestoring = false;
+var authorPlaceTimer = 0;
+
+function authorModuleAtCenter() {
+    var root = document.getElementById('modules-container');
+    if (!root) return null;
+    var nav = document.getElementById('tsugi_main_nav_bar');
+    var navH = nav && nav.offsetHeight ? nav.offsetHeight : 0;
+    var y = Math.max(navH + 8, Math.min(window.innerHeight - 8, window.innerHeight / 2));
+    var x = Math.max(8, Math.min(window.innerWidth - 8, window.innerWidth / 2));
+    var el = document.elementFromPoint(x, y);
+    var mod = el && el.closest ? el.closest('.module-container') : null;
+    if (mod && root.contains(mod)) return mod;
+    var centerDoc = window.scrollY + (window.innerHeight / 2);
+    var mods = root.querySelectorAll('.module-container');
+    for (var i = 0; i < mods.length; i++) {
+        var top = mods[i].getBoundingClientRect().top + window.scrollY;
+        if (centerDoc >= top && centerDoc <= top + mods[i].offsetHeight) return mods[i];
+    }
+    return null;
+}
+
+function authorSavePlace() {
+    if (!authorPlaceReady || authorPlaceRestoring) return;
+    var mod = authorModuleAtCenter();
+    if (!mod) return;
+    var top = mod.getBoundingClientRect().top + window.scrollY;
+    var place = {
+        anchor: mod.getAttribute('data-anchor') || mod.id,
+        center: Math.round((window.scrollY + (window.innerHeight / 2)) - top)
+    };
+    try { localStorage.setItem(authorPlaceKey(), JSON.stringify(place)); } catch (err) {}
+}
+
+function authorRestorePlace() {
+    var raw = null;
+    try { raw = localStorage.getItem(authorPlaceKey()); } catch (err) { return false; }
+    if (!raw) return false;
+    var place = null;
+    try { place = JSON.parse(raw); } catch (err2) { return false; }
+    if (!place || !place.anchor) return false;
+    var mods = document.querySelectorAll('#modules-container .module-container');
+    var mod = null;
+    for (var i = 0; i < mods.length; i++) {
+        if ((mods[i].getAttribute('data-anchor') || mods[i].id) === place.anchor) {
+            mod = mods[i];
+            break;
+        }
+    }
+    if (!mod) return false;
+    var top = mod.getBoundingClientRect().top + window.scrollY;
+    var y = top + (place.center || 0) - (window.innerHeight / 2);
+    authorPlaceRestoring = true;
+    window.scrollTo(0, Math.max(0, y));
+    window.setTimeout(function() { authorPlaceRestoring = false; }, 80);
+    return true;
+}
+
+function authorWatchPlace() {
+    if (authorWatchPlace.started) return;
+    authorWatchPlace.started = true;
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.addEventListener('scroll', function() {
+        if (authorPlaceRestoring || !authorPlaceReady) return;
+        if (authorPlaceTimer) window.clearTimeout(authorPlaceTimer);
+        authorPlaceTimer = window.setTimeout(authorSavePlace, 120);
+    }, { passive: true });
+    window.addEventListener('pagehide', authorSavePlace);
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') authorSavePlace();
+    });
+    function finish(arm) {
+        authorRestorePlace();
+        if (arm) authorPlaceReady = true;
+    }
+    function soon(arm) {
+        window.requestAnimationFrame(function() {
+            window.requestAnimationFrame(function() { finish(arm); });
+        });
+    }
+    if (document.readyState === 'complete') {
+        window.setTimeout(function() { finish(true); }, 60);
+        return;
+    }
+    window.addEventListener('load', function() {
+        window.setTimeout(function() { finish(true); }, 60);
+    });
+    soon(false);
+}
+
 function renderModules() {
     const container = $('#modules-container');
     container.empty();
@@ -2641,15 +2825,6 @@ function renderModules() {
             }
         });
         
-        // Restore collapsed state from localStorage for modules
-        const stateKey = `module_${moduleIndex}_collapsed`;
-        if (localStorage.getItem(stateKey) === 'true') {
-            const moduleBody = moduleContainer.find('.module-body');
-            const toggleButton = moduleContainer.find('.expand-toggle');
-            moduleBody.addClass('collapsed');
-            toggleButton.addClass('collapsed');
-        }
-        
         // Apply header section collapsed states
         applyHeaderSectionStates(moduleIndex);
     });
@@ -2658,7 +2833,7 @@ function renderModules() {
 }
 
 /**
- * Applies collapsed states to header sections based on localStorage
+ * Hides the rows under a heading whose toggle is shut.
  */
 function applyHeaderSectionStates(moduleIndex) {
     const itemsList = $(`.items-list[data-module-index="${moduleIndex}"]`);
@@ -2673,24 +2848,22 @@ function applyHeaderSectionStates(moduleIndex) {
     // Then apply collapsed states
     items.forEach((itemElement, index) => {
         const $item = $(itemElement);
-        const itemIndex = parseInt($item.attr('data-item-index'));
-        const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
-        const isCollapsed = localStorage.getItem(stateKey) === 'true';
+        if (!$item.find('.header-toggle').hasClass('collapsed')) {
+            return;
+        }
         
-        if (isCollapsed) {
-            // Find all items after this header until the next header or end
-            for (let i = index + 1; i < items.length; i++) {
-                const $nextItem = $(items[i]);
-                const nextItemData = $nextItem.data('item-object');
-                
-                // Stop at next header
-                if (nextItemData && isHeadingItem(nextItemData)) {
-                    break;
-                }
-                
-                // Mark as collapsed section
-                $nextItem.addClass('collapsed-section');
+        // Find all items after this header until the next header or end
+        for (let i = index + 1; i < items.length; i++) {
+            const $nextItem = $(items[i]);
+            const nextItemData = $nextItem.data('item-object');
+            
+            // Stop at next header
+            if (nextItemData && isHeadingItem(nextItemData)) {
+                break;
             }
+            
+            // Mark as collapsed section
+            $nextItem.addClass('collapsed-section');
         }
     });
 }
@@ -2698,15 +2871,25 @@ function applyHeaderSectionStates(moduleIndex) {
 function createModuleHtml(module, moduleIndex) {
     // TODO: Keyboard reorder (Move up/down) for every drag-reorder UI, not just this
     // authoring surface: Settings → Navigation, Lessons authoring, Discussions reorder.
-    const itemsHtml = (module.items || []).map((item, itemIndex) => 
-        createItemHtml(item, moduleIndex, itemIndex)
-    ).join('');
+    const moduleId = authorModuleId(module, moduleIndex);
+    const moduleKey = authorModuleFoldKey(module, moduleIndex);
+    const moduleShut = authorFoldIsShut(moduleKey);
+    let headerOrdinal = 0;
+    let sectionShut = false;
+    const itemsHtml = (module.items || []).map((item, itemIndex) => {
+        if (isHeadingItem(item)) {
+            headerOrdinal += 1;
+            sectionShut = authorFoldIsShut(authorHeaderFoldKey(module, moduleIndex, headerOrdinal));
+            return createItemHtml(item, moduleIndex, itemIndex, module, headerOrdinal, false);
+        }
+        return createItemHtml(item, moduleIndex, itemIndex, module, 0, sectionShut);
+    }).join('');
     
     return `
-        <div class="module-container" data-module-index="${moduleIndex}">
+        <div class="module-container" data-module-index="${moduleIndex}" data-anchor="${authorAttr(moduleId)}">
             <div class="module-header">
                 <span class="drag-handle" title="Drag to reorder" aria-hidden="true"></span>
-                <button type="button" class="expand-toggle" onclick="toggleModule(${moduleIndex})" title="Expand/Collapse" aria-label="Expand or collapse module">
+                <button type="button" class="expand-toggle${moduleShut ? ' collapsed' : ''}" data-fold-key="${authorAttr(moduleKey)}" onclick="toggleModule(${moduleIndex})" title="Expand/Collapse" aria-label="Expand or collapse module">
                 </button>
                 <div style="flex: 1;">
                     <h3 class="module-title">
@@ -2723,7 +2906,7 @@ function createModuleHtml(module, moduleIndex) {
                     </button>
                 </div>
             </div>
-            <div class="module-body">
+            <div class="module-body${moduleShut ? ' collapsed' : ''}">
                 <button type="button" class="module-description module-description-edit${module.description ? '' : ' module-description-empty'}" onclick="editModule(${moduleIndex}, 'description')" title="Edit module description">
                     ${module.description ? escapeHtml(module.description) : 'Add a description (shown on the Lessons cards)'}
                 </button>
@@ -2768,21 +2951,20 @@ function getItemTypeIcon(itemOrType) {
     return icons[kind] || 'fa-circle';
 }
 
-function createItemHtml(item, moduleIndex, itemIndex) {
+function createItemHtml(item, moduleIndex, itemIndex, module, headerOrdinal, sectionShut) {
     const type = itemEditorKind(item);
     const title = getItemTitle(item);
     const isHeader = isHeadingItem(item);
-    
-    // Check if this header section is collapsed
-    const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
-    const isCollapsed = localStorage.getItem(stateKey) === 'true';
+    const foldKey = isHeader ? authorHeaderFoldKey(module, moduleIndex, headerOrdinal) : '';
+    const isCollapsed = isHeader && authorFoldIsShut(foldKey);
+    const hidden = (!isHeader && sectionShut) ? ' collapsed-section' : '';
     
     return `
-        <div class="item ${isHeader ? 'header-item' : ''}" data-module-index="${moduleIndex}" data-item-index="${itemIndex}">
+        <div class="item ${isHeader ? 'header-item' : ''}${hidden}" data-module-index="${moduleIndex}" data-item-index="${itemIndex}">
             <span class="drag-handle" title="Drag to reorder"></span>
             <div class="item-content">
                 <div class="item-header">
-                        ${isHeader ? `<button type="button" class="header-toggle ${isCollapsed ? 'collapsed' : ''}" onclick="toggleHeaderSection(${moduleIndex}, ${itemIndex}, event)" title="Expand/Collapse section" aria-label="Expand or collapse section"></button>` : ''}
+                        ${isHeader ? `<button type="button" class="header-toggle ${isCollapsed ? 'collapsed' : ''}" data-fold-key="${authorAttr(foldKey)}" onclick="toggleHeaderSection(${moduleIndex}, ${itemIndex}, event)" title="Expand/Collapse section" aria-label="Expand or collapse section"></button>` : ''}
                     ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(item)}" aria-hidden="true"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
@@ -2923,7 +3105,6 @@ function setupSortable() {
             // When an item is received (dropped) into a new list, check if it's in a collapsed section
             const $droppedItem = ui.item;
             const $itemsList = $(this);
-            const moduleIndex = parseInt($itemsList.attr('data-module-index'));
             
             // Find the header that this item is now under
             const allItems = $itemsList.find('.item').toArray();
@@ -2935,14 +3116,9 @@ function setupSortable() {
                 const prevItemData = $prevItem.data('item-object');
                 
                 if (prevItemData && isHeadingItem(prevItemData)) {
-                    const prevItemIndex = parseInt($prevItem.attr('data-item-index'));
-                    const stateKey = `header_${moduleIndex}_${prevItemIndex}_collapsed`;
-                    const isCollapsed = localStorage.getItem(stateKey) === 'true';
-                    
-                    // If the header is collapsed, expand it automatically
-                    if (isCollapsed) {
-                        localStorage.removeItem(stateKey);
-                        // The syncDataAndRender will handle re-rendering with expanded state
+                    const foldKey = $prevItem.find('.header-toggle').attr('data-fold-key');
+                    if (foldKey && authorFoldIsShut(foldKey)) {
+                        authorFoldStore(foldKey, true);
                     }
                     break;
                 }
@@ -3996,14 +4172,8 @@ function toggleModule(moduleIndex) {
     
     moduleBody.toggleClass('collapsed');
     toggleButton.toggleClass('collapsed');
-    
-    // Store state in localStorage
-    const stateKey = `module_${moduleIndex}_collapsed`;
-    if (moduleBody.hasClass('collapsed')) {
-        localStorage.setItem(stateKey, 'true');
-    } else {
-        localStorage.removeItem(stateKey);
-    }
+    authorFoldStore(toggleButton.attr('data-fold-key'), !moduleBody.hasClass('collapsed'));
+    authorSavePlace();
 }
 
 function toggleHeaderSection(moduleIndex, itemIndex, event) {
@@ -4048,13 +4218,8 @@ function toggleHeaderSection(moduleIndex, itemIndex, event) {
         }
     }
     
-    // Store state in localStorage
-    const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
-    if (newCollapsedState) {
-        localStorage.setItem(stateKey, 'true');
-    } else {
-        localStorage.removeItem(stateKey);
-    }
+    authorFoldStore($toggleButton.attr('data-fold-key'), !newCollapsedState);
+    authorSavePlace();
 }
 
 function closeModal() {
