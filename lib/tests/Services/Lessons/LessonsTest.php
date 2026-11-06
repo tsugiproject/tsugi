@@ -1347,6 +1347,37 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(1.0, $result2[0], 'Legacy lti should be used when items array is absent');
         $this->assertEquals(0.7, $result2[1], 'Actual points should come from legacy resource_link_id');
         $this->assertEquals(['rlid3'], $result2[2], 'RLIDs should come from legacy lti when no items array');
+
+        $quizLessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+            }
+        };
+        $_SESSION['context_id'] = 0;
+        $quizSet = new \ReflectionProperty(\Tsugi\Services\Lessons\LessonsService::class, 'quiz1IdSet');
+        $quizSet->setValue($quizLessons, array(
+            42 => array('published' => true, 'link_id' => 9),
+            43 => array('published' => false, 'link_id' => 0),
+        ));
+        $quizKey = \Tsugi\Services\Quiz1\Quiz1Repository::linkKey(42);
+        $quizModule = (object) array(
+            'items' => array(
+                (object) array('type' => 'lti', 'resource_link_id' => 'tool-1'),
+                (object) array('type' => 'quiz', 'quiz_id' => 42, 'title' => 'Week quiz'),
+                (object) array('type' => 'quiz', 'quiz_id' => 43, 'title' => 'Draft'),
+                (object) array('type' => 'discussion', 'resource_link_id' => 'disc-1'),
+                (object) array('type' => 'file', 'href' => '/files/Student/notes.pdf'),
+            ),
+        );
+        $quizGrades = array('tool-1' => 1.0, $quizKey => 0.5, 'disc-1' => 1.0);
+        $quizResult = $method->invoke($quizLessons, $quizModule, $quizGrades, array());
+        $this->assertEquals(2.0, $quizResult[0], 'A published quiz counts with the graded tool');
+        $this->assertEquals(1.5, $quizResult[1], 'Quiz and tool scores both count');
+        $this->assertEquals(array('tool-1', $quizKey), $quizResult[2]);
+
+        $quizDues = array($quizKey => array('end_datetime' => '2026-12-01 23:59:59'));
+        $dueResult = $method->invoke($quizLessons, $quizModule, $quizGrades, $quizDues);
+        $this->assertEquals(1.0, $dueResult[0], 'Due mode keeps the quiz that has a due date');
+        $this->assertEquals(array($quizKey), $dueResult[2]);
         
         // Restore session and PDOX
         $_SESSION = $originalSession;
