@@ -860,16 +860,10 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Courses::isAnonymousLessonRest('quiz1'));
         $this->assertFalse(Courses::isAnonymousLessonRest('pages/3'));
         $this->assertFalse(Courses::isAnonymousLessonRest(''));
-        $this->assertTrue(Courses::isAnonymousFileRest('files/Student/notes.pdf'));
-        $this->assertTrue(Courses::isAnonymousFileRest('files/download/'.str_repeat('ab', 32)));
-        $this->assertFalse(Courses::isAnonymousFileRest('files'));
-        $this->assertFalse(Courses::isAnonymousFileRest('files/json'));
-        $this->assertFalse(Courses::isAnonymousFileRest('files/analytics'));
-        $this->assertFalse(Courses::isAnonymousFileRest('files/upload'));
-        $this->assertFalse(Courses::isAnonymousFileRest('files/mkdir'));
-        $this->assertFalse(Courses::isAnonymousFileRest('files/delete/4'));
-        $this->assertFalse(Courses::isAnonymousFileRest('files/replace/4'));
-        $this->assertFalse(Courses::isAnonymousFileRest('pages/3'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('files/Student/notes.pdf'));
+        $this->assertFalse(Courses::isAnonymousPageRest('files/Student/notes.pdf'));
+        $this->assertFalse(Courses::isAnonymousLessonRest('files/download/'.str_repeat('ab', 32)));
+        $this->assertFalse(Courses::isAnonymousPageRest('files/download/'.str_repeat('ab', 32)));
         $this->assertTrue(Courses::isAnonymousPageRest('pages'));
         $this->assertTrue(Courses::isAnonymousPageRest('pages/syllabus'));
         $this->assertFalse(Courses::isAnonymousPageRest('pages/add'));
@@ -878,5 +872,25 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Courses::isAnonymousPageRest('pages/json'));
         $this->assertFalse(Courses::isAnonymousPageRest('pages/analytics'));
         $this->assertFalse(Courses::isAnonymousPageRest('quiz1'));
+    }
+
+    public function testAnonymousPreviewDoesNotOpenFileUrls()
+    {
+        $method = new \ReflectionMethod(Courses::class, 'anonymousContentRequest');
+        $sha = str_repeat('ab', 32);
+        $paths = array(
+            'files/Student/notes.pdf',
+            'files/Public/syllabus.pdf',
+            'files/download/'.$sha,
+            'files/Imported/week.zip',
+        );
+        foreach ( $paths as $path ) {
+            $get = Request::create('/'.$path, 'GET');
+            $post = Request::create('/'.$path, 'POST');
+            $this->assertFalse($method->invoke(null, $get, $path), $path);
+            $this->assertFalse($method->invoke(null, $post, $path), $path);
+        }
+        $lesson = Request::create('/lessons', 'GET');
+        $this->assertTrue($method->invoke(null, $lesson, 'lessons'));
     }
 }

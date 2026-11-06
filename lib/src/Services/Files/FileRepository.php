@@ -290,31 +290,6 @@ class FileRepository {
     }
 
     /**
-     * A non-private file at this path. Same files a student can open by link.
-     *
-     * @param string $path
-     * @param mixed $context_id
-     * @return array<string, mixed>|null
-     */
-    public static function studentVisibleFileByPath($path, $context_id) {
-        $link_id = self::existingLinkId($context_id);
-        if ( $link_id < 1 ) {
-            return null;
-        }
-        $row = self::getFileRowByPath($path, $link_id, (int) $context_id);
-        if ( ! is_array($row) ) {
-            return null;
-        }
-        $meta = self::decodeMeta($row);
-        if ( self::isPrivatePath($meta['folder']) ) {
-            return null;
-        }
-        $row['context_id'] = (int) $context_id;
-        $row['link_id'] = $link_id;
-        return $row;
-    }
-
-    /**
      * Non-private files an instructor can place on the course home.
      *
      * Folders and the Private tree are omitted. Every row is a file a student
@@ -372,26 +347,6 @@ class FileRepository {
         }
         $ext = strtolower(pathinfo((string) $name, PATHINFO_EXTENSION));
         return in_array($ext, array('png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'), true);
-    }
-
-    /**
-     * A non-private file with this sha in the course.
-     *
-     * @param string $sha256
-     * @param mixed $context_id
-     * @return array<string, mixed>|null
-     */
-    public static function studentVisibleFileBySha256($sha256, $context_id) {
-        if ( self::existingLinkId($context_id) < 1 ) {
-            return null;
-        }
-        foreach ( self::getFileRowsBySha256($sha256, $context_id) as $candidate ) {
-            $meta = self::decodeMeta($candidate);
-            if ( ! self::isPrivatePath($meta['folder']) ) {
-                return $candidate;
-            }
-        }
-        return null;
     }
 
     /**

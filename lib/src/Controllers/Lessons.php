@@ -3339,6 +3339,15 @@ $(function(){
      * @param string $href Expanded URL (not yet HTML-encoded)
      */
     private static function renderWebLinkOpenControl($item, $href, $title, $icon_key, $css_class='tsugi-lessons-link') {
+        if ( ReqScope::isAnonymousLessonView() && FileRepository::isUploadedFileHref($href) ) {
+            echo('<span style="display: inline-flex; align-items: center;">');
+            if ( $icon_key !== null && $icon_key !== false ) {
+                self::renderItemIcon($icon_key);
+            }
+            echo(htmlentities($title).' ('.__('Login Required').')');
+            echo('</span>');
+            return;
+        }
         $safe_href = self::safeWebHref($href);
         $mode = self::webLinkOpenMode($item);
         if ( $mode === 'modal' && $safe_href !== '' ) {

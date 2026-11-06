@@ -453,15 +453,6 @@ class Files extends Tool {
             $this->emitFile($public);
         }
 
-        if ( ReqScope::isAnonymousLessonView() ) {
-            $row = FileRepository::studentVisibleFileBySha256($sha256, ReqScope::anonymousLessonContextId());
-            if ( ! is_array($row) ) {
-                die('File not found');
-            }
-            $this->launchFromFileRow($row);
-            $this->emitFile($row);
-        }
-
         $this->requireAuth();
         $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
@@ -506,15 +497,6 @@ class Files extends Tool {
         if ( $public ) {
             $this->launchFromFileRow($public);
             $this->emitFile($public);
-        }
-
-        if ( ReqScope::isAnonymousLessonView() ) {
-            $row = FileRepository::studentVisibleFileByPath($path, ReqScope::anonymousLessonContextId());
-            if ( ! is_array($row) ) {
-                die('File not found');
-            }
-            $this->launchFromFileRow($row);
-            $this->emitFile($row);
         }
 
         $this->requireAuth();

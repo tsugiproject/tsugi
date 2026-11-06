@@ -1118,6 +1118,32 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('', \Tsugi\Controllers\Lessons::webLinkTargetAttrs($item));
     }
 
+    public function testAnonymousLessonFileShowsLoginRequired() {
+        \Tsugi\Core\ReqScope::beginAnonymousLessonView(15);
+        try {
+            $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+                public function __construct() {
+                }
+            };
+            $module = (object)['title' => 'Test Module'];
+            $item = (object)[
+                'type' => 'file',
+                'title' => 'Week notes',
+                'href' => '/files/Student/notes.pdf',
+            ];
+            ob_start();
+            \Tsugi\Controllers\Lessons::renderItem($lessons, $item, $module);
+            $output = ob_get_clean();
+            $this->assertStringContainsString('Week notes', $output);
+            $this->assertStringContainsString('Login Required', $output);
+            $this->assertStringNotContainsString('notes.pdf', $output);
+            $this->assertStringNotContainsString('<a ', $output);
+        } finally {
+            \Tsugi\Core\ReqScope::endAnonymousLessonView();
+            \Tsugi\Core\ReqScope::reset();
+        }
+    }
+
     public function testUploadedFileLinkOpensInANewTab() {
         $item = (object)[
             'type' => 'html_page',
