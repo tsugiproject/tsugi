@@ -7,7 +7,7 @@
 ?>
 <p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Student View is always in the avatar menu before Settings, and Settings is always before Logout. Both are instructors only.') ?></p>
 <p><?= __('Check where each tool should appear. Instructor only hides that item from students. Widgets can only sit in the top left or top right, not under the avatar.') ?></p>
-<p><?= __('Lessons stays under Home. Students see one link: the default view, or an available view they pick on Home. If none is marked default, Card View is the default. Check Instructor test on a view to add a test link in your avatar menu. Students do not see test links.') ?></p>
+<p><?= __('Lessons stays under Home. Students see one link: the default view, or an available view they pick on Home. Only one view can be the default. If none is marked default, Card View is the default. Check Instructor test on a view to add a test link in your avatar menu. Students do not see test links.') ?></p>
 <style>
 .tsugi-nav-editor { width: 100%; max-width: 56em; border-collapse: separate; border-spacing: 0; }
 .tsugi-nav-editor th, .tsugi-nav-editor td { padding: 0.4em 0.6em; vertical-align: middle; }
@@ -89,6 +89,7 @@
         }
         $view_any = false;
         $view_has_default = false;
+        $view_default_id = '';
         foreach ( array('lessons', 'content', 'outline') as $view_id ) {
             $view_row = $view_by_id[$view_id] ?? array();
             $view_on = ! empty($view_row['left']) || ! empty($view_row['right']) || ! empty($view_row['dropdown']);
@@ -96,6 +97,9 @@
             $view_default_on = $view_on && ($view_explicit ? ! empty($view_row['default']) : true);
             if ( $view_default_on ) {
                 $view_has_default = true;
+                if ( $view_default_id === '' ) {
+                    $view_default_id = $view_id;
+                }
             }
             if ( $view_on && ($view_explicit ? ( ! empty($view_row['default']) || ! empty($view_row['available']) || ! empty($view_row['test']) ) : true) ) {
                 $view_any = true;
@@ -172,8 +176,8 @@
                         $view_row = $view_by_id[$view_id] ?? array();
                         $view_on = ! empty($view_row['left']) || ! empty($view_row['right']) || ! empty($view_row['dropdown']);
                         $view_explicit = array_key_exists('default', $view_row) || array_key_exists('available', $view_row) || array_key_exists('test', $view_row);
-                        $view_default = ($view_id === 'lessons' && $card_fallback)
-                            || ($view_on && ($view_explicit ? ! empty($view_row['default']) : true));
+                        $view_default = ($view_id === $view_default_id)
+                            || ($view_id === 'lessons' && $card_fallback);
                         $view_available = $view_on && ($view_explicit ? ! empty($view_row['available']) : true);
                         $view_test = $view_on && ! empty($view_row['test']);
                         $view_name = (isset($view_row['settings_label']) && is_string($view_row['settings_label']) && $view_row['settings_label'] !== '')
@@ -269,6 +273,11 @@
 
     tbody.addEventListener('change', function (e) {
         var name = e.target && e.target.name ? e.target.name : '';
+        if (name.indexOf('view_default[') === 0 && e.target.checked) {
+            tbody.querySelectorAll('input[name^="view_default["]').forEach(function (box) {
+                if (box !== e.target) box.checked = false;
+            });
+        }
         if (name.indexOf('view_default[') === 0 || name.indexOf('view_available[') === 0 || name.indexOf('view_test[') === 0) {
             syncProgressBoxes();
         }

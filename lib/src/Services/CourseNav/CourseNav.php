@@ -132,6 +132,7 @@ class CourseNav {
             }
             $items[] = $item;
         }
+        $items = self::oneContentDefault($items);
         $out = array('items' => $items);
         $home = self::sanitizeHomeLabel($doc['home'] ?? null);
         if ( $home !== null ) {
@@ -358,6 +359,44 @@ class CourseNav {
      */
     private static function editorRow(array $entry, array $flags) {
         return array_merge($entry, $flags);
+    }
+
+    /**
+     * One reading view is the default. Card View wins, then Content, then Outline.
+     *
+     * A later default that is also available or an instructor test stays in the
+     * list without the default flag. A later default with neither is dropped,
+     * so it is not read back as an older row that counts as the default.
+     *
+     * @param list<array<string, mixed>> $items
+     * @return list<array<string, mixed>>
+     */
+    private static function oneContentDefault(array $items) {
+        $winner = '';
+        foreach ( self::contentViewIds() as $id ) {
+            foreach ( $items as $item ) {
+                if ( (string) ($item['id'] ?? '') !== $id || empty($item['default']) ) {
+                    continue;
+                }
+                $winner = $id;
+                break 2;
+            }
+        }
+        if ( $winner === '' ) {
+            return $items;
+        }
+        $out = array();
+        foreach ( $items as $item ) {
+            $id = (string) ($item['id'] ?? '');
+            if ( in_array($id, self::contentViewIds(), true) && $id !== $winner && ! empty($item['default']) ) {
+                unset($item['default']);
+                if ( empty($item['available']) && empty($item['test']) ) {
+                    continue;
+                }
+            }
+            $out[] = $item;
+        }
+        return $out;
     }
 
     /**
