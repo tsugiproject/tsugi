@@ -1793,22 +1793,47 @@ $(function(){
             echo('<div typeof="oer:Lesson" style="padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
         }
         $all = U::get_rest_parent();
-        if ( $lessons->position == 1 ) {
+        list($prevAnchor, $nextAnchor) = static::pagerStepAnchors($lessons);
+        if ( $prevAnchor === null || $prevAnchor === '' ) {
             echo('<li class="previous" style="visibility:hidden" aria-hidden="true">&larr; '.__('Previous').'</li>'."\n");
         } else {
-            $prev = $all . '/' . urlencode($lessons->lessons->modules[$lessons->position-2]->anchor);
+            $prev = $all . '/' . urlencode($prevAnchor);
             echo('<li class="previous"><a href="'.$prev.'">&larr; '.__('Previous').'</a></li>'."\n");
         }
         if ( $showAll ) {
             echo('<li><a href="'.$all.'">'.__('All').' ('.$lessons->position.' / '.count($lessons->lessons->modules).')</a></li>');
         }
-        if ( $lessons->position >= count($lessons->lessons->modules) ) {
+        if ( $nextAnchor === null || $nextAnchor === '' ) {
             echo('<li class="next" style="visibility:hidden" aria-hidden="true">&rarr; '.__('Next').'</li>'."\n");
         } else {
-            $next = $all . '/' . urlencode($lessons->lessons->modules[$lessons->position]->anchor);
+            $next = $all . '/' . urlencode($nextAnchor);
             echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
         }
         echo("</ul></div>\n");
+    }
+
+    /**
+     * Anchors on either side of the open module.
+     *
+     * Card view steps through every module. Content overrides this and
+     * stays on the modules its sidebar shows.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @return array{0:?string,1:?string}
+     */
+    protected static function pagerStepAnchors($lessons) {
+        $modules = (isset($lessons->lessons->modules) && is_array($lessons->lessons->modules))
+            ? $lessons->lessons->modules : array();
+        $pos = (int) $lessons->position;
+        $prev = null;
+        $next = null;
+        if ( $pos > 1 && isset($modules[$pos - 2]) && isset($modules[$pos - 2]->anchor) ) {
+            $prev = (string) $modules[$pos - 2]->anchor;
+        }
+        if ( $pos >= 1 && $pos < count($modules) && isset($modules[$pos]) && isset($modules[$pos]->anchor) ) {
+            $next = (string) $modules[$pos]->anchor;
+        }
+        return array($prev, $next);
     }
 
     /**

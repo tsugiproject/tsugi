@@ -411,6 +411,20 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
                     ),
                 ),
                 array(
+                    'title' => 'Secret',
+                    'anchor' => 'secret',
+                    'hidden' => true,
+                    'items' => array(
+                        array('type' => 'text', 'text' => 'Hidden module'),
+                    ),
+                ),
+                array(
+                    'title' => 'Members',
+                    'anchor' => 'members',
+                    'login' => true,
+                    'items' => array(),
+                ),
+                array(
                     'title' => 'Week Two',
                     'anchor' => 'week-2',
                     'items' => array(
@@ -434,6 +448,9 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('tsugi-lessons-pager', $html);
         $this->assertStringContainsString('href="/courses/7/content/week-1">&larr; Previous</a>', $html);
         $this->assertStringContainsString('aria-hidden="true">&rarr; Next</li>', $html);
+        $this->assertStringNotContainsString('/courses/7/content/secret', $html);
+        $this->assertStringNotContainsString('/courses/7/content/members', $html);
+        $this->assertStringNotContainsString('Hidden module', $html);
         $this->assertStringNotContainsString('>All<', $html);
         $this->assertStringNotContainsString('>All (', $html);
         $this->assertStringContainsString('aria-current="page"', $html);
@@ -446,6 +463,8 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $firstHtml = Content::render($first, true);
         $this->assertStringContainsString('aria-hidden="true">&larr; Previous</li>', $firstHtml);
         $this->assertStringContainsString('href="/courses/7/content/week-2">&rarr; Next</a>', $firstHtml);
+        $this->assertStringNotContainsString('/courses/7/content/secret', $firstHtml);
+        $this->assertStringNotContainsString('/courses/7/content/members', $firstHtml);
         $this->assertStringNotContainsString('>All (', $firstHtml);
     }
 
@@ -472,6 +491,24 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('/courses/7/content/week-2', $html);
         $this->assertStringNotContainsString('secret', $html);
         $this->assertStringContainsString('url=/courses/7/content/week-1', $html);
+    }
+
+    public function testAuthorPageStoresFoldsAndPlace() {
+        $lessons_title = 'Course';
+        $lessons_file_escaped = 'manifest';
+        $lessons_json = '{"title":"Course","modules":[]}';
+        $export_url = '/export';
+        $export_v2_url = '/export-v2';
+        ob_start();
+        include dirname(__DIR__, 2).'/src/Controllers/templates/Lessons/author_interface.inc.php';
+        $html = ob_get_clean();
+        $this->assertStringContainsString('Expand all', $html);
+        $this->assertStringContainsString('Collapse all', $html);
+        $this->assertStringContainsString('tsugi-author:', $html);
+        $this->assertStringContainsString('function authorRestorePlace()', $html);
+        $this->assertStringContainsString('function authorSavePlace()', $html);
+        $this->assertStringNotContainsString('module_${moduleIndex}_collapsed', $html);
+        $this->assertStringNotContainsString('header_${moduleIndex}_${itemIndex}_collapsed', $html);
     }
 
     public function testHiddenOnlyModulesAreEmpty() {
