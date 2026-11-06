@@ -181,6 +181,7 @@ $OUTPUT->flashMessages();
     <div class="form-group">
         <label for="sort_order"><?= htmlspecialchars(__('Sort order')) ?></label>
         <input class="form-control" type="number" id="sort_order" name="sort_order" value="<?= (int) $sort_order ?>" style="max-width:8em;">
+        <p class="help-block"><?= __('Lower numbers come first. 0 means no order and sorts last.') ?></p>
     </div>
     <div class="form-group">
         <label style="font-weight:normal;">

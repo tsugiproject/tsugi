@@ -6,6 +6,15 @@ use \Tsugi\Services\Catalog\CatalogRepository;
 
 class CatalogRepositoryTest extends \PHPUnit\Framework\TestCase
 {
+    public function testUnsetSortOrderSortsAfterNumberedRows()
+    {
+        $method = new \ReflectionMethod(CatalogRepository::class, 'catalogOrderSql');
+        $sql = $method->invoke(null);
+        $this->assertStringContainsString('CASE WHEN CAT.sort_order = 0 THEN 1 ELSE 0 END ASC', $sql);
+        $this->assertStringContainsString('CAT.sort_order ASC', $sql);
+        $this->assertStringContainsString('CAT.title ASC', $sql);
+    }
+
     public function testNormalizeRequiresTitle()
     {
         $out = CatalogRepository::normalizeInput(array('kind' => 'link', 'external_url' => 'https://example.com'));

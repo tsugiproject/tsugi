@@ -78,6 +78,13 @@ class CatalogRepository {
     }
 
     /**
+     * Numbered rows first. 0 means unset and sorts after every other order.
+     */
+    private static function catalogOrderSql() {
+        return 'CASE WHEN CAT.sort_order = 0 THEN 1 ELSE 0 END ASC, CAT.sort_order ASC, CAT.title ASC, CAT.catalog_id ASC';
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function listAdmin() {
@@ -93,7 +100,7 @@ class CatalogRepository {
              FROM {$p}course_catalog AS CAT
              LEFT JOIN {$p}lti_context AS C ON CAT.context_id = C.context_id
              LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
-             ORDER BY CAT.sort_order ASC, CAT.title ASC, CAT.catalog_id ASC"
+             ORDER BY ".self::catalogOrderSql()
         );
         return is_array($rows) ? $rows : array();
     }
@@ -135,7 +142,7 @@ class CatalogRepository {
              {$memberJoin}
              WHERE CAT.published = 1
                AND (CAT.context_id IS NULL OR C.deleted IS NULL OR C.deleted = 0)
-             ORDER BY CAT.sort_order ASC, CAT.title ASC, CAT.catalog_id ASC",
+             ORDER BY ".self::catalogOrderSql(),
             $params
         );
         if ( ! is_array($rows) ) {
