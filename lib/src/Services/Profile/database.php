@@ -25,6 +25,10 @@ $DATABASE_INSTALL = array(
     subscribe           SMALLINT NULL,
     google_translate    TINYINT(1) NOT NULL DEFAULT 0,
 
+    -- Map pin choice copied out of json. 0 not chosen, 1 hidden,
+    -- 2 location, 3 location and name. The map page still reads json.
+    map                 TINYINT NULL,
+
     premium             INTEGER NOT NULL DEFAULT 0,
     premium_at          TIMESTAMP NULL,
     premium_json        MEDIUMTEXT NULL,
@@ -53,6 +57,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('profile', 'deleted_at', 'TIMESTAMP NULL'),
         array('profile', 'updated_at', 'TIMESTAMP NULL'),
         array('profile', 'created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'),
+        array('profile', 'map', 'TINYINT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -82,5 +87,43 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    return 202610310001;
+    // Copy profile.json.map into the column once. Later upgrades leave the
+    // column alone, and the map page still searches json.
+    if ( $oldversion < 202611070002 ) {
+        if ( ! $PDOX->columnExists('map', "{$CFG->dbprefix}profile") ) {
+            die("Unable to add profile.map<br/>\n");
+        }
+        $p = $CFG->dbprefix;
+        $from_json = "JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(json), json, NULL), '$.map'))";
+        $sql = "UPDATE {$p}profile
+            SET `map` = CAST({$from_json} AS SIGNED)
+            WHERE `map` IS NULL
+              AND {$from_json} REGEXP '^[0-3]\$'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        echo("Profiles with map copied from json: ".$q->rowCount()."<br/>\n");
+
+        $counts = $PDOX->allRowsDie(
+            "SELECT `map` AS map, COUNT(*) AS n FROM {$p}profile GROUP BY `map` ORDER BY `map`"
+        );
+        foreach ( $counts as $count ) {
+            $value = $count['map'];
+            $label = $value === null ? 'NULL' : $value;
+            echo("profile.map ".$label.": ".$count['n']."<br/>\n");
+        }
+
+        $mismatch = $PDOX->rowDie(
+            "SELECT COUNT(*) AS n FROM {$p}profile
+             WHERE {$from_json} REGEXP '^[0-3]\$'
+               AND (`map` IS NULL OR `map` <> CAST({$from_json} AS SIGNED))"
+        );
+        if ( ! is_array($mismatch) || (int) $mismatch['n'] !== 0 ) {
+            $n = is_array($mismatch) ? $mismatch['n'] : 'unknown';
+            die("profile.map does not match json for {$n} rows<br/>\n");
+        }
+        echo("profile.map matches json for every 0-3 value<br/>\n");
+    }
+
+    return 202611070002;
 };
