@@ -154,10 +154,10 @@ foreach($tools as $tool) {
             }
 
             echo("doClone: $remote $parent\n");
-            // A retarget already moved this row onto $path. doClone would
-            // insert again and replace the stored name with a placeholder.
-            $record = ($path === $stored_path);
-            \Tsugi\Services\Admin\AdminService::doClone($remote, $path, $record);
+            // This row came from lms_tools and already points at $path.
+            // doClone must not upsert it, or it replaces name, description,
+            // and gitversion with placeholders.
+            \Tsugi\Services\Admin\AdminService::doClone($remote, $path, false);
             continue;
         }
     }
