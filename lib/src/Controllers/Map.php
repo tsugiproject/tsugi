@@ -60,10 +60,10 @@ class Map extends Controller {
         $PDOX = LTIX::getConnection();
         
         $p = $CFG->dbprefix;
-        $sql = "SELECT U.user_id, P.displayname, P.premium, P.json 
-            FROM {$p}lti_user AS U JOIN {$p}profile AS P
-            ON U.profile_id = P.profile_id
-            WHERE P.json LIKE '%\"map\":3%' OR P.json LIKE '%\"map\":2%'";
+        $sql = "SELECT U.user_id, P.displayname, P.premium, P.json
+            FROM {$p}profile AS P
+            JOIN {$p}lti_user AS U ON U.profile_id = P.profile_id
+            WHERE P.map IN (2, 3)";
         $rows = $PDOX->allRowsDie($sql);
         $center = false;
         $points = array();

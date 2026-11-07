@@ -291,11 +291,19 @@ Send me notification mail for important things like my assignment was graded.
         }
 
         $new_json = json_encode($profile);
-        $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}profile SET json= :JSON
-                WHERE profile_id = :PID",
-                array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
-                );
+        if ( isset($_POST['map']) ) {
+            $stmt = $PDOX->queryDie(
+                    "UPDATE {$CFG->dbprefix}profile SET json = :JSON, `map` = :MAP
+                    WHERE profile_id = :PID",
+                    array('JSON' => $new_json, 'MAP' => $profile->map, 'PID' => $_SESSION['profile_id'])
+                    );
+        } else {
+            $stmt = $PDOX->queryDie(
+                    "UPDATE {$CFG->dbprefix}profile SET json = :JSON
+                    WHERE profile_id = :PID",
+                    array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
+                    );
+        }
         $app->tsugiFlashSuccess(__('Profile updated.'));
         return new RedirectResponse($home);
     }

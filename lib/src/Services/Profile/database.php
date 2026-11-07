@@ -25,8 +25,8 @@ $DATABASE_INSTALL = array(
     subscribe           SMALLINT NULL,
     google_translate    TINYINT(1) NOT NULL DEFAULT 0,
 
-    -- Map pin choice copied out of json. 0 not chosen, 1 hidden,
-    -- 2 location, 3 location and name. The map page still reads json.
+    -- Map pin choice. 0 not chosen, 1 hidden, 2 location, 3 location and name.
+    -- Latitude and longitude stay in json.
     map                 TINYINT NULL,
 
     premium             INTEGER NOT NULL DEFAULT 0,
@@ -41,6 +41,7 @@ $DATABASE_INSTALL = array(
     deleted_at          TIMESTAMP NULL,
 
     INDEX `{$CFG->dbprefix}profile_indx_email` (email(255)),
+    INDEX `{$CFG->dbprefix}profile_indx_map` (`map`),
 
     CONSTRAINT `{$CFG->dbprefix}profile_const_pk` PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
@@ -87,8 +88,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // Copy profile.json.map into the column once. Later upgrades leave the
-    // column alone, and the map page still searches json.
+    // Copy profile.json.map into the column once. Later saves write the column.
     if ( $oldversion < 202611070002 ) {
         if ( ! $PDOX->columnExists('map', "{$CFG->dbprefix}profile") ) {
             die("Unable to add profile.map<br/>\n");
@@ -123,6 +123,20 @@ $DATABASE_UPGRADE = function($oldversion) {
             die("profile.map does not match json for {$n} rows<br/>\n");
         }
         echo("profile.map matches json for every 0-3 value<br/>\n");
+    }
+
+    // Map page: WHERE map IN (2, 3). The column alone still reads every profile row.
+    $map_index = "{$CFG->dbprefix}profile_indx_map";
+    if ( ! $PDOX->indexExists($map_index, "{$CFG->dbprefix}profile") ) {
+        $sql = "CREATE INDEX `{$map_index}` ON {$CFG->dbprefix}profile (`map`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
     }
 
     return 202611070002;
