@@ -285,7 +285,9 @@ Send me notification mail for important things like my assignment was graded.
         }
 
         if ( isset($_POST['map']) ) {
-            $profile->map = $_POST['map']+0 ;
+            $map_choice = (int) $_POST['map'];
+            if ( $map_choice < 0 || $map_choice > 3 ) $map_choice = 0;
+            $profile->map = $map_choice;
             $profile->lat = $_POST['lat']+0.0 ;
             $profile->lng = $_POST['lng']+0.0 ;
         }
