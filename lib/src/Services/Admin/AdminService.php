@@ -1200,7 +1200,7 @@ class AdminService {
         return $servers;
     }
 
-    public static function doClone($remote, $folder) {
+    public static function doClone($remote, $folder, $record = true) {
         global $PDOX, $CFG;
 
         $repo = new \Tsugi\Util\GitRepo($folder, true,  false);
@@ -1222,21 +1222,23 @@ class AdminService {
             $detail = new \stdClass();
             self::addRepoInfo($detail, $repo);
 
-            $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
-                ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
-                ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE
-                    name=:name, description=:description, clone_url=:clone_url,
-                    gitversion=:gitversion, updated_at=NOW()
-            ";
-            $values = array(
-                ":toolpath" => $folder,
-                ":name" => 'name',
-                ":description" => 'description',
-                ":clone_url" => $remote,
-                ":gitversion" => self::getRepoDefaultBranch($repo)
-            );
-            $q = $PDOX->queryReturnError($sql, $values);
+            if ( $record ) {
+                $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
+                    ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
+                    ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NOW() )
+                    ON DUPLICATE KEY UPDATE
+                        name=:name, description=:description, clone_url=:clone_url,
+                        gitversion=:gitversion, updated_at=NOW()
+                ";
+                $values = array(
+                    ":toolpath" => $folder,
+                    ":name" => 'name',
+                    ":description" => 'description',
+                    ":clone_url" => $remote,
+                    ":gitversion" => self::getRepoDefaultBranch($repo)
+                );
+                $q = $PDOX->queryReturnError($sql, $values);
+            }
 
             // Update the status for this cluster
             self::updateToolStatus($folder, $detail);
