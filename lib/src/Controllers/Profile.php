@@ -285,17 +285,27 @@ Send me notification mail for important things like my assignment was graded.
         }
 
         if ( isset($_POST['map']) ) {
-            $profile->map = $_POST['map']+0 ;
+            $map_choice = (int) $_POST['map'];
+            if ( $map_choice < 0 || $map_choice > 3 ) $map_choice = 0;
+            $profile->map = $map_choice;
             $profile->lat = $_POST['lat']+0.0 ;
             $profile->lng = $_POST['lng']+0.0 ;
         }
 
         $new_json = json_encode($profile);
-        $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}profile SET json= :JSON
-                WHERE profile_id = :PID",
-                array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
-                );
+        if ( isset($_POST['map']) ) {
+            $stmt = $PDOX->queryDie(
+                    "UPDATE {$CFG->dbprefix}profile SET json = :JSON, `map` = :MAP
+                    WHERE profile_id = :PID",
+                    array('JSON' => $new_json, 'MAP' => $profile->map, 'PID' => $_SESSION['profile_id'])
+                    );
+        } else {
+            $stmt = $PDOX->queryDie(
+                    "UPDATE {$CFG->dbprefix}profile SET json = :JSON
+                    WHERE profile_id = :PID",
+                    array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
+                    );
+        }
         $app->tsugiFlashSuccess(__('Profile updated.'));
         return new RedirectResponse($home);
     }

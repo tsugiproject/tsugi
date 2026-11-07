@@ -25,6 +25,10 @@ $DATABASE_INSTALL = array(
     subscribe           SMALLINT NULL,
     google_translate    TINYINT(1) NOT NULL DEFAULT 0,
 
+    -- Map pin choice. 0 not chosen, 1 hidden, 2 location, 3 location and name.
+    -- Latitude and longitude stay in json.
+    map                 TINYINT NULL,
+
     premium             INTEGER NOT NULL DEFAULT 0,
     premium_at          TIMESTAMP NULL,
     premium_json        MEDIUMTEXT NULL,
@@ -37,6 +41,7 @@ $DATABASE_INSTALL = array(
     deleted_at          TIMESTAMP NULL,
 
     INDEX `{$CFG->dbprefix}profile_indx_email` (email(255)),
+    INDEX `{$CFG->dbprefix}profile_indx_map` (`map`),
 
     CONSTRAINT `{$CFG->dbprefix}profile_const_pk` PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
@@ -53,6 +58,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('profile', 'deleted_at', 'TIMESTAMP NULL'),
         array('profile', 'updated_at', 'TIMESTAMP NULL'),
         array('profile', 'created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'),
+        array('profile', 'map', 'TINYINT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -82,5 +88,56 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    return 202610310001;
+    // Copy profile.json.map into the column once. Later saves write the column.
+    if ( $oldversion < 202611070002 ) {
+        if ( ! $PDOX->columnExists('map', "{$CFG->dbprefix}profile") ) {
+            die("Unable to add profile.map<br/>\n");
+        }
+        $p = $CFG->dbprefix;
+        $from_json = "JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(json), json, NULL), '$.map'))";
+        $sql = "UPDATE {$p}profile
+            SET `map` = CAST({$from_json} AS SIGNED)
+            WHERE `map` IS NULL
+              AND {$from_json} REGEXP '^[0-3]\$'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        echo("Profiles with map copied from json: ".$q->rowCount()."<br/>\n");
+
+        $counts = $PDOX->allRowsDie(
+            "SELECT `map` AS map, COUNT(*) AS n FROM {$p}profile GROUP BY `map` ORDER BY `map`"
+        );
+        foreach ( $counts as $count ) {
+            $value = $count['map'];
+            $label = $value === null ? 'NULL' : $value;
+            echo("profile.map ".$label.": ".$count['n']."<br/>\n");
+        }
+
+        $mismatch = $PDOX->rowDie(
+            "SELECT COUNT(*) AS n FROM {$p}profile
+             WHERE {$from_json} REGEXP '^[0-3]\$'
+               AND (`map` IS NULL OR `map` <> CAST({$from_json} AS SIGNED))"
+        );
+        if ( ! is_array($mismatch) || (int) $mismatch['n'] !== 0 ) {
+            $n = is_array($mismatch) ? $mismatch['n'] : 'unknown';
+            die("profile.map does not match json for {$n} rows<br/>\n");
+        }
+        echo("profile.map matches json for every 0-3 value<br/>\n");
+    }
+
+    // Map page: WHERE map IN (2, 3). The column alone still reads every profile row.
+    $map_index = "{$CFG->dbprefix}profile_indx_map";
+    if ( ! $PDOX->indexExists($map_index, "{$CFG->dbprefix}profile") ) {
+        $sql = "CREATE INDEX `{$map_index}` ON {$CFG->dbprefix}profile (`map`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
+    return 202611070002;
 };
