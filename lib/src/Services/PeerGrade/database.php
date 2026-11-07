@@ -111,7 +111,9 @@ array( "{$CFG->dbprefix}peer_grade",
         REFERENCES `{$CFG->dbprefix}peer_submit` (`submit_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(submit_id, user_id)
+    UNIQUE(submit_id, user_id),
+    -- Ungraded list: grades by the current user. UNIQUE(submit_id, user_id) cannot seek user_id.
+    INDEX `{$CFG->dbprefix}peer_grade_indx_user` (user_id, submit_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
 
 array( "{$CFG->dbprefix}peer_flag",
@@ -232,5 +234,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 201901202122;
+    // Ungraded list loads submit_ids this user already graded.
+    // UNIQUE(submit_id, user_id) cannot seek user_id, so that subquery scanned peer_grade.
+    $user_index = "{$CFG->dbprefix}peer_grade_indx_user";
+    if ( ! $PDOX->indexExists($user_index, "{$CFG->dbprefix}peer_grade") ) {
+        $sql = "CREATE INDEX `{$user_index}` ON {$CFG->dbprefix}peer_grade (user_id, submit_id)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
+    return 202611070001;
 }; // Don't forget the semicolon on anonymous functions :)

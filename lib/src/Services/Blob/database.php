@@ -71,6 +71,16 @@ $DATABASE_POST_CREATE = function($table) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+        // Files list: context, link, and backref. context_id alone still walks every blob in the course.
+        $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_context_link` ON {$CFG->dbprefix}blob_file ( context_id, link_id, backref )";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        // Public file by name. file_name is VARCHAR(2048); a 255-char prefix covers real names.
+        $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_file_name` ON {$CFG->dbprefix}blob_file ( file_name(255), backref )";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
     }
 
     if ( $table == "{$CFG->dbprefix}blob_blob" ) {
@@ -138,7 +148,28 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // Removed 2018 and earlier as of 2012-12-20
 
-    return 202012201622;
+    // Files list filters context, link, and backref. Public download looks up file_name and backref.
+    $blob_indexes = array(
+        "{$CFG->dbprefix}blob_indx_context_link" =>
+            "CREATE INDEX `{$CFG->dbprefix}blob_indx_context_link` ON {$CFG->dbprefix}blob_file ( context_id, link_id, backref )",
+        "{$CFG->dbprefix}blob_indx_file_name" =>
+            "CREATE INDEX `{$CFG->dbprefix}blob_indx_file_name` ON {$CFG->dbprefix}blob_file ( file_name(255), backref )",
+    );
+    foreach ( $blob_indexes as $index_name => $sql ) {
+        if ( $PDOX->indexExists($index_name, "{$CFG->dbprefix}blob_file") ) {
+            continue;
+        }
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
+    return 202611070000;
 };
 
 

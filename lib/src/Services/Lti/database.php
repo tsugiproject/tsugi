@@ -229,6 +229,9 @@ array( "{$CFG->dbprefix}lti_user",
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_guid` UNIQUE (`guid`),
     INDEX `{$CFG->dbprefix}lti_user_indx_email` (email(255)),
     INDEX `{$CFG->dbprefix}lti_user_indx_profile` (profile_id),
+    -- Google login: key_id and email, newest updated_at first.
+    -- UNIQUE(key_id, user_sha256) walks every user on that key.
+    INDEX `{$CFG->dbprefix}lti_user_indx_key_email` (key_id, email(255), updated_at),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -2766,9 +2769,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Google login: WHERE key_id AND email ORDER BY updated_at DESC LIMIT 1.
+    // UNIQUE(key_id, user_sha256) finds the key but then walks every user on it.
+    $key_email_index = "{$CFG->dbprefix}lti_user_indx_key_email";
+    if ( ! $PDOX->indexExists($key_email_index, "{$CFG->dbprefix}lti_user") ) {
+        $sql = "CREATE INDEX `{$key_email_index}` ON {$CFG->dbprefix}lti_user (key_id, email(255), updated_at)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202611020000;
+    return 202611070000;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
