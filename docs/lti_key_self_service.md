@@ -32,10 +32,10 @@ Related: [issuer_migration.md](issuer_migration.md) (per-key `lms_*` model, no
 | LTI 1.1 | `key_key`, `secret` | Auto-generated on approve |
 | LTI 1.3 | `lms_client`, `lms_*` endpoints, optional `deploy_key` | Dynamic registration |
 
-A row may be **1.1 only**, **1.3 only**, or **both**. Validation in
-`admin/key/key-util.php` (`validate_key_details()`) already allows this: at least one
-of OAuth consumer key, specific deployment id, or `(lms_issuer + lms_client)` must be
-present.
+A row may be **1.1 only**, **1.3 only**, or **both**. A draft may also omit every
+identity field. When an OAuth consumer key is set it is unique, and when both an
+issuer and a client id are set that pair is unique. See
+[lti-key-identity.md](lti-key-identity.md).
 
 ## Planned UI: tabbed key dialog
 

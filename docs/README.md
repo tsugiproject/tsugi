@@ -11,6 +11,7 @@ their code (for example `tool/`, `admin/`).
 | [badges-assertions.md](badges-assertions.md) | Open Badges 2.0 / 3.0 assertion endpoints and config |
 | [badges-linkedin.md](badges-linkedin.md) | LinkedIn credential sharing (PY4E example) |
 | [issuer_migration.md](issuer_migration.md) | Deprecation of `lti_issuer`; phase 1 migration and planned removal |
+| [lti-key-identity.md](lti-key-identity.md) | Draft `lti_key` rows, and unique OAuth key or issuer + client id |
 | [lti_key_self_service.md](lti_key_self_service.md) | Planned self-service LTI 1.1/1.3 keys, dynamic registration, re-registration |
 | [lti-privacy-launch.md](lti-privacy-launch.md) | LTI 1.3 privacy launch on the course-tools test page |
 | [lessons-json-v2.md](lessons-json-v2.md) | Lessons foundational types, subtypes, and JSON v2 export |

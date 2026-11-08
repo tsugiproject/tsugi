@@ -10,10 +10,23 @@ header('Content-Type: text/html; charset=utf-8');
 
 if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 
-// Patch lms_issuer_sha256 in case it ended up null
-$patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = sha2(lms_issuer, 256)
-    WHERE lms_issuer_sha256 IS NULL AND lms_issuer IS NOT NULL";
-$rows = $PDOX->queryDie($patch_sql);
+// Keep identity hashes aligned with the stored text. Blank values stay NULL
+// so they do not occupy the unique indexes. See docs/lti-key-identity.md.
+$patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = NULL
+    WHERE lms_issuer_sha256 IS NOT NULL AND (lms_issuer IS NULL OR TRIM(lms_issuer) = '')";
+$PDOX->queryDie($patch_sql);
+$patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = SHA2(lms_issuer, 256)
+    WHERE lms_issuer IS NOT NULL AND TRIM(lms_issuer) <> '' AND lms_issuer_sha256 IS NULL";
+$PDOX->queryDie($patch_sql);
+if ( $PDOX->columnExists('lms_client_sha256', "{$CFG->dbprefix}lti_key") ) {
+    $patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_client_sha256 = NULL
+        WHERE lms_client_sha256 IS NOT NULL AND (lms_client IS NULL OR TRIM(lms_client) = '')";
+    $PDOX->queryDie($patch_sql);
+    $patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_client_sha256 = SHA2(lms_client, 256)
+        WHERE lms_client IS NOT NULL AND TRIM(lms_client) <> ''
+            AND (lms_client_sha256 IS NULL OR lms_client_sha256 = '')";
+    $PDOX->queryDie($patch_sql);
+}
 
 $query_parms = array();
 $searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "K.lms_client");

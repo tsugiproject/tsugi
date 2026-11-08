@@ -18,7 +18,7 @@ $from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
 $fields = array('key_title', 'plus', 'key_key', 'key_sha256', 'secret',
     'lms_issuer', 'lms_issuer_sha256',
-    'lms_client',
+    'lms_client', 'lms_client_sha256',
     'deploy_key', 'deploy_sha256',
     'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
     'xapi_url', 'xapi_user', 'xapi_password',
@@ -46,12 +46,10 @@ if ( count($_POST) > 0 ) {
     if ( \Tsugi\Controllers\Tool::csrfRedirect('key-add') ) return;
 }
 
-if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) && ReqScope::isLoggedInLegacy() ) $_POST['user_id'] = ReqScope::loggedInUserIdLegacy();
 
-// Check the complex interaction of constraints
-$key_key = U::get($_POST,'key_key');
-$deploy_key = U::get($_POST,'deploy_key');
+\Tsugi\Services\Admin\AdminService::normalize_lti_key_post();
+
 if ( count($_POST) > 0 ) {
     $key_title = U::get($_POST,'key_title');
     if ( !is_string($key_title) || empty($key_title) ) {
@@ -65,11 +63,8 @@ if ( isset($_POST['doSave']) ) {
     $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
 }
 
-if ( isset($_POST['doSave']) && isset($_POST['deploy_key']) ) {
-    $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
-}
-
 if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+    $key_key = U::get($_POST, 'key_key');
     $deploy_key = U::get($_POST, 'deploy_key');
     $lms_issuer = U::get($_POST, 'lms_issuer');
     $lms_client = U::get($_POST, 'lms_client');
@@ -112,9 +107,9 @@ Sometimes you need to give the LMS the Tsugi URLs to make a new security arrange
 <b>before</b> they can give you the Platform values to put into either a global issuer
 or this form. Tsugi solves this with a concept called "Draft Keys" where you can create a key
 with minimal information and then edit it later (perhaps by dynamic registration) to fill in the
-remaining details. For LTI 1.3, you can leave <b>LTI 1.3 Deployment Id</b> blank so the key accepts any value from the LMS; launches then
-match on issuer and client id only. Set a specific value when you want this tenant to accept only
-that deployment. Dynamic registration can still fill in or change deployment later.
+remaining details. Leave <b>LTI 1.3 Deployment Id</b> blank unless you want to store one.
+Launches match an OAuth consumer key, or an issuer and client id. A deployment id
+is not required and does not select the tenant. Dynamic registration can fill it in later.
 </p>
 <p>
 See "About Keys" tab for detail on how to create a <b>draft</b> key.
@@ -134,10 +129,10 @@ Data in Tsugi is isolated to a tenant.  For a key to work it must have at least 
 <ul>
 <li>An LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and
 a <b>secret</b>
-<li>For an LMS that supports LTI 1.3 and Dynamic Registration, enter the <b>issuer</b> and <b>unlock_key</b>
-and leave the other fields blank. Optionally set <b>deployment_id</b> if you want this tenant to match only that deployment.
-If you do not know the <b>deployment_id</b> or it will be set automatically later using Dynamic Registration, leave
-<b>Deployment Id</b> blank to accept any value from the LMS, or enter a placeholder that you edit after registration.
+<li>For an LMS that supports LTI 1.3 and Dynamic Registration, a title is enough to start.
+You can also enter the <b>issuer</b> and leave the client id blank. Dynamic registration
+fills in the issuer, client id, and deployment id. The deployment id is stored and is not
+what launches use to find this tenant.
 </li>
 <li>For an LTI 1.3 LMS that does not support Dynamic Registration, you will need to fill in all the fields (except <b>unlock_code</b>).
 Sometimes LMS's create a chicken-and-egg problem where they want the URLs from the tool before they give you some of their values.

@@ -1295,14 +1295,12 @@ class LTIX {
 
         // Add the WHERE clause
         if ( $LTI13 ) {
-            // TODO: Index lms_issuer_sha256
-            // Match tenant by issuer + client_id only; accept any deployment_id from the LMS.
-            // The launch JWT's deployment_id is still copied into $row at runtime for LTI 1.3
-            // services (e.g. AGS token requests).
-            $sql .= "\nWHERE (
-                    (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
-                    AND k.lms_client = :issuer_client
-                )
+            // Issuer hash must match. A draft with a null issuer hash must not
+            // take this launch. Client id is the other half of the tenant identity.
+            // deployment_id is not part of the match. The JWT value is copied
+            // into $row for LTI 1.3 services (for example AGS token requests).
+            $sql .= "\nWHERE k.lms_issuer_sha256 = :issuer_sha256
+                AND k.lms_client = :issuer_client
                 AND (k.deleted IS NULL OR k.deleted = 0)
             ";
         } else {

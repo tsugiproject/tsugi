@@ -393,6 +393,29 @@ class AdminService {
     }
 
     /**
+     * Store blank optional identity fields as NULL before hashing.
+     *
+     * Whitespace-only key_key, lms_issuer, and lms_client become NULL. A hash
+     * of "" would occupy a unique index. deploy_key also treats the literal
+     * "null" as blank, matching normalize_deploy_key_input().
+     */
+    public static function normalize_lti_key_post() {
+        foreach ( array('key_key', 'lms_issuer', 'lms_client') as $field ) {
+            if ( ! array_key_exists($field, $_POST) ) continue;
+            $value = $_POST[$field];
+            if ( ! is_string($value) ) {
+                $_POST[$field] = null;
+                continue;
+            }
+            $value = trim($value);
+            $_POST[$field] = ($value === '') ? null : $value;
+        }
+        if ( array_key_exists('deploy_key', $_POST) ) {
+            $_POST['deploy_key'] = self::normalize_deploy_key_input($_POST['deploy_key']);
+        }
+    }
+
+    /**
      * Resolve the LTI 1.3 (issuer URL, client id) pair for a tenant key.
      *
      * @return array{issuer_sha256:string,issuer_client:string}|null
@@ -413,27 +436,40 @@ class AdminService {
     }
 
     /**
-     * Reject a new or updated tenant when another key already matches the same
-     * LTI 1.3 issuer URL and client id with a wildcard deployment (blank deploy_key).
+     * Another lti_key row that already owns this issuer URL and client id.
      *
-     * Keys with a specific deployment id may share the same issuer and client id.
+     * Both values must be non-empty. A draft with either side blank is not a
+     * conflict. Deployment id is not part of the identity. Deleted rows still
+     * hold the hashes, matching the unique index.
+     *
+     * @return array|null key_id, key_title, deleted
      */
-    public static function validate_issuer_client_unique($lms_issuer, $lms_client, $deploy_key, $exclude_key_id=null) {
+    public static function issuer_client_conflict($lms_issuer, $lms_client, $exclude_key_id=null) {
         global $PDOX, $CFG;
 
-        if ( U::isNotEmpty($deploy_key) ) {
-            return true;
-        }
-
-        $pair = self::resolve_lti13_issuer_client($lms_issuer, $lms_client);
+        $pair = self::resolve_lti13_issuer_client(
+            is_string($lms_issuer) ? trim($lms_issuer) : $lms_issuer,
+            is_string($lms_client) ? trim($lms_client) : $lms_client
+        );
         if ( $pair === null ) {
-            return true;
+            return null;
+        }
+        $client_sha256 = U::lti_sha256($pair['issuer_client']);
+        if ( ! $client_sha256 ) {
+            return null;
         }
 
         $parms = array(
             ':issuer_sha256' => $pair['issuer_sha256'],
             ':issuer_client' => $pair['issuer_client'],
         );
+        $key_table = "{$CFG->dbprefix}lti_key";
+        $client_sql = 'AND k.lms_client = :issuer_client';
+        if ( $PDOX->columnExists('lms_client_sha256', $key_table) ) {
+            $client_sql = 'AND (k.lms_client_sha256 = :client_sha256
+                OR (k.lms_client_sha256 IS NULL AND k.lms_client = :issuer_client))';
+            $parms[':client_sha256'] = $client_sha256;
+        }
         $exclude_sql = '';
         if ( ! empty($exclude_key_id) && (int) $exclude_key_id > 0 ) {
             $exclude_sql = ' AND k.key_id <> :exclude_key_id ';
@@ -441,69 +477,54 @@ class AdminService {
         }
 
         $row = $PDOX->rowDie(
-            "SELECT k.key_id, k.key_title FROM {$CFG->dbprefix}lti_key AS k
-                WHERE (k.deleted IS NULL OR k.deleted = 0)
-                    AND (k.deploy_key IS NULL OR TRIM(k.deploy_key) = '')
+            "SELECT k.key_id, k.key_title, k.deleted
+                FROM {$key_table} AS k
+                WHERE k.lms_issuer_sha256 = :issuer_sha256
+                    $client_sql
                     $exclude_sql
-                    AND (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
-                    AND k.lms_client = :issuer_client
                 LIMIT 1",
             $parms
         );
-
-        if ( $row ) {
-            $label = U::isNotEmpty($row['key_title']) ? $row['key_title'] : ('key_id '.$row['key_id']);
-            U::flashError('A tenant/key with this LTI 1.3 Platform Issuer URL and Client ID already exists ('.$label.')');
-            return false;
+        if ( ! is_array($row) ) {
+            return null;
         }
-
-        return true;
+        return $row;
     }
 
+    /**
+     * Reject a tenant whose issuer URL and client id are already on another key.
+     *
+     * @param mixed $deploy_key Unused. Kept so older callers still pass a deployment id.
+     */
+    public static function validate_issuer_client_unique($lms_issuer, $lms_client, $deploy_key=null, $exclude_key_id=null) {
+        $row = self::issuer_client_conflict($lms_issuer, $lms_client, $exclude_key_id);
+        if ( ! is_array($row) ) {
+            return true;
+        }
+        $label = U::isNotEmpty($row['key_title']) ? $row['key_title'] : ('key_id '.$row['key_id']);
+        U::flashError('A tenant/key with this LTI 1.3 Platform Issuer URL and Client ID already exists ('.$label.', key_id '.$row['key_id'].')');
+        return false;
+    }
+
+    /**
+     * Check identities that make a tenant launchable.
+     *
+     * A draft may omit every identity field. When an OAuth consumer key is set
+     * it must be unique. When both an issuer URL and a client id are set, that
+     * pair must be unique. deploy_key is stored and is not part of either check.
+     */
     public static function validate_key_details($key_key, $deploy_key, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $lms_client=null, $exclude_key_id=null) {
         global $PDOX, $CFG;
 
-        // Enforce in software because MySQL can't do it
-        // CONSTRAINT `{$CFG->dbprefix}lti_key_both_not_null`
-        //  CHECK (
-        //        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
-        //  )
-        // deploy_key may be NULL/blank (accept any deployment id from the LMS; deploy_sha256 NULL); then we still need
-        // either an LTI 1.1 consumer key or enough LTI 1.3 identity (platform issuer URL + client id).
-        $have_oauth = U::isNotEmpty($key_key);
-        $have_deploy = U::isNotEmpty($deploy_key);
-        $have_per_tenant_lti13 = U::isNotEmpty($lms_issuer) && U::isNotEmpty($lms_client);
-        if ( ! $have_oauth && ! $have_deploy && ! $have_per_tenant_lti13 ) {
-            U::flashError('Either an LTI 1.1 consumer key, a specific LTI 1.3 deployment id, or LTI 1.3 platform issuer URL and client id is required');
-            return false;
-        }
-
         $key_sha256 = U::lti_sha256($key_key);
-        $deploy_sha256 = U::lti_sha256($deploy_key);
 
-        // TODO: Decide if we put this in the DB
-        // Extra constraint in software is oauth key is there is must be unique
-        if ( $key_key != $old_key_key && !empty($key_key) ) {
-            $row = $PDOX->rowDie( "SELECT key_sha256 FROM {$CFG->dbprefix}lti_key
-                    WHERE key_sha256 = :key_sha256",
+        if ( $key_key != $old_key_key && U::isNotEmpty($key_key) ) {
+            $row = $PDOX->rowDie( "SELECT key_id FROM {$CFG->dbprefix}lti_key
+                    WHERE key_sha256 = :key_sha256 LIMIT 1",
                 array(':key_sha256' => $key_sha256)
             );
             if ( $row ) {
                 U::flashError("Cannot add the same OAuth Consumer Key more than once");
-                return false;
-            }
-        }
-
-        // Now check these
-        // CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
-        if ( ($key_key != $old_key_key || $deploy_key != $old_deploy_key) && 
-            !empty($key_key) && !empty($deploy_key) ) {
-            $row = $PDOX->rowDie( "SELECT key_sha256 FROM {$CFG->dbprefix}lti_key
-                    WHERE key_sha256 = :key_sha256 AND deploy_sha256 = :deploy_sha256",
-                array(':key_sha256' => $key_sha256, ":deploy_sha256" => $deploy_sha256)
-            );
-            if ( $row ) {
-                U::flashError("The combination of Consumer key and Deployment ID must be unique");
                 return false;
             }
         }

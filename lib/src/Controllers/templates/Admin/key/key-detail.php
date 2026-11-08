@@ -32,7 +32,7 @@ $fields = array('key_id', 'key_title', 'plus', 'key_key', 'secret', 'deploy_key'
 
 $realfields = array('key_id', 'key_title', 'plus', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
      'unlock_code',
-     'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+     'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_client_sha256', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key',
      'created_at', 'updated_at', 'user_id',
@@ -50,11 +50,8 @@ if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
     if ( \Tsugi\Controllers\Tool::csrfRedirect($from_location) ) return;
 }
 
-if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
+\Tsugi\Services\Admin\AdminService::normalize_lti_key_post();
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
-if ( isset($_POST['deploy_key']) ) {
-    $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
-}
 if ( isset($_POST['doUpdate']) ) {
     $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
 }
@@ -193,17 +190,13 @@ will not work.
 For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
 </p>
 <p>
-For LTI 1.3, you can either
-(a) create a global issuer and select it here, and then set the <b>deployment_id</b> if you want this tenant to match only that deployment,
-<b>or</b> you can
-(b) leave the global issuer unset and set all of the LMS values in this screen.  If you mix
-a global issuer and per-key LTI 1.3 settings, you will most likely end up with a tenant that
-won't be able to receive launches.
+For LTI 1.3, set the platform issuer URL and client id on this key. Launches find the
+tenant from that pair. A deployment id is optional and does not choose the tenant.
 </p>
 <p>
-For the <b>LTI 1.3 Deployment ID</b> field on this key: leave blank to accept any value from the LMS
-(Tsugi still uses the deployment id from the launch for services such as grading).
-Enter a specific deployment id when you want this tenant to accept only that deployment.
+For the <b>LTI 1.3 Deployment ID</b> field on this key: leave it blank. Launches find this
+tenant by issuer and client id. Tsugi still reads the deployment id from the launch
+for services such as grading. Dynamic registration may store one here later.
 </p>
 <p>
 If this is a pre-existing LTI 1.1 tenant, the LMS must provide the <b>oauth_consumer_key</b>

@@ -72,11 +72,10 @@ array( "{$CFG->dbprefix}lti_keyset",
 
 // https://stackoverflow.com/questions/28418360/jwt-json-web-token-audience-aud-versus-client-id-whats-the-difference
 
-// Key is in effect "tenant" (like a billing endpoint)
-// We need to be able to look this up by either oauth_consumer_key or
-// (issuer, client_id, deployment_id)
-
-// TODO: Decide if the key_key must always be unique.
+// Key is in effect "tenant" (like a billing endpoint).
+// A launch finds the row by oauth_consumer_key, or by issuer + client_id.
+// deployment_id is stored and is not part of that lookup.
+// Draft rows leave those identity columns NULL. See docs/lti-key-identity.md.
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
@@ -105,6 +104,7 @@ array( "{$CFG->dbprefix}lti_key",
     lms_issuer           TEXT NULL,  -- iss from the JWT
     lms_issuer_sha256    CHAR(64) NULL,
     lms_client           TEXT NULL,  -- aud from the JWT / client_id in OAuth
+    lms_client_sha256    CHAR(64) NULL,
 
     lms_oidc_auth       TEXT NULL,
     lms_keyset_url      TEXT NULL,
@@ -151,27 +151,14 @@ array( "{$CFG->dbprefix}lti_key",
     -- Upgrade adds this unique key. It does not add this default.
     guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
-    -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
-    -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
-    CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
+    -- NULL identity hashes do not collide: MySQL UNIQUE allows many NULLs.
+    -- A set OAuth consumer key is unique. A set issuer+client pair is unique.
+    -- deploy_sha256 is not part of either key. See docs/lti-key-identity.md.
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_3` UNIQUE(lms_issuer_sha256, lms_client_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-/* If MySQL had constraints - these would be nice in lti_key - for now
-   we will just need to be careful in code.
-
-    CONSTRAINT `{$CFG->dbprefix}lti_key_both_not_null`
-    CHECK (
-        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
-    )
-
-    CONSTRAINT `{$CFG->dbprefix}lti_key_deploy_linked`
-    CHECK (
-        (deploy_key IS NOT NULL AND issuer_id IS NOT NULL)
-     OR (deploy_key NOT NULL AND issuer_id NOT NULL)
-    )
- */
 
 array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
@@ -1671,6 +1658,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'lms_issuer', 'TEXT NULL'),
         array('lti_key', 'lms_issuer_sha256', 'CHAR(64) NULL'),
         array('lti_key', 'lms_client', 'TEXT NULL'),
+        array('lti_key', 'lms_client_sha256', 'CHAR(64) NULL'),
         array('lti_key', 'lms_oidc_auth', 'TEXT NULL'),
         array('lti_key', 'lms_keyset_url', 'TEXT NULL'),
         array('lti_key', 'lms_token_url', 'TEXT NULL'),
@@ -1878,12 +1866,159 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // Make sure that lti_key has the correct unique indexes
-    $needed_indexes = array(
-        'lti_key_const_1' => 'ADD CONSTRAINT `lti_key_const_1` UNIQUE(key_sha256, deploy_sha256)',
-    );
+    // lti_key identity indexes. Draft rows keep NULL hashes, and MySQL UNIQUE
+    // allows many NULLs. See docs/lti-key-identity.md.
+    // A duplicate non-null identity blocks the new index and leaves the old
+    // one in place. Clear those rows and run upgrade again.
+    $key_table = "{$CFG->dbprefix}lti_key";
+    $canon_key_index = $CFG->dbprefix."lti_key_const_1";
+    $canon_pair_index = $CFG->dbprefix."lti_key_const_3";
+    $have_client_sha = $PDOX->columnExists('lms_client_sha256', $key_table);
 
-    $indexes = $PDOX->indexes($CFG->dbprefix."lti_key");
+    if ( $have_client_sha ) {
+        $identity_fills = array(
+            "UPDATE {$key_table} SET key_sha256 = NULL
+                WHERE key_sha256 IS NOT NULL AND (key_key IS NULL OR TRIM(key_key) = '')",
+            "UPDATE {$key_table} SET lms_issuer_sha256 = NULL
+                WHERE lms_issuer_sha256 IS NOT NULL AND (lms_issuer IS NULL OR TRIM(lms_issuer) = '')",
+            "UPDATE {$key_table} SET lms_issuer_sha256 = SHA2(lms_issuer, 256)
+                WHERE lms_issuer IS NOT NULL AND TRIM(lms_issuer) <> '' AND lms_issuer_sha256 IS NULL",
+            "UPDATE {$key_table} SET lms_client_sha256 = NULL
+                WHERE lms_client_sha256 IS NOT NULL AND (lms_client IS NULL OR TRIM(lms_client) = '')",
+            "UPDATE {$key_table} SET lms_client_sha256 = SHA2(lms_client, 256)
+                WHERE lms_client IS NOT NULL AND TRIM(lms_client) <> ''
+                    AND (lms_client_sha256 IS NULL OR lms_client_sha256 = '')",
+        );
+        foreach ( $identity_fills as $sql ) {
+            echo("Upgrading: ".htmlentities($sql)."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                $message = "Non-Fatal lti_key identity backfill: ".$q->errorImplode;
+                error_log($message);
+                echo(htmlentities($message)."<br/>\n");
+            }
+        }
+    }
+
+    $key_dupe_rows = $PDOX->allRowsDie(
+        "SELECT GROUP_CONCAT(key_id ORDER BY key_id SEPARATOR ',') AS key_ids
+            FROM {$key_table}
+            WHERE key_sha256 IS NOT NULL AND key_sha256 <> ''
+            GROUP BY key_sha256
+            HAVING COUNT(*) > 1"
+    );
+    $pair_dupe_rows = array();
+    if ( $have_client_sha ) {
+        $pair_dupe_rows = $PDOX->allRowsDie(
+            "SELECT GROUP_CONCAT(key_id ORDER BY key_id SEPARATOR ',') AS key_ids
+                FROM {$key_table}
+                WHERE lms_issuer_sha256 IS NOT NULL AND lms_issuer_sha256 <> ''
+                    AND lms_client_sha256 IS NOT NULL AND lms_client_sha256 <> ''
+                GROUP BY lms_issuer_sha256, lms_client_sha256
+                HAVING COUNT(*) > 1"
+        );
+    }
+
+    $index_columns = array();
+    $index_unique = array();
+    $index_detail = $PDOX->indexDetail($key_table);
+    if ( is_array($index_detail) ) {
+        foreach ( $index_detail as $idx_row ) {
+            if ( ! is_array($idx_row) ) continue;
+            $idx_name = \Tsugi\Util\U::get($idx_row, 'Key_name', \Tsugi\Util\U::get($idx_row, 'key_name'));
+            $idx_col = \Tsugi\Util\U::get($idx_row, 'Column_name', \Tsugi\Util\U::get($idx_row, 'column_name'));
+            if ( ! is_string($idx_name) || $idx_name === '' || ! is_string($idx_col) || $idx_col === '' ) continue;
+            $idx_seq = (int) \Tsugi\Util\U::get($idx_row, 'Seq_in_index', \Tsugi\Util\U::get($idx_row, 'seq_in_index', 0));
+            if ( ! isset($index_columns[$idx_name]) ) $index_columns[$idx_name] = array();
+            $index_columns[$idx_name][$idx_seq] = $idx_col;
+            $index_unique[$idx_name] = ((int) \Tsugi\Util\U::get($idx_row, 'Non_unique', \Tsugi\Util\U::get($idx_row, 'non_unique', 1)) === 0);
+        }
+    }
+    foreach ( $index_columns as $idx_name => $cols ) {
+        ksort($cols);
+        $index_columns[$idx_name] = array_values($cols);
+    }
+
+    $needed_indexes = array();
+    $drop_key_indexes = array();
+
+    if ( count($key_dupe_rows) > 0 ) {
+        $dupe_ids = array();
+        foreach ( $key_dupe_rows as $dupe_row ) {
+            $ids = \Tsugi\Util\U::get($dupe_row, 'key_ids');
+            if ( is_string($ids) && $ids !== '' ) $dupe_ids[] = $ids;
+        }
+        $message = "lti_key identity: not adding UNIQUE(key_sha256); duplicate OAuth key hashes for key_id "
+            .implode(' and ', $dupe_ids)
+            .". Clear or merge those rows and run upgrade again.";
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+        foreach ( $index_columns as $idx_name => $cols ) {
+            if ( empty($index_unique[$idx_name]) ) continue;
+            if ( $cols === array('key_sha256') || $cols === array('key_sha256', 'deploy_sha256') ) {
+                $needed_indexes[$idx_name] = "ADD CONSTRAINT `{$idx_name}` UNIQUE(key_sha256, deploy_sha256)";
+            }
+        }
+    } else {
+        foreach ( $index_columns as $idx_name => $cols ) {
+            if ( empty($index_unique[$idx_name]) ) continue;
+            $oauth_shape = ($cols === array('key_sha256') || $cols === array('key_sha256', 'deploy_sha256'));
+            if ( ! $oauth_shape ) continue;
+            if ( $idx_name === $canon_key_index && $cols === array('key_sha256') ) continue;
+            $drop_key_indexes[] = $idx_name;
+        }
+        $needed_indexes[$canon_key_index] = "ADD CONSTRAINT `{$canon_key_index}` UNIQUE(key_sha256)";
+    }
+
+    if ( ! $have_client_sha ) {
+        $message = "lti_key identity: lms_client_sha256 is missing; not adding the issuer+client unique key.";
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    } else if ( count($pair_dupe_rows) > 0 ) {
+        $dupe_ids = array();
+        foreach ( $pair_dupe_rows as $dupe_row ) {
+            $ids = \Tsugi\Util\U::get($dupe_row, 'key_ids');
+            if ( is_string($ids) && $ids !== '' ) $dupe_ids[] = $ids;
+        }
+        $message = "lti_key identity: not adding UNIQUE(lms_issuer_sha256, lms_client_sha256); duplicate issuer+client hashes for key_id "
+            .implode(' and ', $dupe_ids)
+            .". Clear or merge those rows and run upgrade again.";
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+        foreach ( $index_columns as $idx_name => $cols ) {
+            if ( empty($index_unique[$idx_name]) ) continue;
+            if ( $cols === array('lms_issuer_sha256', 'lms_client_sha256') ) {
+                $needed_indexes[$idx_name] = "ADD CONSTRAINT `{$idx_name}` UNIQUE(lms_issuer_sha256, lms_client_sha256)";
+            }
+        }
+    } else {
+        $pair_already = false;
+        foreach ( $index_columns as $idx_name => $cols ) {
+            if ( empty($index_unique[$idx_name]) ) continue;
+            if ( $cols !== array('lms_issuer_sha256', 'lms_client_sha256') ) continue;
+            $needed_indexes[$idx_name] = "ADD CONSTRAINT `{$idx_name}` UNIQUE(lms_issuer_sha256, lms_client_sha256)";
+            $pair_already = true;
+        }
+        if ( ! $pair_already ) {
+            $needed_indexes[$canon_pair_index] = "ADD CONSTRAINT `{$canon_pair_index}` UNIQUE(lms_issuer_sha256, lms_client_sha256)";
+        }
+    }
+
+    foreach ( $drop_key_indexes as $idx_name ) {
+        $sql = "DROP INDEX `{$idx_name}` ON {$key_table}";
+        echo("Upgrading: ".htmlentities($sql)."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal dropping lti_key index: ".$q->errorImplode;
+            error_log($message);
+            echo(htmlentities($message)."<br/>\n");
+        }
+    }
+
+    // Make sure that lti_key has the correct unique indexes
+    $indexes = $PDOX->indexes($key_table);
 
     // DROP INDEX index_name ON tbl_name
     $keep_issuer_index = $PDOX->columnExists('issuer_id', $CFG->dbprefix."lti_key");

@@ -67,11 +67,6 @@ class DynamicRegistration {
             return '';
         }
 
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
-             array(":KID" => $tsugi_key)
-        );
-
         echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
         echo(htmlentities($openid_configuration ?? '')."\n</p>\n");
 
@@ -106,6 +101,12 @@ class DynamicRegistration {
             echo("<pre>\n");
             echo 'Missing required value: ',  htmlentities($e->getMessage()), "\n";
             echo("</pre>\n");
+            return '';
+        }
+
+        $issuer = trim((string) $issuer);
+        if ( $issuer === '' ) {
+            echo("<pre>\nMissing issuer in the OpenID configuration\n</pre>\n");
             return '';
         }
 
@@ -275,7 +276,25 @@ class DynamicRegistration {
             return '';
         }
 
-        $client_id = $resp->client_id;
+        $client_id = trim((string) $resp->client_id);
+        if ( $client_id === '' ) {
+            echo("Did not find client_id in response\n");
+            echo htmlentities(print_r($resp, true), ENT_QUOTES, 'UTF-8');
+            echo("</pre>\n");
+            return '';
+        }
+
+        $conflict = \Tsugi\Services\Admin\AdminService::issuer_client_conflict($issuer, $client_id, $tsugi_key);
+        if ( is_array($conflict) ) {
+            $label = U::isNotEmpty($conflict['key_title']) ? $conflict['key_title'] : ('key_id '.$conflict['key_id']);
+            echo("<p><b>Registration was not saved.</b> The LMS returned issuer ");
+            echo(htmlentities($issuer)." and client id ".htmlentities($client_id).". ");
+            echo("Another tenant already has that pair (".htmlentities($label).", key_id ".htmlentities((string) $conflict['key_id'])."). ");
+            echo("This draft was left unchanged, including its unlock code. ");
+            echo("Use that tenant, or clear its issuer and client id, before registering this draft again.</p>\n");
+            $OUTPUT->footer();
+            return '';
+        }
 
         $tc_key = "https://purl.imsglobal.org/spec/lti-tool-configuration";
         $tool_configuration = isset($resp->{$tc_key}) ? $resp->{$tc_key} : null;
@@ -284,12 +303,14 @@ class DynamicRegistration {
             $deployment_id = isset($tool_configuration->deployment_id) ? $tool_configuration->deployment_id : null;
         }
 
-        $issuer_sha256 = hash('sha256', trim($issuer));
+        $issuer_sha256 = U::lti_sha256($issuer);
+        $client_sha256 = U::lti_sha256($client_id);
 
         $sql = "UPDATE {$CFG->dbprefix}lti_key SET
                 lms_issuer = :lms_issuer,
                 lms_issuer_sha256 = :lms_issuer_sha256,
                 lms_client = :lms_client,
+                lms_client_sha256 = :lms_client_sha256,
                 lms_oidc_auth = :lms_oidc_auth,
                 lms_keyset_url = :lms_keyset_url,
                 lms_token_url = :lms_token_url,
@@ -303,6 +324,7 @@ class DynamicRegistration {
             ":lms_issuer" => $issuer,
             ":lms_issuer_sha256" => $issuer_sha256,
             ":lms_client" => $client_id,
+            ":lms_client_sha256" => $client_sha256,
             ":lms_oidc_auth" => $authorization_endpoint,
             ":lms_keyset_url" => $jwks_uri,
             ":lms_token_url" => $token_endpoint,
@@ -330,6 +352,11 @@ class DynamicRegistration {
                 return '';
             }
         }
+
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
+            array(":KID" => $tsugi_key)
+        );
 
         echo('<button onclick="(window.opener || window.parent).postMessage({subject:\'org.imsglobal.lti.close\'}, \'*\')">Continue Registration in the LMS</button>'."\n");
         $OUTPUT->footer();
