@@ -15,6 +15,7 @@ class Key extends Admin {
 
     public static function routes(Application $app) {
         self::map($app, self::class, 'index', self::paths('key', true));
+        self::map($app, self::class, 'clientCheck', self::paths('key/client-id-check'));
         self::map($app, self::class, 'add', self::paths('key/key-add'));
         self::map($app, self::class, 'detail', self::paths('key/key-detail'));
         self::map($app, self::class, 'settings', self::paths('key/key-settings'));
@@ -28,6 +29,11 @@ class Key extends Admin {
     public function index() {
         if ( $r = $this->gate('keys.view') ) return $r;
         $this->view('key/index.php');
+    }
+
+    public function clientCheck() {
+        if ( $r = $this->gate('keys.view') ) return $r;
+        $this->view('key/client-id-check.php');
     }
 
     public function add() {

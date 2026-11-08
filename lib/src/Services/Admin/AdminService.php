@@ -13,6 +13,9 @@ use Tsugi\Util\U;
  */
 class AdminService {
 
+    /** @var array<int, array<string, mixed>>|null */
+    private static $issuerClientDuplicateRows = null;
+
         // admin/admin_util.php
     // TODO: deal with headers sent...
     public static function requireLogin() {
@@ -410,6 +413,85 @@ class AdminService {
         }
 
         return null;
+    }
+
+    /**
+     * Tenant keys that share an issuer and client id. deploy_key is the stored
+     * deployment id. This does not change any unique key.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function issuerClientDuplicateRows() {
+        global $PDOX, $CFG;
+
+        if ( is_array(self::$issuerClientDuplicateRows) ) {
+            return self::$issuerClientDuplicateRows;
+        }
+        self::$issuerClientDuplicateRows = array();
+        $table = "{$CFG->dbprefix}lti_key";
+        if ( ! is_object($PDOX) ) {
+            return self::$issuerClientDuplicateRows;
+        }
+        $columns = $PDOX->describe($table);
+        if ( ! is_array($columns) ) {
+            return self::$issuerClientDuplicateRows;
+        }
+        $names = array();
+        foreach ( $columns as $column ) {
+            if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+        }
+        if ( ! in_array('lms_issuer', $names, true) || ! in_array('lms_client', $names, true) ) {
+            return self::$issuerClientDuplicateRows;
+        }
+        $deploy_sql = in_array('deploy_key', $names, true) ? 'k.deploy_key' : 'NULL';
+        $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
+        $rows = $PDOX->allRowsDie(
+            "SELECT k.key_id, k.key_title, TRIM(k.lms_issuer) AS lms_issuer,
+                    TRIM(k.lms_client) AS lms_client, {$deploy_sql} AS deploy_key, {$deleted_sql} AS deleted
+                FROM {$table} AS k
+                INNER JOIN (
+                    SELECT TRIM(lms_issuer) AS lms_issuer, TRIM(lms_client) AS lms_client
+                        FROM {$table}
+                        WHERE lms_issuer IS NOT NULL AND TRIM(lms_issuer) <> ''
+                            AND lms_client IS NOT NULL AND TRIM(lms_client) <> ''
+                        GROUP BY TRIM(lms_issuer), TRIM(lms_client)
+                        HAVING COUNT(*) > 1
+                ) AS d
+                    ON TRIM(k.lms_issuer) = d.lms_issuer
+                    AND TRIM(k.lms_client) = d.lms_client
+                ORDER BY k.lms_issuer, k.lms_client, k.key_id"
+        );
+        self::$issuerClientDuplicateRows = is_array($rows) ? $rows : array();
+        return self::$issuerClientDuplicateRows;
+    }
+
+    /**
+     * How many (client id, issuer) pairs are used by more than one key.
+     */
+    public static function issuerClientDuplicateCount() {
+        $groups = array();
+        foreach ( self::issuerClientDuplicateRows() as $row ) {
+            $issuer = trim((string) U::get($row, 'lms_issuer', ''));
+            $client = trim((string) U::get($row, 'lms_client', ''));
+            if ( $issuer === '' || $client === '' ) continue;
+            $groups[$issuer."\n".$client] = true;
+        }
+        return count($groups);
+    }
+
+    /**
+     * Red warning for the admin console and the key list. Empty when there are no duplicates.
+     */
+    public static function issuerClientDuplicateNotice() {
+        $count = self::issuerClientDuplicateCount();
+        if ( $count < 1 ) {
+            return '';
+        }
+        $pairs = $count === 1 ? 'pair' : 'pairs';
+        $verb = $count === 1 ? 'is' : 'are';
+        return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
+            .'<p>There '.$verb.' '.$count.' duplicate (client id, issuer) '.$pairs.".</p>\n"
+            ."</div>\n";
     }
 
     /**

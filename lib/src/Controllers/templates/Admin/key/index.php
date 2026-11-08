@@ -75,6 +75,7 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
 ?>
 <h1>LTI Tenants (Keys)</h1>
 <p>
@@ -82,6 +83,7 @@ $OUTPUT->flashMessages();
 <?php if ( $CFG->providekeys ) { ?>
   <a href="requests" class="btn btn-default">Key Requests</a>
 <?php } ?>
+  <a href="client-id-check" class="btn btn-default">Client Id Check</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
