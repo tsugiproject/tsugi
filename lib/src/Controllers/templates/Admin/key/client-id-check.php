@@ -24,7 +24,7 @@ echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php if ( count($rows) < 1 ) { ?>
-<p>There are no duplicate (client id, issuer) rows.</p>
+<p>There are no duplicate (client id, issuer, deployment id) rows.</p>
 <?php } else { ?>
 <table class="table table-striped">
 <thead>

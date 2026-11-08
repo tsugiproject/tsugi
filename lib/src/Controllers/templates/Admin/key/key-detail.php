@@ -42,7 +42,13 @@ $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'plus' => 'Tsugi Plus',
-    'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
+    'deploy_key' => 'LTI 1.3: Deployment ID (If you leave this blank, it will match any value from the LMS)',
+    'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
+    'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
+    'lms_oidc_auth' => 'LTI 1.3 Platform OIDC Login / Authorization Endpoint URL',
+    'lms_keyset_url' => 'LTI 1.3 Platform KeySet URL',
+    'lms_token_url' => 'LTI 1.3 Platform Token URL',
+    'lms_token_audience' => 'LTI 1.3 Platform Audience (optional)',
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
 
@@ -107,20 +113,7 @@ if ( ! is_array($row) ) {
     return;
 }
 
-$key_type = '';
-if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
-    $key_type .= 'LTI 1.1';
-}
-$lti13_lms = is_string($row['lms_issuer']) && !empty($row['lms_issuer'])
-    && is_string($row['lms_client']) && !empty($row['lms_client']);
-if ( $lti13_lms ) {
-    if ( !empty($key_type) ) $key_type .= ' / ';
-    $key_type .= 'LTI 1.3';
-} else if ( is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
-    if ( !empty($key_type) ) $key_type .= ' / ';
-    $key_type .= 'LTI 1.3';
-}
-if ( $key_type == '' ) $key_type = 'Draft';
+$key_type = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

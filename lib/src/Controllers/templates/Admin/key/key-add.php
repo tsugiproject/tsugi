@@ -33,7 +33,7 @@ $titles = array(
 
     'plus' => 'Tsugi Plus',
     'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
-    'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
+    'deploy_key' => 'LTI 1.3: Deployment ID (If you leave this blank, it will match any value from the LMS)',
     'unlock_code' => 'LTI 1.3: Single-use unlock code to LTI Dynamic Registration',
 	'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
 	'lms_oidc_auth' => 'LTI 1.3 Platform OIDC Login / Authorization Endpoint URL',

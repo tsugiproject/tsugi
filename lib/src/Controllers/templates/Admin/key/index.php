@@ -18,6 +18,7 @@ $rows = $PDOX->queryDie($patch_sql);
 $query_parms = array();
 $searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "K.lms_client");
 $sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, K.lms_client AS lms_client,
+    lms_oidc_auth, lms_keyset_url, lms_token_url,
     deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
     K.user_id AS user_id
         FROM {$CFG->dbprefix}lti_key AS K
@@ -32,21 +33,7 @@ foreach ( $rows as $row ) {
     $newrow['key_id'] = $row['key_id'];
     $newrow['key'] = $row['key_key'];
     if ( !empty($row['key_title']) ) $newrow['key'] = $row['key_title'];
-    $key_type = '';
-    if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
-        $key_type .= 'LTI 1.1';
-    }
-    $lti13_lms = is_string($row['lms_issuer']) && !empty($row['lms_issuer'])
-        && is_string($row['lms_client']) && !empty($row['lms_client']);
-    if ( $lti13_lms ) {
-        if ( !empty($key_type) ) $key_type .= ' / ';
-        $key_type .= 'LTI 1.3';
-    } else if ( is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
-        if ( !empty($key_type) ) $key_type .= ' / ';
-        $key_type .= 'LTI 1.3';
-    }
-    if ( $key_type == '' ) $key_type = 'Draft';
-    $newrow['key_type'] = $key_type;
+    $newrow['key_type'] = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
     $issuer_key = $row['lms_issuer'];
     $client_id = $row['lms_client'];
     $issuer_display = '';
