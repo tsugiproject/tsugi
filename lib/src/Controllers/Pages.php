@@ -144,7 +144,7 @@ class Pages extends Tool {
                     </span>
                 </h1>
                 <div class="page-content">
-                    <?= $this->expandPageHtml($page['body']) ?>
+                    <?= \Tsugi\Services\Pages\PageRepository::renderEmbeddedMedia($this->expandPageHtml($page['body'])) ?>
                 </div>
             <?php else: ?>
                 <h1 style="display: flex; justify-content: space-between; align-items: center;">
@@ -477,7 +477,7 @@ class Pages extends Tool {
         </style>
         <?php \Tsugi\UI\CKEditor::renderLinkPickerModal('Insert link'); ?>
 
-        <?php \Tsugi\UI\CKEditor::renderScriptTag(); ?>
+        <?php \Tsugi\UI\CKEditor::renderPagesEditorAssets(); ?>
         <script type="text/javascript">
         <?php $json_url = $tool_home . '/json'; ?>
         <?php $lessons_json_url = $tool_home . '/lessons-json'; ?>
@@ -489,11 +489,13 @@ class Pages extends Tool {
         var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
         var appHome = '<?= htmlspecialchars(isset($apphome) ? $apphome : '') ?>';
         var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
+        window.tsugiPagesEditor = true;
 
         <?php \Tsugi\UI\CKEditor::renderConfigScript(); ?>
 
         <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
         </script>
+        <?php \Tsugi\UI\CKEditor::renderPagesEditorModule(); ?>
         <?php
         $OUTPUT->footerEnd();
     }
@@ -642,7 +644,7 @@ class Pages extends Tool {
         </style>
         <?php \Tsugi\UI\CKEditor::renderLinkPickerModal('Insert link'); ?>
 
-        <?php \Tsugi\UI\CKEditor::renderScriptTag(); ?>
+        <?php \Tsugi\UI\CKEditor::renderPagesEditorAssets(); ?>
         <script type="text/javascript">
         <?php $json_url = $tool_home . '/json'; ?>
         <?php $lessons_json_url = $tool_home . '/lessons-json'; ?>
@@ -654,11 +656,13 @@ class Pages extends Tool {
         var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
         var appHome = '<?= htmlspecialchars(isset($apphome) ? $apphome : '') ?>';
         var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
+        window.tsugiPagesEditor = true;
 
         <?php \Tsugi\UI\CKEditor::renderConfigScript(); ?>
 
         <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
         </script>
+        <?php \Tsugi\UI\CKEditor::renderPagesEditorModule(); ?>
         <?php
         $OUTPUT->footerEnd();
     }

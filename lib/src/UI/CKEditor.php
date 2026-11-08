@@ -12,6 +12,11 @@ namespace Tsugi\UI;
  *   CKEditor::renderScriptTag();
  *   CKEditor::renderConfigScript(['pagesBase' => $url, 'appHome' => $url]);
  *   CKEditor::renderStyles(['includeLinkPicker' => true]);
+ *
+ * Pages uses a newer modular build (font, text color, styled rules) via
+ * renderPagesEditorAssets() and renderPagesEditorModule(). The module
+ * imports ckeditor.js by its full URL. Other tools stay on the classic
+ * build from CDN_URL.
  */
 class CKEditor {
 
@@ -19,6 +24,11 @@ class CKEditor {
      * Default CDN URL for CKEditor 5 Classic build.
      */
     const CDN_URL = 'https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js';
+
+    /**
+     * Modular CKEditor 5 used by the Pages editor (font, color, styled rules).
+     */
+    const PAGES_VERSION = '49.1.0';
 
     /**
      * Default toolbar items for rich text editing.
@@ -36,6 +46,35 @@ class CKEditor {
         'mediaEmbed',
         'undo',
         'redo'
+    ];
+
+    /**
+     * Pages toolbar: the classic items plus font, text color, and styled rules.
+     */
+    const PAGES_TOOLBAR = [
+        'heading',
+        '|',
+        'fontFamily',
+        'fontSize',
+        'fontColor',
+        'highlight',
+        '|',
+        'bold',
+        'italic',
+        'link',
+        '|',
+        'alignment',
+        'bulletedList',
+        'numberedList',
+        '|',
+        'blockQuote',
+        'codeBlock',
+        'styledHorizontalLine',
+        'insertTable',
+        'mediaEmbed',
+        '|',
+        'undo',
+        'redo',
     ];
 
     /**
@@ -88,7 +127,7 @@ class CKEditor {
         }';
 
         ?>
-        ClassicEditor.defaultConfig = {
+        var tsugiEditorConfig = {
             toolbar: {
                 items: <?= $toolbarJson ?>
             },
@@ -115,7 +154,585 @@ class CKEditor {
                 }
             }
         };
+        if (typeof ClassicEditor !== 'undefined') {
+            ClassicEditor.defaultConfig = tsugiEditorConfig;
+        }
         <?php
+    }
+
+    /**
+     * Stylesheet for the Pages editor.
+     *
+     * The files are a self-hosted GPL build of CKEditor 5 (PAGES_VERSION) at
+     * lib/src/Controllers/static/Pages/. The CDN build is the commercial
+     * "cloud" channel and opens read-only when licenseKey is GPL.
+     *
+     * The editor script imports that file by URL. An import map cannot be
+     * added here: the page footer already loads other modules, and a map
+     * that appears after those is ignored.
+     *
+     * Call this before renderPagesEditorModule(). Quiz, catalog, and site
+     * keep renderScriptTag() and the classic build.
+     */
+    public static function renderPagesEditorAssets()
+    {
+        $base = self::pagesEditorBase();
+        echo '<link rel="stylesheet" href="' . htmlspecialchars($base . 'ckeditor.css', ENT_QUOTES, 'UTF-8') . '">' . "\n";
+    }
+
+    /**
+     * Absolute URL of the Pages CKEditor folder, with a trailing slash.
+     */
+    private static function pagesEditorBase()
+    {
+        global $CFG;
+        $base = '/lib/src/Controllers/static/Pages/';
+        if (isset($CFG) && isset($CFG->wwwroot) && is_string($CFG->wwwroot) && $CFG->wwwroot !== '') {
+            $base = rtrim($CFG->wwwroot, '/') . $base;
+        }
+        return $base;
+    }
+
+    /**
+     * Module that creates the Pages editor: fonts, text color, and styled rules.
+     *
+     * The caller sets window.tsugiPagesEditor and includes renderConfigScript()
+     * plus renderLinkPickerScript() first, so this can call tsugiBindEditor().
+     */
+    public static function renderPagesEditorModule()
+    {
+        $toolbarJson = json_encode(self::PAGES_TOOLBAR);
+        $colorsJson = json_encode(self::pagesColors());
+        $sizesJson = json_encode(self::pagesFontSizes());
+        $thicknessJson = json_encode(self::pagesRuleThicknesses());
+        $editorSrc = json_encode(self::pagesEditorBase() . 'ckeditor.js', JSON_UNESCAPED_SLASHES);
+        ?>
+        <script type="module">
+        import {
+            ClassicEditor,
+            Essentials,
+            Paragraph,
+            Heading,
+            Bold,
+            Italic,
+            Font,
+            Link,
+            List,
+            Indent,
+            BlockQuote,
+            Alignment,
+            Highlight,
+            CodeBlock,
+            HorizontalLine,
+            GeneralHtmlSupport,
+            Table,
+            TableToolbar,
+            MediaEmbed,
+            MediaEmbedStyle,
+            MediaEmbedToolbar,
+            Image,
+            ImageCaption,
+            ImageStyle,
+            ImageToolbar,
+            ImageUpload,
+            Autoformat,
+            PasteFromOffice,
+            Plugin,
+            Command,
+            View,
+            createDropdown,
+            IconHorizontalLine
+        } from <?= $editorSrc ?>;
+
+        var fontColors = <?= $colorsJson ?>;
+        var ruleThicknesses = <?= $thicknessJson ?>;
+
+        function ruleStyles(thickness, color) {
+            return {
+                styles: {
+                    'border-top-width': thickness,
+                    'border-top-style': 'solid',
+                    'border-top-color': color,
+                    'border-right-width': '0px',
+                    'border-bottom-width': '0px',
+                    'border-left-width': '0px',
+                    'height': '0px',
+                    'background-color': 'transparent',
+                    'margin-top': '1.25em',
+                    'margin-bottom': '1.25em'
+                }
+            };
+        }
+
+        class StyledHorizontalLineCommand extends Command {
+            execute(options) {
+                var thickness = options && options.thickness ? options.thickness : '4px';
+                var color = options && options.color ? options.color : '#222222';
+                var attrs = ruleStyles(thickness, color);
+                var editor = this.editor;
+                var selected = editor.model.document.selection.getSelectedElement();
+                try {
+                    editor.model.change(function(writer) {
+                        if (selected && selected.is('element', 'horizontalLine')) {
+                            writer.setAttribute('htmlHrAttributes', attrs, selected);
+                            return;
+                        }
+                        var hr = writer.createElement('horizontalLine', {
+                            htmlHrAttributes: attrs
+                        });
+                        editor.model.insertObject(hr);
+                    });
+                } catch (err) {
+                    console.error(err);
+                    editor.execute('horizontalLine');
+                }
+            }
+
+            refresh() {
+                var selected = this.editor.model.document.selection.getSelectedElement();
+                if (selected && selected.is('element', 'horizontalLine')) {
+                    this.isEnabled = true;
+                    return;
+                }
+                var plain = this.editor.commands.get('horizontalLine');
+                this.isEnabled = plain ? plain.isEnabled : true;
+            }
+        }
+
+        function selectedRule(editor) {
+            var selected = editor.model.document.selection.getSelectedElement();
+            if (!selected || !selected.is('element', 'horizontalLine')) {
+                return null;
+            }
+            var attrs = selected.getAttribute('htmlHrAttributes') || {};
+            var styles = attrs.styles || {};
+            return {
+                thickness: styles['border-top-width'] || '4px',
+                color: (styles['border-top-color'] || '#4b5563').toLowerCase()
+            };
+        }
+
+        class RulePickerView extends View {
+            constructor(locale) {
+                super(locale);
+                this.setTemplate({
+                    tag: 'div',
+                    attributes: {
+                        class: ['tsugi-hr-picker', 'ck-reset_all-excluded'],
+                        role: 'group',
+                        'aria-label': 'Horizontal line'
+                    }
+                });
+            }
+        }
+
+        function buildRulePicker(root, editor, onPick) {
+            var line = selectedRule(editor);
+            var thickness = line ? line.thickness : '4px';
+            var pickedThickness = false;
+            root.replaceChildren();
+
+            var heading = document.createElement('p');
+            heading.textContent = 'Thickness';
+            root.appendChild(heading);
+
+            var thicknessRow = document.createElement('div');
+            thicknessRow.className = 'tsugi-hr-thicknesses';
+            thicknessRow.setAttribute('role', 'radiogroup');
+            thicknessRow.setAttribute('aria-label', 'Line thickness');
+            var thicknessButtons = [];
+            ruleThicknesses.forEach(function(item) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'tsugi-hr-thickness ck-reset_all-excluded' + (item.value === thickness ? ' is-selected' : '');
+                button.textContent = item.label;
+                button.setAttribute('role', 'radio');
+                button.setAttribute('aria-checked', item.value === thickness ? 'true' : 'false');
+                button.addEventListener('mousedown', function(event) { event.preventDefault(); });
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    thickness = item.value;
+                    pickedThickness = true;
+                    thicknessButtons.forEach(function(other) {
+                        var on = other === button;
+                        other.classList.toggle('is-selected', on);
+                        other.setAttribute('aria-checked', on ? 'true' : 'false');
+                    });
+                    var current = selectedRule(editor);
+                    if (current) {
+                        onPick(item.value, current.color, false);
+                    }
+                });
+                thicknessButtons.push(button);
+                thicknessRow.appendChild(button);
+            });
+            root.appendChild(thicknessRow);
+
+            var colorHeading = document.createElement('p');
+            colorHeading.textContent = 'Color';
+            root.appendChild(colorHeading);
+
+            var colorRow = document.createElement('div');
+            colorRow.className = 'tsugi-hr-colors';
+            fontColors.forEach(function(item) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                var chosen = line && line.color === item.color.toLowerCase();
+                button.className = 'tsugi-hr-swatch ck-reset_all-excluded' + (chosen ? ' is-selected' : '');
+                button.style.backgroundColor = item.color;
+                button.setAttribute('aria-label', item.label);
+                button.setAttribute('title', item.label);
+                button.addEventListener('mousedown', function(event) { event.preventDefault(); });
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var current = selectedRule(editor);
+                    var useThickness = pickedThickness ? thickness : (current ? current.thickness : thickness);
+                    onPick(useThickness, item.color, true);
+                });
+                colorRow.appendChild(button);
+            });
+            root.appendChild(colorRow);
+
+            var hint = document.createElement('p');
+            hint.className = 'tsugi-hr-hint';
+            hint.textContent = 'Click a color to insert a line. With a line selected, click a thickness or a color to change it.';
+            root.appendChild(hint);
+        }
+
+        class StyledHorizontalLine extends Plugin {
+            static get requires() {
+                return [HorizontalLine, GeneralHtmlSupport];
+            }
+            static get pluginName() {
+                return 'StyledHorizontalLine';
+            }
+            init() {
+                var editor = this.editor;
+                editor.commands.add('styledHorizontalLine', new StyledHorizontalLineCommand(editor));
+                editor.ui.componentFactory.add('styledHorizontalLine', function(locale) {
+                    var command = editor.commands.get('styledHorizontalLine');
+                    var dropdown = createDropdown(locale);
+                    dropdown.buttonView.set({
+                        label: 'Horizontal line',
+                        icon: IconHorizontalLine,
+                        tooltip: true
+                    });
+                    dropdown.bind('isEnabled').to(command, 'isEnabled');
+                    var picker = new RulePickerView(locale);
+                    function applyRule(thickness, color, close) {
+                        editor.execute('styledHorizontalLine', { thickness: thickness, color: color });
+                        if (close) {
+                            dropdown.isOpen = false;
+                            editor.editing.view.focus();
+                        }
+                    }
+                    picker.on('render', function() {
+                        buildRulePicker(picker.element, editor, applyRule);
+                    });
+                    dropdown.on('change:isOpen', function() {
+                        if (dropdown.isOpen && picker.element) {
+                            buildRulePicker(picker.element, editor, applyRule);
+                        }
+                    });
+                    dropdown.panelView.children.add(picker);
+                    return dropdown;
+                });
+            }
+        }
+
+        var mediaSizes = [
+            { label: 'Small', value: '25%' },
+            { label: 'Medium', value: '50%' },
+            { label: 'Large', value: '75%' },
+            { label: 'Full', value: '100%' }
+        ];
+
+        class TsugiMediaSizeCommand extends Command {
+            execute(options) {
+                var width = options && options.width ? options.width : null;
+                var editor = this.editor;
+                var selected = editor.model.document.selection.getSelectedElement();
+                if (!selected || !selected.is('element', 'media')) {
+                    return;
+                }
+                editor.model.change(function(writer) {
+                    if (width) {
+                        writer.setAttribute('tsugiMediaWidth', width, selected);
+                    } else {
+                        writer.removeAttribute('tsugiMediaWidth', selected);
+                    }
+                });
+            }
+
+            refresh() {
+                var selected = this.editor.model.document.selection.getSelectedElement();
+                var onMedia = !!(selected && selected.is('element', 'media'));
+                this.isEnabled = onMedia;
+                this.value = onMedia ? (selected.getAttribute('tsugiMediaWidth') || null) : null;
+            }
+        }
+
+        class MediaSizePickerView extends View {
+            constructor(locale) {
+                super(locale);
+                this.setTemplate({
+                    tag: 'div',
+                    attributes: {
+                        class: ['tsugi-media-sizes', 'ck-reset_all-excluded'],
+                        role: 'group',
+                        'aria-label': 'Video size'
+                    }
+                });
+            }
+        }
+
+        function buildMediaSizePicker(root, editor, onPick) {
+            var selected = editor.model.document.selection.getSelectedElement();
+            var current = selected && selected.is('element', 'media')
+                ? (selected.getAttribute('tsugiMediaWidth') || '100%')
+                : '100%';
+            root.replaceChildren();
+            mediaSizes.forEach(function(item) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'tsugi-media-size ck-reset_all-excluded' + (item.value === current ? ' is-selected' : '');
+                button.textContent = item.label;
+                button.addEventListener('mousedown', function(event) { event.preventDefault(); });
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    onPick(item.value);
+                });
+                root.appendChild(button);
+            });
+        }
+
+        class TsugiMediaSize extends Plugin {
+            static get requires() {
+                return [MediaEmbed];
+            }
+            static get pluginName() {
+                return 'TsugiMediaSize';
+            }
+            afterInit() {
+                var editor = this.editor;
+                editor.model.schema.extend('media', { allowAttributes: ['tsugiMediaWidth'] });
+                editor.conversion.for('downcast').add(function(dispatcher) {
+                    dispatcher.on('attribute:tsugiMediaWidth:media', function(evt, data, conversionApi) {
+                        if (!conversionApi.consumable.consume(data.item, evt.name)) {
+                            return;
+                        }
+                        var figure = conversionApi.mapper.toViewElement(data.item);
+                        if (!figure) {
+                            return;
+                        }
+                        if (data.attributeNewValue) {
+                            conversionApi.writer.setStyle('width', data.attributeNewValue, figure);
+                        } else {
+                            conversionApi.writer.removeStyle('width', figure);
+                        }
+                    });
+                });
+                editor.conversion.for('upcast').attributeToAttribute({
+                    view: {
+                        name: 'figure',
+                        styles: { width: /.+/ }
+                    },
+                    model: {
+                        key: 'tsugiMediaWidth',
+                        value: function(viewElement) {
+                            if (!viewElement.hasClass('media')) {
+                                return null;
+                            }
+                            return viewElement.getStyle('width');
+                        }
+                    }
+                });
+                editor.commands.add('tsugiMediaSize', new TsugiMediaSizeCommand(editor));
+                editor.ui.componentFactory.add('tsugiMediaSize', function(locale) {
+                    var command = editor.commands.get('tsugiMediaSize');
+                    var dropdown = createDropdown(locale);
+                    dropdown.buttonView.set({
+                        label: 'Video size',
+                        withText: true,
+                        tooltip: true
+                    });
+                    dropdown.bind('isEnabled').to(command, 'isEnabled');
+                    var picker = new MediaSizePickerView(locale);
+                    function applySize(width) {
+                        editor.execute('tsugiMediaSize', { width: width });
+                        dropdown.isOpen = false;
+                        editor.editing.view.focus();
+                    }
+                    picker.on('render', function() {
+                        buildMediaSizePicker(picker.element, editor, applySize);
+                    });
+                    dropdown.on('change:isOpen', function() {
+                        if (dropdown.isOpen && picker.element) {
+                            buildMediaSizePicker(picker.element, editor, applySize);
+                        }
+                    });
+                    dropdown.panelView.children.add(picker);
+                    return dropdown;
+                });
+            }
+        }
+
+        var node = document.querySelector('#editor_body');
+        if (node && typeof window.tsugiBindEditor === 'function') {
+            var base = window.tsugiEditorConfig || {};
+            ClassicEditor
+                .create(node, {
+                    licenseKey: 'GPL',
+                    plugins: [
+                        Essentials,
+                        Paragraph,
+                        Heading,
+                        Bold,
+                        Italic,
+                        Font,
+                        Link,
+                        List,
+                        Indent,
+                        BlockQuote,
+                        Alignment,
+                        Highlight,
+                        CodeBlock,
+                        HorizontalLine,
+                        GeneralHtmlSupport,
+                        StyledHorizontalLine,
+                        Table,
+                        TableToolbar,
+                        MediaEmbed,
+                        MediaEmbedStyle,
+                        MediaEmbedToolbar,
+                        TsugiMediaSize,
+                        Image,
+                        ImageCaption,
+                        ImageStyle,
+                        ImageToolbar,
+                        ImageUpload,
+                        Autoformat,
+                        PasteFromOffice
+                    ],
+                    toolbar: { items: <?= $toolbarJson ?> },
+                    link: base.link,
+                    fontFamily: {
+                        options: [
+                            'default',
+                            'Arial, Helvetica, sans-serif',
+                            'Courier New, Courier, monospace',
+                            'Georgia, serif',
+                            'Lucida Sans Unicode, Lucida Grande, sans-serif',
+                            'Palatino Linotype, Palatino, serif',
+                            'Tahoma, Geneva, sans-serif',
+                            'Times New Roman, Times, serif',
+                            'Trebuchet MS, Helvetica, sans-serif',
+                            'Verdana, Geneva, sans-serif'
+                        ],
+                        supportAllValues: true
+                    },
+                    fontSize: {
+                        options: <?= $sizesJson ?>,
+                        supportAllValues: true
+                    },
+                    fontColor: {
+                        colors: fontColors,
+                        columns: 6
+                    },
+                    alignment: {
+                        options: ['left', 'center', 'right', 'justify']
+                    },
+                    codeBlock: {
+                        languages: [
+                            { language: 'plaintext', label: 'Plain text' },
+                            { language: 'python', label: 'Python' },
+                            { language: 'html', label: 'HTML' },
+                            { language: 'css', label: 'CSS' },
+                            { language: 'javascript', label: 'JavaScript' },
+                            { language: 'sql', label: 'SQL' },
+                            { language: 'json', label: 'JSON' },
+                            { language: 'bash', label: 'Bash' },
+                            { language: 'xml', label: 'XML' },
+                            { language: 'php', label: 'PHP' }
+                        ]
+                    },
+                    htmlSupport: {
+                        allow: [
+                            { name: 'hr', styles: true }
+                        ]
+                    },
+                    table: {
+                        contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+                    },
+                    image: {
+                        toolbar: ['imageTextAlternative']
+                    },
+                    mediaEmbed: {
+                        previewsInData: true,
+                        toolbar: [
+                            'mediaEmbed:wrapText',
+                            'mediaEmbed:breakText',
+                            'tsugiMediaSize'
+                        ]
+                    }
+                })
+                .then(function(ed) {
+                    window.tsugiBindEditor(ed);
+                })
+                .catch(function(error) {
+                    console.error(error);
+                });
+        }
+        </script>
+        <?php
+    }
+
+    /**
+     * Text colors shared by the font color dropdown and the line picker.
+     *
+     * @return list<array{color:string,label:string,hasBorder?:bool}>
+     */
+    private static function pagesColors()
+    {
+        return array(
+            array('color' => '#111111', 'label' => 'Black'),
+            array('color' => '#4b5563', 'label' => 'Dim gray'),
+            array('color' => '#9ca3af', 'label' => 'Silver', 'hasBorder' => true),
+            array('color' => '#dc2626', 'label' => 'Red'),
+            array('color' => '#ea580c', 'label' => 'Orange'),
+            array('color' => '#ca8a04', 'label' => 'Gold'),
+            array('color' => '#16a34a', 'label' => 'Green'),
+            array('color' => '#0d9488', 'label' => 'Teal'),
+            array('color' => '#2563eb', 'label' => 'Blue'),
+            array('color' => '#4f46e5', 'label' => 'Indigo'),
+            array('color' => '#7c3aed', 'label' => 'Purple'),
+            array('color' => '#db2777', 'label' => 'Pink'),
+        );
+    }
+
+    /**
+     * Pixel sizes. Inline font-size survives outside the editor.
+     *
+     * @return list<int|string>
+     */
+    private static function pagesFontSizes()
+    {
+        return array('default', 12, 14, 16, 18, 20, 24, 28, 36);
+    }
+
+    /**
+     * Line thicknesses. The value is the rendered bar height.
+     *
+     * @return list<array{label:string,value:string}>
+     */
+    private static function pagesRuleThicknesses()
+    {
+        return array(
+            array('label' => 'Hairline', 'value' => '1px'),
+            array('label' => 'Thin', 'value' => '2px'),
+            array('label' => 'Medium', 'value' => '4px'),
+            array('label' => 'Thick', 'value' => '8px'),
+        );
     }
 
     /**
@@ -156,6 +773,102 @@ class CKEditor {
         .page-content a:visited:hover {
             color: #5a32a3 !important;
         }
+        /* A plain rule. A styled rule carries its thickness as border-top-width. */
+        .page-content hr {
+            display: block;
+            width: 100%;
+            height: 1px;
+            border: 0;
+            background-color: #cccccc;
+            margin: 1.25em 0;
+        }
+        .page-content hr[style*="border-top-width"],
+        .ck-content hr[style*="border-top-width"] {
+            height: 0 !important;
+            background: none !important;
+            display: block;
+        }
+        .tsugi-hr-picker { padding: 10px 12px; width: 248px; box-sizing: border-box; }
+        .tsugi-hr-picker p { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #333; }
+        .tsugi-hr-picker .tsugi-hr-hint { font-weight: 400; color: #666; margin: 2px 0 0; }
+        .tsugi-hr-thicknesses, .tsugi-hr-colors { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+        /* CKEditor's reset sets width/height/border auto on panel contents. */
+        .ck .tsugi-hr-thickness,
+        .tsugi-hr-thickness { width: auto !important; height: auto !important; border: 1px solid #ccc !important; background: #fff; border-radius: 3px; padding: 3px 8px !important; cursor: pointer; font-size: 12px; }
+        .tsugi-hr-thickness.is-selected { border-color: #1d4ed8 !important; background: #eff6ff; color: #1e3a8a; }
+        .tsugi-hr-swatch.is-selected { outline: 2px solid #1d4ed8; outline-offset: 1px; }
+        /* Embedded video. Floated videos take half the column unless a size is set. */
+        .page-content { display: flow-root; }
+        .page-content figure.media {
+            clear: both;
+            display: block;
+            margin: 0.9em auto;
+            max-width: 100%;
+        }
+        .page-content figure.media iframe {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            border: 0;
+            display: block;
+        }
+        .ck-content figure.media.media-style-align-left,
+        .ck-content figure.media.media-style-align-right,
+        .page-content figure.media.media-style-align-left,
+        .page-content figure.media.media-style-align-right {
+            clear: none;
+            width: 50%;
+            max-width: 100%;
+        }
+        .ck-content figure.media.media-style-align-left,
+        .page-content figure.media.media-style-align-left {
+            float: left;
+            margin: 0.4em 1.5em 0.9em 0;
+        }
+        .ck-content figure.media.media-style-align-right,
+        .page-content figure.media.media-style-align-right {
+            float: right;
+            margin: 0.4em 0 0.9em 1.5em;
+        }
+        .page-content figure.media.media-style-block-align-left {
+            margin-left: 0;
+            margin-right: auto;
+        }
+        .page-content figure.media.media-style-block-align-right {
+            margin-left: auto;
+            margin-right: 0;
+        }
+        .tsugi-media-sizes { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; }
+        .ck .tsugi-media-size,
+        .tsugi-media-size { width: auto !important; height: auto !important; border: 1px solid #ccc !important; background: #fff; border-radius: 3px; padding: 3px 8px !important; cursor: pointer; font-size: 12px; }
+        .tsugi-media-size.is-selected { border-color: #1d4ed8 !important; background: #eff6ff; color: #1e3a8a; }
+        .page-content pre {
+            text-align: left;
+            tab-size: 4;
+            white-space: pre-wrap;
+            word-break: normal;
+            overflow-wrap: break-word;
+            background: #f7f7f9;
+            border: 1px solid #e1e1e8;
+            border-radius: 4px;
+            padding: 1em;
+            margin: 0.9em 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+        .page-content pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+        .page-content .marker-yellow { background-color: #fdfd77; }
+        .page-content .marker-green { background-color: #62f962; }
+        .page-content .marker-pink { background-color: #fc7899; }
+        .page-content .marker-blue { background-color: #72ccfd; }
+        .page-content .pen-red { color: #e71313; background-color: transparent; }
+        .page-content .pen-green { color: #128a00; background-color: transparent; }
+        .ck .tsugi-hr-swatch,
+        .tsugi-hr-swatch { width: 24px !important; height: 24px !important; min-width: 24px; border: 1px solid rgba(0,0,0,.35) !important; border-radius: 3px; padding: 0 !important; cursor: pointer; display: inline-block; }
         <?php if ($includeLinkPicker): ?>
         #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); transition: opacity 0.25s ease; opacity: 0; }
         #page-link-modal.open { opacity: 1; }
@@ -514,26 +1227,30 @@ class CKEditor {
             completeLinkPick(url, fileItem.title || fileItem.filename || '', true);
         }
 
+        function tsugiBindEditor(ed) {
+            editor = ed;
+            setTimeout(function() {
+                addPageLinkButtonToToolbar();
+            }, 500);
+        }
+        window.tsugiBindEditor = tsugiBindEditor;
+
         $(document).ready( function () {
-            if (typeof ClassicEditor !== 'undefined' && document.querySelector('#editor_body')) {
+            if (!window.tsugiPagesEditor && typeof ClassicEditor !== 'undefined' && document.querySelector('#editor_body')) {
+                var editorConfig = ClassicEditor.defaultConfig || window.tsugiEditorConfig;
                 ClassicEditor
-                    .create( document.querySelector( '#editor_body' ), ClassicEditor.defaultConfig )
-                    .then(ed => {
-                        editor = ed;
-                        setTimeout(function() {
-                            addPageLinkButtonToToolbar();
-                        }, 500);
-                    })
+                    .create( document.querySelector( '#editor_body' ), editorConfig )
+                    .then(tsugiBindEditor)
                     .catch( error => {
                         console.error( error );
                     });
-
-                $('#page_form').on('submit', function(e) {
-                    if ( editor ) {
-                        $('#editor_body').val(editor.getData());
-                    }
-                });
             }
+
+            $('#page_form').on('submit', function(e) {
+                if ( editor ) {
+                    $('#editor_body').val(editor.getData());
+                }
+            });
 
             document.addEventListener('click', function(event) {
                 var modal = document.getElementById('page-link-modal');

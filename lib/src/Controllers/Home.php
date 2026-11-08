@@ -494,11 +494,11 @@ class Home extends Tool {
         $pages_base = rtrim($this->toolHome(Pages::ROUTE), '/').'/';
         return array(
             'title' => $title,
-            'body_html' => PageRepository::expandHtml(
+            'body_html' => PageRepository::renderEmbeddedMedia(PageRepository::expandHtml(
                 self::rebaseRelativePageUrls($body, $pages_base),
                 $this->courseFileBaseUrl(Pages::ROUTE),
                 self::courseLocalPrefixes()
-            ),
+            )),
             'published' => empty($page['published']) ? 0 : 1,
             'edit_url' => $edit_url,
         );

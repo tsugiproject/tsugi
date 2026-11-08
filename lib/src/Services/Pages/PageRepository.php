@@ -191,6 +191,125 @@ class PageRepository {
     }
 
     /**
+     * Turn a semantic oEmbed tag into an iframe so a saved video plays on the page.
+     * The editor stores <oembed url="...">, which a browser does not render.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function renderEmbeddedMedia($html) {
+        if ( ! is_string($html) || stripos($html, '<oembed') === false ) {
+            return $html;
+        }
+        $rendered = preg_replace_callback(
+            '/<oembed\b([^>]*)\/?>(?:\s*<\/oembed>)?/i',
+            function ($match) {
+                $url = self::oembedUrlAttribute($match[1]);
+                $preview = $url === null ? null : self::mediaIframe($url);
+                if ( $preview === null ) {
+                    return $match[0];
+                }
+                return '<div data-oembed-url="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '">' . $preview . '</div>';
+            },
+            $html
+        );
+        return is_string($rendered) ? $rendered : $html;
+    }
+
+    /**
+     * @param string $attrs
+     * @return string|null
+     */
+    private static function oembedUrlAttribute($attrs) {
+        if ( ! preg_match('/\burl\s*=\s*(["\'])(.*?)\1/i', $attrs, $match) ) {
+            return null;
+        }
+        $url = html_entity_decode($match[2], ENT_QUOTES, 'UTF-8');
+        if ( ! preg_match('#^https?://#i', $url) ) {
+            return null;
+        }
+        return $url;
+    }
+
+    /**
+     * @param string $url
+     * @return string|null
+     */
+    private static function mediaIframe($url) {
+        $parts = parse_url($url);
+        if ( ! is_array($parts) || empty($parts['host']) ) {
+            return null;
+        }
+        $host = strtolower((string) $parts['host']);
+        if ( strpos($host, 'www.') === 0 ) {
+            $host = substr($host, 4);
+        }
+        $path = isset($parts['path']) ? (string) $parts['path'] : '';
+        $query = array();
+        if ( ! empty($parts['query']) ) {
+            parse_str((string) $parts['query'], $query);
+        }
+        if ( self::hostIs($host, 'youtu.be') || self::hostIs($host, 'youtube.com') || self::hostIs($host, 'youtube-nocookie.com') ) {
+            $id = '';
+            $start = '';
+            if ( self::hostIs($host, 'youtu.be') ) {
+                $id = trim($path, '/');
+            } else if ( preg_match('#/(?:embed|shorts|live|v)/([^/?]+)#', $path, $match) ) {
+                $id = $match[1];
+            } else if ( isset($query['v']) ) {
+                $id = (string) $query['v'];
+            }
+            if ( isset($query['start']) && ctype_digit((string) $query['start']) ) {
+                $start = (string) $query['start'];
+            } else if ( isset($query['t']) && ctype_digit((string) $query['t']) ) {
+                $start = (string) $query['t'];
+            }
+            if ( ! preg_match('/^[A-Za-z0-9_-]{6,20}$/', $id) ) {
+                return null;
+            }
+            $src = 'https://www.youtube.com/embed/' . $id;
+            if ( $start !== '' ) {
+                $src .= '?start=' . $start;
+            }
+            return self::videoIframe($src);
+        }
+        if ( self::hostIs($host, 'vimeo.com') || self::hostIs($host, 'player.vimeo.com') ) {
+            if ( preg_match('#(\d{6,12})#', $path, $match) ) {
+                return self::videoIframe('https://player.vimeo.com/video/' . $match[1]);
+            }
+        }
+        if ( self::hostIs($host, 'dailymotion.com') ) {
+            if ( preg_match('#/video/([A-Za-z0-9]{4,20})#', $path, $match) ) {
+                return self::videoIframe('https://www.dailymotion.com/embed/video/' . $match[1]);
+            }
+        }
+        if ( self::hostIs($host, 'dai.ly') ) {
+            if ( preg_match('#^/([A-Za-z0-9]{4,20})$#', $path, $match) ) {
+                return self::videoIframe('https://www.dailymotion.com/embed/video/' . $match[1]);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string $host
+     * @param string $name
+     * @return bool
+     */
+    private static function hostIs($host, $name) {
+        return $host === $name || substr($host, -strlen($name) - 1) === '.' . $name;
+    }
+
+    /**
+     * @param string $src
+     * @return string
+     */
+    private static function videoIframe($src) {
+        $src = htmlspecialchars($src, ENT_QUOTES, 'UTF-8');
+        return '<div><iframe src="' . $src . '" width="1280" height="720" style="width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; display: block;" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>';
+    }
+
+    /**
      * Convert current-course URLs to $IMS-CC-FILEBASE$ before storing HTML.
      *
      * @param string $html
