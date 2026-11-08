@@ -1215,7 +1215,9 @@ of this type of data.
 
         $query_parms = array(":UID" => ReqScope::loggedInUserId());
         $searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
-        $sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
+        $sql = "SELECT key_id, key_key, secret, lms_issuer, lms_client,
+                lms_oidc_auth, lms_keyset_url, lms_token_url,
+                login_at, created_at, updated_at, user_id
                 FROM {$CFG->dbprefix}lti_key
                 WHERE user_id = :UID";
 
@@ -1223,8 +1225,15 @@ of this type of data.
         $rows = $PDOX->allRowsDie($newsql, $query_parms);
         $newrows = array();
         foreach ( $rows as $row ) {
-            $newrow = $row;
+            $newrow = array();
+            $newrow['key_id'] = $row['key_id'];
+            $newrow['key_key'] = $row['key_key'];
+            $newrow['status'] = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
             $newrow['secret'] = '****';
+            $newrow['login_at'] = $row['login_at'];
+            $newrow['created_at'] = $row['created_at'];
+            $newrow['updated_at'] = $row['updated_at'];
+            $newrow['user_id'] = $row['user_id'];
             $newrows[] = $newrow;
         }
 

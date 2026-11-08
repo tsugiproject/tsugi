@@ -542,6 +542,42 @@ class AdminService {
         return true;
     }
 
+    /**
+     * Status label for a tenant key on the admin list and detail page.
+     *
+     * A consumer key with a secret is LTI 1.1. A consumer key without a secret
+     * is LTI 1.1 and Draft. An issuer makes the key LTI 1.3. It stays Draft
+     * until the client id, OIDC login URL, keyset URL, and token URL are set.
+     *
+     * @param array<string, mixed> $row
+     */
+    public static function keyTypeLabel(array $row) {
+        $parts = array();
+        $draft = false;
+
+        if ( U::isNotEmpty(U::get($row, 'key_key')) ) {
+            $parts[] = 'LTI 1.1';
+            if ( ! U::isNotEmpty(U::get($row, 'secret')) ) {
+                $draft = true;
+            }
+        }
+
+        if ( U::isNotEmpty(U::get($row, 'lms_issuer')) ) {
+            $parts[] = 'LTI 1.3';
+            if ( ! U::isNotEmpty(U::get($row, 'lms_client'))
+                || ! U::isNotEmpty(U::get($row, 'lms_oidc_auth'))
+                || ! U::isNotEmpty(U::get($row, 'lms_keyset_url'))
+                || ! U::isNotEmpty(U::get($row, 'lms_token_url')) ) {
+                $draft = true;
+            }
+        }
+
+        if ( $draft || count($parts) < 1 ) {
+            $parts[] = 'Draft';
+        }
+        return implode(' / ', $parts);
+    }
+
     public static function validate_key_details($key_key, $deploy_key, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $lms_client=null, $exclude_key_id=null) {
         global $PDOX, $CFG;
 

@@ -107,20 +107,7 @@ if ( ! is_array($row) ) {
     return;
 }
 
-$key_type = '';
-if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
-    $key_type .= 'LTI 1.1';
-}
-$lti13_lms = is_string($row['lms_issuer']) && !empty($row['lms_issuer'])
-    && is_string($row['lms_client']) && !empty($row['lms_client']);
-if ( $lti13_lms ) {
-    if ( !empty($key_type) ) $key_type .= ' / ';
-    $key_type .= 'LTI 1.3';
-} else if ( is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
-    if ( !empty($key_type) ) $key_type .= ' / ';
-    $key_type .= 'LTI 1.3';
-}
-if ( $key_type == '' ) $key_type = 'Draft';
+$key_type = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
