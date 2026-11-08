@@ -37,6 +37,9 @@ if ( $stmt->success ) {
         error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
     }
 }
+if ( is_object($PDOX) ) {
+    echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
+}
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
    <div id="iframe-spinner" role="status" aria-live="polite">
