@@ -288,6 +288,7 @@ class DynamicRegistration {
         $deploy_for_check = $deployment_id ? $deployment_id : U::get($row, 'deploy_key');
         if ( ! \Tsugi\Services\Admin\AdminService::validate_issuer_client_unique($issuer, $client_id, $deploy_for_check, $tsugi_key) ) {
             $message = isset($_SESSION[U::FLASH_ERROR]) ? $_SESSION[U::FLASH_ERROR] : 'This issuer, client id, and deployment id are already in use';
+            unset($_SESSION[U::FLASH_ERROR]);
             error_log($message);
             echo("<p><b>".htmlentities($message)."</b></p>\n");
             echo("<p>The key was not updated.</p>\n");
