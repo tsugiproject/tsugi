@@ -30,6 +30,16 @@ class Outline extends Lessons {
     /** @var int */
     private static $headerIndex = 0;
 
+    /** @var string Author link, when this outline is shown to an instructor who can edit. */
+    private static $cornerHtml = '';
+
+    /**
+     * @param string $html
+     */
+    public static function setCornerHtml($html) {
+        self::$cornerHtml = is_string($html) ? $html : '';
+    }
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Outline@get');
         $app->router->get($prefix.'/', 'Outline@get');
@@ -159,8 +169,12 @@ class Outline extends Lessons {
         }
 
         echo('<div class="tsugi-tree-toolbar">');
-        echo('<button type="button" class="tsugi-tree-all" data-tree-all="open">'.htmlspecialchars(__('Expand all'), ENT_QUOTES, 'UTF-8').'</button>');
-        echo('<button type="button" class="tsugi-tree-all" data-tree-all="shut">'.htmlspecialchars(__('Contract all'), ENT_QUOTES, 'UTF-8').'</button>');
+        if ( self::$cornerHtml !== '' ) {
+            echo(self::$cornerHtml);
+            self::$cornerHtml = '';
+        }
+        echo('<button type="button" class="btn btn-default btn-sm tsugi-tree-all" data-tree-all="open">'.htmlspecialchars(__('Expand all'), ENT_QUOTES, 'UTF-8').'</button>');
+        echo('<button type="button" class="btn btn-default btn-sm tsugi-tree-all" data-tree-all="shut">'.htmlspecialchars(__('Collapse all'), ENT_QUOTES, 'UTF-8').'</button>');
         echo("</div>\n");
 
         $allgrades = array();
@@ -300,21 +314,19 @@ class Outline extends Lessons {
     object-fit: contain;
 }
 .tsugi-tree-toolbar {
+    position: fixed;
+    right: 10px;
+    top: 56px;
+    z-index: 999;
     display: flex;
     gap: 0.5rem;
-    margin: 0 0 14px;
-}
-.tsugi-tree-toolbar button {
-    font: inherit;
-    font-size: 0.85rem;
-    line-height: 1.4;
-    background: #fff;
-    border: 1px solid #ccc;
+    align-items: center;
+    margin: 0;
+    background-color: #fff;
+    padding: 4px 8px;
     border-radius: 4px;
-    padding: 0.12rem 0.55rem;
-    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.tsugi-tree-toolbar button:hover { background: #f0f0f0; }
 .tsugi-tree-module-body { padding: 16px 20px 20px; }
 .tsugi-tree-module-body.is-collapsed { display: none; }
 .tsugi-tree .tsugi-step-progress { position: static; top: auto; }

@@ -192,15 +192,21 @@ class Lessons extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         if ( $this->isInstructor() && ! ReqScope::isAnonymousLessonView() ) {
-            echo('<span style="position: fixed; right: 10px; top: 56px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
+            $corner = '';
             if ( $this->canAuthorLessons() ) {
                 $author_url = $this->authorLinkUrl($anchor);
-                echo('<a href="'.htmlspecialchars($author_url).'" class="btn btn-default btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i> '.__('Author').'</a>');
-            } else if ( $this->canExportLessonsV2() ) {
+                $corner = '<a href="'.htmlspecialchars($author_url).'" class="btn btn-default btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i> '.__('Author').'</a>';
+            } else if ( $this->canExportLessonsV2() && $this->authorFromView() === null ) {
                 $export_v2_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/export-v2');
-                echo('<a href="'.htmlspecialchars($export_v2_url).'" class="btn btn-default btn-sm"><i class="fa fa-download" aria-hidden="true"></i> '.__('Export lessons.json v2').'</a>');
+                $corner = '<a href="'.htmlspecialchars($export_v2_url).'" class="btn btn-default btn-sm"><i class="fa fa-download" aria-hidden="true"></i> '.__('Export lessons.json v2').'</a>';
             }
-            echo('</span>');
+            if ( $this->authorFromView() === 'outline' ) {
+                Outline::setCornerHtml($corner);
+            } else if ( $corner !== '' ) {
+                echo('<span style="position: fixed; right: 10px; top: 56px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
+                echo($corner);
+                echo('</span>');
+            }
         }
         self::header($l);
         $this->openLessonsView();

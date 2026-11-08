@@ -421,7 +421,7 @@ class Content extends Lessons {
     margin-left: 0;
     margin-right: 0;
     padding-left: 1rem;
-    padding-right: 0;
+    padding-right: 1rem;
 }
 .tsugi-outline {
     display: flex;

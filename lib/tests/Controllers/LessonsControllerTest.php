@@ -369,8 +369,10 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $html = Outline::render($lessons, true);
         $this->assertStringContainsString('tsugi-tree-module', $html);
         $this->assertStringContainsString('tsugi-tree-section-head', $html);
-        $this->assertStringContainsString('Expand all', $html);
-        $this->assertStringContainsString('Contract all', $html);
+        $this->assertStringContainsString('class="btn btn-default btn-sm tsugi-tree-all" data-tree-all="open">Expand all', $html);
+        $this->assertStringContainsString('class="btn btn-default btn-sm tsugi-tree-all" data-tree-all="shut">Collapse all', $html);
+        $this->assertStringContainsString('position: fixed', $html);
+        $this->assertStringContainsString('right: 10px', $html);
         $this->assertStringContainsString('>Slides</h2>', $html);
         $this->assertStringContainsString('Hello week one', $html);
         $this->assertStringContainsString('Hello week two', $html);
