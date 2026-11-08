@@ -43,7 +43,7 @@ class DynamicRegistration {
 
         if ( $user_id == 0 ) {
             $row = $PDOX->rowDie(
-                "SELECT key_title, key_key, unlock_code, user_id, plus,
+                "SELECT key_title, key_key, unlock_code, user_id, plus, deploy_key,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND unlock_code = :UNLOCK",
@@ -52,7 +52,7 @@ class DynamicRegistration {
             if ( $row && isset($row['user_id']) ) $user_id = $row['user_id']+0;
         } else {
             $row = $PDOX->rowDie(
-                "SELECT key_title, key_key, unlock_code, user_id, plus,
+                "SELECT key_title, key_key, unlock_code, user_id, plus, deploy_key,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND user_id = :UID AND unlock_code = :UNLOCK",
@@ -282,6 +282,17 @@ class DynamicRegistration {
         $deployment_id = null;
         if ( $tool_configuration ) {
             $deployment_id = isset($tool_configuration->deployment_id) ? $tool_configuration->deployment_id : null;
+        }
+
+        // A missing deployment id leaves the stored deploy_key unchanged.
+        $deploy_for_check = $deployment_id ? $deployment_id : U::get($row, 'deploy_key');
+        if ( ! \Tsugi\Services\Admin\AdminService::validate_issuer_client_unique($issuer, $client_id, $deploy_for_check, $tsugi_key) ) {
+            $message = isset($_SESSION[U::FLASH_ERROR]) ? $_SESSION[U::FLASH_ERROR] : 'This issuer, client id, and deployment id are already in use';
+            error_log($message);
+            echo("<p><b>".htmlentities($message)."</b></p>\n");
+            echo("<p>The key was not updated.</p>\n");
+            $OUTPUT->footer();
+            return '';
         }
 
         $issuer_sha256 = hash('sha256', trim($issuer));

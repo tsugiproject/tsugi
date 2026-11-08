@@ -2784,11 +2784,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // Notice only. A later unique (issuer, client id) would fail on these rows.
+    // Notice only. These rows share an issuer, client id, and deployment id.
     foreach ( \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows() as $identity_row ) {
         $stored_deploy = \Tsugi\Util\U::get($identity_row, 'deploy_key');
         $deploy_label = (is_string($stored_deploy) && trim($stored_deploy) !== '') ? trim($stored_deploy) : '(none)';
-        $message = 'Duplicate (client id, issuer): client_id='.\Tsugi\Util\U::get($identity_row, 'lms_client')
+        $message = 'Duplicate (client id, issuer, deployment id): client_id='.\Tsugi\Util\U::get($identity_row, 'lms_client')
             .' issuer='.\Tsugi\Util\U::get($identity_row, 'lms_issuer')
             .' deployment_id='.$deploy_label
             .' key_id='.\Tsugi\Util\U::get($identity_row, 'key_id');
