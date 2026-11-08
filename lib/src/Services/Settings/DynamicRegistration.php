@@ -280,8 +280,8 @@ class DynamicRegistration {
         $tc_key = "https://purl.imsglobal.org/spec/lti-tool-configuration";
         $tool_configuration = isset($resp->{$tc_key}) ? $resp->{$tc_key} : null;
         $deployment_id = null;
-        if ( $tool_configuration ) {
-            $deployment_id = isset($tool_configuration->deployment_id) ? $tool_configuration->deployment_id : null;
+        if ( is_object($tool_configuration) && isset($tool_configuration->deployment_id) ) {
+            $deployment_id = $tool_configuration->deployment_id;
         }
 
         $issuer_sha256 = hash('sha256', trim($issuer));
@@ -317,18 +317,23 @@ class DynamicRegistration {
 
         error_log("Stored issuer $issuer / $client_id in lti_key table");
 
-        if ( $deployment_id ) {
-            $deployment_sha256 = hash('sha256', trim($deployment_id));
-            $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
+        $deployment_text = null;
+        if ( is_string($deployment_id) ) {
+            $deployment_text = trim($deployment_id);
+        } else if ( is_int($deployment_id) || is_float($deployment_id) ) {
+            $deployment_text = trim((string) $deployment_id);
+        }
+        if ( $deployment_text !== null && $deployment_text !== '' ) {
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}lti_key SET lti13_deployment_id = :DID
                     WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
-                array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
+                array(":DID" => $deployment_text, ":KID" => $tsugi_key, ":UID" => $user_id)
             );
-
             if ( ! $stmt->success ) {
-                echo("Unable to update key entry to set deployment_id\n");
+                echo("Unable to update key entry to set lti13_deployment_id\n");
                 return '';
             }
+            error_log("Stored lti13_deployment_id as part of dynamic registration");
         }
 
         echo('<button onclick="(window.opener || window.parent).postMessage({subject:\'org.imsglobal.lti.close\'}, \'*\')">Continue Registration in the LMS</button>'."\n");

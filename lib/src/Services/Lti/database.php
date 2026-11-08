@@ -93,8 +93,12 @@ array( "{$CFG->dbprefix}lti_key",
     -- on purpose to avoid potential circular foreign keys
     user_id             INTEGER NULL,
 
-    -- Issuer / client_id / deployment_id defines a client (i.e. who pays the bill)
-
+    -- deploy_key and deploy_sha256 stay for one more release. Upgrade copies
+    -- deploy_key into lti13_deployment_id when that column is still null.
+    -- A follow-on change drops both columns and takes deploy_sha256 out of
+    -- lti_key_const_1. That unique key can then be (issuer, client id).
+    -- The upgrade notice lists duplicate (issuer, client id) rows first,
+    -- because those rows would make the new unique key fail.
     deploy_sha256       CHAR(64) NULL,
     deploy_key          TEXT NULL,     -- deployment_id renamed
 
@@ -105,6 +109,10 @@ array( "{$CFG->dbprefix}lti_key",
     lms_issuer           TEXT NULL,  -- iss from the JWT
     lms_issuer_sha256    CHAR(64) NULL,
     lms_client           TEXT NULL,  -- aud from the JWT / client_id in OAuth
+
+    -- Recorded when dynamic registration sends a deployment id.
+    -- Metadata only. Launches do not read this. Not part of any unique key.
+    lti13_deployment_id VARCHAR(255) NULL DEFAULT NULL,
 
     lms_oidc_auth       TEXT NULL,
     lms_keyset_url      TEXT NULL,
@@ -151,8 +159,7 @@ array( "{$CFG->dbprefix}lti_key",
     -- Upgrade adds this unique key. It does not add this default.
     guid                BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
 
-    -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
-    -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
+    -- Still includes deploy_sha256. The follow-on change removes it from this key.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
@@ -338,7 +345,7 @@ array( "{$CFG->dbprefix}lti_context",
     plus_course         TINYINT(1) NOT NULL DEFAULT 0,
     -- 1 when anyone may open this course's lessons without membership.
     anonymous_lessons   TINYINT(1) NOT NULL DEFAULT 0,
-    -- Deployment id from the Plus launch. Token calls read this.
+    -- Deployment id from the Plus launch. Token calls in Plus courses read this.
     lti13_deployment_id TEXT NULL,
     -- lti_link of the Plus launch. No foreign key: lti_link already points here.
     plus_launch_link_id INTEGER NULL,
@@ -542,6 +549,10 @@ array( "{$CFG->dbprefix}lti_link",
     ags_resource_id     VARCHAR(256) NULL,
     ags_tag             VARCHAR(256) NULL,
 
+    -- Launch deployment id. The column is added now and not written yet.
+    -- The value used at runtime still comes from the launch JWT.
+    lti13_deployment_id VARCHAR(255) NULL DEFAULT NULL,
+
     -- Google coursework id when this column is mirrored. The link_key stays
     -- the lesson resource id. File-based Classroom courses leave this empty
     -- and keep the coursework id in link_key.
@@ -583,6 +594,7 @@ array( "{$CFG->dbprefix}lti_link",
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_guid` UNIQUE (`guid`),
+    INDEX `{$CFG->dbprefix}lti_link_indx_deployment` (lti13_deployment_id),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -1671,6 +1683,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'lms_issuer', 'TEXT NULL'),
         array('lti_key', 'lms_issuer_sha256', 'CHAR(64) NULL'),
         array('lti_key', 'lms_client', 'TEXT NULL'),
+        array('lti_key', 'lti13_deployment_id', 'VARCHAR(255) NULL DEFAULT NULL'),
         array('lti_key', 'lms_oidc_auth', 'TEXT NULL'),
         array('lti_key', 'lms_keyset_url', 'TEXT NULL'),
         array('lti_key', 'lms_token_url', 'TEXT NULL'),
@@ -1686,6 +1699,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_result', 'grading_progress', 'VARCHAR(30) NOT NULL DEFAULT \'NotReady\''),
         array('lti_result', 'activity_progress', 'VARCHAR(30) NOT NULL DEFAULT \'Initialized\''),
         array('lti_link', 'score_maximum', 'DOUBLE NULL'),
+        array('lti_link', 'lti13_deployment_id', 'VARCHAR(255) NULL DEFAULT NULL'),
 
         // 2025-03-10 AGS Phase 1: result schema for Assignments and Grades Service
         array('lti_result', 'result_maximum', 'DOUBLE NULL'),
@@ -1792,6 +1806,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_user', 'gc_checked_at', 'TIMESTAMP NULL'),
     );
 
+    $link_table = "{$CFG->dbprefix}lti_link";
+    if ( $PDOX->columnExists('deployment_id', $link_table) && ! $PDOX->columnExists('lti13_deployment_id', $link_table) ) {
+        $sql = "ALTER TABLE {$link_table} CHANGE deployment_id lti13_deployment_id VARCHAR(255) NULL DEFAULT NULL";
+        echo("Upgrading: ".htmlentities($sql)."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error renaming lti_link.deployment_id: ".$q->errorImplode;
+            error_log($message);
+            echo(htmlentities($message)."<br/>\n");
+        }
+    }
+
     foreach ( $add_some_fields as $add_field ) {
         if (count($add_field) != 3 ) {
             echo("Badly formatted add_field");
@@ -1878,7 +1905,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // Make sure that lti_key has the correct unique indexes
+    // Keep lti_key_const_1 until the follow-on change drops deploy_sha256 from it.
     $needed_indexes = array(
         'lti_key_const_1' => 'ADD CONSTRAINT `lti_key_const_1` UNIQUE(key_sha256, deploy_sha256)',
     );
@@ -2782,6 +2809,97 @@ $DATABASE_UPGRADE = function($oldversion) {
             error_log($message);
             echo($message."<br/>\n");
         }
+    }
+
+    $link_table = "{$CFG->dbprefix}lti_link";
+    $link_deployment_index = "{$CFG->dbprefix}lti_link_indx_deployment";
+    if ( $PDOX->columnExists('lti13_deployment_id', $link_table) && ! $PDOX->indexExists($link_deployment_index, $link_table) ) {
+        $sql = "CREATE INDEX `{$link_deployment_index}` ON {$link_table} (lti13_deployment_id)";
+        echo("Upgrading: ".htmlentities($sql)."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating index: ".$q->errorImplode;
+            error_log($message);
+            echo(htmlentities($message)."<br/>\n");
+        }
+    }
+
+    $key_table = "{$CFG->dbprefix}lti_key";
+    if ( $PDOX->columnExists('deploy_key', $key_table) && $PDOX->columnExists('lti13_deployment_id', $key_table) ) {
+        $sql = "UPDATE {$key_table}
+            SET lti13_deployment_id = deploy_key
+            WHERE deploy_key IS NOT NULL
+                AND lti13_deployment_id IS NULL
+                AND CHAR_LENGTH(deploy_key) <= 255";
+        $q = $PDOX->queryReturnError($sql);
+        if ( $q->success ) {
+            $copied = (int) $q->rowCount();
+            if ( $copied > 0 ) {
+                $message = "Copied deploy_key into lti13_deployment_id for {$copied} lti_key rows.";
+                error_log($message);
+                echo(htmlentities($message)."<br/>\n");
+            }
+            $pending = $PDOX->rowDie(
+                "SELECT COUNT(*) AS n FROM {$key_table}
+                    WHERE deploy_key IS NOT NULL
+                        AND lti13_deployment_id IS NULL
+                        AND CHAR_LENGTH(deploy_key) > 255"
+            );
+            $too_long = is_array($pending) ? (int) $pending['n'] : 0;
+            if ( $too_long > 0 ) {
+                $message = "Left {$too_long} lti_key deploy_key values uncopied because they are longer than 255 characters.";
+                error_log($message);
+                echo(htmlentities($message)."<br/>\n");
+            }
+        } else {
+            $message = "Non-Fatal error copying deploy_key into lti13_deployment_id: ".$q->errorImplode;
+            error_log($message);
+            echo(htmlentities($message)."<br/>\n");
+        }
+    }
+
+    // Notice only. A later change may unique (issuer, client id) and drop the
+    // lti_key unique key that includes deploy_sha256. This does not alter indexes.
+    $issuer_client_rows = $PDOX->allRowsDie(
+        "SELECT key_id, lms_issuer, lms_client, deploy_key
+            FROM {$CFG->dbprefix}lti_key
+            WHERE lms_issuer IS NOT NULL AND TRIM(lms_issuer) <> ''
+                AND lms_client IS NOT NULL AND TRIM(lms_client) <> ''
+            ORDER BY lms_issuer, lms_client, key_id"
+    );
+    $issuer_client_groups = array();
+    if ( is_array($issuer_client_rows) ) {
+        foreach ( $issuer_client_rows as $identity_row ) {
+            $issuer_text = trim((string) \Tsugi\Util\U::get($identity_row, 'lms_issuer', ''));
+            $client_text = trim((string) \Tsugi\Util\U::get($identity_row, 'lms_client', ''));
+            if ( $issuer_text === '' || $client_text === '' ) continue;
+            $group_key = $issuer_text."\n".$client_text;
+            if ( ! isset($issuer_client_groups[$group_key]) ) $issuer_client_groups[$group_key] = array();
+            $issuer_client_groups[$group_key][] = $identity_row;
+        }
+    }
+    $issuer_client_dupes = 0;
+    foreach ( $issuer_client_groups as $members ) {
+        if ( count($members) < 2 ) continue;
+        $issuer_client_dupes++;
+        $issuer_text = trim((string) \Tsugi\Util\U::get($members[0], 'lms_issuer', ''));
+        $client_text = trim((string) \Tsugi\Util\U::get($members[0], 'lms_client', ''));
+        $parts = array();
+        foreach ( $members as $member ) {
+            $stored_deploy = \Tsugi\Util\U::get($member, 'deploy_key');
+            $deploy_label = (is_string($stored_deploy) && trim($stored_deploy) !== '') ? trim($stored_deploy) : '(none)';
+            $parts[] = 'key_id='.\Tsugi\Util\U::get($member, 'key_id').' deployment_id='.$deploy_label;
+        }
+        $message = 'Duplicate (client id, issuer) rows: issuer='.$issuer_text
+            .' client_id='.$client_text.' '.implode('; ', $parts);
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    }
+    if ( $issuer_client_dupes === 0 ) {
+        $message = 'There are no duplicate (client id, issuer) rows.';
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
     }
 
     // When you increase this number in any database.php file,

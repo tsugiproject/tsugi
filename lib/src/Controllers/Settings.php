@@ -1269,12 +1269,12 @@ you will need to request a key and have it approved.
         $allow_edit = true;
         $where_clause = '';
         $query_fields = array();
-        $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'updated_at');
+        $fields = array('key_id', 'key_title', 'key_key', 'secret', 'lti13_deployment_id', 'updated_at');
 
         $titles = array(
             'key_key' => 'LTI 1.1: OAuth Consumer Key',
             'secret' => 'LTI 1.1: OAuth Consumer Secret',
-            'deploy_key' => 'LTI 1.3: Deployment ID (leave blank to accept any value from the LMS)',
+            'lti13_deployment_id' => 'LTI 1.3 Deployment ID (Can be left blank)',
         );
 
         $where_clause .= "user_id = :UID";
@@ -1296,8 +1296,9 @@ you will need to request a key and have it approved.
             return new RedirectResponse($from_location);
         }
 
-        if ( isset($_POST['deploy_key']) ) {
-            $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
+        if ( isset($_POST['lti13_deployment_id']) ) {
+            $deployment_text = trim((string) $_POST['lti13_deployment_id']);
+            $_POST['lti13_deployment_id'] = $deployment_text === '' ? null : $deployment_text;
         }
 
         $row = CrudForm::handleUpdate($tablename, $fields, $where_clause,

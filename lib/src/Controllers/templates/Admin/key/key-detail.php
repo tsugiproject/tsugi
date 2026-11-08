@@ -22,17 +22,17 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_title', 'plus', 'key_key', 'secret', 'deploy_key',
+$fields = array('key_id', 'key_title', 'plus', 'key_key', 'secret',
      'unlock_code',
-     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+     'lms_issuer', 'lms_client', 'lti13_deployment_id', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key',
      'created_at', 'updated_at', 'user_id',
 );
 
-$realfields = array('key_id', 'key_title', 'plus', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
+$realfields = array('key_id', 'key_title', 'plus', 'key_key', 'key_sha256', 'secret',
      'unlock_code',
-     'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+     'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lti13_deployment_id', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key',
      'created_at', 'updated_at', 'user_id',
@@ -42,7 +42,7 @@ $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'plus' => 'Tsugi Plus',
-    'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
+    'lti13_deployment_id' => 'LTI 1.3 Deployment ID (metadata only, not used to find this tenant)',
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
 
@@ -52,17 +52,17 @@ if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
 
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
-if ( isset($_POST['deploy_key']) ) {
-    $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
-}
 if ( isset($_POST['doUpdate']) ) {
     $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
+    if ( isset($_POST['lti13_deployment_id']) ) {
+        $deployment_text = trim((string) $_POST['lti13_deployment_id']);
+        $_POST['lti13_deployment_id'] = $deployment_text === '' ? null : $deployment_text;
+    }
 }
 
 // Check the complex interaction of constraints
 $key_id = U::get($_POST,'key_id');
 $key_key = U::get($_POST,'key_key');
-$deploy_key = U::get($_POST,'deploy_key');
 
 // Check the complex validation
 if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
@@ -80,11 +80,10 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     }
 
     $old_key_key = $row['key_key'];
-    $old_deploy_key = $row['deploy_key'];
     $lms_issuer_val = array_key_exists('lms_issuer', $_POST) ? $_POST['lms_issuer'] : $row['lms_issuer'];
     $lms_client_val = array_key_exists('lms_client', $_POST) ? $_POST['lms_client'] : $row['lms_client'];
 
-    $retval = \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer_val, $old_key_key, $old_deploy_key, $lms_client_val, $key_id);
+    $retval = \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, null, $lms_issuer_val, $old_key_key, null, $lms_client_val, $key_id);
 
     if ( ! $retval ) {
         header("Location: ".$redir);
@@ -114,9 +113,6 @@ if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['se
 $lti13_lms = is_string($row['lms_issuer']) && !empty($row['lms_issuer'])
     && is_string($row['lms_client']) && !empty($row['lms_client']);
 if ( $lti13_lms ) {
-    if ( !empty($key_type) ) $key_type .= ' / ';
-    $key_type .= 'LTI 1.3';
-} else if ( is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
     if ( !empty($key_type) ) $key_type .= ' / ';
     $key_type .= 'LTI 1.3';
 }
@@ -193,17 +189,9 @@ will not work.
 For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
 </p>
 <p>
-For LTI 1.3, you can either
-(a) create a global issuer and select it here, and then set the <b>deployment_id</b> if you want this tenant to match only that deployment,
-<b>or</b> you can
-(b) leave the global issuer unset and set all of the LMS values in this screen.  If you mix
-a global issuer and per-key LTI 1.3 settings, you will most likely end up with a tenant that
-won't be able to receive launches.
-</p>
-<p>
-For the <b>LTI 1.3 Deployment ID</b> field on this key: leave blank to accept any value from the LMS
-(Tsugi still uses the deployment id from the launch for services such as grading).
-Enter a specific deployment id when you want this tenant to accept only that deployment.
+For LTI 1.3, set the issuer and client id on this key, or use a global issuer.
+If you mix a global issuer and per-key LTI 1.3 settings, you will most likely end up with a tenant that
+won't be able to receive launches. A deployment id recorded here is metadata. Launches still find this tenant by issuer and client id.
 </p>
 <p>
 If this is a pre-existing LTI 1.1 tenant, the LMS must provide the <b>oauth_consumer_key</b>
@@ -235,12 +223,8 @@ matches an existing issuer in this system, that issuer will be used for this key
 the new issuer data will be added to this key.
 </p>
 <p>
-A secondary and optional part of Dynamic Registration is to communicate the <b>Deployment ID</b> for this tenant / key.
-Sometimes this is included in the dynamic registration exchange (Sakai, Moodle, and Brightspace for example).
-For other LMS's you may need to run the dynamic registration process, and then manually enter the Deployment Id
-later if you want a specific deployment. You can also leave Deployment ID blank so the key accepts any value from the LMS.
-Many single-tenant Sakai or Moodle installs still send a concrete deployment id in launches (for example <b>1</b>);
-a blank Deployment ID field accepts that without storing it on the key row.
+The LMS may also send a deployment id during registration (Sakai and Moodle often send <b>1</b>).
+Tsugi records that value on this key. It does not select the tenant. Later launches still carry their own deployment id.
 </p>
 </div>
 <div class="tab-pane fade" id="brightspace">
@@ -317,9 +301,8 @@ URL.
 </p>
 <?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
-Sakai supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
-in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
-You may leave Deployment ID blank on the Tsugi key so it accepts any value from the LMS; Sakai often sends <b>deployment_id</b> <b>1</b> in launches, which is fine when this field is blank.
+Once registration finishes, the tenant has the issuer and client id it needs to launch.
+If Sakai sends a deployment id, Tsugi records it on this key. Launches still match by issuer and client id.
 </p>
 <?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
@@ -358,9 +341,8 @@ Moodle will prompt you for the Dynamic Registration URL.
 </p>
 <?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
-Moodle supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
-in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
-You may leave Deployment ID blank on the Tsugi key so it accepts any value from the LMS; Moodle may still send a concrete deployment id in launches.
+Once registration finishes, the tenant has the issuer and client id it needs to launch.
+If Moodle sends a deployment id, Tsugi records it on this key. Launches still match by issuer and client id.
 </p>
 <?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>

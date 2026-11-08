@@ -24,10 +24,8 @@ Canvas will create a <b>Deployment ID</b> (for example
 </p>
 
 <p>
-The Deployment ID is optional in Tsugi and may be left blank to accept
-launches from any Canvas deployment using that issuer/client pair.
-If you enter a Deployment ID on the Tenant, launches will be restricted
-to that specific Canvas deployment (i.e. it might just be one course).
+Tsugi matches the launch by issuer and client id. You can record the Canvas deployment id
+on this key. That value is metadata.
 </p>
 <?php
 $plusOn = isset($row) && is_array($row) && (int) ($row['plus'] ?? 0) === 1;

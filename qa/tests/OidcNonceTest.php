@@ -31,13 +31,12 @@ final class OidcNonceTest extends TestCase
         openssl_pkey_export($key, self::$privateKey);
         self::$issuer = 'https://nonce-test.invalid/'.bin2hex(random_bytes(16));
         $stmt = self::$pdo->prepare('INSERT INTO lti_key
-            (key_title, lms_issuer, lms_issuer_sha256, lms_client, deploy_key, deploy_sha256,
+            (key_title, lms_issuer, lms_issuer_sha256, lms_client,
              lms_oidc_auth, lms_cache_pubkey, lms_cache_kid)
-            VALUES (:title, :issuer, :hash, :client, :deployment, :deployment_hash, :auth, :pubkey, :kid)');
+            VALUES (:title, :issuer, :hash, :client, :auth, :pubkey, :kid)');
         $stmt->execute([
             ':title' => 'QA OIDC nonce', ':issuer' => self::$issuer,
             ':hash' => hash('sha256', self::$issuer), ':client' => 'nonce-client',
-            ':deployment' => 'nonce-deployment', ':deployment_hash' => hash('sha256', 'nonce-deployment'),
             ':auth' => self::$issuer.'/authorize', ':pubkey' => openssl_pkey_get_details($key)['key'],
             ':kid' => 'nonce-test-key',
         ]);

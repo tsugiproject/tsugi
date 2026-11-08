@@ -1196,7 +1196,7 @@ class LTIX {
         $for_user_subject = U::get($post, "for_user_subject", false);
 
         if ( $LTI13 ) {
-            $sql = "SELECT k.deploy_key, u.subject_key, ";
+            $sql = "SELECT u.subject_key, ";
         } else {
             $sql = "SELECT ";
         }

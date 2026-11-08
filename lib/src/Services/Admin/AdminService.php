@@ -413,17 +413,11 @@ class AdminService {
     }
 
     /**
-     * Reject a new or updated tenant when another key already matches the same
-     * LTI 1.3 issuer URL and client id with a wildcard deployment (blank deploy_key).
-     *
-     * Keys with a specific deployment id may share the same issuer and client id.
+     * Reject a new or updated tenant when another key already has the same
+     * LTI 1.3 issuer URL and client id. deploy_key is not part of this check.
      */
     public static function validate_issuer_client_unique($lms_issuer, $lms_client, $deploy_key, $exclude_key_id=null) {
         global $PDOX, $CFG;
-
-        if ( U::isNotEmpty($deploy_key) ) {
-            return true;
-        }
 
         $pair = self::resolve_lti13_issuer_client($lms_issuer, $lms_client);
         if ( $pair === null ) {
@@ -443,7 +437,6 @@ class AdminService {
         $row = $PDOX->rowDie(
             "SELECT k.key_id, k.key_title FROM {$CFG->dbprefix}lti_key AS k
                 WHERE (k.deleted IS NULL OR k.deleted = 0)
-                    AND (k.deploy_key IS NULL OR TRIM(k.deploy_key) = '')
                     $exclude_sql
                     AND (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
                     AND k.lms_client = :issuer_client
@@ -453,7 +446,7 @@ class AdminService {
 
         if ( $row ) {
             $label = U::isNotEmpty($row['key_title']) ? $row['key_title'] : ('key_id '.$row['key_id']);
-            U::flashError('A tenant/key with this LTI 1.3 Platform Issuer URL and Client ID already exists ('.$label.')');
+            U::flashError('Duplicate (client id, issuer): a tenant/key with this issuer and client id already exists ('.$label.')');
             return false;
         }
 
@@ -468,18 +461,16 @@ class AdminService {
         //  CHECK (
         //        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
         //  )
-        // deploy_key may be NULL/blank (accept any deployment id from the LMS; deploy_sha256 NULL); then we still need
-        // either an LTI 1.1 consumer key or enough LTI 1.3 identity (platform issuer URL + client id).
+        // A deployment id on lti_key is not an identity. The row needs an LTI 1.1
+        // consumer key or an LTI 1.3 issuer and client id.
         $have_oauth = U::isNotEmpty($key_key);
-        $have_deploy = U::isNotEmpty($deploy_key);
         $have_per_tenant_lti13 = U::isNotEmpty($lms_issuer) && U::isNotEmpty($lms_client);
-        if ( ! $have_oauth && ! $have_deploy && ! $have_per_tenant_lti13 ) {
-            U::flashError('Either an LTI 1.1 consumer key, a specific LTI 1.3 deployment id, or LTI 1.3 platform issuer URL and client id is required');
+        if ( ! $have_oauth && ! $have_per_tenant_lti13 ) {
+            U::flashError('Either an LTI 1.1 consumer key or an LTI 1.3 platform issuer URL and client id is required');
             return false;
         }
 
         $key_sha256 = U::lti_sha256($key_key);
-        $deploy_sha256 = U::lti_sha256($deploy_key);
 
         // TODO: Decide if we put this in the DB
         // Extra constraint in software is oauth key is there is must be unique
@@ -490,20 +481,6 @@ class AdminService {
             );
             if ( $row ) {
                 U::flashError("Cannot add the same OAuth Consumer Key more than once");
-                return false;
-            }
-        }
-
-        // Now check these
-        // CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
-        if ( ($key_key != $old_key_key || $deploy_key != $old_deploy_key) && 
-            !empty($key_key) && !empty($deploy_key) ) {
-            $row = $PDOX->rowDie( "SELECT key_sha256 FROM {$CFG->dbprefix}lti_key
-                    WHERE key_sha256 = :key_sha256 AND deploy_sha256 = :deploy_sha256",
-                array(':key_sha256' => $key_sha256, ":deploy_sha256" => $deploy_sha256)
-            );
-            if ( $row ) {
-                U::flashError("The combination of Consumer key and Deployment ID must be unique");
                 return false;
             }
         }
