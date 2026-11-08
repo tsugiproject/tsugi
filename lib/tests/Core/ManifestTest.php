@@ -537,6 +537,62 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         return $doc;
     }
 
+    public function testInvalidSaveDoesNotReachTheDatabase()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Manifest::saveNewVersion(1, array('title' => 'No modules'));
+    }
+
+    public function testCourseKeepsFiveNewestManifests()
+    {
+        $this->assertSame(5, Manifest::RETAIN_VERSIONS);
+        $rows = array();
+        for ( $version = 1; $version <= 7; $version++ ) {
+            $rows[] = array('manifest_id' => 100 + $version, 'version' => (string) $version);
+        }
+        $drop = Manifest::idsPastRetention($rows, 107);
+        sort($drop);
+        $this->assertSame(array(101, 102), $drop);
+    }
+
+    public function testRetentionKeepsAShortHistory()
+    {
+        $rows = array();
+        for ( $version = 1; $version <= 5; $version++ ) {
+            $rows[] = array('manifest_id' => $version, 'version' => $version);
+        }
+        $this->assertSame(array(), Manifest::idsPastRetention($rows, 5));
+        array_pop($rows);
+        $this->assertSame(array(), Manifest::idsPastRetention($rows, 4));
+        $this->assertSame(array(), Manifest::idsPastRetention(array(), 1));
+    }
+
+    public function testRetentionNeverDropsTheSavedManifest()
+    {
+        $rows = array();
+        for ( $version = 1; $version <= 7; $version++ ) {
+            $rows[] = array('manifest_id' => $version, 'version' => $version);
+        }
+        $drop = Manifest::idsPastRetention($rows, 1);
+        sort($drop);
+        $this->assertSame(array(2), $drop);
+        $this->assertNotContains(1, $drop);
+    }
+
+    public function testRetentionOrdersByVersionNotInputOrder()
+    {
+        $rows = array(
+            array('manifest_id' => 9, 'version' => 1),
+            array('manifest_id' => 3, 'version' => 6),
+            array('manifest_id' => 8, 'version' => 2),
+            array('manifest_id' => 4, 'version' => 5),
+            array('manifest_id' => 7, 'version' => 3),
+            array('manifest_id' => 5, 'version' => 4),
+        );
+        $drop = Manifest::idsPastRetention($rows, 3);
+        $this->assertSame(array(9), $drop);
+    }
+
     public function testNormalizeShortTitle()
     {
         $this->assertNull(Manifest::normalizeShortTitle(null));
