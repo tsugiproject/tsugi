@@ -228,7 +228,11 @@ class DynamicRegistration {
         // A platform that publishes messages_supported keeps only those types.
         // When it also lists placements, only advertised placements are sent.
         // A platform that omits the list receives every message.
+        // Sakai keeps one launch: Plus is a resource link, otherwise the store deep link.
         $tool->messages = self::messagesForPlatform($tool->messages, $platform_configuration);
+        if ( self::isSakai($platform_configuration) && isset($tool->messages[0]['target_link_uri']) && is_string($tool->messages[0]['target_link_uri']) ) {
+            $tool->target_link_uri = $tool->messages[0]['target_link_uri'];
+        }
 
         $json->{"https://purl.imsglobal.org/spec/lti-tool-configuration"} = $tool;
 
@@ -437,6 +441,108 @@ class DynamicRegistration {
     }
 
     /**
+     * Sakai's product family is sakai or sakailms.org.
+     *
+     * @param object|null $platform
+     * @return bool
+     */
+    private static function isSakai($platform) {
+        $family = self::platformFamily($platform);
+        if ( $family === '' ) {
+            return false;
+        }
+        $family = strtolower($family);
+        return $family === 'sakai' || strpos($family, 'sakai') === 0;
+    }
+
+    /**
+     * @param object|null $platform
+     * @return string
+     */
+    private static function platformFamily($platform) {
+        if ( ! is_object($platform) ) {
+            return '';
+        }
+        $key = 'https://purl.imsglobal.org/spec/lti-platform-configuration';
+        if ( ! isset($platform->{$key}) ) {
+            return '';
+        }
+        $block = $platform->{$key};
+        $family = '';
+        if ( is_object($block) && isset($block->product_family_code) && is_string($block->product_family_code) ) {
+            $family = $block->product_family_code;
+        } elseif ( is_array($block) && isset($block['product_family_code']) && is_string($block['product_family_code']) ) {
+            $family = $block['product_family_code'];
+        }
+        return trim($family);
+    }
+
+    /**
+     * One launch. Plus is the resource link. Otherwise the store deep link.
+     *
+     * @param array<int, array<string, mixed>> $messages
+     * @return array<int, array<string, mixed>>
+     */
+    private static function sakaiMessages(array $messages) {
+        foreach ( $messages as $message ) {
+            if ( ! is_array($message) || ($message['type'] ?? '') !== 'LtiResourceLinkRequest' ) {
+                continue;
+            }
+            $target = $message['target_link_uri'] ?? '';
+            if ( ! is_string($target) || $target === '' ) {
+                continue;
+            }
+            return array(self::sakaiLaunch($message));
+        }
+        foreach ( $messages as $message ) {
+            if ( ! is_array($message) || ($message['type'] ?? '') !== 'LtiDeepLinkingRequest' ) {
+                continue;
+            }
+            $target = $message['target_link_uri'] ?? '';
+            if ( ! is_string($target) || ! self::isStoreTarget($target) ) {
+                continue;
+            }
+            return array(self::sakaiLaunch($message));
+        }
+        return array();
+    }
+
+    /**
+     * The store picker, not a placement-specific query on that URL.
+     *
+     * @param string $target
+     * @return bool
+     */
+    private static function isStoreTarget($target) {
+        $parts = parse_url($target);
+        if ( ! is_array($parts) || (isset($parts['query']) && $parts['query'] !== '') ) {
+            return false;
+        }
+        $path = isset($parts['path']) && is_string($parts['path']) ? rtrim($parts['path'], '/') : '';
+        return $path === '/lti/store' || substr($path, -6) === '/store';
+    }
+
+    /**
+     * One launch. Placements and Canvas extensions stay off this message.
+     *
+     * @param array<string, mixed> $message
+     * @return array<string, mixed>
+     */
+    private static function sakaiLaunch(array $message) {
+        $out = array(
+            'type' => $message['type'],
+            'target_link_uri' => $message['target_link_uri'],
+        );
+        if ( isset($message['label']) ) {
+            $out['label'] = $message['label'];
+        }
+        if ( isset($message['custom_parameters']) && is_array($message['custom_parameters']) ) {
+            $out['custom_parameters'] = $message['custom_parameters'];
+        }
+        return $out;
+    }
+
+    /**
      * Keep message types and placements the platform advertised.
      * A platform that does not publish messages_supported is left unchanged.
      *
@@ -445,6 +551,9 @@ class DynamicRegistration {
      * @return array<int, array<string, mixed>>
      */
     public static function messagesForPlatform(array $messages, $platform) {
+        if ( self::isSakai($platform) ) {
+            return self::sakaiMessages($messages);
+        }
         $rules = self::messagesSupported($platform);
         if ( $rules === null ) {
             return $messages;

@@ -4,24 +4,41 @@ use Tsugi\Services\Settings\DynamicRegistration;
 
 class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
 {
-    public function testSakaiKeepsExtensionPlacements(): void
+    public function testSakaiPlusIsOneResourceLink(): void
     {
-        $platform = $this->platform('sakai', array(
+        $platform = $this->platform('sakailms.org', array(
+            $this->messageType('LtiResourceLinkRequest'),
             $this->messageType('LtiDeepLinkingRequest'),
-            $this->messageType('LtiDataPrivacyLaunchRequest'),
         ));
 
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), $platform);
 
-        $this->assertSame(
-            array('ContentArea', 'link_selection', 'assignment_selection', 'lessons'),
-            $messages[0]['placements']
-        );
-        $this->assertSame('LtiDataPrivacyLaunchRequest', $messages[1]['type']);
-        $this->assertSame(
-            array('RichTextEditor', 'editor_button', 'content_editor'),
-            $this->messagePlacements($messages, 'Editor')
-        );
+        $this->assertCount(1, $messages);
+        $this->assertSame('LtiResourceLinkRequest', $messages[0]['type']);
+        $this->assertSame('https://tool.example/plus', $messages[0]['target_link_uri']);
+        $this->assertArrayNotHasKey('placements', $messages[0]);
+    }
+
+    public function testSakaiWithoutPlusIsOneStoreDeepLink(): void
+    {
+        $platform = $this->platform('sakai', array(
+            $this->messageType('LtiDeepLinkingRequest'),
+            $this->messageType('LtiResourceLinkRequest'),
+        ));
+        $messages = array();
+        foreach ( $this->registrationMessages() as $message ) {
+            if ( $message['type'] === 'LtiResourceLinkRequest' ) {
+                continue;
+            }
+            $messages[] = $message;
+        }
+
+        $out = DynamicRegistration::messagesForPlatform($messages, $platform);
+
+        $this->assertCount(1, $out);
+        $this->assertSame('LtiDeepLinkingRequest', $out[0]['type']);
+        $this->assertSame('https://tool.example/store/', $out[0]['target_link_uri']);
+        $this->assertArrayNotHasKey('placements', $out[0]);
     }
 
     public function testCanvasDropsNamesItsSchemaRejects(): void
