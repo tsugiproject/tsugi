@@ -138,6 +138,8 @@ class CalendarControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Second upcoming', $html);
         $this->assertStringNotContainsString('Third upcoming', $html);
         $this->assertStringContainsString('View all (3 upcoming)', $html);
+        $this->assertStringNotContainsString('Open due date list', $html);
+        $this->assertStringNotContainsString('>View All<', $html);
         $lateLink = strpos($html, 'View all (3 late)');
         $recent = strpos($html, 'Recent late');
         $second = strpos($html, 'Second upcoming');
@@ -165,7 +167,14 @@ class CalendarControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Late two', $html);
         $this->assertStringContainsString('Upcoming one', $html);
         $this->assertStringContainsString('Upcoming two', $html);
-        $this->assertStringNotContainsString('View all', $html);
+        $this->assertStringNotContainsString('View all (', $html);
+        $this->assertStringNotContainsString('Open due date list', $html);
+        $this->assertStringContainsString('>View All<', $html);
+        $upcomingTwo = strpos($html, 'Upcoming two');
+        $viewAll = strpos($html, '>View All<');
+        $this->assertNotFalse($upcomingTwo);
+        $this->assertNotFalse($viewAll);
+        $this->assertLessThan($viewAll, $upcomingTwo);
     }
 
     public function testFullDueListDoesNotTrim()
@@ -182,6 +191,8 @@ class CalendarControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Mid late', $html);
         $this->assertStringContainsString('Recent late', $html);
         $this->assertStringNotContainsString('View all', $html);
+        $this->assertStringNotContainsString('View All', $html);
+        $this->assertStringNotContainsString('Open due date list', $html);
     }
 
     /**

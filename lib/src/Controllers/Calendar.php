@@ -572,11 +572,23 @@ class Calendar extends Tool {
             $html .= "</ul></li>\n";
         }
         $html .= "</ul>\n</div>\n";
-        if ( $embedded ) {
+        if ( $embedded && ! self::entriesHideUpcoming($entries) ) {
             $open = U::add_url_parm(U::addSession(self::determineToolHome(self::ROUTE)), 'view', 'list');
-            $html .= '<p><a href="'.htmlspecialchars($open).'">'.htmlspecialchars(__('Open due date list')).'</a></p>'."\n";
+            $html .= '<p class="tsugi-due-list-more"><a class="btn btn-default btn-sm" href="'.htmlspecialchars($open).'">'.htmlspecialchars(__('View All'))."</a></p>\n";
         }
         return $html;
+    }
+
+    /**
+     * @param list<array<string,mixed>> $entries
+     */
+    private static function entriesHideUpcoming(array $entries) {
+        foreach ( $entries as $ev ) {
+            if ( isset($ev['marker']) && $ev['marker'] === 'upcoming' ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
