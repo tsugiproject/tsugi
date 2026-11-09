@@ -1759,6 +1759,88 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('modules', $loaded);
     }
 
+    public function testEnumerateQuizDueItemsIncludesAPublishedQuiz() {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+            }
+            public function quiz1ExistsInCourse($quiz_id) {
+                return (int) $quiz_id === 42 || (int) $quiz_id === 7;
+            }
+            public function quiz1IsPublished($quiz_id) {
+                return (int) $quiz_id === 42;
+            }
+            public function lessonsViewerIsInstructor() {
+                return false;
+            }
+        };
+        $lessons->lessons = (object) array(
+            'modules' => array(
+                (object) array(
+                    'title' => 'Week 1',
+                    'anchor' => 'w1',
+                    'items' => array(
+                        (object) array('type' => 'lti', 'title' => 'Tool', 'resource_link_id' => 'tool-1'),
+                        (object) array(
+                            'type' => 'quiz',
+                            'quiz_id' => 42,
+                            'title' => 'Week quiz',
+                            'due' => '2026-05-01',
+                        ),
+                        (object) array('type' => 'quiz', 'quiz_id' => 7, 'title' => 'Draft'),
+                        (object) array(
+                            'type' => 'section',
+                            'title' => 'More',
+                            'items' => array(
+                                (object) array('type' => 'quiz', 'quiz_id' => 42, 'title' => 'Week quiz again'),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $rows = $lessons->enumerateQuizDueItems();
+        $this->assertCount(1, $rows);
+        $this->assertSame('Week quiz', $rows[0]['item_title']);
+        $this->assertSame('quiz1:42', $rows[0]['resource_link_id']);
+        $this->assertSame('w1', $rows[0]['module_anchor']);
+        $this->assertSame('Week 1', $rows[0]['module_title']);
+        $this->assertSame('2026-05-01', $rows[0]['due']);
+        $this->assertTrue($rows[0]['participates_in_grades']);
+        $this->assertSame(42, $rows[0]['quiz_id']);
+    }
+
+    public function testEnumerateQuizDueItemsIncludesUnpublishedQuizForInstructor() {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+            }
+            public function quiz1ExistsInCourse($quiz_id) {
+                return (int) $quiz_id === 7;
+            }
+            public function quiz1IsPublished($quiz_id) {
+                return false;
+            }
+            public function lessonsViewerIsInstructor() {
+                return true;
+            }
+        };
+        $lessons->lessons = (object) array(
+            'modules' => array(
+                (object) array(
+                    'title' => 'Week 2',
+                    'anchor' => 'w2',
+                    'items' => array(
+                        (object) array('type' => 'quiz', 'quiz_id' => 7, 'title' => 'Draft quiz'),
+                        (object) array('type' => 'quiz', 'quiz_id' => 9, 'title' => 'Missing'),
+                    ),
+                ),
+            ),
+        );
+        $rows = $lessons->enumerateQuizDueItems();
+        $this->assertCount(1, $rows);
+        $this->assertSame('Draft quiz', $rows[0]['item_title']);
+        $this->assertSame('quiz1:7', $rows[0]['resource_link_id']);
+    }
+
     public function testApplyDiscussionOrder() {
         $a = (object) array('title' => 'A', 'resource_link_id' => 'a');
         $b = (object) array('title' => 'B', 'resource_link_id' => 'b');

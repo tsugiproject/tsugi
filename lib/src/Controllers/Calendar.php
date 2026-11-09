@@ -132,7 +132,7 @@ class Calendar extends Tool {
         if ( ! $lessons ) {
             return null;
         }
-        $items = $lessons->enumerateLtiAssignmentItems();
+        $items = $this->dueSourceItems($lessons);
         $dueMap = array();
         if ( ReqScope::currentContextId() !== 0 ) {
             $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
@@ -147,6 +147,32 @@ class Calendar extends Tool {
             'rows' => $rows,
             'byDate' => self::groupDueRows($rows),
         );
+    }
+
+    /**
+     * LTI assignment rows plus native Quiz1 rows. A quiz uses the same link key as its due date.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @return array<int,array<string,mixed>>
+     */
+    private function dueSourceItems($lessons) {
+        $items = $lessons->enumerateLtiAssignmentItems();
+        $seen = array();
+        foreach ( $items as $it ) {
+            $key = isset($it['resource_link_id']) ? trim((string) $it['resource_link_id']) : '';
+            if ( $key !== '' ) {
+                $seen[$key] = true;
+            }
+        }
+        foreach ( $lessons->enumerateQuizDueItems() as $quiz ) {
+            $key = isset($quiz['resource_link_id']) ? trim((string) $quiz['resource_link_id']) : '';
+            if ( $key === '' || isset($seen[$key]) ) {
+                continue;
+            }
+            $seen[$key] = true;
+            $items[] = $quiz;
+        }
+        return $items;
     }
 
     /**
@@ -213,7 +239,7 @@ class Calendar extends Tool {
     /**
      * Count unfinished assignments that are “due soon” (within 7 days) or “late” (past due).
      *
-     * @param array<int,array<string,mixed>> $items from Lessons::enumerateLtiAssignmentItems()
+     * @param array<int,array<string,mixed>> $items from dueSourceItems()
      * @param array<string,array<string,mixed>> $dueMap from GradeUtil::loadDueDatesForDisplay()
      * @param array<string,float> $allgrades resource_link_id => grade
      * @return array{due_soon:int,late:int}
@@ -264,7 +290,7 @@ class Calendar extends Tool {
 
         LTIX::getConnection();
 
-        $items = $l->enumerateLtiAssignmentItems();
+        $items = $this->dueSourceItems($l);
         $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
 
         $allgrades = array();
