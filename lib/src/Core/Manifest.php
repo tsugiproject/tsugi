@@ -34,7 +34,7 @@ use \Tsugi\Services\Lessons\LessonsNormalize;
  *
  * Every new version is test-loaded with LessonsService::tryFromJson() before insert.
  * After that version is stored and lti_context.manifest_id points at it, older
- * versions for the course are deleted so only the five newest rows remain.
+ * versions for the course are deleted so only the ten newest rows remain.
  * Authoring can export/import a lessons.json file; import is the same save path.
  *
  * Outbound LTI launches from the lessons/discussions catalog (file vs manifest
@@ -48,7 +48,7 @@ class Manifest {
     const CACHE_TTL = 86400;
 
     /** Newest manifest versions kept for a course. Older rows are deleted after a successful save. */
-    const RETAIN_VERSIONS = 5;
+    const RETAIN_VERSIONS = 10;
 
     /** @var array<int, string> Request-local JSON strings keyed by manifest_id. */
     private static $requestJson = array();

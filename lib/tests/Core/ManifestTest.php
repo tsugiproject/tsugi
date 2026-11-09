@@ -543,14 +543,14 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         Manifest::saveNewVersion(1, array('title' => 'No modules'));
     }
 
-    public function testCourseKeepsFiveNewestManifests()
+    public function testCourseKeepsTenNewestManifests()
     {
-        $this->assertSame(5, Manifest::RETAIN_VERSIONS);
+        $this->assertSame(10, Manifest::RETAIN_VERSIONS);
         $rows = array();
-        for ( $version = 1; $version <= 7; $version++ ) {
+        for ( $version = 1; $version <= 12; $version++ ) {
             $rows[] = array('manifest_id' => 100 + $version, 'version' => (string) $version);
         }
-        $drop = Manifest::idsPastRetention($rows, 107);
+        $drop = Manifest::idsPastRetention($rows, 112);
         sort($drop);
         $this->assertSame(array(101, 102), $drop);
     }
@@ -558,19 +558,19 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
     public function testRetentionKeepsAShortHistory()
     {
         $rows = array();
-        for ( $version = 1; $version <= 5; $version++ ) {
+        for ( $version = 1; $version <= 10; $version++ ) {
             $rows[] = array('manifest_id' => $version, 'version' => $version);
         }
-        $this->assertSame(array(), Manifest::idsPastRetention($rows, 5));
+        $this->assertSame(array(), Manifest::idsPastRetention($rows, 10));
         array_pop($rows);
-        $this->assertSame(array(), Manifest::idsPastRetention($rows, 4));
+        $this->assertSame(array(), Manifest::idsPastRetention($rows, 9));
         $this->assertSame(array(), Manifest::idsPastRetention(array(), 1));
     }
 
     public function testRetentionNeverDropsTheSavedManifest()
     {
         $rows = array();
-        for ( $version = 1; $version <= 7; $version++ ) {
+        for ( $version = 1; $version <= 12; $version++ ) {
             $rows[] = array('manifest_id' => $version, 'version' => $version);
         }
         $drop = Manifest::idsPastRetention($rows, 1);
@@ -589,7 +589,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
             array('manifest_id' => 7, 'version' => 3),
             array('manifest_id' => 5, 'version' => 4),
         );
-        $drop = Manifest::idsPastRetention($rows, 3);
+        $drop = Manifest::idsPastRetention($rows, 3, 5);
         $this->assertSame(array(9), $drop);
     }
 
