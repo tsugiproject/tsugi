@@ -33,6 +33,8 @@ use \Tsugi\Services\Lessons\LessonsNormalize;
  * page open the discussions controller for that resource_link_id.
  *
  * Every new version is test-loaded with LessonsService::tryFromJson() before insert.
+ * After that version is stored and lti_context.manifest_id points at it, older
+ * versions for the course are deleted so only the ten newest rows remain.
  * Authoring can export/import a lessons.json file; import is the same save path.
  *
  * Outbound LTI launches from the lessons/discussions catalog (file vs manifest
@@ -44,6 +46,9 @@ class Manifest {
 
     /** Memcached TTL in seconds; 0 means no expiry. Rows are immutable. */
     const CACHE_TTL = 86400;
+
+    /** Newest manifest versions kept for a course. Older rows are deleted after a successful save. */
+    const RETAIN_VERSIONS = 10;
 
     /** @var array<int, string> Request-local JSON strings keyed by manifest_id. */
     private static $requestJson = array();
@@ -910,6 +915,9 @@ class Manifest {
     /**
      * Insert an immutable new version and point lti_context.manifest_id at it.
      *
+     * Versions older than {@see RETAIN_VERSIONS} are deleted only after this
+     * insert and {@see setActive()} succeed.
+     *
      * @param array<string, mixed>|object|string $data Decoded document or JSON string
      * @param string|null $theme Theme key. Null copies the previous version for this
      *        context. Empty string stores NULL (site $CFG->theme).
@@ -1022,7 +1030,111 @@ class Manifest {
             'comment' => $comment,
             'user_id' => $uid,
         ));
+        self::pruneOldVersions($cid, $manifest_id);
         return $manifest_id;
+    }
+
+    /**
+     * Manifest ids to delete so a course keeps the newest versions.
+     * $protect_id is the row just saved and activated. It is never deleted,
+     * even when that leaves one extra row.
+     *
+     * @param list<array<string, mixed>> $rows Rows with manifest_id and version
+     * @param int $protect_id
+     * @param int $keep
+     * @return list<int>
+     */
+    public static function idsPastRetention(array $rows, $protect_id, $keep = self::RETAIN_VERSIONS) {
+        $protect_id = (int) $protect_id;
+        $keep = (int) $keep;
+        if ( $keep < 1 ) {
+            $keep = self::RETAIN_VERSIONS;
+        }
+
+        $versionOf = array();
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $id = (int) ($row['manifest_id'] ?? 0);
+            if ( $id < 1 ) {
+                continue;
+            }
+            $versionOf[$id] = (int) ($row['version'] ?? 0);
+        }
+
+        $ids = array_keys($versionOf);
+        usort($ids, function ($a, $b) use ($versionOf) {
+            if ( $versionOf[$a] !== $versionOf[$b] ) {
+                return $versionOf[$b] <=> $versionOf[$a];
+            }
+            return $b <=> $a;
+        });
+
+        $drop = array();
+        $kept = 0;
+        foreach ( $ids as $id ) {
+            if ( $id === $protect_id || $kept < $keep ) {
+                $kept++;
+                continue;
+            }
+            $drop[] = $id;
+        }
+        return $drop;
+    }
+
+    /**
+     * Drop versions beyond {@see RETAIN_VERSIONS} for one course.
+     * Runs only after the new version is validated, inserted, and set active.
+     *
+     * @param int $context_id
+     * @param int $protect_id
+     */
+    private static function pruneOldVersions($context_id, $protect_id) {
+        global $CFG;
+        $cid = (int) $context_id;
+        $protect_id = (int) $protect_id;
+        if ( $cid < 1 || $protect_id < 1 ) {
+            return;
+        }
+
+        $PDOX = LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            "SELECT manifest_id, version
+             FROM {$p}manifest
+             WHERE context_id = :CID
+             ORDER BY version DESC, manifest_id DESC",
+            array(':CID' => $cid)
+        );
+        if ( ! is_array($rows) || count($rows) <= self::RETAIN_VERSIONS ) {
+            return;
+        }
+
+        $drop = self::idsPastRetention($rows, $protect_id);
+        $ids = array();
+        foreach ( $drop as $id ) {
+            $id = (int) $id;
+            if ( $id < 1 || $id === $protect_id ) {
+                continue;
+            }
+            $ids[$id] = $id;
+        }
+        if ( count($ids) < 1 ) {
+            return;
+        }
+
+        $in = implode(',', array_map('intval', $ids));
+        $PDOX->queryDie(
+            "DELETE FROM {$p}manifest
+             WHERE context_id = :CID
+               AND manifest_id <> :KEEP
+               AND manifest_id IN ({$in})",
+            array(':CID' => $cid, ':KEEP' => $protect_id)
+        );
+        foreach ( $ids as $id ) {
+            self::forgetCachedRow($id);
+        }
     }
 
     /**
@@ -1294,6 +1406,24 @@ class Manifest {
         if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
                 && method_exists($cache, 'set') ) {
             $cache->set(self::cacheKey($id), $row, self::CACHE_TTL);
+        }
+    }
+
+    /**
+     * Drop request memo and Memcached for a manifest row that was just deleted.
+     *
+     * @param int $manifest_id
+     */
+    private static function forgetCachedRow($manifest_id) {
+        $id = (int) $manifest_id;
+        if ( $id < 1 ) {
+            return;
+        }
+        unset(self::$requestRows[$id], self::$requestJson[$id]);
+        $cache = self::mcache();
+        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
+                && method_exists($cache, 'delete') ) {
+            $cache->delete(self::cacheKey($id));
         }
     }
 
