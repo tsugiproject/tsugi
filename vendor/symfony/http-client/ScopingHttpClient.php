@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\HttpClient;
 
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -22,7 +24,7 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * @author Anthony Martin <anthony.martin@sensiolabs.com>
  */
-class ScopingHttpClient implements HttpClientInterface, ResetInterface
+class ScopingHttpClient implements HttpClientInterface, ResetInterface, LoggerAwareInterface
 {
     use HttpClientTrait;
 
@@ -63,6 +65,7 @@ class ScopingHttpClient implements HttpClientInterface, ResetInterface
                 throw $e;
             }
 
+            $requestOptions = $options;
             $defaultOptions = $this->defaultOptionsByRegexp[$this->defaultRegexp];
             $options = self::mergeDefaultOptions($options, $defaultOptions, true);
             if (\is_string($options['base_uri'] ?? null)) {
@@ -70,6 +73,13 @@ class ScopingHttpClient implements HttpClientInterface, ResetInterface
                 $resolved = true;
             }
             $url = implode('', self::resolveUrl($url, $options['base_uri'] ?? null, $defaultOptions['query'] ?? []));
+
+            // A network-path reference can point outside of the base URI's authority: the options of the default scope must not follow it
+            $resolvedUrl = self::parseUrl($url);
+            if ($resolvedUrl['scheme'].$resolvedUrl['authority'] !== $options['base_uri']['scheme'].$options['base_uri']['authority']) {
+                $options = $requestOptions;
+                $e = null;
+            }
         }
 
         if ($resolved) {
@@ -97,6 +107,18 @@ class ScopingHttpClient implements HttpClientInterface, ResetInterface
     {
         if ($this->client instanceof ResetInterface) {
             $this->client->reset();
+        }
+    }
+
+    /**
+     * @deprecated since Symfony 7.1, configure the logger on the wrapped HTTP client directly instead
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        trigger_deprecation('symfony/http-client', '7.1', 'Configure the logger on the wrapped HTTP client directly instead.');
+
+        if ($this->client instanceof LoggerAwareInterface) {
+            $this->client->setLogger($logger);
         }
     }
 

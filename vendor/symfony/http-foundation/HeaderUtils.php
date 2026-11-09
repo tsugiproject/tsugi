@@ -58,9 +58,12 @@ class HeaderUtils
                         "(?:[^"\\\\]|\\\\.)*(?:"|\\\\|$)
                     |
                         # token
-                        [^"'.$quotedSeparators.']+
-                    )+
-                (?<!\s)
+                        [^"\s'.$quotedSeparators.']++
+                    |
+                        # whitespace that is not a separator, only when more of the value follows it,
+                        # so that a value never ends on whitespace and none of it ever has to be given back
+                        [^\S'.$quotedSeparators.']++(?!['.$quotedSeparators.']|$)
+                    )++
             |
                 # separator
                 \s*
@@ -173,7 +176,7 @@ class HeaderUtils
         }
 
         // filenameFallback is not ASCII.
-        if (!preg_match('/^[\x20-\x7e]*$/', $filenameFallback)) {
+        if (!preg_match('/^[\x20-\x7e]*$/D', $filenameFallback)) {
             throw new \InvalidArgumentException('The filename fallback must only contain ASCII characters.');
         }
 
@@ -238,7 +241,7 @@ class HeaderUtils
             return $q;
         }
 
-        parse_str(implode('&', $q), $q);
+        @parse_str(implode('&', $q), $q);
 
         $query = [];
 
