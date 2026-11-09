@@ -85,6 +85,7 @@ $doc = array(
                         'message_type' => 'LtiResourceLinkRequest',
                         'target_link_uri' => $launch,
                         'windowTarget' => '_blank',
+                        'default' => 'disabled',
                     ),
                 ),
             ),

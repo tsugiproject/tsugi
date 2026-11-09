@@ -59,8 +59,10 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
             array('RichTextEditor', 'editor_button'),
             $this->messagePlacements($messages, 'Editor')
         );
-        $this->assertSame('LtiResourceLinkRequest', $this->messageByLabel($messages, 'Plus')['type']);
-        $this->assertSame(array('course_navigation'), $this->messagePlacements($messages, 'Plus'));
+        $plus = $this->messageByLabel($messages, 'Plus');
+        $this->assertSame('LtiResourceLinkRequest', $plus['type']);
+        $this->assertSame(array('course_navigation'), $plus['placements']);
+        $this->assertFalse($plus['https://canvas.instructure.com/lti/course_navigation/default_enabled']);
     }
 
     public function testPlusWithoutCourseNavigationIsNotADeepLink(): void
@@ -240,6 +242,7 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
                 'label' => 'Plus',
                 'target_link_uri' => 'https://tool.example/plus',
                 'placements' => array('course_navigation'),
+                'https://canvas.instructure.com/lti/course_navigation/default_enabled' => false,
             ),
             array(
                 'type' => 'LtiDeepLinkingRequest',

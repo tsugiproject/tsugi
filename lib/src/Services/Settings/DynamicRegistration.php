@@ -194,6 +194,9 @@ class DynamicRegistration {
                 // the course-navigation iframe.
                 "placements" => array("course_navigation"),
                 "https://canvas.instructure.com/lti/display_type" => "new_window",
+                // Canvas course navigation is visible unless this is false.
+                // False checks "Hide by default" on the registration screen.
+                "https://canvas.instructure.com/lti/course_navigation/default_enabled" => false,
                 "custom_parameters" => $custom_parameters,
             );
         }
