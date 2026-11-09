@@ -79,29 +79,118 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(array(), $messages);
     }
 
-    public function testCanvasWithoutAdvertisedPlacementsStillDropsExtensions(): void
+    public function testPlatformWithoutMessagesSupportedKeepsEveryMessage(): void
     {
         $platform = $this->platform('canvas', null);
-        $platform->issuer = 'https://school.example.edu';
-
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), $platform);
 
-        $this->assertSame(array('ContentArea'), $messages[0]['placements']);
-        $this->assertNotContains(
-            'LtiDataPrivacyLaunchRequest',
-            array_column($messages, 'type')
-        );
+        $this->assertSame(array('ContentArea', 'lessons'), $messages[0]['placements']);
+        $this->assertContains('LtiDataPrivacyLaunchRequest', array_column($messages, 'type'));
         $this->assertSame(
-            array('RichTextEditor', 'editor_button'),
+            array('RichTextEditor', 'editor_button', 'content_editor'),
             $this->messagePlacements($messages, 'Editor')
         );
+        $this->assertSame('Deep Link Again', $this->messageByLabel($messages, 'Deep Link Again')['label']);
+    }
+
+    public function testCanvasDropsUnplacedDuplicateAndKeepsShortNames(): void
+    {
+        $platform = $this->platform('canvas', array(
+            $this->messageType('LtiDeepLinkingRequest', array(
+                'https://canvas.instructure.com/lti/link_selection',
+                'ContentArea',
+            )),
+            $this->messageType('LtiResourceLinkRequest', array(
+                'https://canvas.instructure.com/lti/course_navigation',
+            )),
+        ));
+        $messages = DynamicRegistration::messagesForPlatform(array(
+            array(
+                'type' => 'LtiDeepLinkingRequest',
+                'label' => 'Content',
+                'target_link_uri' => 'https://tool.example/store/',
+                'placements' => array('ContentArea', 'lessons'),
+            ),
+            array(
+                'type' => 'LtiDeepLinkingRequest',
+                'label' => 'Link',
+                'target_link_uri' => 'https://tool.example/store/?type=link_selection',
+                'placements' => array('link_selection'),
+            ),
+            array(
+                'type' => 'LtiDeepLinkingRequest',
+                'label' => 'Link copy',
+                'target_link_uri' => 'https://tool.example/store/?type=link_selection',
+                'placements' => array('link_selection'),
+            ),
+            array(
+                'type' => 'LtiDeepLinkingRequest',
+                'label' => 'Same target without placements',
+                'target_link_uri' => 'https://tool.example/store/',
+            ),
+            array(
+                'type' => 'LtiResourceLinkRequest',
+                'label' => 'Plus',
+                'target_link_uri' => 'https://tool.example/plus',
+            ),
+        ), $platform);
+
+        $labels = array_column($messages, 'label');
+        $this->assertSame(array('Content', 'Link', 'Plus'), $labels);
+        $this->assertSame(array('ContentArea'), $messages[0]['placements']);
+        $this->assertSame(array('link_selection'), $messages[1]['placements']);
+    }
+
+    public function testFailureReportShowsTheLmsBodyAndRedactsTokens(): void
+    {
+        $report = DynamicRegistration::registrationFailureReport(
+            422,
+            '{"errors":["lessons is not allowed"]}',
+            "HTTP/1.1 422 Unprocessable Content\r\nAuthorization: Bearer secret-token\r\n"
+        );
+
+        $this->assertStringContainsString('Http response code: 422', $report);
+        $this->assertStringContainsString('lessons is not allowed', $report);
+        $this->assertStringContainsString('Response headers:', $report);
+        $this->assertStringContainsString('Authorization: Bearer [redacted]', $report);
+        $this->assertStringNotContainsString('secret-token', $report);
+        $this->assertStringNotContainsString('initiate_login_uri', $report);
+        $this->assertSame(
+            'https://canvas.example/config?registration_token=[redacted]&x=1',
+            DynamicRegistration::redactSecrets('https://canvas.example/config?registration_token=eyJsecret&x=1')
+        );
+    }
+
+    public function testCanvasDeploymentIdIsOnTheResponse(): void
+    {
+        $response = new \stdClass();
+        $response->{'https://purl.imsglobal.org/spec/lti-tool-configuration'} = new \stdClass();
+        $response->deployment_id = '672:43090cc0c11063fdf5b270094da05ed6e23ea6ad';
+
+        $this->assertSame(
+            '672:43090cc0c11063fdf5b270094da05ed6e23ea6ad',
+            DynamicRegistration::deploymentIdFromResponse($response)
+        );
+    }
+
+    public function testToolConfigurationDeploymentIdWins(): void
+    {
+        $tool = new \stdClass();
+        $tool->deployment_id = '1';
+        $response = new \stdClass();
+        $response->{'https://purl.imsglobal.org/spec/lti-tool-configuration'} = $tool;
+        $response->deployment_id = '672:elsewhere';
+
+        $this->assertSame('1', DynamicRegistration::deploymentIdFromResponse($response));
+        $this->assertNull(DynamicRegistration::deploymentIdFromResponse(new \stdClass()));
     }
 
     public function testMissingPlatformKeepsTheFullRegistration(): void
     {
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), null);
-        $this->assertCount(7, $messages);
+        $this->assertCount(8, $messages);
         $this->assertSame('LtiDataPrivacyLaunchRequest', $messages[1]['type']);
+        $this->assertSame('Deep Link Again', $messages[7]['label']);
     }
 
     /**
@@ -113,15 +202,18 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
             array(
                 'type' => 'LtiDeepLinkingRequest',
                 'label' => 'Deep Link',
+                'target_link_uri' => 'https://tool.example/store/',
                 'placements' => array('ContentArea', 'lessons'),
             ),
             array(
                 'type' => 'LtiDataPrivacyLaunchRequest',
                 'label' => 'Privacy',
+                'target_link_uri' => 'https://tool.example/privacy',
             ),
             array(
                 'type' => 'LtiResourceLinkRequest',
                 'label' => 'Plus',
+                'target_link_uri' => 'https://tool.example/plus',
             ),
             array(
                 'type' => 'LtiDeepLinkingRequest',
@@ -141,7 +233,13 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
             array(
                 'type' => 'LtiDeepLinkingRequest',
                 'label' => 'Assignment',
+                'target_link_uri' => 'https://tool.example/store/?type=assignment_selection',
                 'placements' => array('assignment_selection'),
+            ),
+            array(
+                'type' => 'LtiDeepLinkingRequest',
+                'label' => 'Deep Link Again',
+                'target_link_uri' => 'https://tool.example/store/',
             ),
         );
     }

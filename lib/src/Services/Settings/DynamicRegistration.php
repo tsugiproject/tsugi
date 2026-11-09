@@ -68,13 +68,13 @@ class DynamicRegistration {
         }
 
         echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
-        echo(htmlentities($openid_configuration ?? '')."\n</p>\n");
+        echo(htmlentities(self::redactSecrets($openid_configuration ?? ''))."\n</p>\n");
 
         $response = Net::doGet($openid_configuration );
         $code = Net::getLastHttpResponse();
         if ( ! $response || U::strlen($response) < 1 ) {
             echo("<pre>\n");
-            echo("Unable to retrieve:\n".htmlentities($openid_configuration??'')."\n");
+            echo("Unable to retrieve:\n".htmlentities(self::redactSecrets($openid_configuration ?? ''))."\n");
             echo("Error code:".htmlentities((string)$code)."\n");
             echo("</pre>\n");
             return '';
@@ -221,8 +221,9 @@ class DynamicRegistration {
                 "custom_parameters" => $custom_parameters,
             ),
         ));
-        // Canvas rejects lessons, content_editor, and the privacy launch
-        // with 422. Other platforms keep those names.
+        // A platform that publishes messages_supported keeps only those types.
+        // When it also lists placements, only advertised placements are sent.
+        // A platform that omits the list receives every message.
         $tool->messages = self::messagesForPlatform($tool->messages, $platform_configuration);
 
         $json->{"https://purl.imsglobal.org/spec/lti-tool-configuration"} = $tool;
@@ -247,20 +248,11 @@ class DynamicRegistration {
 
         if ( $response_code != 200 && $response_code != 201 ) {
             echo("<pre>\n");
-            echo("Http response code: ".(string) $response_code."\n\n");
-            echo("The LMS rejected the registration. Response from the LMS:\n");
-            $shown = is_string($response) ? self::prettyJson($response) : '';
-            if ( ! is_string($shown) || $shown === '' ) {
-                echo("(empty)\n");
-            } else {
-                $limit = 20000;
-                if ( strlen($shown) > $limit ) {
-                    echo(htmlentities(substr($shown, 0, $limit)));
-                    echo("\n\n(truncated)\n");
-                } else {
-                    echo(htmlentities($shown)."\n");
-                }
-            }
+            echo(htmlentities(self::registrationFailureReport(
+                $response_code,
+                is_string($response) ? $response : '',
+                Net::getLastHeadersReceived()
+            )));
             echo("</pre>\n");
             echo("<p>The one-time unlock code is still set, so you can try this registration again.</p>\n");
             return '';
@@ -291,12 +283,9 @@ class DynamicRegistration {
             array(":KID" => $tsugi_key)
         );
 
-        $tc_key = "https://purl.imsglobal.org/spec/lti-tool-configuration";
-        $tool_configuration = isset($resp->{$tc_key}) ? $resp->{$tc_key} : null;
-        $deployment_id = null;
-        if ( $tool_configuration ) {
-            $deployment_id = isset($tool_configuration->deployment_id) ? $tool_configuration->deployment_id : null;
-        }
+        // Sakai puts deployment_id inside the tool configuration. Canvas puts it
+        // on the registration response itself.
+        $deployment_id = self::deploymentIdFromResponse($resp);
 
         // A missing deployment id leaves the stored deploy_key unchanged.
         $deploy_for_check = $deployment_id ? $deployment_id : U::get($row, 'deploy_key');
@@ -363,50 +352,99 @@ class DynamicRegistration {
     }
 
     /**
-     * Placements Canvas accepts when its OpenID configuration does not list any.
-     * lessons and content_editor are Tsugi/Sakai names. Canvas's schema rejects them.
+     * Deployment id from a dynamic-registration response.
      *
-     * @var array<string, true>
+     * The tool configuration is checked first. Canvas returns the id beside
+     * that object, as deployment_id on the response.
+     *
+     * @param object|null $response
+     * @return string|null
      */
-    private const CANVAS_PLACEMENTS = array(
-        'ContentArea' => true,
-        'RichTextEditor' => true,
-        'account_navigation' => true,
-        'assignment_selection' => true,
-        'course_navigation' => true,
-        'editor_button' => true,
-        'global_navigation' => true,
-        'homework_submission' => true,
-        'link_selection' => true,
-        'migration_selection' => true,
-        'user_navigation' => true,
-    );
+    public static function deploymentIdFromResponse($response) {
+        if ( ! is_object($response) ) {
+            return null;
+        }
+        $tc_key = 'https://purl.imsglobal.org/spec/lti-tool-configuration';
+        if ( isset($response->{$tc_key}) && is_object($response->{$tc_key}) ) {
+            $from_tool = self::deploymentIdValue($response->{$tc_key}->deployment_id ?? null);
+            if ( $from_tool !== null ) {
+                return $from_tool;
+            }
+        }
+        return self::deploymentIdValue($response->deployment_id ?? null);
+    }
 
     /**
-     * Message types Canvas accepts when its OpenID configuration does not list any.
-     * LtiDataPrivacyLaunchRequest is not one of them.
-     *
-     * @var array<string, true>
+     * @param mixed $value
+     * @return string|null
      */
-    private const CANVAS_MESSAGE_TYPES = array(
-        'LtiResourceLinkRequest' => true,
-        'LtiDeepLinkingRequest' => true,
-        'LtiEulaRequest' => true,
-    );
+    private static function deploymentIdValue($value) {
+        if ( is_int($value) || is_float($value) ) {
+            $value = (string) $value;
+        }
+        if ( ! is_string($value) ) {
+            return null;
+        }
+        $value = trim($value);
+        return $value === '' ? null : $value;
+    }
 
     /**
-     * Drop message types and placements Canvas will reject.
-     * Other platforms receive the registration unchanged.
+     * Text for a failed registration POST. The body is the LMS response.
+     *
+     * @param mixed $status
+     * @param mixed $body
+     * @param mixed $headers
+     * @return string
+     */
+    public static function registrationFailureReport($status, $body, $headers) {
+        $report = "Http response code: ".(string) $status."\n\n";
+        $report .= "Response headers:\n";
+        $header_text = is_string($headers) ? trim(self::redactSecrets($headers)) : '';
+        $report .= ($header_text === '' ? "(none)" : $header_text)."\n\n";
+        $report .= "Response body:\n";
+        $shown = is_string($body) ? self::prettyJson(self::redactSecrets($body)) : '';
+        if ( ! is_string($shown) || $shown === '' ) {
+            $report .= "(empty)\n";
+        } else {
+            $limit = 20000;
+            if ( strlen($shown) > $limit ) {
+                $report .= substr($shown, 0, $limit)."\n\n(truncated)\n";
+            } else {
+                $report .= $shown."\n";
+            }
+        }
+        return $report;
+    }
+
+    /**
+     * Hide a registration token or bearer token in text shown to the browser.
+     *
+     * @param mixed $text
+     * @return string
+     */
+    public static function redactSecrets($text) {
+        if ( ! is_string($text) || $text === '' ) {
+            return '';
+        }
+        $text = preg_replace('/(registration_token=)[^&\s]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/(Authorization:\s*Bearer\s+)\S+/i', '$1[redacted]', $text);
+        return is_string($text) ? $text : '';
+    }
+
+    /**
+     * Keep message types and placements the platform advertised.
+     * A platform that does not publish messages_supported is left unchanged.
      *
      * @param array<int, array<string, mixed>> $messages
      * @param object|null $platform OpenID configuration
      * @return array<int, array<string, mixed>>
      */
     public static function messagesForPlatform(array $messages, $platform) {
-        if ( ! self::isCanvas($platform) ) {
+        $rules = self::messagesSupported($platform);
+        if ( $rules === null ) {
             return $messages;
         }
-        $rules = self::canvasMessageRules($platform);
         $out = array();
         foreach ( $messages as $message ) {
             if ( ! is_array($message) ) {
@@ -416,13 +454,14 @@ class DynamicRegistration {
             if ( ! array_key_exists($type, $rules) ) {
                 continue;
             }
-            if ( isset($message['placements']) && is_array($message['placements']) ) {
+            $advertised = $rules[$type];
+            if ( is_array($advertised) && isset($message['placements']) && is_array($message['placements']) ) {
                 $kept = array();
                 foreach ( $message['placements'] as $placement ) {
                     if ( ! is_string($placement) || $placement === '' ) {
                         continue;
                     }
-                    if ( self::canvasPlacementAllowed($placement, $rules[$type]) ) {
+                    if ( self::placementAdvertised($placement, $advertised) ) {
                         $kept[] = $placement;
                     }
                 }
@@ -434,23 +473,72 @@ class DynamicRegistration {
             }
             $out[] = $message;
         }
+        return self::omitRedundantMessages($out, $rules);
+    }
+
+    /**
+     * Drop an exact copy, and a placement-less message whose target is already
+     * offered by a placed message of the same type. A placement-less message
+     * with its own target, such as Tsugi Plus, stays.
+     *
+     * @param array<int, array<string, mixed>> $messages
+     * @param array<string, array<string, true>|null> $rules
+     * @return array<int, array<string, mixed>>
+     */
+    private static function omitRedundantMessages(array $messages, array $rules) {
+        $placed_targets = array();
+        foreach ( $messages as $message ) {
+            if ( ! isset($message['placements']) || ! is_array($message['placements']) || count($message['placements']) === 0 ) {
+                continue;
+            }
+            $type = isset($message['type']) && is_string($message['type']) ? $message['type'] : '';
+            $target = isset($message['target_link_uri']) && is_string($message['target_link_uri']) ? $message['target_link_uri'] : '';
+            if ( $type === '' || $target === '' || ! is_array($rules[$type] ?? null) ) {
+                continue;
+            }
+            $placed_targets[$type."\n".$target] = true;
+        }
+        $out = array();
+        $seen = array();
+        foreach ( $messages as $message ) {
+            $type = isset($message['type']) && is_string($message['type']) ? $message['type'] : '';
+            $target = isset($message['target_link_uri']) && is_string($message['target_link_uri']) ? $message['target_link_uri'] : '';
+            $placements = (isset($message['placements']) && is_array($message['placements'])) ? array_values($message['placements']) : null;
+            $identity = $type."\n".$target."\n".json_encode($placements);
+            if ( isset($seen[$identity]) ) {
+                continue;
+            }
+            $seen[$identity] = true;
+            $unplaced = $placements === null || count($placements) === 0;
+            if ( $unplaced && $target !== '' && isset($placed_targets[$type."\n".$target]) ) {
+                continue;
+            }
+            $out[] = $message;
+        }
         return $out;
     }
 
     /**
-     * @param object|null $platform
+     * A short name matches an advertised URL whose path ends in that name.
+     * The name we send is left as it is.
+     *
+     * @param string $placement
+     * @param array<string, true> $advertised
      * @return bool
      */
-    private static function isCanvas($platform) {
-        if ( ! is_object($platform) ) {
+    private static function placementAdvertised($placement, array $advertised) {
+        if ( isset($advertised[$placement]) ) {
+            return true;
+        }
+        $leaf = self::placementLeaf($placement);
+        if ( $leaf === '' ) {
             return false;
         }
-        $family = self::productFamily($platform);
-        if ( $family !== '' ) {
-            return strcasecmp($family, 'canvas') === 0;
-        }
-        foreach ( array('issuer', 'registration_endpoint', 'authorization_endpoint', 'token_endpoint') as $field ) {
-            if ( isset($platform->{$field}) && self::hostIsCanvas($platform->{$field}) ) {
+        foreach ( array_keys($advertised) as $name ) {
+            if ( ! is_string($name) ) {
+                continue;
+            }
+            if ( self::placementLeaf($name) === $leaf ) {
                 return true;
             }
         }
@@ -458,68 +546,32 @@ class DynamicRegistration {
     }
 
     /**
-     * @param object $platform
+     * @param string $name
      * @return string
      */
-    private static function productFamily($platform) {
-        $key = 'https://purl.imsglobal.org/spec/lti-platform-configuration';
-        if ( ! isset($platform->{$key}) ) {
+    private static function placementLeaf($name) {
+        if ( strpos($name, '://') === false ) {
+            return $name;
+        }
+        $path = parse_url($name, PHP_URL_PATH);
+        if ( ! is_string($path) || $path === '' || $path === '/' ) {
             return '';
         }
-        $block = $platform->{$key};
-        $family = '';
-        if ( is_object($block) && isset($block->product_family_code) && is_string($block->product_family_code) ) {
-            $family = $block->product_family_code;
-        } elseif ( is_array($block) && isset($block['product_family_code']) && is_string($block['product_family_code']) ) {
-            $family = $block['product_family_code'];
-        }
-        return trim($family);
-    }
-
-    /**
-     * @param mixed $url
-     * @return bool
-     */
-    private static function hostIsCanvas($url) {
-        if ( ! is_string($url) || $url === '' ) {
-            return false;
-        }
-        $host = parse_url($url, PHP_URL_HOST);
-        if ( ! is_string($host) || $host === '' ) {
-            return false;
-        }
-        $host = strtolower($host);
-        return $host === 'canvas.instructure.com'
-            || $host === 'sso.canvaslms.com'
-            || str_ends_with($host, '.canvaslms.com')
-            || str_ends_with($host, '.instructure.com');
-    }
-
-    /**
-     * Type to advertised placements. Null placements means use CANVAS_PLACEMENTS.
-     *
-     * @param object $platform
-     * @return array<string, array<string, true>|null>
-     */
-    private static function canvasMessageRules($platform) {
-        $listed = self::messagesSupported($platform);
-        if ( $listed === null ) {
-            $rules = array();
-            foreach ( array_keys(self::CANVAS_MESSAGE_TYPES) as $type ) {
-                $rules[$type] = null;
-            }
-            return $rules;
-        }
-        return $listed;
+        $parts = explode('/', trim($path, '/'));
+        $last = end($parts);
+        return is_string($last) ? $last : '';
     }
 
     /**
      * Null when the platform did not publish messages_supported.
      *
-     * @param object $platform
+     * @param object|null $platform
      * @return array<string, array<string, true>|null>|null
      */
     private static function messagesSupported($platform) {
+        if ( ! is_object($platform) ) {
+            return null;
+        }
         $key = 'https://purl.imsglobal.org/spec/lti-platform-configuration';
         if ( ! isset($platform->{$key}) ) {
             return null;
@@ -565,33 +617,6 @@ class DynamicRegistration {
             $listed[$type] = $set;
         }
         return $listed;
-    }
-
-    /**
-     * Canvas advertises many placements as https://canvas.instructure.com/lti/{name}
-     * and also accepts the short name in a registration.
-     *
-     * @param string $placement
-     * @param array<string, true>|null $advertised
-     * @return bool
-     */
-    private static function canvasPlacementAllowed($placement, $advertised) {
-        if ( $advertised === null ) {
-            return isset(self::CANVAS_PLACEMENTS[$placement]);
-        }
-        if ( isset($advertised[$placement]) ) {
-            return true;
-        }
-        $suffix = '/lti/'.$placement;
-        foreach ( array_keys($advertised) as $name ) {
-            if ( ! is_string($name) ) {
-                continue;
-            }
-            if ( strlen($name) > strlen($suffix) && substr($name, -strlen($suffix)) === $suffix ) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
