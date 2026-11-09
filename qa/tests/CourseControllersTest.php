@@ -19,6 +19,10 @@ use Facebook\WebDriver\WebDriverBy;
  * a due date, and the points and row menu for a lesson quiz.
  * Another creates a folder, deletes a file, edits an announcement, and restores a page.
  * Another lists the course in the catalog so a student can join and see learner screens.
+ * Another puts a published quiz due date on the home list and calendar, then
+ * checks that badge on Content and Outline and in Student View.
+ * Another puts several due dates on the home list, keeps the shortened list,
+ * and lets a student hide that list and open Outline.
  */
 final class CourseControllersTest extends TsugiPantherTestCase
 {
@@ -196,6 +200,59 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->captureScreenshot($client, 'student-catalog-files');
     }
 
+    public function testQuizDueDateShowsOnHomeCalendarAndStudentView(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+
+        $this->createAndPublishSampleQuiz($client, $home);
+        $this->authorLessonQuizLink($client, $home);
+        $due = $this->saveQuizDueDate($client, $home);
+        $note = 'Panther note '.date('His');
+        $this->showHomeCalendarDueListAndNote($client, $home, $note);
+        $this->seeQuizOnHomeDueListAndCalendar($client, $home, $due, $note);
+        $this->openFullDueListFromHome($client, $home);
+        $this->seeQuizOnCalendarMonth($client, $home);
+        $this->seeQuizDueBadgeOnContentAndOutline($client, $home);
+        $this->enterStudentViewAndSeeTheDueList($client, $home, $note);
+        $this->captureScreenshot($client, 'quiz-due-home');
+    }
+
+    public function testHomeDueListTrimsAndStudentCanHideIt(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+
+        $lateOld = 'Panther Late Old';
+        $lateMid = 'Panther Late Mid';
+        $lateRecent = 'Panther Late Recent';
+        $soon = 'Panther Soon';
+        $upcomingA = 'Panther Upcoming A';
+        $upcomingB = 'Panther Upcoming B';
+        $upcomingC = 'Panther Upcoming C';
+        $titles = array($lateOld, $lateMid, $lateRecent, $soon, $upcomingA, $upcomingB, $upcomingC);
+        foreach ($titles as $title) {
+            $this->createAndPublishTitledQuiz($client, $home, $title);
+        }
+        $this->authorLessonQuizzes($client, $home, $titles);
+        $this->saveDueDatesByTitle($client, $home, array(
+            $lateOld => '2020-01-15',
+            $lateMid => '2020-06-15',
+            $lateRecent => '2020-11-15',
+            $soon => date('Y-m-d'),
+            $upcomingA => date('Y-m-d', strtotime('+40 days')),
+            $upcomingB => date('Y-m-d', strtotime('+80 days')),
+            $upcomingC => date('Y-m-d', strtotime('+120 days')),
+        ));
+        $this->enableHomeCalendarAndDueList($client, $home);
+        $this->seeShortHomeDueList($client, $home, $lateOld, $lateMid, $lateRecent, $soon, $upcomingA, $upcomingB, $upcomingC);
+        $this->openFullDueList($client, $home, 'View all (3 late)', $titles);
+        $this->studentHidesDueListAndOpensOutline($client, $home, $lateRecent, $soon, $upcomingC);
+        $this->captureScreenshot($client, 'due-list-trimmed');
+    }
+
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
     {
         $driver = $client->getWebDriver();
@@ -361,6 +418,253 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertTrue($printed, 'Quiz view did not include a Print link.');
         $this->waitForPageText($client, 'quiz1-printing');
         $this->waitForPageText($client, 'Name:');
+    }
+
+    private function createAndPublishTitledQuiz(\Symfony\Component\Panther\Client $client, string $courseHome, string $title): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/quiz1/add');
+        $this->waitForPageText($client, 'New Quiz');
+        $driver->findElement(WebDriverBy::id('title'))->sendKeys($title);
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create Quiz')]"))->click();
+        $this->waitForPageText($client, 'Quiz created.');
+        $this->waitForPageText($client, $title);
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Unpublished. Click to publish."]'))->click();
+        $this->waitForPageText($client, 'Quiz published.');
+    }
+
+    /**
+     * @param list<string> $titles
+     */
+    private function authorLessonQuizzes(\Symfony\Component\Panther\Client $client, string $courseHome, array $titles): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/lessons/_author');
+        $this->waitForPageText($client, 'Add module');
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add module"]'))->click();
+        $this->waitForPageText($client, 'Edit Module');
+        $module = $driver->findElement(WebDriverBy::id('edit-module-title'));
+        $module->clear();
+        $module->sendKeys('Panther Due List');
+        $driver->findElement(WebDriverBy::id('edit-module-anchor'))->sendKeys('panther-due-list');
+        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+        $this->waitForPageText($client, 'Panther Due List');
+
+        foreach ($titles as $title) {
+            $opened = (bool) $driver->executeScript(
+                'var button = document.querySelector("button[aria-label=\\"Add item\\"]");
+                 if (!button) { return false; }
+                 button.click();
+                 return true;'
+            );
+            $this->assertTrue($opened, 'Add item was not on the lesson author page.');
+            $this->waitForPageText($client, 'Add Item');
+            $driver->executeScript(
+                "document.getElementById('edit-item-type').value = 'quiz'; updateItemForm();"
+            );
+            $picked = (bool) $driver->executeScript(
+                'var sel = document.getElementById("edit-quiz-id");
+                 if (!sel) { return false; }
+                 var want = arguments[0];
+                 var opt = Array.from(sel.options).find(function (o) {
+                     return (o.textContent || "").indexOf(want) !== -1;
+                 });
+                 if (!opt) { return false; }
+                 sel.value = opt.value;
+                 if (typeof onQuizPicked === "function") { onQuizPicked(); }
+                 return true;',
+                [$title]
+            );
+            $this->assertTrue($picked, 'Lesson quiz picker did not list '.$title.'.');
+            $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+            $this->waitForPageText($client, $title);
+        }
+
+        $driver->executeScript('saveChanges()');
+        $this->acceptAlertContaining($driver, 'saved');
+    }
+
+    /**
+     * @param array<string, string> $titleToDate
+     */
+    private function saveDueDatesByTitle(\Symfony\Component\Panther\Client $client, string $courseHome, array $titleToDate): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        foreach (array_keys($titleToDate) as $title) {
+            $this->waitForPageText($client, $title);
+        }
+        $missing = $driver->executeScript(
+            'var dates = arguments[0];
+             var missing = [];
+             Object.keys(dates).forEach(function (title) {
+                 var row = Array.from(document.querySelectorAll("tr")).find(function (tr) {
+                     return (tr.innerText || "").indexOf(title) !== -1;
+                 });
+                 var input = row && row.querySelector("input[name=\\"end[]\\"]");
+                 if (!input) { missing.push(title); return; }
+                 input.value = dates[title];
+             });
+             return missing;',
+            [$titleToDate]
+        );
+        $this->assertSame(array(), $missing, 'A quiz row had no due-date field.');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Save due dates')]"))->click();
+        $this->waitForPageText($client, 'Saved due dates.');
+    }
+
+    private function enableHomeCalendarAndDueList(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, 'Configure home');
+        $saved = (bool) $driver->executeScript(
+            '["show_calendar", "show_dues"].forEach(function (name) {
+                var box = document.querySelector("input[name=\\"" + name + "\\"]");
+                if (box) { box.checked = true; }
+            });
+            var form = document.querySelector("form.tsugi-home-config-panel");
+            if (!form) { return false; }
+            form.submit();
+            return true;'
+        );
+        $this->assertTrue($saved, 'Home configure form was not on the page.');
+        $this->waitForPageText($client, 'Home page updated.');
+    }
+
+    private function seeShortHomeDueList(
+        \Symfony\Component\Panther\Client $client,
+        string $courseHome,
+        string $lateOld,
+        string $lateMid,
+        string $lateRecent,
+        string $soon,
+        string $upcomingA,
+        string $upcomingB,
+        string $upcomingC
+    ): void {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, 'View all (3 late)');
+        $this->waitForPageText($client, 'View all (3 upcoming)');
+        $this->waitForPageText($client, $lateRecent);
+        $this->waitForPageText($client, $soon);
+        $this->waitForPageText($client, $upcomingA);
+        $this->waitForPageText($client, $upcomingB);
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString($lateOld, $page);
+        $this->assertStringNotContainsString($lateMid, $page);
+        $this->assertStringNotContainsString($upcomingC, $page);
+        $this->assertStringNotContainsString('>View All<', $page);
+        $lateLink = strpos($page, 'View all (3 late)');
+        $recent = strpos($page, $lateRecent);
+        $first = strpos($page, $upcomingA);
+        $second = strpos($page, $upcomingB);
+        $upcomingLink = strpos($page, 'View all (3 upcoming)');
+        $this->assertNotFalse($lateLink);
+        $this->assertNotFalse($recent);
+        $this->assertLessThan($recent, $lateLink);
+        $this->assertNotFalse($first);
+        $this->assertNotFalse($second);
+        $this->assertLessThan($first, $recent);
+        $this->assertLessThan($second, $first);
+        $this->assertNotFalse($upcomingLink);
+        $this->assertLessThan($upcomingLink, $second);
+        $this->captureScreenshot($client, 'due-list-short');
+    }
+
+    /**
+     * @param list<string> $titles
+     */
+    private function openFullDueList(\Symfony\Component\Panther\Client $client, string $courseHome, string $linkText, array $titles): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, $linkText);
+        $opened = (bool) $driver->executeScript(
+            'var want = arguments[0];
+             var link = Array.from(document.querySelectorAll("a")).find(function (el) {
+                 return (el.textContent || "").trim() === want;
+             });
+             if (!link) { return false; }
+             window.location.href = link.href;
+             return true;',
+            [$linkText]
+        );
+        $this->assertTrue($opened, 'Home due list had no '.$linkText.' link.');
+        $this->assertStringContainsString('view=list', $driver->getCurrentURL());
+        foreach ($titles as $title) {
+            $this->waitForPageText($client, $title);
+        }
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString('View all (', $page);
+        $this->assertStringNotContainsString('>View All<', $page);
+    }
+
+    private function studentHidesDueListAndOpensOutline(
+        \Symfony\Component\Panther\Client $client,
+        string $courseHome,
+        string $lateRecent,
+        string $soon,
+        string $upcomingC
+    ): void {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/student');
+        $this->waitForPageText($client, 'Nancy Drew');
+        $entered = (bool) $driver->executeScript(
+            'var row = Array.from(document.querySelectorAll("tr")).find(function (tr) {
+                return (tr.innerText || "").indexOf("Nancy Drew") !== -1;
+            });
+            if (!row) { return false; }
+            var button = row.querySelector("button[type=submit]");
+            if (!button) { return false; }
+            button.click();
+            return true;'
+        );
+        $this->assertTrue($entered, 'Nancy Drew had no Enter button.');
+        $this->waitForPageText($client, 'Leave Student View');
+        $this->waitForPageText($client, $lateRecent);
+        $this->waitForPageText($client, 'View all (3 late)');
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString('Panther Late Old', $page);
+        $this->assertStringContainsString('Home settings', $page);
+
+        $hidden = (bool) $driver->executeScript(
+            'var box = document.querySelector("input[name=\\"home_show[]\\"][value=\\"dues\\"]");
+             if (!box || !box.form) { return false; }
+             box.checked = false;
+             box.form.submit();
+             return true;'
+        );
+        $this->assertTrue($hidden, 'Student home settings had no due-list choice.');
+        $this->waitForPageText($client, 'Home settings saved.');
+        $this->waitForPageText($client, $soon);
+        $hiddenPage = $client->getPageSource();
+        $this->assertStringNotContainsString($lateRecent, $hiddenPage);
+        $this->assertStringNotContainsString('View all (3 late)', $hiddenPage);
+
+        $shown = (bool) $driver->executeScript(
+            'var box = document.querySelector("input[name=\\"home_show[]\\"][value=\\"dues\\"]");
+             var outline = document.querySelector("input[name=\\"content_view\\"][value=\\"outline\\"]");
+             if (!box || !box.form || !outline) { return false; }
+             box.checked = true;
+             outline.checked = true;
+             box.form.submit();
+             return true;'
+        );
+        $this->assertTrue($shown, 'Student home settings had no Outline choice.');
+        $this->waitForPageText($client, 'Home settings saved.');
+        $this->waitForPageText($client, $lateRecent);
+        $menu = (bool) $driver->executeScript(
+            'return Array.from(document.querySelectorAll("a")).some(function (el) {
+                var text = (el.textContent || "").replace(/\\s+/g, " ").trim();
+                return text === "Lessons" && /\\/outline/.test(el.getAttribute("href") || "");
+            });'
+        );
+        $this->assertTrue($menu, 'The Lessons menu did not open Outline.');
+        $driver->get($courseHome.'/outline');
+        $this->waitForPageText($client, 'Leave Student View');
+        $this->waitForPageText($client, $upcomingC);
     }
 
     private function createAndPublishSampleQuiz(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -785,6 +1089,157 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertTrue($kept, 'The due date did not stay on the quiz.');
 
         return $dueDate;
+    }
+
+    private function showHomeCalendarDueListAndNote(\Symfony\Component\Panther\Client $client, string $courseHome, string $note): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, 'Configure home');
+        $saved = (bool) $driver->executeScript(
+            '["show_calendar", "show_dues", "show_notes"].forEach(function (name) {
+                var box = document.querySelector("input[name=\\"" + name + "\\"]");
+                if (box) { box.checked = true; }
+            });
+            var form = document.querySelector("form.tsugi-home-config-panel");
+            if (!form) { return false; }
+            form.submit();
+            return true;'
+        );
+        $this->assertTrue($saved, 'Home configure form was not on the page.');
+        $this->waitForPageText($client, 'Home page updated.');
+        $this->waitForPageText($client, 'Note to self');
+
+        $noted = (bool) $driver->executeScript(
+            'var area = document.getElementById("student_note");
+             if (!area || !area.form) { return false; }
+             area.value = arguments[0];
+             area.form.submit();
+             return true;',
+            [$note]
+        );
+        $this->assertTrue($noted, 'Note to self had no editor.');
+        $this->waitForPageText($client, 'Note to self saved.');
+        $this->waitForPageText($client, $note);
+    }
+
+    private function seeQuizOnHomeDueListAndCalendar(\Symfony\Component\Panther\Client $client, string $courseHome, string $dueDate, string $note): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/home');
+        $label = date('M j, Y', strtotime($dueDate.' 12:00:00'));
+        $this->waitForPageText($client, 'Due dates');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Panther Quiz Module');
+        $this->waitForPageText($client, 'Up next');
+        $this->waitForPageText($client, $label);
+        $this->waitForPageText($client, 'View All');
+        $this->waitForPageText($client, 'Open calendar');
+        $this->waitForPageText($client, $note);
+        $page = $client->getPageSource();
+        $this->assertStringContainsString('tsugi-due-list', $page);
+        $this->assertStringContainsString('tsugi-assignments-due-badge', $page);
+        $this->assertStringContainsString('tsugi-assignments-due-soon', $page);
+        $this->assertGreaterThanOrEqual(
+            2,
+            substr_count($page, 'QTI Export Test'),
+            'The quiz should be on both the home due list and the home calendar.'
+        );
+        $this->assertStringNotContainsString('View all (', $page);
+    }
+
+    private function openFullDueListFromHome(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, 'View All');
+        $opened = (bool) $driver->executeScript(
+            'var link = Array.from(document.querySelectorAll("a")).find(function (el) {
+                return (el.textContent || "").trim() === "View All";
+            });
+            if (!link) { return false; }
+            window.location.href = link.href;
+            return true;'
+        );
+        $this->assertTrue($opened, 'Home due list had no View All link.');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Up next');
+        $this->waitForPageText($client, 'Panther Quiz Module');
+        $this->assertStringContainsString('view=list', $driver->getCurrentURL());
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString('View all (', $page);
+        $this->assertStringNotContainsString('>View All<', $page);
+        $this->assertStringContainsString('tsugi-assignments-due-badge', $page);
+    }
+
+    private function seeQuizOnCalendarMonth(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/calendar');
+        $this->waitForPageText($client, 'Assignment due dates');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Up next');
+        $page = $client->getPageSource();
+        $this->assertStringContainsString('tsugi-cal-event-link', $page);
+        $this->assertStringContainsString('tsugi-assignments-due-soon', $page);
+    }
+
+    private function seeQuizDueBadgeOnContentAndOutline(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/content');
+        $this->waitForPageText($client, 'Panther Quiz Module', 20);
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Up next');
+        $this->assertStringContainsString('tsugi-assignments-due-badge', $client->getPageSource());
+
+        $driver->get($courseHome.'/outline');
+        $this->waitForPageText($client, 'Panther Quiz Module');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Up next');
+        $this->assertStringContainsString('tsugi-assignments-due-badge', $client->getPageSource());
+    }
+
+    private function enterStudentViewAndSeeTheDueList(\Symfony\Component\Panther\Client $client, string $courseHome, string $instructorNote): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/student');
+        $this->waitForPageText($client, 'Student View lets you open this course as a learner.');
+        $this->waitForPageText($client, 'Nancy Drew');
+        $entered = (bool) $driver->executeScript(
+            'var row = Array.from(document.querySelectorAll("tr")).find(function (tr) {
+                return (tr.innerText || "").indexOf("Nancy Drew") !== -1;
+            });
+            if (!row) { return false; }
+            var button = row.querySelector("button[type=submit]");
+            if (!button) { return false; }
+            button.click();
+            return true;'
+        );
+        $this->assertTrue($entered, 'Nancy Drew had no Enter button.');
+        $this->waitForPageText($client, 'Leave Student View');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Up next');
+        $framed = (bool) $driver->executeScript(
+            'return !!(document.body && document.body.classList.contains("tsugi-student-view"));'
+        );
+        $this->assertTrue($framed, 'Student View did not put the green frame on the page.');
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString('Configure home', $page);
+        $this->assertStringNotContainsString($instructorNote, $page);
+        $this->assertStringContainsString('tsugi-assignments-due-badge', $page);
+
+        $driver->get($courseHome.'/outline');
+        $this->waitForPageText($client, 'Leave Student View');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Up next');
+
+        $driver->findElement(WebDriverBy::cssSelector('button.tsugi-student-view-leave'))->click();
+        $this->waitForPageText($client, 'You are back in your instructor account.');
+
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, $instructorNote);
+        $this->waitForPageText($client, 'Configure home');
     }
 
     private function scoreQuizFromOutline(\Symfony\Component\Panther\Client $client, string $courseHome): void

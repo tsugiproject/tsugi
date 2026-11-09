@@ -46,6 +46,10 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`CourseControllersTest::testStudentJoinsCatalogCourseAndSeesSharedFiles`** puts files in Student, Public, Private, and the course root, posts an announcement, and lists the course in the catalog. Student 01 joins from the catalog. Files shows only the Student file, and a direct Private link is not found. The announcement is visible without a manage control. The grade book is the student's own, and course settings refuse the student.
 
+**`CourseControllersTest::testQuizDueDateShowsOnHomeCalendarAndStudentView`** publishes the sample quiz, puts it in a lesson, and saves today's due date. The instructor turns on the home calendar, due list, and note to self. The quiz title, module, date, and Up next badge show on the home list and the home calendar. View All opens the full due list, which keeps that one row. The calendar month shows the same quiz. Content and Outline use that same badge. Student View as Nancy Drew sees the due list inside the green frame, and does not see the instructor's note or the configure gear. Leave Student View returns to the instructor, and the note is still on home.
+
+**`CourseControllersTest::testHomeDueListTrimsAndStudentCanHideIt`** publishes seven quizzes and gives them due dates: three late, one today, and three further out. The home list keeps the most recent late quiz and the two soonest upcoming quizzes, with View all links for the three late and three upcoming rows. That link opens the full list, which shows every quiz. Student View sees the same short list. Hiding Due dates removes the late quiz and leaves today's quiz on the calendar. Showing the list again and choosing Outline leaves the Lessons menu pointed at Outline, where the furthest quiz is visible.
+
 ## Store tools
 
 These launch from the store without a site login. Try It picks an identity and the tool runs in the frame.

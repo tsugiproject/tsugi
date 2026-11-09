@@ -5,6 +5,7 @@
 # Usage:
 #   qa/local-panther.sh
 #   qa/local-panther.sh --filter AdminTest
+#   qa/local-panther.sh --reuse --filter testQuizDueDateShowsOnHomeCalendarAndStudentView
 #   qa/local-panther.sh --skip-composer --filter testAdminConsoleGoesOneClickDeeper
 
 set -euo pipefail
@@ -22,11 +23,17 @@ from the repo root (qa/tests/AdminTest.php), not tests/AdminTest.php.
 Prefer --filter. --testdox prints each test name as it finishes.
 
   ./qa/local-panther.sh --filter AdminTest --testdox
+  ./qa/local-panther.sh --reuse --filter CourseControllersTest --testdox
   PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-dev-shm-usage" \
     ./qa/local-panther.sh --skip-composer --filter AdminTest --testdox
 
 Options:
   --skip-composer     Skip composer install
+  --reuse             Local loop. Skip composer and chromedriver setup when they
+                      are already installed, and start Docker without an image
+                      rebuild. Use this instead of pushing to GitHub to see a
+                      failure. The first run on a machine still needs a build;
+                      leave --reuse off for that, or after a Dockerfile change.
   -h, --help          Show this help
 
 Environment (optional overrides):
@@ -53,9 +60,11 @@ EOF
 }
 
 SKIP_COMPOSER=0
+REUSE=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-composer) SKIP_COMPOSER=1; shift ;;
+    --reuse) REUSE=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) break ;;
   esac
@@ -99,7 +108,19 @@ export PANTHER_EXTERNAL_BASE_URI="$TSUGI_BASE_URL"
 
 echo "🌐 ${TSUGI_BASE_URL}  (port ${TSUGI_HOST_PORT}; MAMP can keep 8888)"
 
+# The site root can redirect while Apache is still serving a database failure.
+# Demo login is a page that has to reach the database.
+tsugi_http_ok() {
+  local body
+  body="$(curl -fsS "${TSUGI_BASE_URL}/login/simulate" 2>/dev/null || true)"
+  [[ -n "$body" && "$body" != *"Failure connecting to the database"* ]]
+}
+
 command -v docker >/dev/null 2>&1 || die "docker not found in PATH."
+
+if [[ "$REUSE" -eq 1 && -x "vendor/bin/phpunit" ]]; then
+  SKIP_COMPOSER=1
+fi
 
 if [[ "$SKIP_COMPOSER" -eq 0 ]]; then
   echo "📦 composer install..."
@@ -111,8 +132,12 @@ PHPUNIT="vendor/bin/phpunit"
 [[ -f "$BDI" ]] || die "Run composer install first ($BDI missing)."
 [[ -f "$PHPUNIT" ]] || die "Run composer install first ($PHPUNIT missing)."
 
-echo "🌐 Installing browser drivers..."
-"$BDI" detect drivers
+if [[ "$REUSE" -eq 1 && -x "${ROOT}/drivers/chromedriver" ]]; then
+  echo "🌐 Reusing ${ROOT}/drivers/chromedriver"
+else
+  echo "🌐 Installing browser drivers..."
+  "$BDI" detect drivers
+fi
 
 # bdi installs a Chrome-matched driver into ./drivers. Panther searches PATH
 # first, so a stale Homebrew chromedriver would be chosen instead.
@@ -127,15 +152,26 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 
-echo "🐳 Starting Tsugi (docker compose up -d --build --force-recreate)..."
 # Recreate so a container left over from another TSUGI_WWWROOT (for example
 # local.dj4e.com) does not keep the passphrase screen behind DJ4E login.
-docker compose up -d --build --force-recreate
+# --reuse skips the image build. PHP is bind-mounted, so a code change does
+# not need a new image. Rebuild after a Dockerfile or compose change.
+if [[ "$REUSE" -eq 1 ]] && tsugi_http_ok && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx tsugi_web; then
+  echo "🐳 Reusing Tsugi at ${TSUGI_BASE_URL}"
+else
+  if [[ "$REUSE" -eq 1 ]]; then
+    echo "🐳 Starting Tsugi (docker compose up -d --force-recreate, no image build)..."
+    docker compose up -d --force-recreate
+  else
+    echo "🐳 Starting Tsugi (docker compose up -d --build --force-recreate)..."
+    docker compose up -d --build --force-recreate
+  fi
+fi
 
 echo "⏳ Waiting for Tsugi at ${TSUGI_BASE_URL}..."
 ok=0
 for _ in $(seq 1 30); do
-  if curl -fsS "${TSUGI_BASE_URL}" >/dev/null 2>&1; then
+  if tsugi_http_ok; then
     ok=1
     break
   fi

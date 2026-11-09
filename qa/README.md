@@ -12,13 +12,17 @@ End-to-end tests use Symfony Panther (Chrome) against a Docker Tsugi, not your M
 
 The script installs Composer dev tools, browser drivers, and recreates the Docker stack on port **8000** (MAMP keeps 8888). Inside the container, config is `docker/tsugi-docker-config.php`, not your `config.php`. The admin passphrase is `tsugi-admin`. Demo login is on, with secret `tsugi-demo`.
 
-The first run builds the image. Later runs:
+The first run builds the image. Later runs stay on this machine and skip the image rebuild:
+
+```bash
+./qa/local-panther.sh --reuse --filter CourseControllersTest --testdox
+```
+
+`--reuse` skips Composer and chromedriver setup when they are already there, and starts Docker without building the image. The site is bind-mounted, so a PHP change is picked up. Leave `--reuse` off after a Dockerfile or compose change. `--skip-composer` only skips Composer. Put either flag before anything meant for PHPUnit.
 
 ```bash
 ./qa/local-panther.sh --skip-composer
 ```
-
-`--skip-composer` is a script flag. Put it before anything meant for PHPUnit.
 
 ## One class, and a log you can read
 
@@ -46,7 +50,7 @@ Other classes in `qa/tests/` include `SmokeTest`, `StoreTest`, `ToolLaunchTest`,
 
 ```bash
 ./qa/panther-watch.sh
-./qa/panther-watch.sh --skip-composer
+./qa/panther-watch.sh --reuse
 ./qa/panther-watch.sh --skip-composer --filter ToolLaunchTest
 ```
 
