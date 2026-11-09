@@ -161,10 +161,12 @@ class DynamicRegistration {
                 "type" => "LtiDeepLinkingRequest",
                 "label" => $json->client_name . ' (' . __('Deep Link') . ')',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
-                // lessons is the Tsugi/Sakai content area. ContentArea is the
-                // standard name. Both go out so Sakai still sees lessons.
-                // A registration imported into Tsugi keeps ContentArea only.
-                "placements" => array("ContentArea", "lessons"),
+                // One deep link opens the store from a module or an assignment.
+                // ContentArea and link_selection are the module picker. Canvas
+                // treats ContentArea as link_selection and keeps the first.
+                // assignment_selection is the assignment picker. lessons is the
+                // Sakai content area and stays on this same store URL.
+                "placements" => array("ContentArea", "link_selection", "assignment_selection", "lessons"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
@@ -205,26 +207,12 @@ class DynamicRegistration {
             ),
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name . ' (' . __('Link Selection') . ')',
-                "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=link_selection',
-                "placements" => array( "link_selection"),
-                "custom_parameters" => $custom_parameters,
-            ),
-            array(
-                "type" => "LtiDeepLinkingRequest",
                 "label" => $json->client_name . ' (' . __('Editor Button') . ')',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=editor_button',
                 // RichTextEditor is the standard name and comes first.
                 // editor_button is Canvas. content_editor is Tsugi/Sakai.
                 // All three go out. Import into Tsugi keeps RichTextEditor only.
                 "placements" => array("RichTextEditor", "editor_button", "content_editor"),
-                "custom_parameters" => $custom_parameters,
-            ),
-            array(
-                "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name . ' (' . __('Assignment Selection') . ')',
-                "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=assignment_selection',
-                "placements" => array( "assignment_selection"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(

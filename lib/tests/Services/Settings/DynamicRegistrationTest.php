@@ -14,7 +14,7 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), $platform);
 
         $this->assertSame(
-            array('ContentArea', 'lessons'),
+            array('ContentArea', 'link_selection', 'assignment_selection', 'lessons'),
             $messages[0]['placements']
         );
         $this->assertSame('LtiDataPrivacyLaunchRequest', $messages[1]['type']);
@@ -49,14 +49,16 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         $types = array_column($messages, 'type');
 
         $this->assertNotContains('LtiDataPrivacyLaunchRequest', $types);
-        $this->assertSame(array('ContentArea'), $messages[0]['placements']);
+        $this->assertSame(
+            array('ContentArea', 'link_selection', 'assignment_selection'),
+            $messages[0]['placements']
+        );
+        $this->assertSame('https://tool.example/store/', $messages[0]['target_link_uri']);
         $this->assertSame(array('migration_selection'), $this->messagePlacements($messages, 'Migration'));
-        $this->assertSame(array('link_selection'), $this->messagePlacements($messages, 'Link'));
         $this->assertSame(
             array('RichTextEditor', 'editor_button'),
             $this->messagePlacements($messages, 'Editor')
         );
-        $this->assertSame(array('assignment_selection'), $this->messagePlacements($messages, 'Assignment'));
         $this->assertSame('LtiResourceLinkRequest', $this->messageByLabel($messages, 'Plus')['type']);
         $this->assertSame(array('course_navigation'), $this->messagePlacements($messages, 'Plus'));
     }
@@ -104,7 +106,10 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         $platform = $this->platform('canvas', null);
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), $platform);
 
-        $this->assertSame(array('ContentArea', 'lessons'), $messages[0]['placements']);
+        $this->assertSame(
+            array('ContentArea', 'link_selection', 'assignment_selection', 'lessons'),
+            $messages[0]['placements']
+        );
         $this->assertContains('LtiDataPrivacyLaunchRequest', array_column($messages, 'type'));
         $this->assertSame(
             array('RichTextEditor', 'editor_button', 'content_editor'),
@@ -208,9 +213,9 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
     public function testMissingPlatformKeepsTheFullRegistration(): void
     {
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), null);
-        $this->assertCount(8, $messages);
+        $this->assertCount(6, $messages);
         $this->assertSame('LtiDataPrivacyLaunchRequest', $messages[1]['type']);
-        $this->assertSame('Deep Link Again', $messages[7]['label']);
+        $this->assertSame('Deep Link Again', $messages[5]['label']);
     }
 
     /**
@@ -223,7 +228,7 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
                 'type' => 'LtiDeepLinkingRequest',
                 'label' => 'Deep Link',
                 'target_link_uri' => 'https://tool.example/store/',
-                'placements' => array('ContentArea', 'lessons'),
+                'placements' => array('ContentArea', 'link_selection', 'assignment_selection', 'lessons'),
             ),
             array(
                 'type' => 'LtiDataPrivacyLaunchRequest',
@@ -243,19 +248,8 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
             ),
             array(
                 'type' => 'LtiDeepLinkingRequest',
-                'label' => 'Link',
-                'placements' => array('link_selection'),
-            ),
-            array(
-                'type' => 'LtiDeepLinkingRequest',
                 'label' => 'Editor',
                 'placements' => array('RichTextEditor', 'editor_button', 'content_editor'),
-            ),
-            array(
-                'type' => 'LtiDeepLinkingRequest',
-                'label' => 'Assignment',
-                'target_link_uri' => 'https://tool.example/store/?type=assignment_selection',
-                'placements' => array('assignment_selection'),
             ),
             array(
                 'type' => 'LtiDeepLinkingRequest',
