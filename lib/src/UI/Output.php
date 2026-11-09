@@ -1668,7 +1668,7 @@ $( function() {
             $ret .= '<link href="'.htmlspecialchars($theme["font-url"]).'" rel="stylesheet">'."\n";
         }
         $ret .= self::getThemeCss($theme);
-        $ret .= '<link href="'.$s.'/css/tsugi2.css?v=20261105" rel="stylesheet">'."\n";
+        $ret .= '<link href="'.$s.'/css/tsugi2.css?v=2026110953" rel="stylesheet">'."\n";
         $ret .= self::navbarAlignCss();
         $ret .= \Tsugi\Services\StudentView\StudentView::css();
         if ( isset($CFG->extra_css) ) {

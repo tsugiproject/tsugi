@@ -132,7 +132,7 @@ class Calendar extends Tool {
         if ( ! $lessons ) {
             return null;
         }
-        $items = $lessons->enumerateLtiAssignmentItems();
+        $items = $this->dueSourceItems($lessons);
         $dueMap = array();
         if ( ReqScope::currentContextId() !== 0 ) {
             $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
@@ -147,6 +147,32 @@ class Calendar extends Tool {
             'rows' => $rows,
             'byDate' => self::groupDueRows($rows),
         );
+    }
+
+    /**
+     * LTI assignment rows plus native Quiz1 rows. A quiz uses the same link key as its due date.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @return array<int,array<string,mixed>>
+     */
+    private function dueSourceItems($lessons) {
+        $items = $lessons->enumerateLtiAssignmentItems();
+        $seen = array();
+        foreach ( $items as $it ) {
+            $key = isset($it['resource_link_id']) ? trim((string) $it['resource_link_id']) : '';
+            if ( $key !== '' ) {
+                $seen[$key] = true;
+            }
+        }
+        foreach ( $lessons->enumerateQuizDueItems() as $quiz ) {
+            $key = isset($quiz['resource_link_id']) ? trim((string) $quiz['resource_link_id']) : '';
+            if ( $key === '' || isset($seen[$key]) ) {
+                continue;
+            }
+            $seen[$key] = true;
+            $items[] = $quiz;
+        }
+        return $items;
     }
 
     /**
@@ -213,7 +239,7 @@ class Calendar extends Tool {
     /**
      * Count unfinished assignments that are “due soon” (within 7 days) or “late” (past due).
      *
-     * @param array<int,array<string,mixed>> $items from Lessons::enumerateLtiAssignmentItems()
+     * @param array<int,array<string,mixed>> $items from dueSourceItems()
      * @param array<string,array<string,mixed>> $dueMap from GradeUtil::loadDueDatesForDisplay()
      * @param array<string,float> $allgrades resource_link_id => grade
      * @return array{due_soon:int,late:int}
@@ -264,7 +290,7 @@ class Calendar extends Tool {
 
         LTIX::getConnection();
 
-        $items = $l->enumerateLtiAssignmentItems();
+        $items = $this->dueSourceItems($l);
         $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
 
         $allgrades = array();
@@ -418,6 +444,92 @@ class Calendar extends Tool {
     }
 
     /**
+     * Home due list. More than two late rows keep the most recent one.
+     * More than two Upcoming rows keep the two soonest. Up next and Completed stay.
+     *
+     * @param list<array<string,string>> $rows Date order, then title
+     * @return list<array<string,mixed>>
+     */
+    public static function homeDueEntries(array $rows) {
+        $rows = self::sortDueRows($rows);
+        $late = array();
+        $upcoming = array();
+        foreach ( $rows as $i => $ev ) {
+            if ( self::isLateRow($ev) ) {
+                $late[] = $i;
+            } else if ( self::isUpcomingRow($ev) ) {
+                $upcoming[] = $i;
+            }
+        }
+        $drop = array();
+        $lateCount = count($late);
+        if ( $lateCount > 2 ) {
+            $keepLate = $late[$lateCount - 1];
+            foreach ( $late as $idx ) {
+                if ( $idx !== $keepLate ) {
+                    $drop[$idx] = true;
+                }
+            }
+        }
+        $upcomingCount = count($upcoming);
+        if ( $upcomingCount > 2 ) {
+            $keepUpcoming = array_flip(array_slice($upcoming, 0, 2));
+            foreach ( $upcoming as $idx ) {
+                if ( ! isset($keepUpcoming[$idx]) ) {
+                    $drop[$idx] = true;
+                }
+            }
+        }
+        $entries = array();
+        $lateMarked = false;
+        $upcomingShown = 0;
+        foreach ( $rows as $i => $ev ) {
+            if ( isset($drop[$i]) ) {
+                continue;
+            }
+            if ( $lateCount > 2 && ! $lateMarked && self::isLateRow($ev) ) {
+                $entries[] = array('marker' => 'late', 'count' => $lateCount);
+                $lateMarked = true;
+            }
+            $entries[] = $ev;
+            if ( $upcomingCount > 2 && self::isUpcomingRow($ev) ) {
+                $upcomingShown++;
+                if ( $upcomingShown === 2 ) {
+                    $entries[] = array('marker' => 'upcoming', 'count' => $upcomingCount);
+                }
+            }
+        }
+        return $entries;
+    }
+
+    /**
+     * @param array<string,mixed> $ev
+     */
+    private static function isLateRow(array $ev) {
+        return (string) ($ev['due_mod'] ?? '') === 'tsugi-assignments-due-past';
+    }
+
+    /**
+     * Upcoming is the future badge. Up next stays on the home list.
+     *
+     * @param array<string,mixed> $ev
+     */
+    private static function isUpcomingRow(array $ev) {
+        return (string) ($ev['due_mod'] ?? '') === 'tsugi-assignments-due-future';
+    }
+
+    /**
+     * @param 'late'|'upcoming' $which
+     */
+    private static function viewAllHtml($which, $count) {
+        $open = U::add_url_parm(U::addSession(self::determineToolHome(self::ROUTE)), 'view', 'list');
+        $label = $which === 'late'
+            ? sprintf(__('View all (%d late)'), (int) $count)
+            : sprintf(__('View all (%d upcoming)'), (int) $count);
+        return '<li class="tsugi-due-list-more"><a class="btn btn-default btn-sm" href="'.htmlspecialchars($open).'">'.htmlspecialchars($label)."</a></li>\n";
+    }
+
+    /**
      * @param list<array<string,string>> $rows
      */
     public static function listMarkup(array $rows, $embedded = false) {
@@ -429,9 +541,23 @@ class Calendar extends Tool {
             $html .= '<p>'.htmlspecialchars(__('No assignment due dates.'))."</p>\n</div>\n";
             return $html;
         }
+        $entries = $embedded ? self::homeDueEntries($rows) : $rows;
         $html .= '<ul class="tsugi-due-list-items">'."\n";
         $lastDate = null;
-        foreach ( $rows as $ev ) {
+        $entryCount = count($entries);
+        foreach ( $entries as $n => $ev ) {
+            if ( isset($ev['marker']) ) {
+                $nextDate = '';
+                if ( $n + 1 < $entryCount && ! isset($entries[$n + 1]['marker']) ) {
+                    $nextDate = (string) ($entries[$n + 1]['date'] ?? '');
+                }
+                if ( $lastDate !== null && $nextDate !== $lastDate ) {
+                    $html .= "</ul></li>\n";
+                    $lastDate = null;
+                }
+                $html .= self::viewAllHtml((string) $ev['marker'], (int) ($ev['count'] ?? 0));
+                continue;
+            }
             $dateKey = (string) ($ev['date'] ?? '');
             if ( $dateKey !== $lastDate ) {
                 if ( $lastDate !== null ) {
@@ -446,11 +572,23 @@ class Calendar extends Tool {
             $html .= "</ul></li>\n";
         }
         $html .= "</ul>\n</div>\n";
-        if ( $embedded ) {
+        if ( $embedded && ! self::entriesHideUpcoming($entries) ) {
             $open = U::add_url_parm(U::addSession(self::determineToolHome(self::ROUTE)), 'view', 'list');
-            $html .= '<p><a href="'.htmlspecialchars($open).'">'.htmlspecialchars(__('Open due date list')).'</a></p>'."\n";
+            $html .= '<p class="tsugi-due-list-more"><a class="btn btn-default btn-sm" href="'.htmlspecialchars($open).'">'.htmlspecialchars(__('View All'))."</a></p>\n";
         }
         return $html;
+    }
+
+    /**
+     * @param list<array<string,mixed>> $entries
+     */
+    private static function entriesHideUpcoming(array $entries) {
+        foreach ( $entries as $ev ) {
+            if ( isset($ev['marker']) && $ev['marker'] === 'upcoming' ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -468,7 +606,7 @@ class Calendar extends Tool {
             if ( $moduleTitle !== '' ) {
                 $html .= ' <span class="text-muted">'.htmlspecialchars($moduleTitle).'</span>';
             }
-            $html .= ' <span class="tsugi-assignments-due-badge '.htmlspecialchars($dueMod).'">'.htmlspecialchars($stateText).'</span>';
+            $html .= ' <span class="tsugi-assignments-due-badge '.htmlspecialchars($dueMod).'"><span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span></span>';
         }
         return $html."</li>\n";
     }
@@ -493,12 +631,7 @@ class Calendar extends Tool {
 .tsugi-due-list-date { font-weight: 600; }
 .tsugi-due-list-day > ul { margin-top: 0.25em; }
 .tsugi-due-list-day > ul > li { margin: 0.2em 0; }
-.tsugi-assignments-due-badge { display: inline-block; margin-left: 0.35em; padding: 0.1em 0.45em; border-radius: 0.25em; font-size: 0.75em; border: 1px solid transparent; }
-.tsugi-assignments-due-completed { background: #d4edda; color: #155724; border-color: #c3e6cb; }
-.tsugi-assignments-due-past { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-.tsugi-assignments-due-soon { background: #fff3cd; color: #856404; border-color: #ffeeba; }
-.tsugi-assignments-due-future { background: #e9ecef; color: #495057; border-color: #dee2e6; }
-.tsugi-assignments-due-neutral { background: #f8f9fa; color: #6c757d; border-color: #dee2e6; }
+.tsugi-due-list-more { margin: 0.35em 0 0.55em; }
 </style>'."\n";
     }
 }

@@ -1106,6 +1106,89 @@ class LessonsService {
     }
 
     /**
+     * Native Quiz1 rows for the home due list and calendar.
+     * Same shape as enumerateLtiAssignmentItems(). A student does not see an unpublished quiz.
+     *
+     * @return array[]
+     */
+    public function enumerateQuizDueItems() {
+        $list = array();
+        if ( ! isset($this->lessons->modules) || ! is_array($this->lessons->modules) ) {
+            return $list;
+        }
+        $instructor = null;
+        $seen = array();
+        foreach ( $this->lessons->modules as $modIndex => $module ) {
+            if ( ! isset($module->items) || ! is_array($module->items) ) {
+                continue;
+            }
+            $this->collectQuizDueItems($module->items, $module, (int) $modIndex, $instructor, $seen, $list);
+        }
+        return $list;
+    }
+
+    /**
+     * @param array<int,mixed> $items
+     * @param object $module
+     * @param bool|null $instructor
+     * @param array<int,true> $seen
+     * @param array<int,array<string,mixed>> $list
+     */
+    private function collectQuizDueItems($items, $module, $modIndex, &$instructor, array &$seen, array &$list) {
+        if ( ! is_array($items) ) {
+            return;
+        }
+        foreach ( $items as $item ) {
+            if ( is_array($item) ) {
+                $item = (object) $item;
+            }
+            if ( ! is_object($item) ) {
+                continue;
+            }
+            if ( isset($item->items) && is_array($item->items) ) {
+                $this->collectQuizDueItems($item->items, $module, $modIndex, $instructor, $seen, $list);
+            }
+            if ( ! LessonsNormalize::isNativeQuiz($item) ) {
+                continue;
+            }
+            $quizId = LessonsNormalize::quizIdOf($item);
+            if ( $quizId < 1 || isset($seen[$quizId]) || ! $this->quiz1ExistsInCourse($quizId) ) {
+                continue;
+            }
+            if ( ! $this->quiz1IsPublished($quizId) ) {
+                if ( $instructor === null ) {
+                    $instructor = $this->lessonsViewerIsInstructor();
+                }
+                if ( ! $instructor ) {
+                    continue;
+                }
+            }
+            $key = Quiz1Repository::resourceLinkId($quizId, ReqScope::currentContextId());
+            if ( $key === '' ) {
+                continue;
+            }
+            $seen[$quizId] = true;
+            $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+                ? $item->title
+                : 'Quiz';
+            $moduleHidden = isset($module->hidden) && $module->hidden;
+            $list[] = array(
+                'module_index' => $modIndex,
+                'module_title' => isset($module->title) ? $module->title : '',
+                'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                'module_hidden' => $moduleHidden,
+                'item_title' => $title,
+                'resource_link_id' => $key,
+                'content_id' => 0,
+                'tool_deployment_id' => 0,
+                'due' => self::assignmentDue($item),
+                'participates_in_grades' => true,
+                'quiz_id' => $quizId,
+            );
+        }
+    }
+
+    /**
      * Due day stored on the lesson item, before a link exists.
      *
      * @param object $item
