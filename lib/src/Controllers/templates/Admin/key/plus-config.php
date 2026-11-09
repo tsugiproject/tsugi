@@ -6,7 +6,7 @@ $plusLaunchUrl = $CFG->wwwroot . '/plus';
 <div class="tsugi-plus-config"<?php if ( ! $plusOn ) { ?> style="display:none"<?php } ?>>
 <h2>Tsugi Plus</h2>
 <p>
-Dynamic registration includes a resource link titled Tsugi Plus. Place that message.
+Dynamic registration includes a course navigation link titled with the site name. Place that message.
 An LMS can also place a Plus launch using a deep link request.
 If the LMS does not place that message, use this target link URI.
 </p>

@@ -175,9 +175,15 @@ class DynamicRegistration {
             ),
         );
         if ( (int) ($row['plus'] ?? 0) === 1 ) {
+            // Course navigation uses the tool name. Canvas shows client_name
+            // under Apps and Admin. The message label is the course menu text.
+            $plusLabel = isset($json->client_name) && is_string($json->client_name) ? trim($json->client_name) : '';
+            if ( $plusLabel === '' ) {
+                $plusLabel = __('Tsugi Plus');
+            }
             $tool->messages[] = array(
                 "type" => "LtiResourceLinkRequest",
-                "label" => __('Tsugi Plus'),
+                "label" => $plusLabel,
                 "target_link_uri" => $CFG->wwwroot . '/plus',
                 // Course navigation launches a resource link. The module picker
                 // is a deep link (link_selection, ContentArea, and the rest).
