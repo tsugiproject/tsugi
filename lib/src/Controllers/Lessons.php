@@ -1681,22 +1681,22 @@ $(function(){
                 return;
             }
             if ( $percent == 100 ) {
-                echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
+                echo('<span class="tsugi-progress-badge tsugi-progress-badge-check" title="Complete: 100%">100%</span>');
             } else {
-                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+                echo('<span class="tsugi-progress-badge tsugi-progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
             }
             return;
         }
         $rollup = $lessons->moduleWorstDueRollup($rlids, $allgrades, $duedates);
         if ( $rollup === null ) {
             if ( $percent > 0 ) {
-                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+                echo('<span class="tsugi-progress-badge tsugi-progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
             }
             return;
         }
         if ( $rollup['modifier'] === 'tsugi-assignments-due-future' ) {
             if ( $percent > 0 ) {
-                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+                echo('<span class="tsugi-progress-badge tsugi-progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
                 return;
             }
             if ( ! $show_rollup_due_date ) {
@@ -1729,7 +1729,7 @@ $(function(){
     private static function moduleCardIconColorStyle($percent, $hasDueMode, $rollup) {
         if ( ! $hasDueMode ) {
             if ( $percent == 100 ) {
-                return 'color: #155724;';
+                return 'color: #0c3d17;';
             }
             if ( $percent > 0 && $percent < 100 ) {
                 return 'color: #084298;';
@@ -1737,7 +1737,7 @@ $(function(){
             return '';
         }
         if ( $percent == 100 ) {
-            return 'color: #155724;';
+            return 'color: #0c3d17;';
         }
         if ( $rollup === null ) {
             if ( $percent > 0 && $percent < 100 ) {
@@ -1749,11 +1749,11 @@ $(function(){
             case 'tsugi-assignments-due-past':
                 return 'color: #b02a37;';
             case 'tsugi-assignments-due-soon':
-                return 'color: #856404;';
+                return 'color: #5c4500;';
             case 'tsugi-assignments-due-future':
                 return 'color: #495057;';
             case 'tsugi-assignments-due-completed':
-                return 'color: #155724;';
+                return 'color: #0c3d17;';
             case 'tsugi-assignments-due-neutral':
             default:
                 return 'color: #6c757d;';
@@ -2500,7 +2500,7 @@ $(function(){
     }
 
     /**
-     * CSS for module cards, LTI progress/due badges (lessons and labs catalog).
+     * CSS for module cards and result signatures. Progress badges live in tsugi2.css.
      */
     public static function printLtiProgressStyles() {
         echo('<style>
@@ -2517,79 +2517,10 @@ $(function(){
     overflow-y: hidden;
     text-overflow: ellipsis;
 }
-.progress-badge {
-    display: inline-block;
-    margin-left: 0.35em;
-    vertical-align: middle;
-    font-size: 0.75em;
-    line-height: 1.2;
-}
-.progress-badge-check {
-    background-color: #28a745;
-    color: #fff;
-    padding: 0.15em 0.45em;
-    border-radius: 0.25em;
-    font-weight: bold;
-}
-.progress-badge-percent {
-    background-color: #007bff;
-    color: #fff;
-    padding: 0.15em 0.45em;
-    border-radius: 0.25em;
-    font-weight: bold;
-}
-.progress-badge-not-started {
-    background-color: #e9ecef;
-    color: #495057;
-    padding: 0.15em 0.45em;
-    border-radius: 0.25em;
-    font-weight: normal;
-}
 .tsugi-lti-link-meta {
     display: inline;
     margin-left: 0.25em;
     white-space: nowrap;
-}
-.tsugi-assignments-due-badge {
-    display: inline-block;
-    margin-left: 0.35em;
-    padding: 0.12em 0.45em;
-    border-radius: 0.25em;
-    font-size: 0.75em;
-    line-height: 1.2;
-    vertical-align: middle;
-    border: 1px solid transparent;
-}
-.tsugi-assignments-due-completed {
-    background: #d4edda;
-    color: #155724;
-    border-color: #c3e6cb;
-}
-.tsugi-assignments-due-past {
-    background: #f8d7da;
-    color: #721c24;
-    border-color: #f5c6cb;
-}
-.tsugi-assignments-due-soon {
-    background: #fff3cd;
-    color: #856404;
-    border-color: #ffeeba;
-}
-.tsugi-assignments-due-future {
-    background: #e9ecef;
-    color: #495057;
-    border-color: #dee2e6;
-}
-.tsugi-assignments-due-neutral {
-    background: #f8f9fa;
-    color: #6c757d;
-    border-color: #dee2e6;
-}
-.tsugi-assignments-due-state {
-    font-weight: bold;
-}
-.tsugi-assignments-due-detail {
-    font-weight: normal;
 }
 .tsugi-assignments-rl-sig-sep {
     color: #767676;
@@ -2914,10 +2845,10 @@ $(function(){
         $grade = (float) $allgrades[$resource_link_id];
         $pct = (int) round($grade * 100);
         if ( $grade > 0.8 ) {
-            echo('<span class="progress-badge progress-badge-check" title="'.htmlspecialchars(__('Complete').': 100%', ENT_QUOTES, 'UTF-8').'">100%</span>');
+            echo('<span class="tsugi-progress-badge tsugi-progress-badge-check" title="'.htmlspecialchars(__('Complete').': 100%', ENT_QUOTES, 'UTF-8').'">100%</span>');
         } elseif ( $pct > 0 ) {
             $tip = __('Score').': '.$pct.'%';
-            echo('<span class="progress-badge progress-badge-percent" title="'.htmlspecialchars($tip, ENT_QUOTES, 'UTF-8').'">'.$pct.'%</span>');
+            echo('<span class="tsugi-progress-badge tsugi-progress-badge-percent" title="'.htmlspecialchars($tip, ENT_QUOTES, 'UTF-8').'">'.$pct.'%</span>');
         }
     }
 
@@ -2959,7 +2890,7 @@ $(function(){
         if ( isset($allgrades[$resource_link_id]) && is_numeric($allgrades[$resource_link_id]) ) {
             self::echoLtiGradePercentBadge($resource_link_id, $allgrades);
         } elseif ( ! $has_due_badge ) {
-            echo('<span class="progress-badge progress-badge-not-started" title="'.htmlspecialchars(__('Not started'), ENT_QUOTES, 'UTF-8').'">');
+            echo('<span class="tsugi-progress-badge tsugi-progress-badge-not-started" title="'.htmlspecialchars(__('Not started'), ENT_QUOTES, 'UTF-8').'">');
             echo(htmlspecialchars(__('Not started')));
             echo('</span>');
         }

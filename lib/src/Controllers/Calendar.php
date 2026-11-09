@@ -606,7 +606,7 @@ class Calendar extends Tool {
             if ( $moduleTitle !== '' ) {
                 $html .= ' <span class="text-muted">'.htmlspecialchars($moduleTitle).'</span>';
             }
-            $html .= ' <span class="tsugi-assignments-due-badge '.htmlspecialchars($dueMod).'">'.htmlspecialchars($stateText).'</span>';
+            $html .= ' <span class="tsugi-assignments-due-badge '.htmlspecialchars($dueMod).'"><span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span></span>';
         }
         return $html."</li>\n";
     }
@@ -632,12 +632,6 @@ class Calendar extends Tool {
 .tsugi-due-list-day > ul { margin-top: 0.25em; }
 .tsugi-due-list-day > ul > li { margin: 0.2em 0; }
 .tsugi-due-list-more { margin: 0.35em 0 0.55em; }
-.tsugi-assignments-due-badge { display: inline-block; margin-left: 0.35em; padding: 0.1em 0.45em; border-radius: 0.25em; font-size: 0.75em; border: 1px solid transparent; }
-.tsugi-assignments-due-completed { background: #d4edda; color: #155724; border-color: #c3e6cb; }
-.tsugi-assignments-due-past { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-.tsugi-assignments-due-soon { background: #fff3cd; color: #856404; border-color: #ffeeba; }
-.tsugi-assignments-due-future { background: #e9ecef; color: #495057; border-color: #dee2e6; }
-.tsugi-assignments-due-neutral { background: #f8f9fa; color: #6c757d; border-color: #dee2e6; }
 </style>'."\n";
     }
 }
