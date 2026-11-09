@@ -42,7 +42,7 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
 
     private array $defaultOptions = self::OPTIONS_DEFAULTS + [
         'auth_ntlm' => null, // array|string - an array containing the username as first value, and optionally the
-                             //   password as the second one; or string like username:password - enabling NTLM auth
+        //   password as the second one; or string like username:password - enabling NTLM auth
         'extra' => [
             'curl' => [],    // A list of extra curl options indexed by their corresponding CURLOPT_*
         ],
@@ -94,6 +94,8 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
         $host = parse_url($authority, \PHP_URL_HOST);
         $port = parse_url($authority, \PHP_URL_PORT) ?: ('http:' === $scheme ? 80 : 443);
         $proxy = self::getProxyUrl($options['proxy'], $url);
+        $noProxy = $options['no_proxy'] ?? $_SERVER['no_proxy'] ?? $_SERVER['NO_PROXY'] ?? '';
+        self::checkHttpsProxySupport($proxy, $url, $noProxy);
         $url = implode('', $url);
 
         if (!isset($options['normalized_headers']['user-agent'])) {
@@ -109,8 +111,9 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
             \CURLOPT_MAXREDIRS => max(0, $options['max_redirects']),
             \CURLOPT_COOKIEFILE => '', // Keep track of cookies during redirects
             \CURLOPT_TIMEOUT => 0,
-            \CURLOPT_PROXY => $proxy,
-            \CURLOPT_NOPROXY => $options['no_proxy'] ?? $_SERVER['no_proxy'] ?? $_SERVER['NO_PROXY'] ?? '',
+            // Always set, so that curl doesn't resolve the proxy from its own environment
+            \CURLOPT_PROXY => $proxy ?? '',
+            \CURLOPT_NOPROXY => $noProxy,
             \CURLOPT_SSL_VERIFYPEER => $options['verify_peer'],
             \CURLOPT_SSL_VERIFYHOST => $options['verify_host'] ? 2 : 0,
             \CURLOPT_CAINFO => $options['cafile'],
@@ -132,10 +135,11 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
             $curlopts[\CURLOPT_HTTP_VERSION] = \CURL_HTTP_VERSION_1_0;
         } elseif (1.1 === (float) $options['http_version']) {
             $curlopts[\CURLOPT_HTTP_VERSION] = \CURL_HTTP_VERSION_1_1;
+        } elseif (3.0 === (float) $options['http_version'] && 'https:' === $scheme && \defined('CURL_HTTP_VERSION_3ONLY') && (\CURL_VERSION_HTTP3 & CurlClientState::$curlVersion['features']) && !self::willUseProxy($proxy, $curlopts[\CURLOPT_NOPROXY], $host)) {
+            // CURL_HTTP_VERSION_3 falls back to older versions since curl 7.88, which added CURL_HTTP_VERSION_3ONLY
+            $curlopts[\CURLOPT_HTTP_VERSION] = \CURL_HTTP_VERSION_3;
         } elseif (\defined('CURL_VERSION_HTTP2') && (\CURL_VERSION_HTTP2 & CurlClientState::$curlVersion['features']) && ('https:' === $scheme || 2.0 === (float) $options['http_version'])) {
             $curlopts[\CURLOPT_HTTP_VERSION] = \CURL_HTTP_VERSION_2_0;
-        } elseif (\defined('CURL_VERSION_HTTP3') && (\CURL_VERSION_HTTP3 & CurlClientState::$curlVersion['features']) && 3.0 === (float) $options['http_version'] && !self::willUseProxy($proxy, $curlopts[\CURLOPT_NOPROXY], $host)) {
-            $curlopts[\CURLOPT_HTTP_VERSION] = \CURL_HTTP_VERSION_3;
         }
 
         $ntlmOriginKey = null;
@@ -330,7 +334,7 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
             }
         }
 
-        return $pushedResponse ?? new CurlResponse($this->multi, $ch, $options, $this->logger, $method, self::createRedirectResolver($options, $authority), CurlClientState::$curlVersion['version_number'], $url, $ntlmOriginKey);
+        return $pushedResponse ?? new CurlResponse($this->multi, $ch, $options, $this->logger, $method, self::createRedirectResolver($options, $scheme, $authority, $noProxy), CurlClientState::$curlVersion['version_number'], $url, $ntlmOriginKey);
     }
 
     public function stream(ResponseInterface|iterable $responses, ?float $timeout = null): ResponseStreamInterface
@@ -339,9 +343,16 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
             $responses = [$responses];
         }
 
-        if ($this->multi->handle instanceof \CurlMultiHandle) {
+        if ($this->multi->handle instanceof \CurlMultiHandle && !$this->multi->performing) {
             $active = 0;
-            while (\CURLM_CALL_MULTI_PERFORM === curl_multi_exec($this->multi->handle, $active)) {
+            // curl forbids removing handles from its callbacks, which closing a response would do otherwise
+            $this->multi->performing = true;
+
+            try {
+                while (\CURLM_CALL_MULTI_PERFORM === curl_multi_exec($this->multi->handle, $active)) {
+                }
+            } finally {
+                $this->multi->performing = false;
             }
         }
 
@@ -409,19 +420,20 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
      *
      * Work around CVE-2018-1000007: Authorization and Cookie headers should not follow redirects - fixed in Curl 7.64
      */
-    private static function createRedirectResolver(array $options, string $authority): \Closure
+    private static function createRedirectResolver(array $options, string $scheme, string $authority, string $noProxy): \Closure
     {
         $redirectHeaders = [];
         if (0 < $options['max_redirects']) {
+            $redirectHeaders['scheme'] = $scheme;
             $redirectHeaders['authority'] = $authority;
             $redirectHeaders['with_auth'] = $redirectHeaders['no_auth'] = array_filter($options['headers'], static fn ($h) => 0 !== stripos($h, 'Host:'));
 
             if (isset($options['normalized_headers']['authorization'][0]) || isset($options['normalized_headers']['cookie'][0])) {
-                $redirectHeaders['no_auth'] = array_filter($options['headers'], static fn ($h) => 0 !== stripos($h, 'Authorization:') && 0 !== stripos($h, 'Cookie:'));
+                $redirectHeaders['no_auth'] = array_filter($redirectHeaders['no_auth'], static fn ($h) => 0 !== stripos($h, 'Authorization:') && 0 !== stripos($h, 'Cookie:'));
             }
         }
 
-        return static function ($ch, string $location, bool $noContent) use (&$redirectHeaders, $options) {
+        return static function ($ch, string $location, bool $noContent) use (&$redirectHeaders, $options, $noProxy) {
             try {
                 $location = self::parseUrl($location);
                 $url = self::parseUrl(curl_getinfo($ch, \CURLINFO_EFFECTIVE_URL));
@@ -437,21 +449,51 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface,
             }
 
             if ($redirectHeaders && isset($location['authority'])) {
-                $requestHeaders = $location['authority'] === $redirectHeaders['authority'] ? $redirectHeaders['with_auth'] : $redirectHeaders['no_auth'];
+                // Authorization and Cookie headers MUST NOT follow except for the initial scheme and authority
+                $requestHeaders = $url['scheme'] === $redirectHeaders['scheme'] && $location['authority'] === $redirectHeaders['authority'] ? $redirectHeaders['with_auth'] : $redirectHeaders['no_auth'];
                 curl_setopt($ch, \CURLOPT_HTTPHEADER, $requestHeaders);
             } elseif ($noContent && $redirectHeaders) {
                 curl_setopt($ch, \CURLOPT_HTTPHEADER, $redirectHeaders['with_auth']);
             }
 
             $proxy = self::getProxyUrl($options['proxy'], $url);
-            curl_setopt($ch, \CURLOPT_PROXY, $proxy);
+            self::checkHttpsProxySupport($proxy, $url, $noProxy);
+            curl_setopt($ch, \CURLOPT_PROXY, $proxy ?? '');
 
-            if (\defined('CURL_HTTP_VERSION_3') && \CURL_HTTP_VERSION_3 === curl_getinfo($ch, \CURLINFO_HTTP_VERSION) && self::willUseProxy($proxy, $options['no_proxy'] ?? $_SERVER['no_proxy'] ?? $_SERVER['NO_PROXY'] ?? '', parse_url($url['authority'], \PHP_URL_HOST))) {
+            if (\defined('CURL_HTTP_VERSION_3') && \CURL_HTTP_VERSION_3 === curl_getinfo($ch, \CURLINFO_HTTP_VERSION) && self::willUseProxy($proxy, $noProxy, parse_url($url['authority'], \PHP_URL_HOST))) {
                 curl_setopt($ch, \CURLOPT_HTTP_VERSION, \defined('CURL_HTTP_VERSION_2_0') ? \CURL_HTTP_VERSION_2_0 : \CURL_HTTP_VERSION_1_1);
             }
 
             return implode('', $url);
         };
+    }
+
+    /**
+     * Rejects "https://" proxies that curl cannot connect to over TLS.
+     *
+     * Curl older than 7.50.2 connects to them in cleartext instead, leaking the proxy
+     * credentials and the CONNECT metadata on the wire.
+     */
+    private static function checkHttpsProxySupport(?string $proxy, array $url, string $noProxy): void
+    {
+        if (null === $proxy || 0 !== stripos($proxy, 'https://')) {
+            return;
+        }
+
+        if (CurlClientState::$curlVersion['features'] & (\defined('CURL_VERSION_HTTPS_PROXY') ? \CURL_VERSION_HTTPS_PROXY : 1 << 21)) {
+            return;
+        }
+
+        $host = parse_url($url['authority'], \PHP_URL_HOST);
+
+        // Matching "no_proxy" should follow the behavior of curl
+        foreach (preg_split('/[\s,]+/', $noProxy, -1, \PREG_SPLIT_NO_EMPTY) as $rule) {
+            if ('*' === $rule || $host === $rule || str_ends_with($host, '.'.ltrim($rule, '.'))) {
+                return;
+            }
+        }
+
+        throw new TransportException('Cannot use an "https://" proxy: the installed curl does not support HTTPS proxies and could connect to it in cleartext; curl 7.52 or higher is required.');
     }
 
     private function findConstantName(int $opt): ?string

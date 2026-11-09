@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\HttpClient;
 
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Response\ResponseStream;
 use Symfony\Component\HttpClient\Response\TraceableResponse;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -22,7 +24,7 @@ use Symfony\Contracts\Service\ResetInterface;
 /**
  * @author Jérémy Romey <jeremy@free-agent.fr>
  */
-final class TraceableHttpClient implements HttpClientInterface, ResetInterface
+final class TraceableHttpClient implements HttpClientInterface, ResetInterface, LoggerAwareInterface
 {
     private \ArrayObject $tracedRequests;
 
@@ -90,6 +92,18 @@ final class TraceableHttpClient implements HttpClientInterface, ResetInterface
         }
 
         $this->tracedRequests->exchangeArray([]);
+    }
+
+    /**
+     * @deprecated since Symfony 7.1, configure the logger on the wrapped HTTP client directly instead
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        trigger_deprecation('symfony/http-client', '7.1', 'Configure the logger on the wrapped HTTP client directly instead.');
+
+        if ($this->client instanceof LoggerAwareInterface) {
+            $this->client->setLogger($logger);
+        }
     }
 
     public function withOptions(array $options): static

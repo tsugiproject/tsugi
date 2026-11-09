@@ -19,6 +19,9 @@ use Symfony\Component\Mime\Header\Headers;
  */
 class DataPart extends TextPart
 {
+    /** @internal, to be removed in 8.0 */
+    protected array $_parent;
+
     private ?string $filename = null;
     private string $mediaType;
     private ?string $cid = null;
@@ -128,24 +131,149 @@ class DataPart extends TextPart
 
     public function __serialize(): array
     {
-        $parent = parent::__serialize();
-        $headers = $parent['_headers'];
-        unset($parent['_headers']);
+        if (self::class === (new \ReflectionMethod($this, '__sleep'))->class || self::class !== (new \ReflectionMethod($this, '__serialize'))->class) {
+            $parent = parent::__serialize();
+            $headers = $parent['_headers'];
+            unset($parent['_headers']);
 
-        return [
-            '_headers' => $headers,
-            '_parent' => $parent,
-            'filename' => $this->filename,
-            'mediaType' => $this->mediaType,
-            'cid' => $this->cid,
-        ];
+            return [
+                '_headers' => $headers,
+                '_parent' => $parent,
+                'filename' => $this->filename,
+                'mediaType' => $this->mediaType,
+                'cid' => $this->cid,
+            ];
+        }
+
+        trigger_deprecation('symfony/mime', '7.4', 'Implementing "%s::__sleep()" is deprecated, use "__serialize()" instead.', get_debug_type($this));
+
+        $data = [];
+        foreach ($this->__sleep() as $key) {
+            try {
+                if (($r = new \ReflectionProperty($this, $key))->isInitialized($this)) {
+                    $data[$key] = $r->getValue($this);
+                }
+            } catch (\ReflectionException) {
+                $data[$key] = $this->$key;
+            }
+        }
+
+        return $data;
     }
 
     public function __unserialize(array $data): void
     {
-        parent::__unserialize(['_headers' => $data['_headers'] ?? $data["\0*\0_headers"], ...$data['_parent'] ?? $data["\0*\0_parent"]]);
-        $this->filename = $data['filename'] ?? $data["\0".self::class."\0filename"] ?? null;
-        $this->mediaType = $data['mediaType'] ?? $data["\0".self::class."\0mediaType"];
-        $this->cid = $data['cid'] ?? $data["\0".self::class."\0cid"] ?? null;
+        if (!\is_string($data['filename'] ?? $data["\0".self::class."\0filename"] ?? '')
+            || !\is_string($data['mediaType'] ?? $data["\0".self::class."\0mediaType"] ?? null)
+            || !\is_string($data['cid'] ?? $data["\0".self::class."\0cid"] ?? '')
+        ) {
+            throw new \BadMethodCallException('Cannot unserialize '.self::class);
+        }
+
+        if ($wakeup = self::class !== (new \ReflectionMethod($this, '__wakeup'))->class && self::class === (new \ReflectionMethod($this, '__unserialize'))->class) {
+            trigger_deprecation('symfony/mime', '7.4', 'Implementing "%s::__wakeup()" is deprecated, use "__unserialize()" instead.', get_debug_type($this));
+        }
+
+        if (['_headers', '_parent', 'filename', 'mediaType'] === array_keys($data) || ['_headers', '_parent', 'filename', 'mediaType', 'cid'] === array_keys($data)) {
+            parent::__unserialize(['_headers' => $data['_headers'], ...$data['_parent']]);
+            $this->filename = $data['filename'];
+            $this->mediaType = $data['mediaType'];
+            $this->cid = $data['cid'] ?? null;
+
+            if ($wakeup) {
+                $this->__wakeup();
+            }
+
+            return;
+        }
+
+        $p = "\0".self::class."\0";
+        if (["\0*\0_headers", "\0*\0_parent", $p.'filename', $p.'mediaType'] === array_keys($data) || ["\0*\0_headers", "\0*\0_parent", $p.'filename', $p.'mediaType', $p.'cid'] === array_keys($data)) {
+            parent::__unserialize(['_headers' => $data["\0*\0_headers"], ...$data["\0*\0_parent"]]);
+            $this->filename = $data[$p.'filename'];
+            $this->mediaType = $data[$p.'mediaType'];
+            $this->cid = $data[$p.'cid'] ?? null;
+
+            if ($wakeup) {
+                $this->__wakeup();
+            }
+
+            return;
+        }
+
+        trigger_deprecation('symfony/mime', '7.4', 'Passing extra keys to "%s::__unserialize()" is deprecated, populate properties in "%s::__unserialize()" instead.', self::class, get_debug_type($this));
+
+        $headers = $data['_headers'] ?? $data["\0*\0_headers"] ?? null;
+        $parent = $data['_parent'] ?? $data["\0*\0_parent"] ?? null;
+        unset($data['_headers'], $data["\0*\0_headers"], $data['_parent'], $data["\0*\0_parent"]);
+
+        $state = [];
+        foreach (['filename', 'mediaType', 'cid'] as $name) {
+            $key = \array_key_exists($name, $data) ? $name : "\0".self::class."\0".$name;
+            $state[$name] = $data[$key] ?? null;
+            unset($data[$key]);
+        }
+
+        if (!\is_array($parent)) {
+            throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
+        }
+
+        (new \ReflectionMethod(AbstractPart::class, 'setSubclassState'))->invoke($this, $data);
+
+        if ($wakeup) {
+            $this->_headers = $headers;
+            $this->_parent = $parent;
+        } else {
+            parent::__unserialize(['_headers' => $headers, ...$parent]);
+        }
+
+        foreach ($state as $name => $value) {
+            $this->$name = $value;
+        }
+
+        if ($wakeup) {
+            $this->__wakeup();
+        }
+    }
+
+    /**
+     * @deprecated since Symfony 7.4, will be replaced by `__serialize()` in 8.0
+     */
+    public function __sleep(): array
+    {
+        trigger_deprecation('symfony/mime', '7.4', 'Calling "%s::__sleep()" is deprecated, use "__serialize()" instead.', get_debug_type($this));
+        // converts the body to a string
+        parent::__sleep();
+
+        $this->_parent = [];
+        foreach (['body', 'charset', 'subtype', 'disposition', 'name', 'encoding'] as $name) {
+            $r = new \ReflectionProperty(TextPart::class, $name);
+            $this->_parent[$name] = $r->getValue($this);
+        }
+        $this->_headers = $this->getHeaders();
+
+        return ['_headers', '_parent', 'filename', 'mediaType', 'cid'];
+    }
+
+    /**
+     * @deprecated since Symfony 7.4, will be replaced by `__unserialize()` in 8.0
+     */
+    public function __wakeup(): void
+    {
+        $r = new \ReflectionProperty(AbstractPart::class, 'headers');
+        $r->setValue($this, $this->_headers);
+        unset($this->_headers);
+
+        if (!\is_array($this->_parent)) {
+            throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
+        }
+        foreach (['body', 'charset', 'subtype', 'disposition', 'name', 'encoding'] as $name) {
+            if (null !== $this->_parent[$name] && !\is_string($this->_parent[$name]) && !$this->_parent[$name] instanceof File) {
+                throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
+            }
+            $r = new \ReflectionProperty(TextPart::class, $name);
+            $r->setValue($this, $this->_parent[$name]);
+        }
+        unset($this->_parent);
     }
 }

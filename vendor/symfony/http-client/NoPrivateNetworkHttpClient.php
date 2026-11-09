@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\HttpClient;
 
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\Response\AsyncContext;
 use Symfony\Component\HttpClient\Response\AsyncResponse;
@@ -26,7 +28,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * @author Hallison Boaventura <hallisonboaventura@gmail.com>
  * @author Nicolas Grekas <p@tchwork.com>
  */
-final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInterface
+final class NoPrivateNetworkHttpClient implements HttpClientInterface, LoggerAwareInterface, ResetInterface
 {
     use AsyncDecoratorTrait;
     use HttpClientTrait;
@@ -71,6 +73,7 @@ final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInte
         [$url, $options] = self::prepareRequest($method, $url, $options, $this->defaultOptions, true);
 
         $redirectHeaders = parse_url($url['authority']);
+        $redirectHeaders['scheme'] = $url['scheme'];
         $host = $redirectHeaders['host'];
         $url = implode('', $url);
         $dnsCache = $this->dnsCache;
@@ -97,6 +100,8 @@ final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInte
             return new AsyncResponse($this->client, $method, $url, $options);
         }
 
+        // $url already contains the query: it must not be added again to redirect targets
+        unset($options['query']);
         $options['max_redirects'] = 0;
         $redirectHeaders['with_auth'] = $redirectHeaders['no_auth'] = $options['headers'];
 
@@ -138,9 +143,9 @@ final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInte
                 }
             }
 
-            // Authorization and Cookie headers MUST NOT follow except for the initial host name
+            // Authorization and Cookie headers MUST NOT follow except for the initial scheme, host and port
             $port = parse_url($url, \PHP_URL_PORT);
-            $options['headers'] = $redirectHeaders['host'] === $host && ($redirectHeaders['port'] ?? null) === $port ? $redirectHeaders['with_auth'] : $redirectHeaders['no_auth'];
+            $options['headers'] = parse_url($url, \PHP_URL_SCHEME).':' === $redirectHeaders['scheme'] && $redirectHeaders['host'] === $host && ($redirectHeaders['port'] ?? null) === $port ? $redirectHeaders['with_auth'] : $redirectHeaders['no_auth'];
 
             static $redirectCount = 0;
             $context->setInfo('redirect_count', ++$redirectCount);
@@ -151,6 +156,18 @@ final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInte
                 $context->passthru();
             }
         });
+    }
+
+    /**
+     * @deprecated since Symfony 7.1, configure the logger on the wrapped HTTP client directly instead
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        trigger_deprecation('symfony/http-client', '7.1', 'Configure the logger on the wrapped HTTP client directly instead.');
+
+        if ($this->client instanceof LoggerAwareInterface) {
+            $this->client->setLogger($logger);
+        }
     }
 
     public function withOptions(array $options): static
@@ -178,7 +195,7 @@ final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInte
         }
 
         if ($dnsCache->offsetExists($host)) {
-            return $dnsCache[$host];
+            return $options['resolve'][$host] = $dnsCache[$host];
         }
 
         if ((\FILTER_FLAG_IPV4 & $ipFlags) && $ip = gethostbynamel($host)) {
@@ -189,7 +206,7 @@ final class NoPrivateNetworkHttpClient implements HttpClientInterface, ResetInte
             return $host;
         }
 
-        if ($ip = dns_get_record($host, \DNS_AAAA)) {
+        if ($ip = @dns_get_record($host, \DNS_AAAA)) {
             $ip = $ip[0]['ipv6'];
         } elseif (\extension_loaded('sockets')) {
             if (!$info = socket_addrinfo_lookup($host, 0, ['ai_socktype' => \SOCK_STREAM, 'ai_family' => \AF_INET6])) {
