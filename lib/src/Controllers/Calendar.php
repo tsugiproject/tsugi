@@ -535,29 +535,20 @@ class Calendar extends Tool {
     public static function listMarkup(array $rows, $embedded = false) {
         $heading = $embedded ? 'h2' : 'h1';
         $html = self::calendarStyles();
-        $html .= '<div class="tsugi-due-list">'."\n";
+        $html .= '<div class="tsugi-due-list'.($embedded ? ' tsugi-due-list-home' : '').'">'."\n";
         $html .= '<'.$heading.'>'.htmlspecialchars(__('Due dates')).'</'.$heading.">\n";
         if ( count($rows) === 0 ) {
             $html .= '<p>'.htmlspecialchars(__('No assignment due dates.'))."</p>\n</div>\n";
             return $html;
         }
-        $entries = $embedded ? self::homeDueEntries($rows) : $rows;
+        if ( $embedded ) {
+            $html .= self::homeDueListHtml($rows);
+            $html .= "</div>\n";
+            return $html;
+        }
         $html .= '<ul class="tsugi-due-list-items">'."\n";
         $lastDate = null;
-        $entryCount = count($entries);
-        foreach ( $entries as $n => $ev ) {
-            if ( isset($ev['marker']) ) {
-                $nextDate = '';
-                if ( $n + 1 < $entryCount && ! isset($entries[$n + 1]['marker']) ) {
-                    $nextDate = (string) ($entries[$n + 1]['date'] ?? '');
-                }
-                if ( $lastDate !== null && $nextDate !== $lastDate ) {
-                    $html .= "</ul></li>\n";
-                    $lastDate = null;
-                }
-                $html .= self::viewAllHtml((string) $ev['marker'], (int) ($ev['count'] ?? 0));
-                continue;
-            }
+        foreach ( $rows as $ev ) {
             $dateKey = (string) ($ev['date'] ?? '');
             if ( $dateKey !== $lastDate ) {
                 if ( $lastDate !== null ) {
@@ -572,11 +563,51 @@ class Calendar extends Tool {
             $html .= "</ul></li>\n";
         }
         $html .= "</ul>\n</div>\n";
-        if ( $embedded && ! self::entriesHideUpcoming($entries) ) {
-            $open = U::add_url_parm(U::addSession(self::determineToolHome(self::ROUTE)), 'view', 'list');
-            $html .= '<p class="tsugi-due-list-more"><a class="btn btn-default btn-sm" href="'.htmlspecialchars($open).'">'.htmlspecialchars(__('View All'))."</a></p>\n";
-        }
         return $html;
+    }
+
+    /**
+     * Home list: one ul, one li per assignment, date and status on that line.
+     *
+     * @param list<array<string,string>> $rows
+     */
+    private static function homeDueListHtml(array $rows) {
+        $entries = self::homeDueEntries($rows);
+        $html = '<ul class="tsugi-due-list-items">'."\n";
+        foreach ( $entries as $ev ) {
+            if ( isset($ev['marker']) ) {
+                $html .= self::viewAllHtml((string) $ev['marker'], (int) ($ev['count'] ?? 0));
+                continue;
+            }
+            $html .= self::homeEntryHtml($ev);
+        }
+        if ( ! self::entriesHideUpcoming($entries) ) {
+            $open = U::add_url_parm(U::addSession(self::determineToolHome(self::ROUTE)), 'view', 'list');
+            $html .= '<li class="tsugi-due-list-more"><a class="btn btn-default btn-sm" href="'.htmlspecialchars($open).'">'.htmlspecialchars(__('View All'))."</a></li>\n";
+        }
+        $html .= "</ul>\n";
+        return $html;
+    }
+
+    /**
+     * @param array<string,string> $ev
+     */
+    private static function homeEntryHtml(array $ev) {
+        $full = (string) ($ev['title'] ?? '');
+        $moduleTitle = (string) ($ev['module_title'] ?? '');
+        $dueMod = (string) ($ev['due_mod'] ?? '');
+        $stateText = Lessons::assignmentsDueStateVisibleLabel($dueMod);
+        $dateLabel = self::dateKeyLabel((string) ($ev['date'] ?? ''));
+        $aria = $dateLabel.' — '.$full.' — '.$moduleTitle.' ('.$stateText.')';
+        $classes = 'tsugi-cal-event-link '.$dueMod;
+        $html = '<li class="tsugi-due-list-row"><span class="tsugi-due-list-line">';
+        $html .= '<span class="tsugi-due-list-date">'.htmlspecialchars($dateLabel).'</span>';
+        $html .= '<a class="'.htmlspecialchars($classes).'" href="'.htmlspecialchars(U::addSession((string) ($ev['href'] ?? ''))).'" aria-label="'.htmlspecialchars($aria).'">'.htmlspecialchars($full).'</a>';
+        if ( $moduleTitle !== '' ) {
+            $html .= '<span class="text-muted">'.htmlspecialchars($moduleTitle).'</span>';
+        }
+        $html .= '<span class="tsugi-assignments-due-badge '.htmlspecialchars($dueMod).'"><span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span></span>';
+        return $html."</span></li>\n";
     }
 
     /**
@@ -632,6 +663,14 @@ class Calendar extends Tool {
 .tsugi-due-list-day > ul { margin-top: 0.25em; }
 .tsugi-due-list-day > ul > li { margin: 0.2em 0; }
 .tsugi-due-list-more { margin: 0.35em 0 0.55em; }
+.tsugi-due-list-home .tsugi-due-list-items { list-style: disc; margin: 0.35em 0 0; padding-left: 1.25em; }
+.tsugi-due-list-home .tsugi-due-list-row { margin: 0.28em 0; }
+.tsugi-due-list-home .tsugi-due-list-line { display: flex; align-items: baseline; flex-wrap: nowrap; gap: 0.45em; min-width: 0; }
+.tsugi-due-list-home .tsugi-due-list-date { flex: 0 0 auto; }
+.tsugi-due-list-home .tsugi-due-list-line .tsugi-cal-event-link { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsugi-due-list-home .tsugi-due-list-line .text-muted,
+.tsugi-due-list-home .tsugi-due-list-line .tsugi-assignments-due-badge { flex: 0 0 auto; }
+.tsugi-due-list-home .tsugi-due-list-more { list-style: none; margin-left: 0; }
 </style>'."\n";
     }
 }

@@ -107,6 +107,7 @@ class CalendarControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Up next', $html);
         $this->assertStringContainsString('May 1, 2026', $html);
         $this->assertSame(1, substr_count($html, 'class="tsugi-due-list-date"'));
+        $this->assertStringContainsString('tsugi-due-list-day', $html);
         $quiz = strpos($html, 'Quiz');
         $reading = strpos($html, 'Reading');
         $this->assertNotFalse($quiz);
@@ -175,6 +176,13 @@ class CalendarControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertNotFalse($upcomingTwo);
         $this->assertNotFalse($viewAll);
         $this->assertLessThan($viewAll, $upcomingTwo);
+        $this->assertStringNotContainsString('class="tsugi-due-list-day"', $html);
+        $this->assertStringNotContainsString('<p class="tsugi-due-list-more">', $html);
+        $this->assertSame(4, substr_count($html, 'class="tsugi-due-list-row"'));
+        $this->assertMatchesRegularExpression(
+            '/<li class="tsugi-due-list-row">.*Jan 1, 2026.*Late one.*Late/s',
+            $html
+        );
     }
 
     public function testFullDueListDoesNotTrim()
