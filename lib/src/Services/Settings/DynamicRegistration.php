@@ -228,7 +228,8 @@ class DynamicRegistration {
         // A platform that publishes messages_supported keeps only those types.
         // When it also lists placements, only advertised placements are sent.
         // A platform that omits the list receives every message.
-        // Sakai keeps one launch: Plus is a resource link, otherwise the store deep link.
+        // Sakai keeps one launch, then the privacy message. Plus is a resource
+        // link. Otherwise the launch is the store deep link.
         $tool->messages = self::messagesForPlatform($tool->messages, $platform_configuration);
         if ( self::isSakai($platform_configuration) && isset($tool->messages[0]['target_link_uri']) && is_string($tool->messages[0]['target_link_uri']) ) {
             $tool->target_link_uri = $tool->messages[0]['target_link_uri'];
@@ -478,12 +479,15 @@ class DynamicRegistration {
     }
 
     /**
-     * One launch. Plus is the resource link. Otherwise the store deep link.
+     * One launch, then privacy. Plus is the resource link. Otherwise the
+     * launch is the store deep link. Privacy stays second so Sakai keeps
+     * the launch URL.
      *
      * @param array<int, array<string, mixed>> $messages
      * @return array<int, array<string, mixed>>
      */
     private static function sakaiMessages(array $messages) {
+        $launch = null;
         foreach ( $messages as $message ) {
             if ( ! is_array($message) || ($message['type'] ?? '') !== 'LtiResourceLinkRequest' ) {
                 continue;
@@ -492,19 +496,38 @@ class DynamicRegistration {
             if ( ! is_string($target) || $target === '' ) {
                 continue;
             }
-            return array(self::sakaiLaunch($message));
+            $launch = self::sakaiLaunch($message);
+            break;
+        }
+        if ( $launch === null ) {
+            foreach ( $messages as $message ) {
+                if ( ! is_array($message) || ($message['type'] ?? '') !== 'LtiDeepLinkingRequest' ) {
+                    continue;
+                }
+                $target = $message['target_link_uri'] ?? '';
+                if ( ! is_string($target) || ! self::isStoreTarget($target) ) {
+                    continue;
+                }
+                $launch = self::sakaiLaunch($message);
+                break;
+            }
+        }
+        $out = array();
+        if ( $launch !== null ) {
+            $out[] = $launch;
         }
         foreach ( $messages as $message ) {
-            if ( ! is_array($message) || ($message['type'] ?? '') !== 'LtiDeepLinkingRequest' ) {
+            if ( ! is_array($message) || ($message['type'] ?? '') !== 'LtiDataPrivacyLaunchRequest' ) {
                 continue;
             }
             $target = $message['target_link_uri'] ?? '';
-            if ( ! is_string($target) || ! self::isStoreTarget($target) ) {
+            if ( ! is_string($target) || $target === '' ) {
                 continue;
             }
-            return array(self::sakaiLaunch($message));
+            $out[] = self::sakaiLaunch($message);
+            break;
         }
-        return array();
+        return $out;
     }
 
     /**

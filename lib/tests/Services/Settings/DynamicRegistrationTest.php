@@ -13,10 +13,12 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
 
         $messages = DynamicRegistration::messagesForPlatform($this->registrationMessages(), $platform);
 
-        $this->assertCount(1, $messages);
+        $this->assertCount(2, $messages);
         $this->assertSame('LtiResourceLinkRequest', $messages[0]['type']);
         $this->assertSame('https://tool.example/plus', $messages[0]['target_link_uri']);
         $this->assertArrayNotHasKey('placements', $messages[0]);
+        $this->assertSame('LtiDataPrivacyLaunchRequest', $messages[1]['type']);
+        $this->assertSame('https://tool.example/privacy', $messages[1]['target_link_uri']);
     }
 
     public function testSakaiWithoutPlusIsOneStoreDeepLink(): void
@@ -35,10 +37,12 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
 
         $out = DynamicRegistration::messagesForPlatform($messages, $platform);
 
-        $this->assertCount(1, $out);
+        $this->assertCount(2, $out);
         $this->assertSame('LtiDeepLinkingRequest', $out[0]['type']);
         $this->assertSame('https://tool.example/store/', $out[0]['target_link_uri']);
         $this->assertArrayNotHasKey('placements', $out[0]);
+        $this->assertSame('LtiDataPrivacyLaunchRequest', $out[1]['type']);
+        $this->assertSame('https://tool.example/privacy', $out[1]['target_link_uri']);
     }
 
     public function testCanvasDropsNamesItsSchemaRejects(): void
