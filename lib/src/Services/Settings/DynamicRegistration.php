@@ -179,6 +179,13 @@ class DynamicRegistration {
                 "type" => "LtiResourceLinkRequest",
                 "label" => __('Tsugi Plus'),
                 "target_link_uri" => $CFG->wwwroot . '/plus',
+                // Course navigation launches a resource link. The module picker
+                // is a deep link (link_selection, ContentArea, and the rest).
+                // new_window matches the Canvas Plus developer-key document:
+                // Plus keeps its session in a cookie and does not start inside
+                // the course-navigation iframe.
+                "placements" => array("course_navigation"),
+                "https://canvas.instructure.com/lti/display_type" => "new_window",
                 "custom_parameters" => $custom_parameters,
             );
         }
@@ -465,11 +472,19 @@ class DynamicRegistration {
                         $kept[] = $placement;
                     }
                 }
-                // An empty placements array is a link_selection launch on Canvas.
+                // An empty placements array is a link_selection launch on Canvas,
+                // which is a deep-link request. Drop a deep link that lost
+                // every placement. A resource link such as Tsugi Plus stays,
+                // without placements, so an LMS that does not advertise
+                // course_navigation can still place it.
                 if ( count($kept) === 0 ) {
-                    continue;
+                    if ( $type === 'LtiDeepLinkingRequest' ) {
+                        continue;
+                    }
+                    unset($message['placements']);
+                } else {
+                    $message['placements'] = array_values($kept);
                 }
-                $message['placements'] = array_values($kept);
             }
             $out[] = $message;
         }

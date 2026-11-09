@@ -58,7 +58,27 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         );
         $this->assertSame(array('assignment_selection'), $this->messagePlacements($messages, 'Assignment'));
         $this->assertSame('LtiResourceLinkRequest', $this->messageByLabel($messages, 'Plus')['type']);
-        $this->assertArrayNotHasKey('placements', $this->messageByLabel($messages, 'Plus'));
+        $this->assertSame(array('course_navigation'), $this->messagePlacements($messages, 'Plus'));
+    }
+
+    public function testPlusWithoutCourseNavigationIsNotADeepLink(): void
+    {
+        $platform = $this->platform('sakai', array(
+            $this->messageType('LtiResourceLinkRequest', array('ContentArea', 'lessons')),
+            $this->messageType('LtiDeepLinkingRequest', array('ContentArea')),
+        ));
+        $messages = DynamicRegistration::messagesForPlatform(array(
+            array(
+                'type' => 'LtiResourceLinkRequest',
+                'label' => 'Plus',
+                'target_link_uri' => 'https://tool.example/plus',
+                'placements' => array('course_navigation'),
+            ),
+        ), $platform);
+
+        $this->assertCount(1, $messages);
+        $this->assertSame('LtiResourceLinkRequest', $messages[0]['type']);
+        $this->assertArrayNotHasKey('placements', $messages[0]);
     }
 
     public function testCanvasOmitsAMessageWhosePlacementsAreAllRejected(): void
@@ -214,6 +234,7 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
                 'type' => 'LtiResourceLinkRequest',
                 'label' => 'Plus',
                 'target_link_uri' => 'https://tool.example/plus',
+                'placements' => array('course_navigation'),
             ),
             array(
                 'type' => 'LtiDeepLinkingRequest',
