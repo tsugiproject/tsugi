@@ -298,17 +298,21 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $rows = CourseNav::editorRows(CourseNav::defaultDocument());
         $this->assertSame('logout', $rows[count($rows)-1]['id']);
-        $this->assertSame('login', $rows[count($rows)-2]['id']);
-        $this->assertSame('settings', $rows[count($rows)-3]['id']);
-        $this->assertSame('student', $rows[count($rows)-4]['id']);
-        $this->assertSame('Student View', $rows[count($rows)-4]['label']);
-        $this->assertSame('roster', $rows[count($rows)-5]['id']);
-        $this->assertSame('chrome', $rows[count($rows)-3]['kind']);
-        $this->assertSame('chrome', $rows[count($rows)-4]['kind']);
-        $this->assertStringContainsString('before Settings', $rows[count($rows)-4]['hint']);
+        $this->assertSame('leave_course', $rows[count($rows)-2]['id']);
+        $this->assertSame('exit_course', $rows[count($rows)-3]['id']);
+        $this->assertSame('login', $rows[count($rows)-4]['id']);
+        $this->assertSame('settings', $rows[count($rows)-5]['id']);
+        $this->assertSame('student', $rows[count($rows)-6]['id']);
+        $this->assertSame('Student View', $rows[count($rows)-6]['label']);
+        $this->assertSame('roster', $rows[count($rows)-7]['id']);
+        $this->assertSame('chrome', $rows[count($rows)-5]['kind']);
+        $this->assertSame('chrome', $rows[count($rows)-6]['kind']);
+        $this->assertStringContainsString('before Settings', $rows[count($rows)-6]['hint']);
         $this->assertTrue($rows[count($rows)-1]['dropdown']);
-        $this->assertStringContainsString('not logged in', $rows[count($rows)-2]['hint']);
+        $this->assertStringContainsString('not logged in', $rows[count($rows)-4]['hint']);
         $this->assertStringContainsString('logged in', $rows[count($rows)-1]['hint']);
+        $this->assertSame('last', $rows[count($rows)-3]['pin']);
+        $this->assertSame('last', $rows[count($rows)-2]['pin']);
         $this->assertSame('home', $rows[0]['id']);
         $this->assertSame('chrome', $rows[0]['kind']);
         $this->assertTrue($rows[0]['rename']);
@@ -327,13 +331,17 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $ids[] = $row['id'];
         }
         $sites = array_search('courses_widget', $ids, true);
+        $login = array_search('login', $ids, true);
         $exit = array_search('exit_course', $ids, true);
+        $leave = array_search('leave_course', $ids, true);
+        $logout = array_search('logout', $ids, true);
         $this->assertNotFalse($sites);
-        $this->assertSame($sites + 1, $exit);
         $this->assertSame('catalog', $rows[$sites]['pin']);
         $this->assertSame('widget', $rows[$sites]['kind']);
         $this->assertTrue($rows[$sites]['right']);
         $this->assertFalse($rows[$exit]['dropdown']);
+        $this->assertSame(array($login, $exit, $leave, $logout), array($login, $login + 1, $login + 2, $login + 3));
+        $this->assertSame(count($ids) - 1, $logout);
     }
 
     public function testEditorRowsPutsContentImmediatelyAfterLessons()
@@ -377,7 +385,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($doc['items'][0]['left']);
     }
 
-    public function testEditorRowsKeepsSitesWidgetBesideExitEvenWhenEnabled()
+    public function testEditorRowsKeepsExitAfterLoginEvenWhenEnabled()
     {
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
@@ -394,10 +402,16 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $ids[] = $row['id'];
         }
         $this->assertSame('files', $ids[1]);
+        $n = count($ids);
+        $this->assertSame('login', $ids[$n - 4]);
+        $this->assertSame('exit_course', $ids[$n - 3]);
+        $this->assertSame('leave_course', $ids[$n - 2]);
+        $this->assertSame('logout', $ids[$n - 1]);
         $sites = array_search('courses_widget', $ids, true);
-        $exit = array_search('exit_course', $ids, true);
-        $this->assertSame($sites + 1, $exit);
+        $this->assertNotFalse($sites);
         $this->assertTrue($rows[$sites]['right']);
+        $exit = array_search('exit_course', $ids, true);
+        $this->assertTrue($rows[$exit]['dropdown']);
     }
 
     public function testCatalogOrder()
@@ -428,10 +442,10 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'profile',
                 'analytics',
                 'courses_widget',
-                'exit_course',
-                'leave_course',
                 'roster',
                 'login',
+                'exit_course',
+                'leave_course',
                 'logout',
             ),
             $ids

@@ -176,10 +176,10 @@ class CourseNav {
             array('id' => 'profile', 'kind' => 'link', 'label' => 'Profile', 'route' => '/profile', 'site' => true),
             array('id' => 'analytics', 'kind' => 'link', 'label' => 'Analytics', 'route' => '/analytics', 'site' => false),
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Courses widget', 'route' => '/courses', 'site' => true, 'pin' => 'catalog', 'hint' => 'Switcher for other courses. Place in the upper left or upper right, like other widgets.'),
-            array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
-            array('id' => 'leave_course', 'kind' => 'link', 'label' => 'Leave course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Closes this window. The browser allows that when this window was opened for the course.'),
             array('id' => 'roster', 'kind' => 'link', 'label' => 'Roster', 'route' => '/roster', 'site' => false, 'instructor_locked' => true, 'pin' => 'last', 'hint' => 'Always instructor only. Students do not see it.'),
             array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
+            array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'last', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
+            array('id' => 'leave_course', 'kind' => 'link', 'label' => 'Leave course', 'route' => '', 'site' => true, 'pin' => 'last', 'hint' => 'Closes this window. The browser allows that when this window was opened for the course.'),
             array('id' => 'logout', 'kind' => 'link', 'label' => 'Logout', 'route' => '/logout', 'site' => true, 'hint' => 'Only shown when the user is logged in. Keep Logout on unless you have another way out of the course.', 'pin' => 'last'),
         );
         if ( self::hasAppHome() ) {
