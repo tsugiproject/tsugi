@@ -187,6 +187,20 @@ $renderFileControls = function ($path, $place, $radioName) use ($files) {
 .tsugi-home-note { max-width: 40em; }
 .tsugi-home-note textarea { max-width: 100%; }
 .tsugi-home-note [hidden] { display: none !important; }
+.tsugi-home-note-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "title actions"
+        "body body";
+    align-items: center;
+    column-gap: 0.75em;
+    row-gap: 0.6em;
+}
+.tsugi-home-note-form .tsugi-home-page-title { grid-area: title; margin: 0; }
+.tsugi-home-note-form .tsugi-home-note-actions { grid-area: actions; }
+.tsugi-home-note-form .tsugi-home-note-text,
+.tsugi-home-note-form .tsugi-home-note-editor { grid-area: body; }
 .tsugi-home-note-actions { display: flex; align-items: center; gap: 0.4em; }
 .tsugi-home-note-text { white-space: pre-wrap; margin: 0; }
 .tsugi-home-settings label { font-weight: normal; display: block; margin: 0.35em 0; }
@@ -583,15 +597,10 @@ foreach ( $blocks as $block ) {
         $configured = true;
         ?>
 <section class="tsugi-home-block tsugi-home-note" id="tsugi-home-note" aria-label="<?= htmlspecialchars(__('Note to self')) ?>">
-    <form method="post" action="<?= htmlspecialchars($notes_save_url) ?>">
+    <form class="tsugi-home-note-form" method="post" action="<?= htmlspecialchars($notes_save_url) ?>">
         <?= \Tsugi\Controllers\Home::csrfField() ?>
         <h2 class="tsugi-home-page-title">
             <span><?= __('Note to self') ?></span>
-            <span class="tsugi-home-note-actions">
-                <button type="button" class="btn btn-primary tsugi-home-note-edit"><?= __('Edit') ?></button>
-                <button type="button" class="btn btn-default tsugi-home-note-cancel" hidden><?= __('Cancel') ?></button>
-                <button type="submit" class="btn btn-primary tsugi-home-note-save" hidden><?= __('Save') ?></button>
-            </span>
         </h2>
         <?php if ( $student_note !== '' ) { ?>
         <p class="tsugi-home-note-text"><?= htmlspecialchars($student_note) ?></p>
@@ -601,6 +610,11 @@ foreach ( $blocks as $block ) {
             <textarea id="student_note" name="student_note" class="form-control" rows="4" maxlength="500"><?= htmlspecialchars($student_note) ?></textarea>
             <p class="help-block"><?= __('Up to 500 characters. Plain text.') ?></p>
         </div>
+        <span class="tsugi-home-note-actions">
+            <button type="button" class="btn btn-primary tsugi-home-note-edit"><?= __('Edit') ?></button>
+            <button type="button" class="btn btn-default tsugi-home-note-cancel" hidden><?= __('Cancel') ?></button>
+            <button type="submit" class="btn btn-primary tsugi-home-note-save" hidden><?= __('Save') ?></button>
+        </span>
     </form>
 </section>
 <script>
