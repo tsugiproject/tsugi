@@ -224,10 +224,11 @@
                 <td class="tsugi-nav-move-cell">
                     <?php if ( ! $pinned && isset($toolLabel) ) {
                         $moveId = 'tsugi-nav-move-'.$id;
+                        $moveBtnId = 'tsugi-nav-move-btn-'.$id;
                         ?>
                     <div class="tsugi-nav-move">
-                        <button type="button" class="btn btn-default btn-xs tsugi-nav-move-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="<?= $moveId ?>" aria-label="<?= htmlspecialchars(__('Reorder').' '.$toolLabel, ENT_QUOTES, 'UTF-8') ?>" data-nav-label="<?= htmlspecialchars($toolLabel, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(__('Reorder')) ?> <span class="caret" aria-hidden="true"></span></button>
-                        <ul id="<?= $moveId ?>" class="tsugi-nav-move-menu" role="menu" hidden></ul>
+                        <button type="button" id="<?= $moveBtnId ?>" class="btn btn-default btn-xs tsugi-nav-move-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="<?= $moveId ?>" aria-label="<?= htmlspecialchars(__('Reorder').' '.$toolLabel, ENT_QUOTES, 'UTF-8') ?>" data-nav-label="<?= htmlspecialchars($toolLabel, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(__('Reorder')) ?> <span class="caret" aria-hidden="true"></span></button>
+                        <ul id="<?= $moveId ?>" class="tsugi-nav-move-menu" role="menu" hidden aria-labelledby="<?= $moveBtnId ?>"></ul>
                     </div>
                     <?php } ?>
                 </td>
