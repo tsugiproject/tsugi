@@ -252,7 +252,7 @@ class Output {
 ?>
 </head>
 <body<?= \Tsugi\Services\StudentView\StudentView::bodyAttribute() ?> prefix="oer: http://oerschema.org">
-<a href="#main-content" class="skip-link"><?= _m('Skip to main content') ?></a>
+<a href="#main-content" class="skip-link"><?= _m('Skip to main content') ?><span class="skip-link-mark" aria-hidden="true">💚</span><span class="skip-link-mark" aria-hidden="true">⌨️</span></a>
 <div id="body_container">
 <script>
 if (window!=window.top) {
@@ -1668,7 +1668,7 @@ $( function() {
             $ret .= '<link href="'.htmlspecialchars($theme["font-url"]).'" rel="stylesheet">'."\n";
         }
         $ret .= self::getThemeCss($theme);
-        $ret .= '<link href="'.$s.'/css/tsugi2.css?v=2026110953" rel="stylesheet">'."\n";
+        $ret .= '<link href="'.$s.'/css/tsugi2.css?v=2026111103" rel="stylesheet">'."\n";
         $ret .= self::navbarAlignCss();
         $ret .= \Tsugi\Services\StudentView\StudentView::css();
         if ( isset($CFG->extra_css) ) {
