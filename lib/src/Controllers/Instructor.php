@@ -17,7 +17,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Courses\CoursesService;
 use Tsugi\Services\Permission;
+use Tsugi\Services\Permissions\PermissionTables;
 
 /**
  * Logged-in instructor home for sites that are not the old one-course lessons site.
@@ -44,6 +46,7 @@ class Instructor extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         self::mapPage($app, $prefix, 'index', true);
         self::mapPage($app, $prefix.'/index', 'index', true);
+        self::mapPage($app, $prefix.'/apply', 'apply', true);
         $app->router->get('/'.self::REDIRECT, 'Instructor@index');
 
         self::mapPage($app, $prefix.'/gclass_login', 'gclassLogin', false);
@@ -196,6 +199,19 @@ class Instructor extends Tool {
             return $gate;
         }
 
+        if ( ! Permission::has(CoursesService::COURSE_CREATE) ) {
+            $OUTPUT->header();
+            $OUTPUT->bodyStart();
+            $OUTPUT->topNav();
+            $OUTPUT->flashMessages();
+            ?>
+<h1>Instructor Configuration</h1>
+<p><a href="<?= htmlspecialchars($this->pageUrl('apply'), ENT_QUOTES, 'UTF-8') ?>">Apply for instructor status</a></p>
+<?php
+            $OUTPUT->footer();
+            return '';
+        }
+
         $key_count = self::keyCount();
 
         $sql = "SELECT count(DISTINCT C.context_id) AS count
@@ -287,6 +303,151 @@ can visit the administrator dashboard.
         $OUTPUT->footer();
         return '';
     }
+
+    /**
+     * Apply for course.create. One application in progress at a time.
+     */
+    public function apply(Request $request)
+    {
+        global $OUTPUT;
+
+        $gate = $this->requireLogin('apply');
+        if ( $gate ) {
+            return $gate;
+        }
+        if ( Permission::has(CoursesService::COURSE_CREATE) ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+
+        $uid = ReqScope::loggedInUserId();
+        $back = $this->pageUrl('apply');
+        if ( $request->isMethod('POST') ) {
+            $csrf = self::requireCsrf($back);
+            if ( $csrf ) {
+                return $csrf;
+            }
+            $action = (string) $request->request->get('action', '');
+            if ( $action === 'delete' ) {
+                $result = PermissionTables::withdrawApplication(
+                    $uid,
+                    (int) $request->request->get('application_id', 0)
+                );
+                if ( $result['ok'] ) {
+                    U::flashSuccess('Application deleted.');
+                } else {
+                    U::flashError($result['error']);
+                }
+            } else if ( $action === 'revise' ) {
+                $result = PermissionTables::resubmitApplication(
+                    $uid,
+                    (int) $request->request->get('application_id', 0),
+                    (string) $request->request->get('justification', '')
+                );
+                if ( $result['ok'] ) {
+                    U::flashSuccess('Application submitted.');
+                } else {
+                    U::flashError($result['error']);
+                }
+            } else {
+                $result = PermissionTables::submitApplication(
+                    $uid,
+                    CoursesService::COURSE_CREATE,
+                    (string) $request->request->get('justification', '')
+                );
+                if ( $result['ok'] ) {
+                    U::flashSuccess('Application submitted.');
+                } else {
+                    U::flashError($result['error']);
+                }
+            }
+            return new RedirectResponse($back);
+        }
+
+        $open = PermissionTables::openApplication($uid, CoursesService::COURSE_CREATE);
+        $latest = is_array($open) ? false : PermissionTables::latestApplication($uid, CoursesService::COURSE_CREATE);
+        $name = (string) U::get($_SESSION, 'displayname', '');
+        $email = (string) U::get($_SESSION, 'email', '');
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+<h1>Apply for instructor status</h1>
+<p>Tell us why you want to create courses. An administrator reviews the request.
+You can have one application in progress at a time.
+</p>
+<?php if ( $name !== '' || $email !== '' ) { ?>
+<p>
+<?php if ( $name !== '' ) { ?>
+Name: <?= htmlspecialchars($name) ?><br/>
+<?php } ?>
+<?php if ( $email !== '' ) { ?>
+Email: <?= htmlspecialchars($email) ?>
+<?php } ?>
+</p>
+<?php } ?>
+<?php if ( is_array($open) && (string) $open['status'] === PermissionTables::STATUS_REVISION ) { ?>
+<h2>Sent back for revision</h2>
+<p>An administrator asked for a change. Update the request and send it again.</p>
+<?php $reply = trim((string) ($open['response'] ?? '')); ?>
+<?php if ( $reply !== '' ) { ?>
+<p><b>Reply</b><br/><?= nl2br(htmlspecialchars($reply)) ?></p>
+<?php } ?>
+<form method="post" action="<?= htmlspecialchars($back, ENT_QUOTES, 'UTF-8') ?>">
+<?= self::csrfField() ?>
+<input type="hidden" name="action" value="revise">
+<input type="hidden" name="application_id" value="<?= (int) $open['application_id'] ?>">
+<div class="form-group">
+<label for="apply_justification">Why do you want to create courses? (required)</label>
+<textarea class="form-control" id="apply_justification" name="justification" rows="6" required maxlength="<?= (int) PermissionTables::JUSTIFICATION_MAX ?>"><?= htmlspecialchars((string) $open['justification']) ?></textarea>
+</div>
+<button type="submit" class="btn btn-primary">Submit revision</button>
+</form>
+<form method="post" action="<?= htmlspecialchars($back, ENT_QUOTES, 'UTF-8') ?>" style="margin-top:0.6em;" onsubmit="return confirm('Delete this application?');">
+<?= self::csrfField() ?>
+<input type="hidden" name="action" value="delete">
+<input type="hidden" name="application_id" value="<?= (int) $open['application_id'] ?>">
+<button type="submit" class="btn btn-default">Delete this application</button>
+</form>
+<?php } else if ( is_array($open) ) { ?>
+<h2>Application in progress</h2>
+<p>Submitted <?= htmlspecialchars((string) $open['created_at']) ?>.</p>
+<p><?= nl2br(htmlspecialchars((string) $open['justification'])) ?></p>
+<form method="post" action="<?= htmlspecialchars($back, ENT_QUOTES, 'UTF-8') ?>" onsubmit="return confirm('Delete this application?');">
+<?= self::csrfField() ?>
+<input type="hidden" name="action" value="delete">
+<input type="hidden" name="application_id" value="<?= (int) $open['application_id'] ?>">
+<button type="submit" class="btn btn-default">Delete this application</button>
+</form>
+<p>Delete it if you want to send a different request.</p>
+<?php } else { ?>
+<?php if ( is_array($latest) && (string) $latest['status'] === PermissionTables::STATUS_DENIED ) { ?>
+<p><b>Your last application was not approved.</b>
+<?php
+            $note = trim((string) ($latest['response'] ?? ''));
+            if ( $note !== '' ) {
+                echo('<br/>'.nl2br(htmlspecialchars($note)));
+            }
+?>
+</p>
+<?php } ?>
+<form method="post" action="<?= htmlspecialchars($back, ENT_QUOTES, 'UTF-8') ?>">
+<?= self::csrfField() ?>
+<input type="hidden" name="action" value="submit">
+<div class="form-group">
+<label for="apply_justification">Why do you want to create courses? (required)</label>
+<textarea class="form-control" id="apply_justification" name="justification" rows="6" required maxlength="<?= (int) PermissionTables::JUSTIFICATION_MAX ?>"></textarea>
+</div>
+<button type="submit" class="btn btn-primary">Submit application</button>
+</form>
+<?php } ?>
+<p><a href="<?= htmlspecialchars($this->pageUrl(), ENT_QUOTES, 'UTF-8') ?>">Back</a></p>
+<?php
+        $OUTPUT->footer();
+        return '';
+    }
+
     public function gclassLogin(Request $request)
     {
         global $CFG;

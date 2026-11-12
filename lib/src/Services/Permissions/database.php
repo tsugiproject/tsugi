@@ -161,10 +161,10 @@ $DATABASE_UPGRADE = function($oldversion) {
               )";
     $q = $PDOX->queryReturnErrorInternal($sql, array(
         ':SID' => 1,
-        ':PERM' => 'course.create',
+        ':PERM' => \Tsugi\Services\Courses\CoursesService::COURSE_CREATE,
         ':SRC' => 'create_courses',
         ':SID2' => 1,
-        ':PERM2' => 'course.create',
+        ':PERM2' => \Tsugi\Services\Courses\CoursesService::COURSE_CREATE,
     ));
     if ( ! $q->success ) {
         die("Unable to backfill create_courses grants: ".$q->errorImplode."<br/>\n");

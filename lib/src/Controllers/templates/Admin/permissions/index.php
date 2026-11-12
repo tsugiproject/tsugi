@@ -53,6 +53,31 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         } else {
             U::flashError($result['error']);
         }
+    } else if ( $action === 'approve_application' || $action === 'reject_application' || $action === 'revise_application' ) {
+        if ( $action === 'approve_application' ) {
+            $decision = PermissionTables::STATUS_APPROVED;
+        } else if ( $action === 'revise_application' ) {
+            $decision = PermissionTables::STATUS_REVISION;
+        } else {
+            $decision = PermissionTables::STATUS_DENIED;
+        }
+        $result = PermissionTables::reviewApplication(
+            (int) U::get($_POST, 'application_id', 0),
+            $decision,
+            $grantor,
+            (string) U::get($_POST, 'response', '')
+        );
+        if ( $result['ok'] ) {
+            if ( $action === 'approve_application' ) {
+                U::flashSuccess(__('Application approved.'));
+            } else if ( $action === 'revise_application' ) {
+                U::flashSuccess(__('Application sent back for revision.'));
+            } else {
+                U::flashSuccess(__('Application rejected.'));
+            }
+        } else {
+            U::flashError($result['error']);
+        }
     }
     header('Location: '.$list_url);
     return;
@@ -109,6 +134,7 @@ $OUTPUT->flashMessages();
             <th><?= htmlspecialchars(__('Permission')) ?></th>
             <th><?= htmlspecialchars(__('Status')) ?></th>
             <th><?= htmlspecialchars(__('Justification')) ?></th>
+            <th><?= htmlspecialchars(__('Response')) ?></th>
             <th><?= htmlspecialchars(__('Created')) ?></th>
             <th></th>
         </tr>
@@ -121,10 +147,35 @@ $OUTPUT->flashMessages();
             <td><?= (int) $app['application_id'] ?></td>
             <td><?= htmlspecialchars($who) ?></td>
             <td><?= htmlspecialchars((string) $app['permission']) ?></td>
-            <td><?= htmlspecialchars((string) $app['status']) ?></td>
+            <td><?= htmlspecialchars((string) (array(
+                PermissionTables::STATUS_PENDING => __('Pending'),
+                PermissionTables::STATUS_APPROVED => __('Approved'),
+                PermissionTables::STATUS_DENIED => __('Denied'),
+                PermissionTables::STATUS_REVISION => __('Sent back for revision'),
+            )[(string) $app['status']] ?? (string) $app['status'])) ?></td>
             <td><?= htmlspecialchars((string) $app['justification']) ?></td>
+            <td><?= htmlspecialchars((string) ($app['response'] ?? '')) ?></td>
             <td><?= htmlspecialchars((string) $app['created_at']) ?></td>
             <td>
+                <?php if ( (string) $app['status'] === PermissionTables::STATUS_PENDING ) {
+                    $approveConfirm = json_encode(__('Approve this application?'));
+                    $rejectConfirm = json_encode(__('Reject this application?'));
+                    $reviseConfirm = json_encode(__('Send this application back for revision?'));
+                    $reviseNeed = json_encode(__('Write a reply before sending this back.'));
+                ?>
+                <form method="post" action="<?= htmlspecialchars($list_url) ?>" style="margin-bottom:0.4em;min-width:16em;" onsubmit="var button = event.submitter; var action = button ? button.value : ''; var note = (this.response && this.response.value || '').trim(); if (action === 'revise_application' && note === '') { alert(<?= htmlspecialchars($reviseNeed, ENT_QUOTES, 'UTF-8') ?>); return false; } var ask = action === 'revise_application' ? <?= htmlspecialchars($reviseConfirm, ENT_QUOTES, 'UTF-8') ?> : (action === 'reject_application' ? <?= htmlspecialchars($rejectConfirm, ENT_QUOTES, 'UTF-8') ?> : <?= htmlspecialchars($approveConfirm, ENT_QUOTES, 'UTF-8') ?>); return confirm(ask);">
+                    <?= Tool::csrfField() ?>
+                    <input type="hidden" name="application_id" value="<?= (int) $app['application_id'] ?>">
+                    <label><?= htmlspecialchars(__('Reply')) ?>
+                        <textarea name="response" class="form-control" rows="3" maxlength="<?= (int) PermissionTables::JUSTIFICATION_MAX ?>" placeholder="<?= htmlspecialchars(__('Tell them what to change. Required to send back.')) ?>"></textarea>
+                    </label>
+                    <div style="margin-top:0.4em;">
+                    <button type="submit" name="action" value="approve_application" class="btn btn-primary btn-sm"><?= htmlspecialchars(__('Approve')) ?></button>
+                    <button type="submit" name="action" value="revise_application" class="btn btn-default btn-sm"><?= htmlspecialchars(__('Send back')) ?></button>
+                    <button type="submit" name="action" value="reject_application" class="btn btn-default btn-sm"><?= htmlspecialchars(__('Reject')) ?></button>
+                    </div>
+                </form>
+                <?php } ?>
                 <form method="post" action="<?= htmlspecialchars($list_url) ?>" style="display:inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode(__('Delete this application?')), ENT_QUOTES, 'UTF-8') ?>);">
                     <?= Tool::csrfField() ?>
                     <input type="hidden" name="action" value="delete_application">

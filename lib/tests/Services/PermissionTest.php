@@ -42,7 +42,7 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
             public static function permissions(): array
             {
                 return [
-                    'course.create' => [
+                    CoursesService::COURSE_CREATE => [
                         'title' => 'Create Courses',
                         'description' => 'Second declaration of course.create',
                         'requestable' => true,
@@ -52,7 +52,7 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         };
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('course.create');
+        $this->expectExceptionMessage(CoursesService::COURSE_CREATE);
         Permission::assemble([
             CoursesService::class,
             $duplicate::class,
@@ -64,11 +64,11 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         ReqScope::resetIdentity();
         Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
 
-        $this->assertTrue(Permission::has('course.create'));
-        $this->assertFalse(Permission::has('course.create', 2));
+        $this->assertTrue(Permission::has(CoursesService::COURSE_CREATE));
+        $this->assertFalse(Permission::has(CoursesService::COURSE_CREATE, 2));
         $this->assertFalse(Permission::has('no.such'));
     }
 
@@ -77,12 +77,12 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         ReqScope::resetIdentity();
         Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
 
-        $this->assertTrue(Permission::has('course.create'));
+        $this->assertTrue(Permission::has(CoursesService::COURSE_CREATE));
         Permission::cacheClear();
-        $this->assertFalse(Permission::has('course.create'));
+        $this->assertFalse(Permission::has(CoursesService::COURSE_CREATE));
         $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
     }
 
@@ -91,11 +91,11 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         ReqScope::resetIdentity();
         Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
 
-        $this->assertTrue(Permission::has('course.create'));
-        $this->assertFalse(Permission::has('course.create', null, true));
+        $this->assertTrue(Permission::has(CoursesService::COURSE_CREATE));
+        $this->assertFalse(Permission::has(CoursesService::COURSE_CREATE, null, true));
         $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
     }
 
@@ -104,11 +104,11 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         ReqScope::resetIdentity();
         Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
 
         Permission::cacheRefresh();
-        $this->assertFalse(Permission::has('course.create'));
+        $this->assertFalse(Permission::has(CoursesService::COURSE_CREATE));
         $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
     }
 
@@ -117,10 +117,10 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         ReqScope::resetIdentity();
         Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), -1);
 
-        $this->assertFalse(Permission::has('course.create'));
+        $this->assertFalse(Permission::has(CoursesService::COURSE_CREATE));
         $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
     }
 
@@ -129,10 +129,10 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         ReqScope::resetIdentity();
         Cache::set('permissions', 9, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
 
-        $this->assertFalse(Permission::has('course.create'));
+        $this->assertFalse(Permission::has(CoursesService::COURSE_CREATE));
         $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
     }
 }

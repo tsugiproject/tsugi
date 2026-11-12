@@ -430,7 +430,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         \Tsugi\Core\ReqScope::resetIdentity();
         \Tsugi\Core\Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
         $this->assertTrue(CoursesService::canCreate());
     }
@@ -442,7 +442,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         \Tsugi\Core\ReqScope::resetIdentity();
         $this->provisionLogin(7);
         \Tsugi\Core\Cache::set('permissions', 7, array(
-            1 => array('course.create' => true),
+            1 => array(CoursesService::COURSE_CREATE => true),
         ), 300);
         $response = Courses::createGateResponse('/courses');
         $this->assertNotNull($response);

@@ -68,7 +68,7 @@ echo("<h1>$title</h1>\n<p>\n");
 activity data is deleted.  This is <b>not</b> a "soft delete".  A delete  on this screen truly throws away all
 of the user's data.
 </p>
-<p><b>Create courses:</b> Set to 1 to give this user a course.create grant.
+<p><b>Create courses:</b> Set to 1 to give this user a <?= htmlspecialchars(\Tsugi\Services\Courses\CoursesService::COURSE_CREATE) ?> grant.
 Set to 0 to revoke the grant that came from this flag. A grant handed out
 on the Permissions page is left alone.
 </p>

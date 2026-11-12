@@ -20,6 +20,9 @@ class CoursesService extends Service {
     /** Consumer key used by Google site login. */
     const GOOGLE_KEY = 'google.com';
 
+    /** Permission to create courses. */
+    const COURSE_CREATE = 'course.create';
+
     /**
      * Apply to Teach. No other permission.
      *
@@ -27,7 +30,7 @@ class CoursesService extends Service {
      */
     public static function permissions(): array {
         return array(
-            'course.create' => array(
+            self::COURSE_CREATE => array(
                 'title' => 'Create Courses',
                 'description' => 'Create new courses in Tsugi',
                 'requestable' => true,
@@ -52,7 +55,7 @@ class CoursesService extends Service {
         if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
             return true;
         }
-        return Permission::has('course.create', null, (bool) $fresh);
+        return Permission::has(self::COURSE_CREATE, null, (bool) $fresh);
     }
 
     /**
