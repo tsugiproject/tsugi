@@ -13,6 +13,10 @@ class Tsugi extends \Tsugi\Lumos\Application {
         parent::__construct($launch, $baseDir);
         $this['tsugi']->output->buffer = false;
 
+        // Same initialization as the route list below. The service list
+        // lives in Permission; a duplicate code aborts startup.
+        \Tsugi\Services\Permission::assemble();
+
         // Register ServiceWorker route first (at root level, not in group)
         \Tsugi\Controllers\ServiceWorkerController::routes($this);
 

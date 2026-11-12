@@ -21,6 +21,21 @@ class CoursesService extends Service {
     const GOOGLE_KEY = 'google.com';
 
     /**
+     * Apply to Teach. No other permission.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function permissions(): array {
+        return array(
+            'course.create' => array(
+                'title' => 'Create Courses',
+                'description' => 'Create new courses in Tsugi',
+                'requestable' => true,
+            ),
+        );
+    }
+
+    /**
      * True when the current user may mint a new site-login course.
      *
      * Site admins pass. Everyone else needs the user create-courses flag.
