@@ -3,6 +3,7 @@
 Tsugi can send outbound mail through Amazon SES using the SES-only
 [`async-aws/ses`](https://async-aws.com/clients/ses.html/) client. When SES is
 not configured, mail falls back to PHP `mail()` and the host MTA.
+For a local inbox instead of a real MTA, see [mailpit.md](mailpit.md).
 
 All application mail goes through `Tsugi\Services\Mail\MailService`.
 `Tsugi\Core\Mail` remains a thin compatibility wrapper.

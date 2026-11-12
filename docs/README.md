@@ -6,6 +6,7 @@ their code (for example `tool/`, `admin/`).
 | Guide | Topic |
 |-------|--------|
 | [composer.md](composer.md) | Composer updates, committed `vendor/`, pre-commit checks |
+| [mailpit.md](mailpit.md) | Catch local dev mail with Mailpit on macOS and Linux |
 | [vapid.md](vapid.md) | Web push notification VAPID keys |
 | [stripe.md](stripe.md) | Stripe Checkout supporter payments |
 | [badges-assertions.md](badges-assertions.md) | Open Badges 2.0 / 3.0 assertion endpoints and config |
