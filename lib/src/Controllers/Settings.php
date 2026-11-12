@@ -319,9 +319,8 @@ class Settings extends Tool {
 
         $key_count = self::keyCount();
 
-        $sql = "SELECT count(C.context_id) AS count
+        $sql = "SELECT count(DISTINCT C.context_id) AS count
                 FROM {$CFG->dbprefix}lti_context AS C
-                LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
                 WHERE ( C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
                  OR C.user_id = :UID )
                   AND (C.deleted IS NULL OR C.deleted = 0)";
@@ -900,6 +899,21 @@ can visit the administrator dashboard.
         $query_fields = array(':UID' => $uid, ':UID2' => $uid);
         $fields = array("membership_id", "context_id", "user_id", "role_override", "created_at", "updated_at");
 
+        if ( isset($_POST['doUpdate']) ) {
+            $current_row = $PDOX->rowDie("SELECT context_id, user_id FROM {$tablename} WHERE membership_id = :MID",
+                array(':MID' => $_REQUEST['membership_id']));
+            $posted_context = array_key_exists('context_id', $_POST) ? (string) $_POST['context_id'] : null;
+            $posted_user = array_key_exists('user_id', $_POST) ? (string) $_POST['user_id'] : null;
+            if ( ! $current_row
+                || ($posted_context !== null && $posted_context !== (string) $current_row['context_id'])
+                || ($posted_user !== null && $posted_user !== (string) $current_row['user_id']) ) {
+                U::flashError("Cannot change context_id or user_id");
+                return new RedirectResponse($from_location);
+            }
+            $_POST['context_id'] = $current_row['context_id'];
+            $_POST['user_id'] = $current_row['user_id'];
+        }
+
         $row = CrudForm::handleUpdate($tablename, $fields, $where_clause,
             $query_fields, $allow_edit, $allow_delete);
 
@@ -1302,9 +1316,12 @@ you will need to request a key and have it approved.
             return new RedirectResponse($from_location);
         }
 
-        if ( U::get($_POST,'key_key') && U::get($_POST,'key_key') != $oldrow['key_key'] ) {
+        if ( isset($_POST['key_key']) && $_POST['key_key'] !== '' && $_POST['key_key'] != $oldrow['key_key'] ) {
             U::flashError("Cannot change key value");
             return new RedirectResponse($from_location);
+        }
+        if ( isset($_POST['doUpdate']) ) {
+            $_POST['key_key'] = $oldrow['key_key'];
         }
 
         if ( isset($_POST['deploy_key']) ) {
@@ -1385,7 +1402,6 @@ $(document).ready( function() {
             '</p>'
         );
         document.getElementById("key_key").readOnly = true;
-        document.getElementById("key_key").disabled = true;
 });
 </script>
 <?php
@@ -1618,7 +1634,7 @@ connect to Google Classroom and install tools.
         $from_location = $this->pageUrl('key/requests');
         $allow_delete = true;
         $allow_edit = true;
-        $fields = array("request_id", "title", "notes", "admin", "state", "lti", "created_at", "updated_at");
+        $fields = array("request_id", "title", "notes", "created_at", "updated_at");
         $where_clause = "user_id = :UID";
         $query_fields = array();
         $query_fields[":UID"] = ReqScope::loggedInUserId();
