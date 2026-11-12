@@ -1294,7 +1294,7 @@ class Courses extends Tool {
     }
 
     /**
-     * Login + Google session + create_courses (or site admin).
+     * Login + Google session + course.create (or site admin).
      *
      * @return Response|null
      */

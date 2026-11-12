@@ -4,7 +4,7 @@ namespace Tsugi\Services\Courses;
 
 use Tsugi\Core\LTIX;
 use Tsugi\Core\ReqScope;
-use Tsugi\Core\User;
+use Tsugi\Services\Permission;
 use Tsugi\Services\Service;
 
 /**
@@ -38,11 +38,18 @@ class CoursesService extends Service {
     /**
      * True when the current user may mint a new site-login course.
      *
-     * Site admins pass. Everyone else needs the user create-courses flag.
-     * Instructor role in a course does not count.
+     * Site admins pass. Everyone else needs an active course.create grant.
+     * Instructor role in a course does not count. The old create_courses
+     * flag is not this check.
      */
     public static function canCreate() {
-        return User::canCreateCourses();
+        if ( ! ReqScope::isLoggedInLegacy() ) {
+            return false;
+        }
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
+        return Permission::has('course.create');
     }
 
     /**

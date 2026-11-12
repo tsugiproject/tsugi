@@ -49,6 +49,7 @@ class Admin extends Tool {
         Admin\Key::routes($app);
         Admin\Mail::routes($app);
         Admin\Org::routes($app);
+        Admin\Permissions::routes($app);
         Admin\Profile::routes($app);
         Admin\Site::routes($app);
         Admin\Users::routes($app);

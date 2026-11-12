@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Permission;
 
 /**
  * Logged-in instructor home for sites that are not the old one-course lessons site.
@@ -35,6 +36,10 @@ class Instructor extends Tool {
     const ROUTE = '/instructor';
     const NAME = 'Instructor';
     const REDIRECT = 'tsugi_controllers_instructor';
+
+    public function __construct() {
+        Permission::cacheRefresh();
+    }
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         self::mapPage($app, $prefix, 'index', true);
