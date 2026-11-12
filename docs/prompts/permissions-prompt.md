@@ -1,6 +1,8 @@
 # System Permissions, Applications, and Grants — design prompt
 
-Stored 2026-11-12. This is the design brief. It is not the design report.
+Stored 2026-11-12. Revised the same day. This is the design brief. It is not the design report.
+
+Routes come from controllers. Permissions come from services. `Tsugi.php` assembles both. An earlier draft of this brief said `Tsugi.php` gathers routes from services. That was wrong.
 
 ---
 
@@ -12,19 +14,15 @@ Implement a lightweight, system-level permission framework for Tsugi. Users can 
 
 The first use case is **Apply to Teach**, which grants the `course.create` permission.
 
-An important part of this work is introducing a new base class, `Service.php`, parallel to the existing `Tool.php`.
+The base class already exists. `Tsugi\Services\Service` (`lib/src/Services/Service.php`) is parallel to the controller base `Tsugi\Controllers\Tool`. `CoursesService` already extends it. Do not create a second base class, and do not reparent the other classes under `lib/src/Services/` in this pass.
 
-## 1. Create a new Service.php base class
+## 1. Service.php base class
 
-Tsugi currently has `Tool.php`, but does not have `Service.php`.
+Controllers live in `lib/src/Controllers/`. Their common parent is `Tsugi\Controllers\Tool` (`lib/src/Controllers/Tool.php`). `lib/src/Controllers/Tsugi.php` registers routes by calling `::routes()` on an explicit list of those controllers.
 
-Create `Service.php` following the architectural conventions of `Tool.php`, including appropriate namespace, location, autoloading, and documentation.
+`Tsugi\Services\Service` is the common base for Tsugi services. It is not a controller, and it does not replace `Tsugi\Controllers\Tool`. Do not confuse it with `Tsugi\Core\Tool`, which is a different class.
 
-This class will become the common base class for Tsugi services.
-
-Permission declaration is the first shared service capability that will use this base class. In the future, other service-wide features may be added.
-
-Initially, keep the base class minimal:
+Permission declaration is the first shared service capability on this base. Other service-wide features may be added later. The base method is already in place:
 
 ```php
 public static function permissions(): array
@@ -33,23 +31,23 @@ public static function permissions(): array
 }
 ```
 
-Do not move existing functionality from `Tool.php` into `Service.php`. These classes serve different purposes.
+Do not move controller actions, route tables, or anything else out of `Tool.php` into `Service.php`. Controllers keep extending `Tsugi\Controllers\Tool`.
 
 ### Service inheritance
 
-Inspect how services are currently defined and registered.
+Inspect how classes under `lib/src/Services/` are defined before changing them.
 
-Update the existing services to extend the new `Service` base class where appropriate, preserving their existing behavior.
+`CoursesService` extends `Service` and currently inherits the empty `permissions()`. When Apply to Teach is built, override `permissions()` there to declare `course.create`.
 
-Avoid unnecessary refactoring of service routing, constructors, or controllers.
+Services that declare permissions extend `Service` and override `permissions()`. Leave the existing repositories, exceptions, documents, value objects, and `database.php` files alone. Do not reparent them just so they inherit an empty method. Do not change their constructors or behavior.
 
-Services that do not declare permissions will simply inherit the empty implementation.
+Do not move routes onto services. Do not refactor controller routing.
 
 ## 2. Service-defined permissions
 
-Each service can override `permissions()` to declare its capabilities.
+Each participating service overrides `permissions()` to declare its capabilities.
 
-For example, the Courses service might contain:
+The Courses controller does not declare permissions. A courses service does. For example:
 
 ```php
 public static function permissions(): array
@@ -68,25 +66,22 @@ Permission codes are stable, developer-defined identifiers.
 
 There is no central hard-coded permission list and no database table containing permission definitions.
 
-## 3. Extend Tsugi.php initialization
+## 3. Assemble permissions in Tsugi.php
 
-`Tsugi.php` already assembles the route registry by gathering routes from services.
+`Tsugi.php` already assembles the route registry by calling `::routes()` on controllers. Leave that list and that behavior unchanged.
 
-Extend that existing process to gather permissions as well.
+In the same initialization, assemble a permission registry from services:
 
-During service initialization:
-
-1. Discover the existing services using the current mechanism.
-2. Collect each service's `permissions()` declarations.
-3. Validate and merge them into one in-memory permission registry.
-4. Reject duplicate permission identifiers.
-5. Make the registry available to permission-management screens and authorization checks.
+1. Call `permissions()` on an explicit list of service classes, in the same style as the controller route list.
+2. Validate and merge the declarations into one in-memory permission registry.
+3. Reject duplicate permission identifiers.
+4. Make the registry available to permission-management screens and authorization checks.
 
 The registry is reconstructed during normal application initialization, just like the route registry.
 
-Do not introduce separate filesystem scanning, deployment-time compilation, or persistent registry synchronization.
+Do not scan the filesystem, compile a registry at deploy time, or store permission definitions in the database.
 
-Keep route registration behavior unchanged.
+Do not build a separate service-discovery system. There is no existing discovery mechanism for services. The explicit list in `Tsugi.php` is the mechanism.
 
 ## 4. Persistence model
 
@@ -108,7 +103,7 @@ Store permission codes directly as strings.
 
 The service registry, not a database table, defines which permissions exist.
 
-Follow existing Tsugi schema, migration, indexing, and model conventions.
+Follow existing Tsugi schema, migration, indexing, and model conventions. Schema changes go through `admin/upgrade.php` in this checkout.
 
 ## 5. Authorization API
 
@@ -132,7 +127,7 @@ The authorization implementation must:
 - Default to the system scope.
 - Enforce authorization server-side.
 
-Keep permission registration separate from grant evaluation.
+Keep permission registration separate from grant evaluation. Controllers call `Permission::has()` before a protected action. They do not declare the permission.
 
 ## 6. Application and approval workflow
 
@@ -140,9 +135,13 @@ Implement a generic permission application process.
 
 Users can view available requestable permissions, submit an application with justification, and inspect the status of their requests.
 
+The logged-in user does this from the instructor home, `lib/src/Controllers/Instructor.php` and `templates/Instructor`, at `/instructor`. Leave `lib/src/Controllers/Settings.php` alone.
+
 Administrators can review applications, approve or deny them, and provide a response.
 
 Approval creates a grant in the same database transaction as the application status update.
+
+Administrators can also hand out and revoke grants from a simple CRUD screen in admin, without an application. Follow the existing admin CRUD style.
 
 Prevent duplicate pending applications and duplicate active grants.
 
@@ -152,11 +151,13 @@ Use existing authentication, CSRF protection, and administrative authorization m
 
 ## 7. First use case: Apply to Teach
 
-The Courses service registers `course.create`.
+`Tsugi\Services\Courses\CoursesService` registers `course.create`.
 
-Users without the permission can select **Apply to Teach**.
+Users without the permission can select **Apply to Teach** on the instructor home.
 
 Once an administrator approves, the user can create courses.
+
+Course creation is already gated by `Courses::createGateResponse()`, which calls `CoursesService::canCreate()`. That method calls `User::canCreateCourses()`. Site admins already pass that check. Keep that administrator behavior. For everyone else, `course.create` is the grant that allows creation.
 
 The user who creates a course becomes an instructor in that course through the existing course-membership mechanism.
 
@@ -164,7 +165,7 @@ A system-level course creation permission does not grant instructor privileges i
 
 Revoking `course.create` prevents additional course creation without affecting previously created courses.
 
-Preserve existing administrator behavior.
+Do not build "apply for the ability to create LTI 1.1 keys" or "apply for the ability to create LTI 1.3 keys" in this pass. Those are later requestable permissions, meaning the ability to create keys, not a request for one key. Leave the current key-request flow in place.
 
 ## 8. Explicitly out of scope
 
@@ -172,27 +173,29 @@ Do not implement configurable roles, Sakai-style realms, organization inheritanc
 
 Do not build a separate service-discovery system.
 
+Do not move routes from controllers onto services.
+
 ## 9. Tests and documentation
 
 Add focused tests for:
 
 - Default empty permissions inherited from `Service`.
 - Service overrides of `permissions()`.
-- Permission registry construction.
+- Permission registry construction from the explicit service list.
 - Duplicate permission detection.
 - Unknown permission denial.
 - Application submission and approval.
-- Grant creation, expiration, and revocation.
-- Course creation authorization.
+- Grant creation, expiration, and revocation, including an administrator hand grant.
+- Course creation authorization, including the existing site-admin pass.
 
-Document how future services can extend `Service`, declare permissions, and check them.
+Document how a future service extends `Service`, declares permissions, is added to the `Tsugi.php` list, and how a controller checks the grant.
 
 ## Implementation guidance
 
-Inspect `Tool.php`, existing service classes, `Tsugi.php`, and database conventions before changing code.
+Inspect `lib/src/Controllers/Tool.php`, `lib/src/Controllers/Tsugi.php`, `lib/src/Services/Courses/CoursesService.php`, `Courses::createGateResponse()`, and the upgrade conventions before changing code.
 
 Keep `Service.php` small and focused. It should establish a useful common superclass without prematurely inventing shared service behavior.
 
 Implement the first use case end-to-end while keeping the underlying permission framework generic.
 
-**Architectural principle:** `Tool.php` is the common base for tools. `Service.php` becomes the common base for services. `Tsugi.php` assembles their registrations. Services declare permissions; the database stores applications and grants.
+**Architectural principle:** `Tsugi\Controllers\Tool` is the common base for controllers. Controllers declare routes. `Tsugi\Services\Service` is the common base for services. Services declare permissions. `Tsugi.php` assembles both. The database stores applications and grants.
