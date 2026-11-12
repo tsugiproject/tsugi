@@ -1303,7 +1303,7 @@ class Courses extends Tool {
         if ( $gate ) {
             return $gate;
         }
-        if ( ! CoursesService::canCreate() ) {
+        if ( ! CoursesService::canCreate(true) ) {
             U::flashError('You are not allowed to create courses.');
             return new RedirectResponse(U::addSession($home));
         }

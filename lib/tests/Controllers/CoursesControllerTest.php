@@ -425,6 +425,30 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(CoursesService::canCreate());
     }
 
+    public function testCanCreateUsesTheCachedGrant()
+    {
+        $_SESSION['id'] = 7;
+        \Tsugi\Core\ReqScope::resetIdentity();
+        \Tsugi\Core\Cache::set('permissions', 7, array(
+            1 => array('course.create' => true),
+        ), 300);
+        $this->assertTrue(CoursesService::canCreate());
+    }
+
+    public function testCreateGateRefreshesBeforeAllowing()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
+        \Tsugi\Core\Cache::set('permissions', 7, array(
+            1 => array('course.create' => true),
+        ), 300);
+        $response = Courses::createGateResponse('/courses');
+        $this->assertNotNull($response);
+        $this->assertSame(302, $response->getStatusCode());
+    }
+
     public function testCreateGateRefusesWithoutGrant()
     {
         $_SESSION['id'] = 7;

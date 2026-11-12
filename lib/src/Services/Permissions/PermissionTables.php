@@ -195,6 +195,67 @@ class PermissionTables {
     }
 
     /**
+     * Keep a course.create grant in step with lti_user.create_courses.
+     *
+     * Turning the flag on adds a system-scope grant when the user has no
+     * active one. Turning it off revokes grants that came from that flag.
+     * A hand grant is left alone.
+     *
+     * @param int $userId
+     * @param bool $enabled
+     */
+    public static function syncCourseCreateFlag($userId, $enabled) {
+        global $CFG, $PDOX;
+        self::connection();
+        $uid = (int) $userId;
+        if ( $uid < 1 ) {
+            return;
+        }
+        $p = $CFG->dbprefix;
+        if ( $enabled ) {
+            $active = $PDOX->rowDie(
+                "SELECT grant_id FROM {$p}site_grant
+                 WHERE user_id = :UID AND scope_id = :SID AND permission = :PERM
+                   AND revoked_at IS NULL
+                   AND (expires_at IS NULL OR expires_at > NOW())
+                 LIMIT 1",
+                array(
+                    ':UID' => $uid,
+                    ':SID' => self::SYSTEM_SCOPE_ID,
+                    ':PERM' => 'course.create',
+                )
+            );
+            if ( is_array($active) ) {
+                return;
+            }
+            $PDOX->queryDie(
+                "INSERT INTO {$p}site_grant
+                    (user_id, scope_id, permission, source, granted_at)
+                 VALUES (:UID, :SID, :PERM, :SRC, NOW())",
+                array(
+                    ':UID' => $uid,
+                    ':SID' => self::SYSTEM_SCOPE_ID,
+                    ':PERM' => 'course.create',
+                    ':SRC' => 'create_courses',
+                )
+            );
+            return;
+        }
+        $PDOX->queryDie(
+            "UPDATE {$p}site_grant
+             SET revoked_at = NOW()
+             WHERE user_id = :UID AND scope_id = :SID AND permission = :PERM
+               AND source = :SRC AND revoked_at IS NULL",
+            array(
+                ':UID' => $uid,
+                ':SID' => self::SYSTEM_SCOPE_ID,
+                ':PERM' => 'course.create',
+                ':SRC' => 'create_courses',
+            )
+        );
+    }
+
+    /**
      * @param int $grantId
      * @param int $revokedBy
      * @return array{ok: true}|array{ok: false, error: string}

@@ -38,8 +38,18 @@ $from_location = "index";
 $titles = array("create_courses" => "Create courses (0 or 1)");
 
 // Handle the post data
+$syncFlag = isset($_POST['doUpdate']) && array_key_exists('create_courses', $_POST)
+    ? ((int) $_POST['create_courses'] === 1)
+    : null;
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
+
+if ( $syncFlag !== null && $row === CrudForm::CRUD_SUCCESS ) {
+    \Tsugi\Services\Permissions\PermissionTables::syncCourseCreateFlag(
+        (int) $_REQUEST['user_id'],
+        $syncFlag
+    );
+}
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header("Location: ".$from_location);
@@ -58,9 +68,9 @@ echo("<h1>$title</h1>\n<p>\n");
 activity data is deleted.  This is <b>not</b> a "soft delete".  A delete  on this screen truly throws away all
 of the user's data.
 </p>
-<p><b>Create courses:</b> Set to 1 to let this user add new courses from the Courses page.
-This is a user capability, not an instructor role in a course. The user may need to log in again
-after you change it.
+<p><b>Create courses:</b> Set to 1 to give this user a course.create grant.
+Set to 0 to revoke the grant that came from this flag. A grant handed out
+on the Permissions page is left alone.
 </p>
 <?php
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, false, $titles);

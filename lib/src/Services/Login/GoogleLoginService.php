@@ -9,6 +9,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\User;
 use \Tsugi\Controllers\Login;
+use Tsugi\Services\Permissions\PermissionTables;
 
 /**
  * Google site login: OAuth callback, then the google.com user, site course, and session.
@@ -337,6 +338,7 @@ class GoogleLoginService {
                 "UPDATE {$CFG->dbprefix}lti_user SET create_courses = :CC WHERE user_id = :ID",
                 array(':CC' => $cc, ':ID' => $user_id)
             );
+            PermissionTables::syncCourseCreateFlag($user_id, $cc === 1);
         }
 
         $force_membership_role = ! empty($options['force_membership_role']);

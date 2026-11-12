@@ -86,6 +86,19 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
     }
 
+    public function testHasFreshReloadsBeforeAnswering()
+    {
+        $_SESSION['id'] = 7;
+        ReqScope::resetIdentity();
+        Cache::set('permissions', 7, array(
+            1 => array('course.create' => true),
+        ), 300);
+
+        $this->assertTrue(Permission::has('course.create'));
+        $this->assertFalse(Permission::has('course.create', null, true));
+        $this->assertArrayNotHasKey('cache_permissions', $_SESSION);
+    }
+
     public function testCacheRefreshDropsAStaleGrantSet()
     {
         $_SESSION['id'] = 7;

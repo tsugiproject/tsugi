@@ -91,11 +91,14 @@ class Permission extends Service {
      * The user's active grants are read once and kept in the session cache
      * for five minutes. Login and logout clear that cache. cacheClear()
      * drops it. cacheRefresh() drops it and loads the current user again.
+     * Pass $fresh to reload before answering. Display can use the cache.
+     * A write reloads, then checks.
      *
      * @param string $permission
      * @param int|null $scope_id
+     * @param bool $fresh Reload this user's grants before the check.
      */
-    public static function has($permission, $scope_id = null) {
+    public static function has($permission, $scope_id = null, $fresh = false) {
         if ( ! ReqScope::isLoggedInLegacy() ) {
             return false;
         }
@@ -110,6 +113,9 @@ class Permission extends Service {
         $scope = $scope_id === null ? 1 : (int) $scope_id;
         if ( $scope < 1 ) {
             return false;
+        }
+        if ( $fresh ) {
+            self::cacheRefresh();
         }
         $grants = self::activeGrants($uid);
         return isset($grants[$scope][$code]);

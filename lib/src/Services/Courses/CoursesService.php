@@ -40,16 +40,19 @@ class CoursesService extends Service {
      *
      * Site admins pass. Everyone else needs an active course.create grant.
      * Instructor role in a course does not count. The old create_courses
-     * flag is not this check.
+     * flag is not this check. $fresh reloads the grant cache first. The
+     * courses list can use the cache. Creating a course passes true.
+     *
+     * @param bool $fresh
      */
-    public static function canCreate() {
+    public static function canCreate($fresh = false) {
         if ( ! ReqScope::isLoggedInLegacy() ) {
             return false;
         }
         if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
             return true;
         }
-        return Permission::has('course.create');
+        return Permission::has('course.create', null, (bool) $fresh);
     }
 
     /**
