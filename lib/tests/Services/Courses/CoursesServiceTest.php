@@ -1,7 +1,7 @@
 <?php
 
-require_once "src/Services/Service.php";
-require_once "src/Services/Courses/CoursesService.php";
+require_once __DIR__ . "/../../../src/Services/Service.php";
+require_once __DIR__ . "/../../../src/Services/Courses/CoursesService.php";
 
 use Tsugi\Services\Courses\CoursesService;
 
