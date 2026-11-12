@@ -85,7 +85,7 @@ array( "{$CFG->dbprefix}site_grant",
     CONSTRAINT `{$CFG->dbprefix}site_grant_pk` PRIMARY KEY (grant_id),
 
     UNIQUE `{$CFG->dbprefix}site_grant_uniq_application` (application_id),
-    KEY `{$CFG->dbprefix}site_grant_idx_user` (user_id, scope_id, permission),
+    UNIQUE `{$CFG->dbprefix}site_grant_uniq_user` (user_id, scope_id, permission),
 
     CONSTRAINT `{$CFG->dbprefix}site_grant_ibfk_user`
         FOREIGN KEY (`user_id`)
@@ -145,8 +145,35 @@ $DATABASE_UPGRADE = function($oldversion) {
         $PDOX->queryDie($sql);
     }
 
+    $userIndex = "{$p}site_grant_idx_user";
+    $userUnique = "{$p}site_grant_uniq_user";
+    if ( ! $PDOX->indexExists($userUnique, $grant) ) {
+        // One row per user, scope, and permission. Keep the newest if a
+        // race already stored two. Add the unique key before dropping the
+        // old one: the user foreign key is using that index.
+        $PDOX->queryDie(
+            "DELETE G FROM {$grant} AS G
+             INNER JOIN {$grant} AS N
+                ON N.user_id = G.user_id
+               AND N.scope_id = G.scope_id
+               AND N.permission = G.permission
+               AND N.grant_id > G.grant_id"
+        );
+        $sql = "ALTER TABLE {$grant} ADD UNIQUE `{$userUnique}` (user_id, scope_id, permission)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryDie($sql);
+    }
+    if ( $PDOX->indexExists($userIndex, $grant) ) {
+        $sql = "ALTER TABLE {$grant} DROP INDEX `{$userIndex}`";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryDie($sql);
+    }
+
     // Bulk INSERT ... SELECT. queryDie() rewrites inserts into upserts.
-    $sql = "INSERT INTO {$grant}
+    // IGNORE keeps one duplicate from aborting the rest of the copy.
+    $sql = "INSERT IGNORE INTO {$grant}
             (user_id, scope_id, permission, source, granted_at)
             SELECT U.user_id, :SID, :PERM, :SRC, NOW()
             FROM {$p}lti_user AS U

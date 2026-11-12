@@ -167,31 +167,53 @@ class PermissionTables {
             return array('ok' => false, 'error' => 'That user already has an active grant for this permission.');
         }
 
-        $cols = 'user_id, scope_id, permission, source, granted_at';
-        $vals = ':UID, :SID, :PERM, :SRC, NOW()';
-        $params = array(
-            ':UID' => $uid,
-            ':SID' => self::SYSTEM_SCOPE_ID,
-            ':PERM' => $permission,
-            ':SRC' => 'admin',
+        $grantId = self::saveGrant(
+            $uid,
+            $permission,
+            'admin',
+            (int) $grantorId,
+            $expires['at']
         );
-        $grantor = (int) $grantorId;
-        if ( $grantor > 0 ) {
-            $cols .= ', grantor_id';
-            $vals .= ', :GID';
-            $params[':GID'] = $grantor;
-        }
-        if ( $expires['at'] !== null ) {
-            $cols .= ', expires_at';
-            $vals .= ', :EXP';
-            $params[':EXP'] = $expires['at'];
-        }
+        return array('ok' => true, 'grant_id' => $grantId);
+    }
 
+    /**
+     * Insert one system-scope grant, or refresh the row that is already there.
+     *
+     * The unique key is (user_id, scope_id, permission). A second insert for
+     * that triple updates the same row and clears revocation.
+     *
+     * @param int $uid
+     * @param string $permission
+     * @param string $source
+     * @param int $grantorId
+     * @param string|null $expiresAt
+     */
+    private static function saveGrant($uid, $permission, $source, $grantorId, $expiresAt) {
+        global $CFG, $PDOX;
+        $p = $CFG->dbprefix;
         $PDOX->queryDie(
-            "INSERT INTO {$p}site_grant ({$cols}) VALUES ({$vals})",
-            $params
+            "INSERT INTO {$p}site_grant
+                (user_id, scope_id, permission, source, grantor_id, granted_at, expires_at)
+             VALUES (:UID, :SID, :PERM, :SRC, :GID, NOW(), :EXP)
+             ON DUPLICATE KEY UPDATE
+                grant_id = LAST_INSERT_ID(grant_id),
+                source = VALUES(source),
+                grantor_id = VALUES(grantor_id),
+                granted_at = NOW(),
+                expires_at = VALUES(expires_at),
+                revoked_at = NULL,
+                revoked_by = NULL",
+            array(
+                ':UID' => (int) $uid,
+                ':SID' => self::SYSTEM_SCOPE_ID,
+                ':PERM' => $permission,
+                ':SRC' => $source,
+                ':GID' => ((int) $grantorId) > 0 ? (int) $grantorId : null,
+                ':EXP' => $expiresAt,
+            )
         );
-        return array('ok' => true, 'grant_id' => (int) $PDOX->lastInsertId());
+        return (int) $PDOX->lastInsertId();
     }
 
     /**
@@ -228,17 +250,7 @@ class PermissionTables {
             if ( is_array($active) ) {
                 return;
             }
-            $PDOX->queryDie(
-                "INSERT INTO {$p}site_grant
-                    (user_id, scope_id, permission, source, granted_at)
-                 VALUES (:UID, :SID, :PERM, :SRC, NOW())",
-                array(
-                    ':UID' => $uid,
-                    ':SID' => self::SYSTEM_SCOPE_ID,
-                    ':PERM' => 'course.create',
-                    ':SRC' => 'create_courses',
-                )
-            );
+            self::saveGrant($uid, 'course.create', 'create_courses', 0, null);
             return;
         }
         $PDOX->queryDie(
