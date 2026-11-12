@@ -228,6 +228,7 @@ class Instructor extends Tool {
 applications in their courses.
 </p>
 <ul>
+<?php if ( CoursesService::courseCreateOffered() ) { ?>
 <?php if ( CoursesService::canCreate() ) { ?>
 <li><p><a href="<?= htmlspecialchars(U::addSession($CFG->wwwroot.'/courses/create'), ENT_QUOTES, 'UTF-8') ?>">Add Course</a>
 </p>
@@ -236,6 +237,7 @@ applications in their courses.
 <li><p><a href="<?= htmlspecialchars($this->pageUrl('apply'), ENT_QUOTES, 'UTF-8') ?>">Apply to add course</a>
 </p>
 </li>
+<?php } ?>
 <?php } ?>
 <li><p><a href="<?= htmlspecialchars($this->pageUrl('context'), ENT_QUOTES, 'UTF-8') ?>" aria-label="View My Contexts (Courses) - <?= (int)$course_count ?> context(s)">View My Contexts (Courses)</a>
 (<?= (int)$course_count ?>)
@@ -310,6 +312,9 @@ can visit the administrator dashboard.
         $gate = $this->requireLogin('apply');
         if ( $gate ) {
             return $gate;
+        }
+        if ( ! CoursesService::courseCreateOffered() ) {
+            return new RedirectResponse($this->pageUrl());
         }
         if ( CoursesService::canCreate() ) {
             return new RedirectResponse($this->pageUrl());

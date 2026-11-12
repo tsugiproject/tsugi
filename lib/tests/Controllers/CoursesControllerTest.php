@@ -466,6 +466,8 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
 
     public function testCreateGateAllowsSiteAdmin()
     {
+        global $CFG;
+        $CFG->allow_course_create = true;
         $_SESSION['id'] = 7;
         $_SESSION['admin'] = 'yes';
         $_SESSION['oauth_consumer_key'] = 'google.com';

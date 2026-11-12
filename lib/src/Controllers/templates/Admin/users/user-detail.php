@@ -54,14 +54,45 @@ if ( isset($_POST['doUpdate']) && array_key_exists('create_courses', $_POST) ) {
         $syncFlag = $nowEnabled;
     }
 }
+// The flag and the grant it creates or revokes commit together. An open
+// transaction is rolled back if this request ends before commit.
+$courseCreateTx = false;
+if ( $syncFlag !== null ) {
+    $courseCreateTx = $PDOX->beginTransaction();
+    if ( $courseCreateTx ) {
+        register_shutdown_function(function () use ($PDOX) {
+            try {
+                if ( $PDOX->inTransaction() ) {
+                    $PDOX->rollBack();
+                }
+            } catch ( \Throwable $e ) {
+                error_log('course create rollback: '.$e->getMessage());
+            }
+        });
+    }
+}
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
 
 if ( $syncFlag !== null && $row === CrudForm::CRUD_SUCCESS ) {
-    \Tsugi\Services\Permissions\PermissionTables::syncCourseCreateFlag(
+    $synced = \Tsugi\Services\Permissions\PermissionTables::syncCourseCreateFlag(
         (int) $_REQUEST['user_id'],
-        $syncFlag
+        $syncFlag,
+        ! $courseCreateTx
     );
+    if ( $courseCreateTx ) {
+        if ( ! $synced ) {
+            if ( $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            unset($_SESSION[\Tsugi\Util\U::FLASH_SUCCESS]);
+            \Tsugi\Util\U::flashError('Could not update the course-create grant. The user was not changed.');
+        } else if ( $PDOX->inTransaction() ) {
+            $PDOX->commit();
+        }
+    }
+} else if ( $courseCreateTx && $PDOX->inTransaction() ) {
+    $PDOX->rollBack();
 }
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {

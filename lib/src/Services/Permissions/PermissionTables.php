@@ -292,13 +292,15 @@ class PermissionTables {
      *
      * @param int $userId
      * @param bool $enabled
+     * @param bool $dieOnError When false, a failed write returns false instead of stopping the request.
+     * @return bool False only when a write was attempted and failed and $dieOnError is false.
      */
-    public static function syncCourseCreateFlag($userId, $enabled) {
+    public static function syncCourseCreateFlag($userId, $enabled, $dieOnError = true) {
         global $CFG, $PDOX;
         self::connection();
         $uid = (int) $userId;
         if ( $uid < 1 ) {
-            return;
+            return true;
         }
         $p = $CFG->dbprefix;
         if ( $enabled ) {
@@ -315,12 +317,20 @@ class PermissionTables {
                 )
             );
             if ( is_array($active) ) {
-                return;
+                return true;
             }
-            self::saveGrant($uid, CoursesService::COURSE_CREATE, 'create_courses', 0, null);
-            return;
+            $grantId = self::saveGrant(
+                $uid,
+                CoursesService::COURSE_CREATE,
+                'create_courses',
+                0,
+                null,
+                null,
+                $dieOnError
+            );
+            return $dieOnError || $grantId > 0;
         }
-        $PDOX->queryDie(
+        $stmt = $PDOX->queryReturnError(
             "UPDATE {$p}site_grant
              SET revoked_at = NOW()
              WHERE user_id = :UID AND scope_id = :SID AND permission = :PERM
@@ -332,6 +342,17 @@ class PermissionTables {
                 ':SRC' => 'create_courses',
             )
         );
+        if ( $stmt->success ) {
+            return true;
+        }
+        error_log('Sql Failure:'.$stmt->errorImplode);
+        if ( $dieOnError ) {
+            if ( ! empty($CFG->DEVELOPER) ) {
+                die($stmt->errorImplode);
+            }
+            die('Internal database error');
+        }
+        return false;
     }
 
     /**

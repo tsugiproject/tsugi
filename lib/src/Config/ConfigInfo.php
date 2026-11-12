@@ -704,6 +704,15 @@ class ConfigInfo {
     public $show_course_catalog = false;
 
     /**
+     * Offer Add Course and Apply to add course on the instructor home.
+     *
+     * Off by default. Independent of show_courses_widget and
+     * show_course_catalog. When false, neither link is shown and
+     * /instructor/apply returns to the instructor page.
+     */
+    public $allow_course_create = false;
+
+    /**
      * URL for the site Home brand and Exit course. Any URL.
      *
      * When false/empty, Home is apphome if that is a non-empty string,

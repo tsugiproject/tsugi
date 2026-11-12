@@ -39,6 +39,20 @@ class CoursesService extends Service {
     }
 
     /**
+     * The site offers course creation from the instructor home.
+     *
+     * $CFG->allow_course_create. Unset or false hides Add Course and
+     * Apply to add course. The courses waffle is a separate switch.
+     */
+    public static function courseCreateOffered() {
+        global $CFG;
+        if ( ! isset($CFG) || ! is_object($CFG) ) {
+            return false;
+        }
+        return ! empty($CFG->allow_course_create);
+    }
+
+    /**
      * True when the current user may mint a new site-login course.
      *
      * Site admins pass. Everyone else needs an active course.create grant.
