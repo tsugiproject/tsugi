@@ -25,6 +25,7 @@ use Tsugi\Services\Cartridge\ImportException;
 use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Pending;
 use Tsugi\Services\Courses\CourseDelete;
+use Tsugi\Services\Courses\CoursesService;
 use Tsugi\LinkedIn\LinkedIn;
 use Tsugi\Services\Badges\CourseBadges;
 use Tsugi\Services\CourseNav\CourseNav;
@@ -3082,7 +3083,7 @@ re-check your login status.
 
         $context_id = self::settingsContextId();
         $table_ok = $context_id > 0 && self::anonymousLessonsColumnReady();
-        $anonymous_lessons = $table_ok && Courses::contextAllowsAnonymousLessons($context_id);
+        $anonymous_lessons = $table_ok && CoursesService::contextAllowsAnonymousLessons($context_id);
         $course_title = self::courseHeadingTitle();
         if ( $course_title === __('Settings') ) {
             $course_title = '';
@@ -3151,7 +3152,7 @@ re-check your login status.
         }
 
         $on = U::get($_POST, 'anonymous_lessons') ? true : false;
-        if ( ! Courses::setContextAnonymousLessons($context_id, $on) ) {
+        if ( ! CoursesService::setContextAnonymousLessons($context_id, $on) ) {
             U::flashError(__('Could not save course configuration.'));
             return new RedirectResponse($configuration_url);
         }

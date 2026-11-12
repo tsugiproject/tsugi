@@ -34,7 +34,7 @@ class ReqScope {
     /** LTI tool launch. A stored launch post that is not Plus. */
     const SESSION_LTI = 'lti';
 
-    /** Same consumer key as Courses::GOOGLE_KEY. */
+    /** Same consumer key as CoursesService::GOOGLE_KEY. */
     const GOOGLE_KEY = 'google.com';
 
     /** @var self|null */

@@ -14,6 +14,7 @@ if ( file_exists($rootAutoload) ) {
 }
 
 use \Tsugi\Controllers\Courses;
+use \Tsugi\Services\Courses\CoursesService;
 use \Tsugi\Core\Manifest;
 use \Tsugi\Core\ReqScope;
 use \Tsugi\Lumos\Application;
@@ -389,7 +390,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
 
     public function testCanCreateFalseWhenNotLoggedIn()
     {
-        $this->assertFalse(Courses::canCreate());
+        $this->assertFalse(CoursesService::canCreate());
     }
 
     public function testCanCreateTrueForSiteAdmin()
@@ -398,7 +399,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['admin'] = 'yes';
         $_SESSION['create_courses'] = 0;
         \Tsugi\Core\ReqScope::resetIdentity();
-        $this->assertTrue(Courses::canCreate());
+        $this->assertTrue(CoursesService::canCreate());
     }
 
     public function testCanCreateUsesUserFlagNotInstructorSession()
@@ -408,10 +409,10 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['isinstructor'] = true;
         $_SESSION['create_courses'] = 0;
         \Tsugi\Core\ReqScope::resetIdentity();
-        $this->assertFalse(Courses::canCreate());
+        $this->assertFalse(CoursesService::canCreate());
 
         $_SESSION['create_courses'] = 1;
-        $this->assertTrue(Courses::canCreate());
+        $this->assertTrue(CoursesService::canCreate());
     }
 
     public function testCreateGateRefusesWithoutFlag()
@@ -439,8 +440,8 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION = array();
         \Tsugi\Core\ReqScope::resetIdentity();
         $this->expectNotToPerformAssertions();
-        Courses::touchVisited(42);
-        Courses::touchVisited(0);
+        CoursesService::touchVisited(42);
+        CoursesService::touchVisited(0);
     }
 
     public function testRestoreSiteLoginContextSkipsCourseMounted()

@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Tsugi\Core\ContextImages;
 use Tsugi\Services\Catalog\CatalogRepository;
+use Tsugi\Services\Courses\CoursesService;
 use Tsugi\Util\U;
 
 use Tsugi\Core\ReqScope;
@@ -340,7 +341,7 @@ class Catalog extends Tool {
         if ( $result !== true ) {
             return new Response($result, 400);
         }
-        Courses::touchVisited($cid);
+        CoursesService::touchVisited($cid);
         return new RedirectResponse(Courses::courseHomeUrl($cid));
     }
 
