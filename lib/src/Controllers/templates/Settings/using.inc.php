@@ -5,6 +5,7 @@
  * Expected: $CFG
  */
 $tools = \Tsugi\Services\Admin\AdminService::findAllRegistrations();
+$fileLessons = \Tsugi\Services\Cartridge\CourseCopy::fileCourseAvailable();
 ?>
 <h1>Using Your Key</h1>
 <p>
@@ -19,7 +20,7 @@ $tools = \Tsugi\Services\Admin\AdminService::findAllRegistrations();
   <li role="presentation"><a href="#sakai" id="sakai-tab" data-toggle="tab" role="tab" aria-controls="sakai" aria-selected="false">Sakai</a></li>
   <li role="presentation"><a href="#canvas" id="canvas-tab" data-toggle="tab" role="tab" aria-controls="canvas" aria-selected="false">Canvas</a></li>
   <li role="presentation"><a href="#moodle" id="moodle-tab" data-toggle="tab" role="tab" aria-controls="moodle" aria-selected="false">Moodle</a></li>
-<?php if ( isset($CFG->lessons) ) { ?>
+<?php if ( $fileLessons ) { ?>
   <li role="presentation"><a href="#bb" id="bb-tab" data-toggle="tab" role="tab" aria-controls="bb" aria-selected="false">Blackboard</a></li>
 <?php } ?>
   <li role="presentation"><a href="#auto" id="auto-tab" data-toggle="tab" role="tab" aria-controls="auto" aria-selected="false">LTI 1.3 Dynamic Registration</a></li>
@@ -56,7 +57,7 @@ resources to be pulled into Lessons.   The key and secret will be inherited
 from the store to each of the installed tools.  Once the app store
 is installed, the rerources from this site will be avilable from within the
 rich text editor.
-<?php if ( isset($CFG->lessons) ) { ?>
+<?php if ( $fileLessons ) { ?>
 <p>
 You can import all the content (including autograders) from this site into your Sakai
 course by downloading it as an
@@ -83,7 +84,7 @@ This content will be available in the Modules, Pages, Assignments, and Import
 within Canvas under "external tools".
 </div>
 <div class="tab-pane fade" id="moodle" role="tabpanel" aria-labelledby="moodle-tab">
-<?php if ( isset($CFG->lessons) ) { ?>
+<?php if ( $fileLessons ) { ?>
 <p>
 You can import all the content (including autograders) from this site into your Moodle
 course by downloading it as an
@@ -104,7 +105,7 @@ this URL.
 Moodle supports <strong>LTI Advantage Dynamic Registration</strong>.
 </p>
 </div>
-<?php if ( isset($CFG->lessons) ) { ?>
+<?php if ( $fileLessons ) { ?>
 <div class="tab-pane fade" id="bb" role="tabpanel" aria-labelledby="bb-tab">
 <p>
 You can import all the content from (including autograders) this site into your Blackboard
