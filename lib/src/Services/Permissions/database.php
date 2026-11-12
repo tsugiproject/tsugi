@@ -44,8 +44,13 @@ array( "{$CFG->dbprefix}site_application",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    -- Set while the request is pending or sent back. NULL after a decision
+    -- so another application is allowed. Multiple NULLs fit in the unique key.
+    open_slot           VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL,
+
     CONSTRAINT `{$CFG->dbprefix}site_application_pk` PRIMARY KEY (application_id),
 
+    UNIQUE `{$CFG->dbprefix}site_application_uniq_open` (open_slot),
     KEY `{$CFG->dbprefix}site_application_idx_user` (user_id, scope_id, permission, status),
     KEY `{$CFG->dbprefix}site_application_idx_queue` (status, created_at),
 
@@ -133,8 +138,62 @@ $DATABASE_UPGRADE = function($oldversion) {
     $p = $CFG->dbprefix;
     $scope = "{$p}site_scope";
     $grant = "{$p}site_grant";
+    $application = "{$p}site_application";
     if ( $PDOX->metadata($scope) === false || $PDOX->metadata($grant) === false ) {
         return $oldversion;
+    }
+
+    $appColumns = $PDOX->metadata($application);
+    $hasOpenSlot = false;
+    if ( is_array($appColumns) ) {
+        foreach ( $appColumns as $col ) {
+            $name = $col['Field'] ?? ($col[0] ?? '');
+            if ( $name === 'open_slot' ) {
+                $hasOpenSlot = true;
+                break;
+            }
+        }
+    }
+    if ( is_array($appColumns) && ! $hasOpenSlot ) {
+        $sql = "ALTER TABLE {$application}
+            ADD COLUMN open_slot VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL";
+        echo("Upgrading: add site_application.open_slot<br/>\n");
+        error_log("Upgrading: add site_application.open_slot");
+        $q = $PDOX->queryReturnErrorInternal($sql);
+        if ( ! $q->success ) {
+            die("Unable to add site_application.open_slot: ".$q->errorImplode."<br/>\n");
+        }
+    }
+    if ( is_array($appColumns) || $hasOpenSlot ) {
+        $sql = "UPDATE {$application}
+            SET open_slot = CONCAT(user_id, ':', scope_id, ':', permission)
+            WHERE status IN ('pending', 'revision')
+              AND open_slot IS NULL";
+        $q = $PDOX->queryReturnErrorInternal($sql);
+        if ( ! $q->success ) {
+            die("Unable to fill site_application.open_slot: ".$q->errorImplode."<br/>\n");
+        }
+        $indexes = $PDOX->indexDetail($application);
+        $hasUnique = false;
+        if ( is_array($indexes) ) {
+            foreach ( $indexes as $idx ) {
+                $name = $idx['Key_name'] ?? ($idx[2] ?? '');
+                if ( $name === "{$p}site_application_uniq_open" ) {
+                    $hasUnique = true;
+                    break;
+                }
+            }
+        }
+        if ( ! $hasUnique ) {
+            $sql = "ALTER TABLE {$application}
+                ADD UNIQUE KEY `{$p}site_application_uniq_open` (open_slot)";
+            echo("Upgrading: add site_application_uniq_open<br/>\n");
+            error_log("Upgrading: add site_application_uniq_open");
+            $q = $PDOX->queryReturnErrorInternal($sql);
+            if ( ! $q->success ) {
+                die("Unable to add site_application_uniq_open: ".$q->errorImplode."<br/>\n");
+            }
+        }
     }
 
     $system = $PDOX->rowDie("SELECT scope_id FROM {$scope} WHERE scope_id = 1 LIMIT 1");

@@ -199,19 +199,6 @@ class Instructor extends Tool {
             return $gate;
         }
 
-        if ( ! Permission::has(CoursesService::COURSE_CREATE) ) {
-            $OUTPUT->header();
-            $OUTPUT->bodyStart();
-            $OUTPUT->topNav();
-            $OUTPUT->flashMessages();
-            ?>
-<h1>Instructor Configuration</h1>
-<p><a href="<?= htmlspecialchars($this->pageUrl('apply'), ENT_QUOTES, 'UTF-8') ?>">Apply for instructor status</a></p>
-<?php
-            $OUTPUT->footer();
-            return '';
-        }
-
         $key_count = self::keyCount();
 
         $sql = "SELECT count(DISTINCT C.context_id) AS count
@@ -241,6 +228,15 @@ class Instructor extends Tool {
 applications in their courses.
 </p>
 <ul>
+<?php if ( CoursesService::canCreate() ) { ?>
+<li><p><a href="<?= htmlspecialchars(U::addSession($CFG->wwwroot.'/courses/create'), ENT_QUOTES, 'UTF-8') ?>">Add Course</a>
+</p>
+</li>
+<?php } else { ?>
+<li><p><a href="<?= htmlspecialchars($this->pageUrl('apply'), ENT_QUOTES, 'UTF-8') ?>">Apply to add course</a>
+</p>
+</li>
+<?php } ?>
 <li><p><a href="<?= htmlspecialchars($this->pageUrl('context'), ENT_QUOTES, 'UTF-8') ?>" aria-label="View My Contexts (Courses) - <?= (int)$course_count ?> context(s)">View My Contexts (Courses)</a>
 (<?= (int)$course_count ?>)
 </p>
@@ -315,7 +311,7 @@ can visit the administrator dashboard.
         if ( $gate ) {
             return $gate;
         }
-        if ( Permission::has(CoursesService::COURSE_CREATE) ) {
+        if ( CoursesService::canCreate() ) {
             return new RedirectResponse($this->pageUrl());
         }
 

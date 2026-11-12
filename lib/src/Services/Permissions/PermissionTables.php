@@ -37,6 +37,9 @@ class PermissionTables {
     /** Justification column is TEXT. This is the form limit. */
     const JUSTIFICATION_MAX = 4000;
 
+    /** Admin list page size. One extra row is fetched to know if another page exists. */
+    const PAGE_LENGTH = 20;
+
     /**
      * A grant still allows the permission.
      *
@@ -101,13 +104,17 @@ class PermissionTables {
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * One page of applications, newest first.
+     *
+     * @param int $start
+     * @return array{rows: array<int, array<string, mixed>>, start: int, more: bool, length: int}
      */
-    public static function applications() {
+    public static function applications($start = 0) {
         global $CFG, $PDOX;
         self::connection();
         $p = $CFG->dbprefix;
-        return $PDOX->allRowsDie(
+        $start = max(0, (int) $start);
+        $rows = $PDOX->allRowsDie(
             "SELECT A.application_id, A.user_id, A.scope_id, A.permission, A.status,
                     A.justification, A.response, A.created_at, A.reviewed_at,
                     U.displayname, U.email,
@@ -116,18 +123,23 @@ class PermissionTables {
              JOIN {$p}lti_user AS U ON U.user_id = A.user_id
              LEFT JOIN {$p}lti_user AS R ON R.user_id = A.reviewer_id
              ORDER BY A.application_id DESC
-             LIMIT 500"
+             LIMIT {$start}, ".(self::PAGE_LENGTH + 1)
         );
+        return self::pageResult($rows, $start);
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * One page of grants, newest first.
+     *
+     * @param int $start
+     * @return array{rows: array<int, array<string, mixed>>, start: int, more: bool, length: int}
      */
-    public static function grants() {
+    public static function grants($start = 0) {
         global $CFG, $PDOX;
         self::connection();
         $p = $CFG->dbprefix;
-        return $PDOX->allRowsDie(
+        $start = max(0, (int) $start);
+        $rows = $PDOX->allRowsDie(
             "SELECT G.grant_id, G.user_id, G.scope_id, G.permission, G.source,
                     G.granted_at, G.expires_at, G.revoked_at, G.grantor_id,
                     U.displayname, U.email, U.create_courses,
@@ -136,7 +148,26 @@ class PermissionTables {
              JOIN {$p}lti_user AS U ON U.user_id = G.user_id
              LEFT JOIN {$p}lti_user AS GU ON GU.user_id = G.grantor_id
              ORDER BY G.grant_id DESC
-             LIMIT 500"
+             LIMIT {$start}, ".(self::PAGE_LENGTH + 1)
+        );
+        return self::pageResult($rows, $start);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     * @param int $start
+     * @return array{rows: array<int, array<string, mixed>>, start: int, more: bool, length: int}
+     */
+    private static function pageResult(array $rows, $start) {
+        $more = count($rows) > self::PAGE_LENGTH;
+        if ( $more ) {
+            $rows = array_slice($rows, 0, self::PAGE_LENGTH);
+        }
+        return array(
+            'rows' => $rows,
+            'start' => max(0, (int) $start),
+            'more' => $more,
+            'length' => self::PAGE_LENGTH,
         );
     }
 
@@ -456,6 +487,8 @@ class PermissionTables {
      * Store a pending application and tell the admin emails.
      *
      * A denied or approved row stays. A second in-progress row is refused.
+     * A racing second insert updates that same row. The open_slot unique
+     * key makes the later write win instead of adding another request.
      *
      * @param int $userId
      * @param string $permission
@@ -492,14 +525,21 @@ class PermissionTables {
         $p = $CFG->dbprefix;
         $PDOX->queryDie(
             "INSERT INTO {$p}site_application
-                (user_id, scope_id, permission, justification, status, created_at, updated_at)
-             VALUES (:UID, :SID, :PERM, :WHY, :STATUS, NOW(), NOW())",
+                (user_id, scope_id, permission, justification, status, open_slot, created_at, updated_at)
+             VALUES (:UID, :SID, :PERM, :WHY, :STATUS, :SLOT, NOW(), NOW())
+             ON DUPLICATE KEY UPDATE
+                application_id = LAST_INSERT_ID(application_id),
+                justification = VALUES(justification),
+                status = VALUES(status),
+                open_slot = VALUES(open_slot),
+                updated_at = NOW()",
             array(
                 ':UID' => $uid,
                 ':SID' => self::SYSTEM_SCOPE_ID,
                 ':PERM' => $permission,
                 ':WHY' => $justification,
                 ':STATUS' => self::STATUS_PENDING,
+                ':SLOT' => self::openSlot($uid, $permission),
             )
         );
         $id = (int) $PDOX->lastInsertId();
@@ -551,13 +591,26 @@ class PermissionTables {
         }
 
         $p = $CFG->dbprefix;
+        $current = $PDOX->rowDie(
+            "SELECT permission FROM {$p}site_application
+             WHERE application_id = :ID AND user_id = :UID AND status = :REVISION",
+            array(
+                ':ID' => $id,
+                ':UID' => $uid,
+                ':REVISION' => self::STATUS_REVISION,
+            )
+        );
+        if ( ! is_array($current) ) {
+            return array('ok' => false, 'error' => 'That application is not waiting for a revision.');
+        }
         $stmt = $PDOX->queryDie(
             "UPDATE {$p}site_application
-             SET justification = :WHY, status = :PENDING
+             SET justification = :WHY, status = :PENDING, open_slot = :SLOT
              WHERE application_id = :ID AND user_id = :UID AND status = :REVISION",
             array(
                 ':WHY' => $justification,
                 ':PENDING' => self::STATUS_PENDING,
+                ':SLOT' => self::openSlot($uid, (string) $current['permission']),
                 ':ID' => $id,
                 ':UID' => $uid,
                 ':REVISION' => self::STATUS_REVISION,
@@ -705,14 +758,19 @@ class PermissionTables {
 
         $reviewer = (int) $reviewerId;
         $PDOX->beginTransaction();
+        $slot = $status === self::STATUS_REVISION
+            ? self::openSlot((int) $row['user_id'], (string) $row['permission'])
+            : null;
         $updated = $PDOX->queryReturnError(
             "UPDATE {$p}site_application
-             SET status = :STATUS, reviewer_id = :RID, response = :RESP, reviewed_at = NOW()
+             SET status = :STATUS, reviewer_id = :RID, response = :RESP,
+                 open_slot = :SLOT, reviewed_at = NOW()
              WHERE application_id = :ID AND status = :PENDING",
             array(
                 ':STATUS' => $status,
                 ':RID' => $reviewer > 0 ? $reviewer : null,
                 ':RESP' => $response === '' ? null : $response,
+                ':SLOT' => $slot,
                 ':ID' => $id,
                 ':PENDING' => self::STATUS_PENDING,
             )
@@ -963,7 +1021,10 @@ class PermissionTables {
     }
 
     /**
-     * Non-deleted user ids whose email is in the list.
+     * Site-login accounts (the google.com key) whose email is in the list.
+     *
+     * An LMS launch can store the same address on another key. Those rows
+     * are not notified.
      *
      * @param list<string> $emails Lowercased addresses.
      * @return list<int>
@@ -974,16 +1035,21 @@ class PermissionTables {
             return array();
         }
         self::connection();
-        $params = array();
+        $params = array(':SHA' => lti_sha256(CoursesService::GOOGLE_KEY));
         $holders = array();
         foreach ( array_values($emails) as $i => $email ) {
             $key = ':E'.$i;
             $holders[] = $key;
             $params[$key] = $email;
         }
+        $p = $CFG->dbprefix;
         $rows = $PDOX->allRowsDie(
-            "SELECT user_id FROM {$CFG->dbprefix}lti_user
-             WHERE deleted = 0 AND LOWER(email) IN (".implode(', ', $holders).")",
+            "SELECT U.user_id
+             FROM {$p}lti_user AS U
+             JOIN {$p}lti_key AS K ON K.key_id = U.key_id
+             WHERE U.deleted = 0
+               AND K.key_sha256 = :SHA
+               AND LOWER(U.email) IN (".implode(', ', $holders).")",
             $params
         );
         $ids = array();
@@ -1048,6 +1114,16 @@ class PermissionTables {
             return array('error' => 'Expiration is not a valid date.');
         }
         return array('at' => date('Y-m-d H:i:s', $ts));
+    }
+
+    /**
+     * Unique while a request is in progress. Cleared after approve or reject.
+     *
+     * @param int $userId
+     * @param string $permission
+     */
+    private static function openSlot($userId, $permission) {
+        return ((int) $userId).':'.self::SYSTEM_SCOPE_ID.':'.trim((string) $permission);
     }
 
     private static function connection() {

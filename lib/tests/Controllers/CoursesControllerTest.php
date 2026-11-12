@@ -145,6 +145,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         $response = Courses::gateResponse();
         $this->assertNotNull($response);
         $this->assertSame(403, $response->getStatusCode());
@@ -156,6 +157,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         $this->assertNull(Courses::gateResponse());
     }
 
@@ -174,6 +176,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $saved = $_SERVER['REQUEST_URI'] ?? null;
         $_SERVER['REQUEST_URI'] = '/tsugi/courses/42/home';
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         try {
             $this->assertNull(Courses::gateResponse());
         } finally {

@@ -37,10 +37,23 @@ $fields = array("user_id", "displayname", "email", "create_courses", "created_at
 $from_location = "index";
 $titles = array("create_courses" => "Create courses (0 or 1)");
 
-// Handle the post data
-$syncFlag = isset($_POST['doUpdate']) && array_key_exists('create_courses', $_POST)
-    ? ((int) $_POST['create_courses'] === 1)
-    : null;
+// Sync the grant only when this save changes the flag. An unchanged 1
+// must not clear a revocation from the Permissions page.
+$wasEnabled = false;
+if ( isset($_POST['doUpdate']) && array_key_exists('create_courses', $_POST) ) {
+    $before = $PDOX->rowDie(
+        "SELECT create_courses FROM {$CFG->dbprefix}lti_user WHERE user_id = :UID",
+        array(':UID' => $_REQUEST['user_id'])
+    );
+    $wasEnabled = is_array($before) && (int) ($before['create_courses'] ?? 0) === 1;
+}
+$syncFlag = null;
+if ( isset($_POST['doUpdate']) && array_key_exists('create_courses', $_POST) ) {
+    $nowEnabled = ((int) $_POST['create_courses'] === 1);
+    if ( $nowEnabled !== $wasEnabled ) {
+        $syncFlag = $nowEnabled;
+    }
+}
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
 
@@ -70,7 +83,8 @@ of the user's data.
 </p>
 <p><b>Create courses:</b> Set to 1 to give this user a <?= htmlspecialchars(\Tsugi\Services\Courses\CoursesService::COURSE_CREATE) ?> grant.
 Set to 0 to revoke the grant that came from this flag. A grant handed out
-on the Permissions page is left alone.
+on the Permissions page is left alone. Saving without changing this value
+leaves a revoked grant revoked.
 </p>
 <?php
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, false, $titles);

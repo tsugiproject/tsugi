@@ -14,7 +14,27 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
     return;
 }
 
-$list_url = U::addSession('index.php');
+$keep = array();
+foreach ( array('app_start', 'grant_start') as $pageKey ) {
+    $pageAt = (int) U::get($_GET, $pageKey, 0);
+    if ( $pageAt > 0 ) {
+        $keep[$pageKey] = $pageAt;
+    }
+}
+$pageQuery = http_build_query($keep);
+$list_url = U::addSession('index.php'.($pageQuery !== '' ? '?'.$pageQuery : ''));
+
+$permissionsPageUrl = function ($param, $start) {
+    $q = $_GET;
+    unset($q[session_name()]);
+    if ( $start > 0 ) {
+        $q[$param] = $start;
+    } else {
+        unset($q[$param]);
+    }
+    $qs = http_build_query($q);
+    return U::addSession('index.php'.($qs !== '' ? '?'.$qs : ''));
+};
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     if ( Tool::csrfRedirect($list_url) ) return;
@@ -84,8 +104,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $scopes = PermissionTables::scopes();
-$applications = PermissionTables::applications();
-$grants = PermissionTables::grants();
+$appPage = PermissionTables::applications((int) U::get($_GET, 'app_start', 0));
+$grantPage = PermissionTables::grants((int) U::get($_GET, 'grant_start', 0));
+$applications = $appPage['rows'];
+$grants = $grantPage['rows'];
 $registry = PermissionTables::registry();
 
 $OUTPUT->header();
@@ -123,6 +145,16 @@ $OUTPUT->flashMessages();
 <?php } ?>
 
 <h2><?= htmlspecialchars(__('Applications')) ?></h2>
+<?php if ( $appPage['start'] > 0 || $appPage['more'] ) { ?>
+<p>
+<?php if ( $appPage['start'] > 0 ) { ?>
+<a href="<?= htmlspecialchars($permissionsPageUrl('app_start', max(0, $appPage['start'] - $appPage['length']))) ?>"><?= htmlspecialchars(__('Back')) ?></a>
+<?php } ?>
+<?php if ( $appPage['more'] ) { ?>
+<a href="<?= htmlspecialchars($permissionsPageUrl('app_start', $appPage['start'] + $appPage['length'])) ?>"><?= htmlspecialchars(__('Next')) ?></a>
+<?php } ?>
+</p>
+<?php } ?>
 <?php if ( count($applications) < 1 ) { ?>
 <p><?= htmlspecialchars(__('No applications yet.')) ?></p>
 <?php } else { ?>
@@ -190,6 +222,16 @@ $OUTPUT->flashMessages();
 <?php } ?>
 
 <h2><?= htmlspecialchars(__('Grants')) ?></h2>
+<?php if ( $grantPage['start'] > 0 || $grantPage['more'] ) { ?>
+<p>
+<?php if ( $grantPage['start'] > 0 ) { ?>
+<a href="<?= htmlspecialchars($permissionsPageUrl('grant_start', max(0, $grantPage['start'] - $grantPage['length']))) ?>"><?= htmlspecialchars(__('Back')) ?></a>
+<?php } ?>
+<?php if ( $grantPage['more'] ) { ?>
+<a href="<?= htmlspecialchars($permissionsPageUrl('grant_start', $grantPage['start'] + $grantPage['length'])) ?>"><?= htmlspecialchars(__('Next')) ?></a>
+<?php } ?>
+</p>
+<?php } ?>
 <form method="post" action="<?= htmlspecialchars($list_url) ?>" class="form-inline" style="margin-bottom:1em;">
     <?= Tool::csrfField() ?>
     <input type="hidden" name="action" value="grant">
