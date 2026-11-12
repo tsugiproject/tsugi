@@ -159,6 +159,10 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // $CFG->show_courses_widget = true;
 // Legacy: $CFG->setExtension('show_courses_widget', true);
 
+// Instructor home: "Add Course" when the user may create one, otherwise
+// "Apply to add course". Off leaves both links out. Separate from the waffle.
+// $CFG->allow_course_create = true;
+
 // Course catalog link in the courses waffle footer. Catalog itself is public.
 // $CFG->show_course_catalog = true;
 // Legacy: $CFG->setExtension('show_course_catalog', true);

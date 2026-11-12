@@ -106,6 +106,9 @@ $CFG->qa_demo_secret = (is_string($demoSecret) && $demoSecret !== '') ? $demoSec
 // Site-menu course flyout. The Panther course-create test needs this on.
 $CFG->show_courses_widget = true;
 
+// Panther opens /courses/create. That page stays hidden unless this is on.
+$CFG->allow_course_create = true;
+
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';

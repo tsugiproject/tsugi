@@ -21,9 +21,10 @@ class CoursesServiceTest extends \PHPUnit\Framework\TestCase
     {
         $permissions = CoursesService::permissions();
 
-        $this->assertSame(['course.create'], array_keys($permissions));
-        $this->assertSame('Create Courses', $permissions['course.create']['title']);
-        $this->assertSame('Create new courses in Tsugi', $permissions['course.create']['description']);
-        $this->assertTrue($permissions['course.create']['requestable']);
+        $code = CoursesService::COURSE_CREATE;
+        $this->assertSame([$code], array_keys($permissions));
+        $this->assertSame('Create Courses', $permissions[$code]['title']);
+        $this->assertSame('Create new courses in Tsugi', $permissions[$code]['description']);
+        $this->assertTrue($permissions[$code]['requestable']);
     }
 }

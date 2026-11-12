@@ -2,6 +2,8 @@
 
 namespace Tsugi\Services;
 
+use Tsugi\Core\Cache;
+use Tsugi\Core\ReqScope;
 use Tsugi\Services\Courses\CoursesService;
 
 /**
@@ -9,7 +11,8 @@ use Tsugi\Services\Courses\CoursesService;
  *
  * Tsugi.php calls assemble() in the same initialization that registers
  * routes. Definitions are not scanned from disk and not stored in the
- * database. Grant checks are a later pass.
+ * database. has() answers from the logged-in user's grants, loaded once
+ * into the session cache.
  */
 class Permission extends Service {
 
@@ -25,6 +28,12 @@ class Permission extends Service {
 
     /** @var array<string, array<string, mixed>>|null */
     private static $registry = null;
+
+    /** Session cache slot for one user's active grants. */
+    private const GRANT_CACHE = 'permissions';
+
+    /** How long a loaded grant set stays in the session, in seconds. */
+    private const GRANT_CACHE_SECONDS = 300;
 
     /**
      * Merge permissions() from the service list into one registry.
@@ -70,5 +79,119 @@ class Permission extends Service {
             return self::assemble();
         }
         return self::$registry;
+    }
+
+    /**
+     * True when the current user holds an active grant for a registered permission.
+     *
+     * Unknown codes are denied. The scope defaults to the system row (scope_id 1).
+     * A grant is active when it is not revoked and not past expires_at.
+     * Site-admin bypass does not belong here.
+     *
+     * The user's active grants are read once and kept in the session cache
+     * for five minutes. Login and logout clear that cache. cacheClear()
+     * drops it. cacheRefresh() drops it and loads the current user again.
+     * Pass $fresh to reload before answering. Display can use the cache.
+     * A write reloads, then checks.
+     *
+     * @param string $permission
+     * @param int|null $scope_id
+     * @param bool $fresh Reload this user's grants before the check.
+     */
+    public static function has($permission, $scope_id = null, $fresh = false) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
+            return false;
+        }
+        $code = trim((string) $permission);
+        if ( $code === '' || ! isset(self::registry()[$code]) ) {
+            return false;
+        }
+        $uid = ReqScope::loggedInUserIdLegacy();
+        if ( $uid < 1 ) {
+            return false;
+        }
+        $scope = $scope_id === null ? 1 : (int) $scope_id;
+        if ( $scope < 1 ) {
+            return false;
+        }
+        if ( $fresh ) {
+            self::cacheRefresh();
+        }
+        $grants = self::activeGrants($uid);
+        return isset($grants[$scope][$code]);
+    }
+
+    /**
+     * Drop the cached grants for this session.
+     *
+     * The next has() loads them again. Call this after a change that should
+     * be visible before the five minutes are up.
+     */
+    public static function cacheClear() {
+        Cache::clear(self::GRANT_CACHE);
+    }
+
+    /**
+     * Drop the cached grants and load the current user's grants again.
+     *
+     * A logged-out session is only cleared. A missing connection leaves the
+     * cache empty so the next check can try again.
+     */
+    public static function cacheRefresh() {
+        self::cacheClear();
+        if ( ! ReqScope::isLoggedInLegacy() ) {
+            return;
+        }
+        $uid = ReqScope::loggedInUserIdLegacy();
+        if ( $uid < 1 ) {
+            return;
+        }
+        self::activeGrants($uid);
+    }
+
+    /**
+     * Active grants for $uid, keyed by scope id then permission code.
+     *
+     * A session hit is returned as stored. A miss loads every active grant
+     * for that user. A missing connection or a failed query is not stored,
+     * so the next check can try again.
+     *
+     * @return array<int, array<string, true>>
+     */
+    private static function activeGrants(int $uid): array {
+        global $CFG, $PDOX;
+
+        $cached = Cache::check(self::GRANT_CACHE, $uid);
+        if ( is_array($cached) ) {
+            return $cached;
+        }
+        // Pages connect in session_start. Opening a connection here dies
+        // when the database is down, including unit tests with the default DSN.
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return array();
+        }
+        $stmt = $PDOX->queryReturnError(
+            "SELECT scope_id, permission
+             FROM {$CFG->dbprefix}site_grant
+             WHERE user_id = :UID
+               AND revoked_at IS NULL
+               AND (expires_at IS NULL OR expires_at > NOW())",
+            array(':UID' => $uid)
+        );
+        if ( ! $stmt->success ) {
+            return array();
+        }
+        $grants = array();
+        while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
+            $scope = (int) ($row['scope_id'] ?? 0);
+            $code = trim((string) ($row['permission'] ?? ''));
+            if ( $scope < 1 || $code === '' ) {
+                continue;
+            }
+            $grants[$scope][$code] = true;
+        }
+        $stmt->closeCursor();
+        Cache::set(self::GRANT_CACHE, $uid, $grants, self::GRANT_CACHE_SECONDS);
+        return $grants;
     }
 }

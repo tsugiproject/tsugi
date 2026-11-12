@@ -682,7 +682,7 @@ class Courses extends Tool {
 
         $tool = new self();
         $home = $tool->toolHome(self::ROUTE);
-        $can_create = CoursesService::canCreate();
+        $can_create = CoursesService::courseCreateOffered() && CoursesService::canCreate();
         $create_url = self::joinToolHome($home, 'create');
         $siteUrl = self::appHomeUrl();
         foreach ( $rows as $i => $row ) {
@@ -994,7 +994,7 @@ class Courses extends Tool {
             'status' => 'success',
             'courses' => $rows,
             'current_context_id' => ReqScope::currentContextId(),
-            'can_create' => CoursesService::canCreate(),
+            'can_create' => CoursesService::courseCreateOffered() && CoursesService::canCreate(),
             'show_catalog' => Catalog::showCourseCatalog(),
             'catalog_url' => Catalog::showCourseCatalog() ? Catalog::catalogUrl() : '',
         ));
@@ -1294,7 +1294,7 @@ class Courses extends Tool {
     }
 
     /**
-     * Login + Google session + create_courses (or site admin).
+     * Login + Google session + allow_course_create + course.create (or site admin).
      *
      * @return Response|null
      */
@@ -1303,7 +1303,7 @@ class Courses extends Tool {
         if ( $gate ) {
             return $gate;
         }
-        if ( ! CoursesService::canCreate() ) {
+        if ( ! CoursesService::courseCreateOffered() || ! CoursesService::canCreate(true) ) {
             U::flashError('You are not allowed to create courses.');
             return new RedirectResponse(U::addSession($home));
         }

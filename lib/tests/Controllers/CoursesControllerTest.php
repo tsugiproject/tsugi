@@ -49,7 +49,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             }
         }
 
-        \Tsugi\Core\ReqScope::resetIdentity();
+        \Tsugi\Core\ReqScope::reset();
 
         $this->mockLaunch = new \stdClass();
         $this->mockLaunch->output = new \stdClass();
@@ -63,7 +63,20 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
-        \Tsugi\Core\ReqScope::resetIdentity();
+        \Tsugi\Core\ReqScope::reset();
+    }
+
+    /**
+     * isLoggedIn() reads the provisioned request, not the session id.
+     */
+    private function provisionLogin(int $userId): void
+    {
+        $user = new \stdClass();
+        $user->id = $userId;
+        $scope = new \stdClass();
+        $scope->user = $user;
+        $current = new \ReflectionProperty(ReqScope::class, 'current');
+        $current->setValue(null, $scope);
     }
 
     private function routeUris(): array
@@ -132,6 +145,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         $response = Courses::gateResponse();
         $this->assertNotNull($response);
         $this->assertSame(403, $response->getStatusCode());
@@ -143,6 +157,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         $this->assertNull(Courses::gateResponse());
     }
 
@@ -161,6 +176,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $saved = $_SERVER['REQUEST_URI'] ?? null;
         $_SERVER['REQUEST_URI'] = '/tsugi/courses/42/home';
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         try {
             $this->assertNull(Courses::gateResponse());
         } finally {
@@ -402,36 +418,62 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(CoursesService::canCreate());
     }
 
-    public function testCanCreateUsesUserFlagNotInstructorSession()
+    public function testCanCreateIgnoresInstructorRoleAndUserFlag()
     {
         $_SESSION['id'] = 7;
         $_SESSION['instructor'] = true;
         $_SESSION['isinstructor'] = true;
-        $_SESSION['create_courses'] = 0;
+        $_SESSION['create_courses'] = 1;
         \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertFalse(CoursesService::canCreate());
+    }
 
-        $_SESSION['create_courses'] = 1;
+    public function testCanCreateUsesTheCachedGrant()
+    {
+        $_SESSION['id'] = 7;
+        \Tsugi\Core\ReqScope::resetIdentity();
+        \Tsugi\Core\Cache::set('permissions', 7, array(
+            1 => array(CoursesService::COURSE_CREATE => true),
+        ), 300);
         $this->assertTrue(CoursesService::canCreate());
     }
 
-    public function testCreateGateRefusesWithoutFlag()
+    public function testCreateGateRefreshesBeforeAllowing()
     {
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
-        $_SESSION['create_courses'] = 0;
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
+        \Tsugi\Core\Cache::set('permissions', 7, array(
+            1 => array(CoursesService::COURSE_CREATE => true),
+        ), 300);
         $response = Courses::createGateResponse('/courses');
         $this->assertNotNull($response);
         $this->assertSame(302, $response->getStatusCode());
     }
 
-    public function testCreateGateAllowsFlag()
+    public function testCreateGateRefusesWithoutGrant()
     {
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['create_courses'] = 1;
         \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
+        $response = Courses::createGateResponse('/courses');
+        $this->assertNotNull($response);
+        $this->assertSame(302, $response->getStatusCode());
+    }
+
+    public function testCreateGateAllowsSiteAdmin()
+    {
+        global $CFG;
+        $CFG->allow_course_create = true;
+        $_SESSION['id'] = 7;
+        $_SESSION['admin'] = 'yes';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['create_courses'] = 0;
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $this->provisionLogin(7);
         $this->assertNull(Courses::createGateResponse('/courses'));
     }
 

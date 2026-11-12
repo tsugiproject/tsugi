@@ -4,7 +4,7 @@ namespace Tsugi\Services\Courses;
 
 use Tsugi\Core\LTIX;
 use Tsugi\Core\ReqScope;
-use Tsugi\Core\User;
+use Tsugi\Services\Permission;
 use Tsugi\Services\Service;
 
 /**
@@ -20,6 +20,9 @@ class CoursesService extends Service {
     /** Consumer key used by Google site login. */
     const GOOGLE_KEY = 'google.com';
 
+    /** Permission to create courses. */
+    const COURSE_CREATE = 'course.create';
+
     /**
      * Apply to Teach. No other permission.
      *
@@ -27,7 +30,7 @@ class CoursesService extends Service {
      */
     public static function permissions(): array {
         return array(
-            'course.create' => array(
+            self::COURSE_CREATE => array(
                 'title' => 'Create Courses',
                 'description' => 'Create new courses in Tsugi',
                 'requestable' => true,
@@ -36,13 +39,37 @@ class CoursesService extends Service {
     }
 
     /**
+     * The site offers course creation from the instructor home.
+     *
+     * $CFG->allow_course_create. Unset or false hides Add Course and
+     * Apply to add course. The courses waffle is a separate switch.
+     */
+    public static function courseCreateOffered() {
+        global $CFG;
+        if ( ! isset($CFG) || ! is_object($CFG) ) {
+            return false;
+        }
+        return ! empty($CFG->allow_course_create);
+    }
+
+    /**
      * True when the current user may mint a new site-login course.
      *
-     * Site admins pass. Everyone else needs the user create-courses flag.
-     * Instructor role in a course does not count.
+     * Site admins pass. Everyone else needs an active course.create grant.
+     * Instructor role in a course does not count. The old create_courses
+     * flag is not this check. $fresh reloads the grant cache first. The
+     * courses list can use the cache. Creating a course passes true.
+     *
+     * @param bool $fresh
      */
-    public static function canCreate() {
-        return User::canCreateCourses();
+    public static function canCreate($fresh = false) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
+            return false;
+        }
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
+        return Permission::has(self::COURSE_CREATE, null, (bool) $fresh);
     }
 
     /**
