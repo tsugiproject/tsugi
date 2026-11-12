@@ -1,6 +1,6 @@
 # Tsugi Plus design
 
-Stored 2026-10-24. This note describes the code. The original brief is [history/plus-course-shell-prompt.md](history/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. The roster pull is in. Grade columns are created when a result row is first inserted, and again if a grade arrives and the link still has no line item.
+Stored 2026-10-24. This note describes the code. The original brief is [prompts/plus-course-shell-prompt.md](prompts/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. The roster pull is in. Grade columns are created when a result row is first inserted, and again if a grade arrives and the link still has no line item.
 
 Tsugi Plus is one LMS course taught inside Tsugi. The LMS stays the system of record for roster, grades, and notifications. One LMS course is one `lti_context` and one new Lessons JSON v2 manifest. Students launch the same course-navigation link and work inside Tsugi. There is no second course, tenant, link, or line-item table.
 
