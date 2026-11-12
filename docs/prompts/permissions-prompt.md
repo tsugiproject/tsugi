@@ -1,8 +1,10 @@
 # System Permissions, Applications, and Grants — design prompt
 
-Stored 2026-11-12. Revised the same day. This is the design brief. It is not the design report.
+Stored 2026-11-12. Revised the same day, after the registry slice, so sections 1–3 match the code. This is the design brief. It is not the design report.
 
 Routes come from controllers. Permissions come from services. `Tsugi.php` assembles both. An earlier draft of this brief said `Tsugi.php` gathers routes from services. That was wrong.
+
+Sections 1 through 3 are in place. The next pass starts at section 4. Leave `CoursesService::permissions()` as it is. Leave the service list on `Permission::SERVICES`.
 
 ---
 
@@ -37,7 +39,7 @@ Do not move controller actions, route tables, or anything else out of `Tool.php`
 
 Inspect how classes under `lib/src/Services/` are defined before changing them.
 
-`CoursesService` extends `Service` and currently inherits the empty `permissions()`. When Apply to Teach is built, override `permissions()` there to declare `course.create`.
+`CoursesService` extends `Service` and already overrides `permissions()` with `course.create`. Leave that declaration as it is.
 
 Services that declare permissions extend `Service` and override `permissions()`. Leave the existing repositories, exceptions, documents, value objects, and `database.php` files alone. Do not reparent them just so they inherit an empty method. Do not change their constructors or behavior.
 
@@ -47,7 +49,7 @@ Do not move routes onto services. Do not refactor controller routing.
 
 Each participating service overrides `permissions()` to declare its capabilities.
 
-The Courses controller does not declare permissions. A courses service does. For example:
+The Courses controller does not declare permissions. A courses service does. `CoursesService` already declares:
 
 ```php
 public static function permissions(): array
@@ -70,18 +72,13 @@ There is no central hard-coded permission list and no database table containing 
 
 `Tsugi.php` already assembles the route registry by calling `::routes()` on controllers. Leave that list and that behavior unchanged.
 
-In the same initialization, assemble a permission registry from services:
-
-1. Call `permissions()` on an explicit list of service classes, in the same style as the controller route list.
-2. Validate and merge the declarations into one in-memory permission registry.
-3. Reject duplicate permission identifiers.
-4. Make the registry available to permission-management screens and authorization checks.
+`Permission::assemble()` merges `permissions()` from an explicit list, `Permission::SERVICES`. `CoursesService` is on that list. `Tsugi.php` calls `assemble()` in the same initialization that registers routes. `Permission::registry()` holds the result for later screens and authorization checks. A duplicate permission code aborts the merge.
 
 The registry is reconstructed during normal application initialization, just like the route registry.
 
 Do not scan the filesystem, compile a registry at deploy time, or store permission definitions in the database.
 
-Do not build a separate service-discovery system. There is no existing discovery mechanism for services. The explicit list in `Tsugi.php` is the mechanism.
+Do not build a separate service-discovery system. There is no existing discovery mechanism for services. `Permission::SERVICES` is the list. A future service is added there. `Tsugi.php` keeps calling `assemble()` and does not grow its own copy of the list.
 
 ## 4. Persistence model
 
@@ -104,6 +101,8 @@ Store permission codes directly as strings.
 The service registry, not a database table, defines which permissions exist.
 
 Follow existing Tsugi schema, migration, indexing, and model conventions. Schema changes go through `admin/upgrade.php` in this checkout.
+
+When the grant table is created, copy `lti_user.create_courses`. Each non-deleted user with that flag set to 1 gets one system-scope `course.create` grant, `source` `create_courses`, and no grantor. Later upgrades run the same copy. Skip a user who already has any `course.create` grant in the system scope, including a revoked grant, so a revocation stays revoked. Leave the `create_courses` column in place. `CoursesService::canCreate()` does not read it. Site admins still pass. Everyone else needs `Permission::has('course.create')`. The courses dropdown and `Courses::createGateResponse()` both use `canCreate()`.
 
 ## 5. Authorization API
 
@@ -157,7 +156,7 @@ Users without the permission can select **Apply to Teach** on the instructor hom
 
 Once an administrator approves, the user can create courses.
 
-Course creation is already gated by `Courses::createGateResponse()`, which calls `CoursesService::canCreate()`. That method calls `User::canCreateCourses()`. Site admins already pass that check. Keep that administrator behavior. For everyone else, `course.create` is the grant that allows creation.
+Course creation is gated by `Courses::createGateResponse()`, which calls `CoursesService::canCreate()`. Site admins pass. Everyone else needs `Permission::has('course.create')`. The courses dropdown reads the same `can_create` flag.
 
 The user who creates a course becomes an instructor in that course through the existing course-membership mechanism.
 
@@ -177,18 +176,21 @@ Do not move routes from controllers onto services.
 
 ## 9. Tests and documentation
 
-Add focused tests for:
+Already covered:
 
 - Default empty permissions inherited from `Service`.
 - Service overrides of `permissions()`.
 - Permission registry construction from the explicit service list.
 - Duplicate permission detection.
+
+Still to add:
+
 - Unknown permission denial.
 - Application submission and approval.
 - Grant creation, expiration, and revocation, including an administrator hand grant.
 - Course creation authorization, including the existing site-admin pass.
 
-Document how a future service extends `Service`, declares permissions, is added to the `Tsugi.php` list, and how a controller checks the grant.
+Document how a future service extends `Service`, declares permissions, is added to `Permission::SERVICES`, and how a controller checks the grant.
 
 ## Implementation guidance
 
