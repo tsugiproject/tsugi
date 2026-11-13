@@ -45,6 +45,20 @@ Install the git pre-commit guard:
 bash qa/install-git-hooks.sh
 ```
 
+## Google API services
+
+Tsugi uses only the generated Classroom API. Google's `pre-autoload-dump`
+cleanup task keeps `Classroom` and removes unused services from the committed
+`vendor/google/apiclient-services` tree during Composer install, update, or
+autoload generation. Keep the Google client and authentication dependencies.
+
+To add another Google API, add its exact service name to
+`extra.google/apiclient-services` in `composer.json`, then run
+`composer reinstall google/apiclient-services --no-interaction` to restore the
+package before cleanup runs. Regenerate the lockfile metadata without upgrading
+packages (`composer update --lock --no-dev`), run `composer run finalize-vendor`,
+and commit the manifest, lockfile, and vendor changes together.
+
 ## Before pushing
 
 Sanity-check committed autoload:
