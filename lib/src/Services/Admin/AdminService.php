@@ -508,6 +508,120 @@ class AdminService {
     }
 
     /**
+     * URL columns that would move onto one client row for an issuer and client id.
+     *
+     * @return array<string, string> column => label
+     */
+    public static function clientConfigColumns() {
+        return array(
+            'lms_oidc_auth' => 'OIDC auth URL',
+            'lms_keyset_url' => 'Keyset URL',
+            'lms_token_url' => 'Token URL',
+            'lms_token_audience' => 'Token audience',
+        );
+    }
+
+    /**
+     * Keys that share an issuer and client id but disagree on URL configuration.
+     *
+     * A blank value is ignored. Two different non-blank values for one column
+     * collide when those keys collapse onto one client row.
+     *
+     * @return array<int, array{lms_issuer:string, lms_client:string, fields:array<string, string>, keys:array<int, array<string, mixed>>}>
+     */
+    public static function clientConfigConflictGroups() {
+        global $PDOX, $CFG;
+
+        $empty = array();
+        $table = "{$CFG->dbprefix}lti_key";
+        if ( ! is_object($PDOX) ) {
+            return $empty;
+        }
+        $columns = $PDOX->describe($table);
+        if ( ! is_array($columns) ) {
+            return $empty;
+        }
+        $names = array();
+        foreach ( $columns as $column ) {
+            if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+        }
+        if ( ! in_array('lms_issuer', $names, true) || ! in_array('lms_client', $names, true) ) {
+            return $empty;
+        }
+
+        $present = array();
+        foreach ( self::clientConfigColumns() as $column => $label ) {
+            if ( in_array($column, $names, true) ) $present[$column] = $label;
+        }
+        if ( count($present) < 1 ) {
+            return $empty;
+        }
+
+        $having = array();
+        $select = array();
+        foreach ( $present as $column => $label ) {
+            $having[] = "COUNT(DISTINCT NULLIF(TRIM({$column}), '')) > 1";
+            $select[] = "NULLIF(TRIM(k.{$column}), '') AS {$column}";
+        }
+        $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
+        $rows = $PDOX->allRowsDie(
+            "SELECT k.key_id, k.key_title, {$deleted_sql} AS deleted,
+                    TRIM(k.lms_issuer) AS lms_issuer, TRIM(k.lms_client) AS lms_client,
+                    ".implode(",\n                    ", $select)."
+                FROM {$table} AS k
+                INNER JOIN (
+                    SELECT TRIM(lms_issuer) AS lms_issuer, TRIM(lms_client) AS lms_client
+                        FROM {$table}
+                        WHERE lms_issuer IS NOT NULL AND TRIM(lms_issuer) <> ''
+                            AND lms_client IS NOT NULL AND TRIM(lms_client) <> ''
+                        GROUP BY TRIM(lms_issuer), TRIM(lms_client)
+                        HAVING ".implode("\n                            OR ", $having)."
+                ) AS d
+                    ON TRIM(k.lms_issuer) = d.lms_issuer
+                    AND TRIM(k.lms_client) = d.lms_client
+                ORDER BY TRIM(k.lms_issuer), TRIM(k.lms_client), k.key_id"
+        );
+        if ( ! is_array($rows) || count($rows) < 1 ) {
+            return $empty;
+        }
+
+        $grouped = array();
+        foreach ( $rows as $row ) {
+            $issuer = trim((string) U::get($row, 'lms_issuer', ''));
+            $client = trim((string) U::get($row, 'lms_client', ''));
+            $bucket = $issuer."\n".$client;
+            if ( ! isset($grouped[$bucket]) ) {
+                $grouped[$bucket] = array(
+                    'lms_issuer' => $issuer,
+                    'lms_client' => $client,
+                    'keys' => array(),
+                );
+            }
+            $grouped[$bucket]['keys'][] = $row;
+        }
+
+        $groups = array();
+        foreach ( $grouped as $group ) {
+            $fields = array();
+            foreach ( $present as $column => $label ) {
+                $values = array();
+                foreach ( $group['keys'] as $keyrow ) {
+                    $value = U::get($keyrow, $column);
+                    if ( ! is_string($value) ) continue;
+                    $value = trim($value);
+                    if ( $value === '' ) continue;
+                    $values[$value] = true;
+                }
+                if ( count($values) > 1 ) $fields[$column] = $label;
+            }
+            if ( count($fields) < 1 ) continue;
+            $group['fields'] = $fields;
+            $groups[] = $group;
+        }
+        return $groups;
+    }
+
+    /**
      * Reject a new or updated tenant when another live key already has this
      * issuer, client id, and deployment id.
      *
