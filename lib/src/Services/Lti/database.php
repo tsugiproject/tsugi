@@ -2796,6 +2796,31 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo(htmlentities($message)."<br/>\n");
     }
 
+    // Notice only. These rows share an issuer and client id but disagree on
+    // configuration URLs that would collapse onto one client row.
+    foreach ( \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups() as $group ) {
+        $client_id = \Tsugi\Util\U::get($group, 'lms_client');
+        $issuer = \Tsugi\Util\U::get($group, 'lms_issuer');
+        $fields = \Tsugi\Util\U::get($group, 'fields', array());
+        if ( ! is_array($fields) ) $fields = array();
+        $keys = \Tsugi\Util\U::get($group, 'keys', array());
+        if ( ! is_array($keys) ) continue;
+        foreach ( $keys as $keyrow ) {
+            $parts = array();
+            foreach ( $fields as $column => $label ) {
+                $value = \Tsugi\Util\U::get($keyrow, $column);
+                $shown = (is_string($value) && trim($value) !== '') ? trim($value) : '(blank)';
+                $parts[] = $label.'='.$shown;
+            }
+            $message = 'Conflicting configuration URLs: client_id='.$client_id
+                .' issuer='.$issuer
+                .' key_id='.\Tsugi\Util\U::get($keyrow, 'key_id')
+                .' '.implode(' ', $parts);
+            error_log($message);
+            echo(htmlentities($message)."<br/>\n");
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 202611070000;
