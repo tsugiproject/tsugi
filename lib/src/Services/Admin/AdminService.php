@@ -522,10 +522,31 @@ class AdminService {
     }
 
     /**
+     * Value used to decide whether two configuration URLs are the same.
+     *
+     * Scheme and host are case-insensitive. The path, query, and fragment are
+     * compared as stored, so a path that differs only by case still conflicts.
+     */
+    private static function clientConfigCompareValue($value) {
+        $value = trim((string) $value);
+        if ( ! preg_match('#^([a-z][a-z0-9+.-]*:)(//[^/?\#]*)#i', $value, $match) ) {
+            return $value;
+        }
+        $scheme = strtolower($match[1]);
+        $authority = $match[2];
+        $rest = substr($value, strlen($match[0]));
+        if ( preg_match('#^(//(?:[^@/]*@)?)(\[[^\]]+\]|[^:/]*)(:[0-9]+)?$#', $authority, $parts) ) {
+            $authority = $parts[1].strtolower($parts[2]).(isset($parts[3]) ? $parts[3] : '');
+        }
+        return $scheme.$authority.$rest;
+    }
+
+    /**
      * Keys that share an issuer and client id but disagree on URL configuration.
      *
      * A blank value is ignored. Two different non-blank values for one column
-     * collide when those keys collapse onto one client row.
+     * collide when those keys collapse onto one client row. Scheme and host
+     * case does not. Path, query, and fragment case does.
      *
      * @return array<int, array{lms_issuer:string, lms_client:string, fields:array<string, string>, keys:array<int, array<string, mixed>>}>
      */
@@ -560,8 +581,9 @@ class AdminService {
         $having = array();
         $select = array();
         foreach ( $present as $column => $label ) {
-            // A URL that differs only by case is the same URL.
-            $having[] = "COUNT(DISTINCT LOWER(NULLIF(TRIM({$column}), ''))) > 1";
+            // The column collation folds case, including the path. Compare the
+            // bytes here so a path that differs only by case still reaches PHP.
+            $having[] = "COUNT(DISTINCT CAST(NULLIF(TRIM({$column}), '') AS BINARY)) > 1";
             $select[] = "NULLIF(TRIM(k.{$column}), '') AS {$column}";
         }
         $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
@@ -611,7 +633,7 @@ class AdminService {
                     if ( ! is_string($value) ) continue;
                     $value = trim($value);
                     if ( $value === '' ) continue;
-                    $values[strtolower($value)] = true;
+                    $values[self::clientConfigCompareValue($value)] = true;
                 }
                 if ( count($values) > 1 ) $fields[$column] = $label;
             }
