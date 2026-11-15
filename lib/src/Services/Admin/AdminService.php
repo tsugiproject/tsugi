@@ -560,7 +560,9 @@ class AdminService {
         $having = array();
         $select = array();
         foreach ( $present as $column => $label ) {
-            $having[] = "COUNT(DISTINCT NULLIF(TRIM({$column}), '')) > 1";
+            // utf8mb3_general_ci folds case, so COUNT(DISTINCT) would treat
+            // URLs that differ only by case as one value and drop the group.
+            $having[] = "COUNT(DISTINCT CAST(NULLIF(TRIM({$column}), '') AS BINARY)) > 1";
             $select[] = "NULLIF(TRIM(k.{$column}), '') AS {$column}";
         }
         $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
