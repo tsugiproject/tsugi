@@ -210,7 +210,10 @@ another has a blank, keep the filled value.
 
 Leave the `lms_*` columns in place. Launch reads the URLs from the client and
 still copies them onto the launch-row aliases. Dynamic registration writes the
-issuer, client id, and URLs to `lti_client`.
+issuer, client id, and URLs to `lti_client`. It also keeps writing `lms_issuer`,
+`lms_issuer_sha256`, and `lms_client` on `lti_key`. `LTIX::loadAllData()` still
+matches the hash and the client id, so a new registration has to keep those
+columns on the key or the launch will not find it.
 
 Deployment matching stays as it is. `LTIX::loadAllData()` matches
 `lms_issuer_sha256` and `lms_client`, ignores `deploy_key`, and takes the lowest
