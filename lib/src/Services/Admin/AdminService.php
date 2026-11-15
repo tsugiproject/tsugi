@@ -560,9 +560,8 @@ class AdminService {
         $having = array();
         $select = array();
         foreach ( $present as $column => $label ) {
-            // utf8mb3_general_ci folds case, so COUNT(DISTINCT) would treat
-            // URLs that differ only by case as one value and drop the group.
-            $having[] = "COUNT(DISTINCT CAST(NULLIF(TRIM({$column}), '') AS BINARY)) > 1";
+            // A URL that differs only by case is the same URL.
+            $having[] = "COUNT(DISTINCT LOWER(NULLIF(TRIM({$column}), ''))) > 1";
             $select[] = "NULLIF(TRIM(k.{$column}), '') AS {$column}";
         }
         $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
@@ -612,7 +611,7 @@ class AdminService {
                     if ( ! is_string($value) ) continue;
                     $value = trim($value);
                     if ( $value === '' ) continue;
-                    $values[$value] = true;
+                    $values[strtolower($value)] = true;
                 }
                 if ( count($values) > 1 ) $fields[$column] = $label;
             }
