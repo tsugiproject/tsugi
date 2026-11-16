@@ -181,11 +181,38 @@ Conflicting configuration URLs: client_id=… issuer=… key_id=… OIDC auth UR
 ```
 
 `error_log` and `echo` both run, so cron shows each line twice. A clean database
-prints neither the duplicate line nor the conflict line. Deleted keys are included.
+prints neither the duplicate line nor the conflict line. The deployment-id line
+is also silent when every key has one deployment id. Deleted keys are included.
 A soft-deleted row can still block the collapse.
 
 A pair that passes this check can share one client row. The check is the gate
 before any later copy.
+
+### Deployment ids that would be read from the key
+
+No data change. Before a deployment id stored beside a key can be dropped, that
+`key_id` must map to one deployment id. The check reads `lti_key.deploy_key`
+and `lti_context.lti13_deployment_id` together. `lti_link` has no deployment id
+column, so there is nothing there to collapse. `lti_tool_deployment.deployment_id`
+is an outbound tool id. One key may have many of those, and they are not part
+of this check.
+
+A blank value, or the literal `null`, does not count. Two different non-blank
+values for one key are a conflict. That includes the key's own deployment id, so
+a context that disagrees with the key is a conflict. Case counts. Deleted rows
+are included.
+
+Admin → Client ID Check names the key, each deployment id, and where it was
+seen (the key, or how many contexts, with one example id). Upgrade prints one
+line per key and stays silent when every key has a single deployment id:
+
+```text
+Non-unique (key id, deployment id): key_id=… deployment_id=… (Key) deployment_id=… (Context x3 example 12)
+```
+
+The page says, when this check is clean:
+
+> There are no keys with more than one deployment id.
 
 ### What production said
 
@@ -244,9 +271,9 @@ of the URL columns on the key.
 
 | File | Role |
 |------|------|
-| `lib/src/Services/Admin/AdminService.php` | `clientConfigColumns()`, `clientConfigConflictGroups()`, and the existing duplicate-identity queries |
-| `lib/src/Controllers/templates/Admin/key/client-id-check.php` | Admin page for both checks |
-| `lib/src/Services/Lti/database.php` | Upgrade notices for both checks. `lti_key` schema. No `lti_client` table yet |
+| `lib/src/Services/Admin/AdminService.php` | `clientConfigColumns()`, `clientConfigConflictGroups()`, `keyDeploymentConflictGroups()`, and the existing duplicate-identity queries |
+| `lib/src/Controllers/templates/Admin/key/client-id-check.php` | Admin page for the three checks |
+| `lib/src/Services/Lti/database.php` | Upgrade notices for the three checks. `lti_key` schema. No `lti_client` table yet |
 | `lib/src/Core/LTIX.php` | Launch lookup by issuer and client id, lowest `key_id` |
 | `lti/oidc_login.php` | Login by `key_id` in the URL |
 | `lib/src/Services/Settings/DynamicRegistration.php` | Writes issuer, client id, URLs, and an optional deployment onto the draft key |

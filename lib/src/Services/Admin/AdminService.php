@@ -645,6 +645,152 @@ class AdminService {
     }
 
     /**
+     * Tables that store an LTI deployment id which should be a function of key_id.
+     *
+     * lti_link is listed so a column added later is included. It has none today.
+     * lti_tool_deployment.deployment_id is an outbound tool id. One key may have many.
+     *
+     * @return array<int, array{table:string, column:string, id_column:string, label:string, via_context?:bool}>
+     */
+    private static function deploymentIdCopies() {
+        return array(
+            array(
+                'table' => 'lti_key',
+                'column' => 'deploy_key',
+                'id_column' => 'key_id',
+                'label' => 'Key',
+            ),
+            array(
+                'table' => 'lti_context',
+                'column' => 'lti13_deployment_id',
+                'id_column' => 'context_id',
+                'label' => 'Context',
+            ),
+            array(
+                'table' => 'lti_link',
+                'column' => 'lti13_deployment_id',
+                'id_column' => 'link_id',
+                'label' => 'Link',
+                'via_context' => true,
+            ),
+        );
+    }
+
+    /**
+     * Keys whose deployment id is not a single value.
+     *
+     * The key's own deployment id and every copy on a context (and a link, when
+     * that column exists) are read together. A blank value, or the literal
+     * "null", does not count. Two different non-blank values for one key_id
+     * mean the copy cannot be dropped and read from the key. Case counts.
+     * Deleted rows are included.
+     *
+     * @return array<int, array{key_id:int, key_title:string, deleted:int, values:array<int, array{deployment_id:string, places:array<int, array{label:string, count:int, example_id:int}>}>}>
+     */
+    public static function keyDeploymentConflictGroups() {
+        global $PDOX, $CFG;
+
+        $empty = array();
+        if ( ! is_object($PDOX) ) {
+            return $empty;
+        }
+        $prefix = $CFG->dbprefix;
+        $key_table = "{$prefix}lti_key";
+        $key_columns = $PDOX->describe($key_table);
+        if ( ! is_array($key_columns) ) {
+            return $empty;
+        }
+        $key_names = array();
+        foreach ( $key_columns as $column ) {
+            if ( is_array($column) && isset($column['Field']) ) $key_names[] = $column['Field'];
+        }
+        $deleted_sql = in_array('deleted', $key_names, true) ? 'MIN(k.deleted)' : '0';
+        $title_sql = in_array('key_title', $key_names, true) ? 'MIN(k.key_title)' : "''";
+
+        $found_rows = array();
+        foreach ( self::deploymentIdCopies() as $copy ) {
+            $table = "{$prefix}{$copy['table']}";
+            $described = ($copy['table'] === 'lti_key') ? $key_columns : $PDOX->describe($table);
+            if ( ! is_array($described) ) continue;
+            $names = array();
+            foreach ( $described as $column ) {
+                if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+            }
+            if ( ! in_array($copy['column'], $names, true) || ! in_array($copy['id_column'], $names, true) ) {
+                continue;
+            }
+            if ( ! empty($copy['via_context']) && ! in_array('context_id', $names, true) ) {
+                continue;
+            }
+
+            $expr = 't.'.$copy['column'];
+            $key_sql = 't.key_id';
+            $join = '';
+            if ( ! empty($copy['via_context']) ) {
+                $key_sql = 'ctx.key_id';
+                $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
+            }
+            $label_sql = str_replace("'", "''", $copy['label']);
+            $sql = "SELECT {$key_sql} AS key_id,
+                           {$title_sql} AS key_title,
+                           {$deleted_sql} AS deleted,
+                           '{$label_sql}' AS source,
+                           MIN(TRIM({$expr})) AS deployment_id,
+                           COUNT(*) AS row_count,
+                           MIN(t.{$copy['id_column']}) AS example_id
+                        FROM {$table} AS t
+                        {$join}
+                        INNER JOIN {$key_table} AS k ON k.key_id = {$key_sql}
+                        WHERE {$expr} IS NOT NULL
+                            AND TRIM({$expr}) <> ''
+                            AND LOWER(TRIM({$expr})) <> 'null'
+                        GROUP BY {$key_sql}, CAST(TRIM({$expr}) AS BINARY)";
+            $found = $PDOX->allRowsDie($sql);
+            if ( ! is_array($found) ) continue;
+            foreach ( $found as $row ) $found_rows[] = $row;
+        }
+
+        $by_key = array();
+        foreach ( $found_rows as $row ) {
+            $key_id = (int) U::get($row, 'key_id', 0);
+            if ( $key_id < 1 ) continue;
+            $raw = U::get($row, 'deployment_id');
+            $deployment = self::normalize_deploy_key_input(is_scalar($raw) ? (string) $raw : null);
+            if ( $deployment === null ) continue;
+            if ( ! isset($by_key[$key_id]) ) {
+                $title = U::get($row, 'key_title');
+                $by_key[$key_id] = array(
+                    'key_id' => $key_id,
+                    'key_title' => is_string($title) ? $title : '',
+                    'deleted' => (int) U::get($row, 'deleted', 0),
+                    'values' => array(),
+                );
+            }
+            if ( ! isset($by_key[$key_id]['values'][$deployment]) ) {
+                $by_key[$key_id]['values'][$deployment] = array(
+                    'deployment_id' => $deployment,
+                    'places' => array(),
+                );
+            }
+            $by_key[$key_id]['values'][$deployment]['places'][] = array(
+                'label' => (string) U::get($row, 'source', ''),
+                'count' => (int) U::get($row, 'row_count', 0),
+                'example_id' => (int) U::get($row, 'example_id', 0),
+            );
+        }
+
+        ksort($by_key);
+        $groups = array();
+        foreach ( $by_key as $group ) {
+            if ( count($group['values']) < 2 ) continue;
+            ksort($group['values']);
+            $group['values'] = array_values($group['values']);
+            $groups[] = $group;
+        }
+        return $groups;
+    }
+
+    /**
      * Reject a new or updated tenant when another live key already has this
      * issuer, client id, and deployment id.
      *
