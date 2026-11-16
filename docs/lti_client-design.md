@@ -169,7 +169,9 @@ the SQL prefilter is
 `COUNT(DISTINCT CAST(NULLIF(TRIM(column), '') AS BINARY)) > 1`. The PHP pass
 then folds only the scheme and host. Accent differences still count.
 
-The Client ID Check page says, when this second check is clean:
+The admin console and the tenant key list show a red banner when this check
+is not clean, the same place as the duplicate-identity banner. The Client ID
+Check page says, when this second check is clean:
 
 > There are no (client id, issuer) rows with conflicting configuration URLs.
 
@@ -203,9 +205,11 @@ is compared as stored bytes, so a difference in case or accents is a conflict.
 That includes the key's own deployment id, so a context that disagrees with
 the key is a conflict. Deleted rows are included.
 
-Admin → Client ID Check names the key, each deployment id, and where it was
-seen (the key, or how many contexts, with one example id). Upgrade prints one
-line per key and stays silent when every key has a single deployment id:
+The admin console and the tenant key list show a red banner when a key has
+more than one deployment id. Admin → Client ID Check names the key, each
+deployment id, and where it was seen (the key, or how many contexts, with one
+example id). Upgrade prints one line per key and stays silent when every key
+has a single deployment id:
 
 ```text
 Non-unique (key id, deployment id): key_id=… deployment_id=… (Key) deployment_id=… (Context x3 example 12)

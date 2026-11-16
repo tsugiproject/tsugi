@@ -508,6 +508,39 @@ class AdminService {
     }
 
     /**
+     * Red warning for the admin console and the key list. Empty when URLs agree.
+     *
+     * Same lti_key scan shape as the duplicate notice. Not a per-launch query.
+     */
+    public static function clientConfigConflictNotice() {
+        $count = count(self::clientConfigConflictGroups());
+        if ( $count < 1 ) {
+            return '';
+        }
+        $pairs = $count === 1 ? 'pair' : 'pairs';
+        return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
+            .'<p>'.$count.' issuer and client id '.$pairs.' will collide when collapsed.</p>'."\n"
+            ."</div>\n";
+    }
+
+    /**
+     * Red warning for the admin console and the key list. Empty when each key
+     * has a single deployment id.
+     *
+     * Reads lti_key and the contexts that stored a deployment id. Admin only.
+     */
+    public static function keyDeploymentConflictNotice() {
+        $count = count(self::keyDeploymentConflictGroups());
+        if ( $count < 1 ) {
+            return '';
+        }
+        $verb = $count === 1 ? 'key has' : 'keys have';
+        return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
+            .'<p>'.$count.' '.$verb.' more than one deployment id.</p>'."\n"
+            ."</div>\n";
+    }
+
+    /**
      * URL columns that would move onto one client row for an issuer and client id.
      *
      * @return array<string, string> column => label
