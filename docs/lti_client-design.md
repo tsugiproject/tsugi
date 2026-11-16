@@ -197,10 +197,11 @@ column, so there is nothing there to collapse. `lti_tool_deployment.deployment_i
 is an outbound tool id. One key may have many of those, and they are not part
 of this check.
 
-A blank value, or the literal `null`, does not count. Two different non-blank
-values for one key are a conflict. That includes the key's own deployment id, so
-a context that disagrees with the key is a conflict. Case counts. Deleted rows
-are included.
+A blank value, or the literal word `null` in any ASCII case, does not count.
+That matches how the key form stores a blank deployment id. Every other value
+is compared as stored bytes, so a difference in case or accents is a conflict.
+That includes the key's own deployment id, so a context that disagrees with
+the key is a conflict. Deleted rows are included.
 
 Admin → Client ID Check names the key, each deployment id, and where it was
 seen (the key, or how many contexts, with one example id). Upgrade prints one

@@ -681,9 +681,10 @@ class AdminService {
      *
      * The key's own deployment id and every copy on a context (and a link, when
      * that column exists) are read together. A blank value, or the literal
-     * "null", does not count. Two different non-blank values for one key_id
-     * mean the copy cannot be dropped and read from the key. Case counts.
-     * Deleted rows are included.
+     * word "null" in any ASCII case, does not count. That matches how the key
+     * form stores a blank deployment id. Every other value is compared as
+     * stored bytes, so a difference in case or accents is a conflict. Deleted
+     * rows are included.
      *
      * @return array<int, array{key_id:int, key_title:string, deleted:int, values:array<int, array{deployment_id:string, places:array<int, array{label:string, count:int, example_id:int}>}>}>
      */
@@ -743,7 +744,11 @@ class AdminService {
                         INNER JOIN {$key_table} AS k ON k.key_id = {$key_sql}
                         WHERE {$expr} IS NOT NULL
                             AND TRIM({$expr}) <> ''
-                            AND LOWER(TRIM({$expr})) <> 'null'
+                            -- The word null, in any ASCII case, is a blank. Compare
+                            -- those bytes so the column collation cannot fold an
+                            -- accented value into that word. The GROUP BY below
+                            -- keeps every other difference, including case.
+                            AND CAST(LOWER(TRIM({$expr})) AS BINARY) <> 'null'
                         GROUP BY {$key_sql}, CAST(TRIM({$expr}) AS BINARY)";
             $found = $PDOX->allRowsDie($sql);
             if ( ! is_array($found) ) continue;
