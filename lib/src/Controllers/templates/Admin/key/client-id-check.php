@@ -11,6 +11,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 
 $rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
 $groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
+$deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -101,6 +102,58 @@ A blank value does not conflict with a filled one.
   <td><?= htmlentities($shown) ?></td>
 <?php } ?>
 </tr>
+<?php } ?>
+</tbody>
+</table>
+<?php } ?>
+<?php } ?>
+<h2>Deployment ids</h2>
+<p>
+Each key should have one deployment id. This check reads the deployment id on the key and the deployment id stored on each context.
+A blank value does not count. Links have no deployment id column.
+</p>
+<?php if ( count($deployment_groups) < 1 ) { ?>
+<p>There are no keys with more than one deployment id.</p>
+<?php } else {
+    $key_word = count($deployment_groups) === 1 ? 'key has' : 'keys have';
+?>
+<div class="alert alert-danger" style="margin: 10px;">
+<p><?= count($deployment_groups) ?> <?= $key_word ?> more than one deployment id.</p>
+</div>
+<?php foreach ( $deployment_groups as $group ) {
+    $key_id = (int) U::get($group, 'key_id', 0);
+    $title = U::get($group, 'key_title');
+    $label = (is_string($title) && trim($title) !== '') ? trim($title) : ('key '.$key_id);
+    $label .= ' ('.$key_id.')';
+    if ( (int) U::get($group, 'deleted', 0) === 1 ) $label .= ' (deleted)';
+    $detail = 'key-detail?key_id='.$key_id;
+    $values = U::get($group, 'values', array());
+    if ( ! is_array($values) ) $values = array();
+?>
+<h2><a href="<?= htmlentities($detail) ?>"><?= htmlentities($label) ?></a></h2>
+<table class="table table-striped">
+<thead>
+<tr>
+  <th>Deployment id</th>
+  <th>Where</th>
+  <th>Rows</th>
+  <th>Example id</th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ( $values as $value ) {
+    $places = U::get($value, 'places', array());
+    if ( ! is_array($places) ) continue;
+    $deployment_id = (string) U::get($value, 'deployment_id', '');
+    foreach ( $places as $place ) {
+?>
+<tr>
+  <td><?= htmlentities($deployment_id) ?></td>
+  <td><?= htmlentities((string) U::get($place, 'label', '')) ?></td>
+  <td><?= (int) U::get($place, 'count', 0) ?></td>
+  <td><?= (int) U::get($place, 'example_id', 0) ?></td>
+</tr>
+<?php } ?>
 <?php } ?>
 </tbody>
 </table>
