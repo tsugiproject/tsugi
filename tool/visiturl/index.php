@@ -183,7 +183,7 @@ if ( $modal ) {
     $modal_id = 'visiturl-link-modal';
     $go = U::safe_href(addSession('go.php'));
     $safe_url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
-    echo('<button type="button" class="btn btn-primary" onclick="tsugiOpenLinkModal(\''.$modal_id.'\');">');
+    echo('<button type="button" id="visiturl-open" class="btn btn-primary" onclick="tsugiOpenLinkModal(\''.$modal_id.'\');">');
     echo(__('Visit URL'));
     echo("</button></p>\n");
     visiturl_echo_modal($modal_id, $title, $go, $safe_url);
@@ -240,6 +240,38 @@ if ( $modal || ( $timer && ! $already && $visited ) ) {
         $start_js = json_encode($start_msg);
 ?>
 <script>
+var visiturlModalReturn = null;
+var visiturlModalKeys = null;
+var visiturlInertNodes = [];
+function visiturlModalFocusables(overlay) {
+    return Array.prototype.filter.call(
+        overlay.querySelectorAll('a[href], button:not([disabled]), iframe'),
+        function (el) { return !el.hasAttribute('disabled'); }
+    );
+}
+function visiturlSetBackgroundInert(overlay) {
+    visiturlInertNodes = [];
+    var node = overlay;
+    while (node.parentElement) {
+        var parent = node.parentElement;
+        Array.prototype.forEach.call(parent.children, function (kid) {
+            if (kid !== node && !kid.hasAttribute('inert')) {
+                kid.setAttribute('inert', '');
+                visiturlInertNodes.push(kid);
+            }
+        });
+        if (parent === document.body) {
+            break;
+        }
+        node = parent;
+    }
+}
+function visiturlClearBackgroundInert() {
+    visiturlInertNodes.forEach(function (node) {
+        node.removeAttribute('inert');
+    });
+    visiturlInertNodes = [];
+}
 function tsugiOpenLinkModal(id) {
     var overlay = document.getElementById(id);
     if (!overlay) {
@@ -249,8 +281,45 @@ function tsugiOpenLinkModal(id) {
     if (iframe && iframe.getAttribute('data-src')) {
         iframe.src = iframe.getAttribute('data-src');
     }
+    visiturlModalReturn = document.getElementById('visiturl-open');
     overlay.style.display = 'block';
     overlay.setAttribute('data-opened-at', String(Date.now()));
+    visiturlSetBackgroundInert(overlay);
+    if (visiturlModalKeys) {
+        document.removeEventListener('keydown', visiturlModalKeys);
+    }
+    visiturlModalKeys = function (event) {
+        if (overlay.style.display === 'none') {
+            return;
+        }
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            tsugiCloseLinkModal(id);
+            return;
+        }
+        if (event.key !== 'Tab') {
+            return;
+        }
+        var items = visiturlModalFocusables(overlay);
+        if (!items.length) {
+            return;
+        }
+        var first = items[0];
+        var last = items[items.length - 1];
+        var active = document.activeElement;
+        if (event.shiftKey && (active === first || !overlay.contains(active))) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (active === last || !overlay.contains(active))) {
+            event.preventDefault();
+            first.focus();
+        }
+    };
+    document.addEventListener('keydown', visiturlModalKeys);
+    var closeBtn = overlay.querySelector('.tsugi-link-modal-close');
+    if (closeBtn) {
+        closeBtn.focus();
+    }
     var startMsg = <?= $start_js ?>;
     if (startMsg) {
         console.log(startMsg);
@@ -258,14 +327,22 @@ function tsugiOpenLinkModal(id) {
 }
 function tsugiCloseLinkModal(id) {
     var overlay = document.getElementById(id);
-    if (!overlay) {
+    if (!overlay || overlay.style.display === 'none') {
         return;
     }
     var iframe = overlay.querySelector('iframe.tsugi-link-modal-frame');
     if (iframe) {
         iframe.src = 'about:blank';
     }
+    if (visiturlModalKeys) {
+        document.removeEventListener('keydown', visiturlModalKeys);
+        visiturlModalKeys = null;
+    }
+    visiturlClearBackgroundInert();
     overlay.style.display = 'none';
+    if (visiturlModalReturn && typeof visiturlModalReturn.focus === 'function') {
+        visiturlModalReturn.focus();
+    }
     var opened = parseInt(overlay.getAttribute('data-opened-at'), 10) || Date.now();
     var wait = 1500 - (Date.now() - opened);
     if (wait < 0) {
