@@ -5,7 +5,8 @@ $REGISTER_LTI2 = array(
     "FontAwesome" => "fa-external-link",
     "short_name" => "Visit URL",
     "description" => "Send students to an instructor-configured web page. When a student
-clicks to visit the URL, the tool can send a 100% grade back to the LMS. Instructors
+clicks to visit the URL, the tool can send a 100% grade back to the LMS. The page
+can open in a new tab or in a modal iframe. Instructors
 can add a title, instructions, and a due date with a late penalty.",
     "messages" => array("launch", "launch_grade"),
     "tool_phase" => "core",

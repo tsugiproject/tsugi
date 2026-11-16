@@ -57,7 +57,7 @@ if ( isset($_POST['watched']) ) {
     return;
 }
 
-$LAUNCH->link->settingsDefaultsFromCustom(array('url', 'title', 'instructions', 'grade', 'minutes'));
+$LAUNCH->link->settingsDefaultsFromCustom(array('url', 'title', 'instructions', 'grade', 'minutes', 'modal'));
 visiturl_ensure_grade_default();
 
 $url = Settings::linkGet('url', false);
@@ -74,6 +74,7 @@ if ( ! is_string($title) || strlen(trim($title)) < 1 ) {
 $instructions = Settings::linkGet('instructions', '');
 $dueDate = SettingsForm::getDueDate();
 $timer = visiturl_timer_mode();
+$modal = visiturl_modal_mode();
 $already = visiturl_valid_url($url) && visiturl_is_done($url);
 if ( $timer && visiturl_valid_url($url) && ! $already ) {
     visiturl_abandon_watch_unless_just_visited();
@@ -108,6 +109,7 @@ $OUTPUT->welcomeUserCourse();
 
 SettingsForm::start();
 SettingsForm::text('url', __('URL students should visit (http:// or https://)'));
+SettingsForm::checkbox('modal', __('Show this in a modal iframe'));
 SettingsForm::text('title', __('Optional title to show on this page'));
 SettingsForm::textarea('instructions', __('Optional instructions for students'));
 SettingsForm::checkbox('grade', __('Give the student a 100% grade when they visit the URL'));
@@ -157,27 +159,46 @@ if ( $timer && ! $already ) {
     $wait_minutes = (int) round(visiturl_unlock_seconds($minutes) / 60.0);
     if ( $wait_minutes < 1 ) $wait_minutes = 1;
     echo('<p>');
-    echo(htmlentities(sprintf(__('This is a %s video. Keep this window open while watching the video. Open the video in a new tab, then come back here and press I watched this.'), visiturl_duration_label($minutes))));
+    if ( $modal ) {
+        $watch_help = __('This is a %s video. Keep this window open while watching the video. Watch it in the window that opens, then close that window and press I watched this.');
+    } else {
+        $watch_help = __('This is a %s video. Keep this window open while watching the video. Open the video in a new tab, then come back here and press I watched this.');
+    }
+    echo(htmlentities(sprintf($watch_help, visiturl_duration_label($minutes))));
     echo("</p>\n");
 }
 
 echo('<p>');
-echo('<a class="btn btn-primary" href="'.U::safe_href(addSession('go.php')).'"');
-echo(' target="_blank" rel="noopener noreferrer"');
-$reload_js = htmlspecialchars(json_encode(addSession('index.php')), ENT_QUOTES);
-$onclick = 'setTimeout(function(){ window.location.href='.$reload_js.'; }, 1500);';
+$reload_url = json_encode(addSession('index.php'));
+$reload_js = htmlspecialchars($reload_url, ENT_QUOTES);
+$start_msg = '';
 if ( $timer && ! $already && ! $visited ) {
     $n = $wait_minutes;
     if ( $n < 1 ) $n = 1;
     $start_msg = $n === 1
         ? 'Visit URL pressed; 1-minute timer started.'
         : 'Visit URL pressed; '.$n.'-minute timer started.';
-    $onclick = 'console.log('.htmlspecialchars(json_encode($start_msg), ENT_QUOTES).');'.$onclick;
 }
-echo(' onclick="'.$onclick.'"');
-echo('>');
-echo(__('Visit URL'));
-echo("</a></p>\n");
+if ( $modal ) {
+    $modal_id = 'visiturl-link-modal';
+    $go = U::safe_href(addSession('go.php'));
+    $safe_url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    echo('<button type="button" id="visiturl-open" class="btn btn-primary" onclick="tsugiOpenLinkModal(\''.$modal_id.'\');">');
+    echo(__('Visit URL'));
+    echo("</button></p>\n");
+    visiturl_echo_modal($modal_id, $title, $go, $safe_url);
+} else {
+    echo('<a class="btn btn-primary" href="'.U::safe_href(addSession('go.php')).'"');
+    echo(' target="_blank" rel="noopener noreferrer"');
+    $onclick = 'setTimeout(function(){ window.location.href='.$reload_js.'; }, 1500);';
+    if ( $start_msg !== '' ) {
+        $onclick = 'console.log('.htmlspecialchars(json_encode($start_msg), ENT_QUOTES).');'.$onclick;
+    }
+    echo(' onclick="'.$onclick.'"');
+    echo('>');
+    echo(__('Visit URL'));
+    echo("</a></p>\n");
+}
 
 if ( $timer && ! $already ) {
     if ( $visited ) {
@@ -213,8 +234,135 @@ if ( $USER->instructor ) {
 
 echo("</div>\n");
 
-if ( $timer && ! $already && $visited ) {
+if ( $modal || ( $timer && ! $already && $visited ) ) {
     $OUTPUT->footerStart();
+    if ( $modal ) {
+        $start_js = json_encode($start_msg);
+?>
+<script>
+var visiturlModalReturn = null;
+var visiturlModalKeys = null;
+var visiturlInertNodes = [];
+function visiturlModalFocusables(overlay) {
+    return Array.prototype.filter.call(
+        overlay.querySelectorAll('a[href], button:not([disabled]), iframe'),
+        function (el) { return !el.hasAttribute('disabled'); }
+    );
+}
+function visiturlSetBackgroundInert(overlay) {
+    visiturlInertNodes = [];
+    var node = overlay;
+    while (node.parentElement) {
+        var parent = node.parentElement;
+        Array.prototype.forEach.call(parent.children, function (kid) {
+            if (kid !== node && !kid.hasAttribute('inert')) {
+                kid.setAttribute('inert', '');
+                visiturlInertNodes.push(kid);
+            }
+        });
+        if (parent === document.body) {
+            break;
+        }
+        node = parent;
+    }
+}
+function visiturlClearBackgroundInert() {
+    visiturlInertNodes.forEach(function (node) {
+        node.removeAttribute('inert');
+    });
+    visiturlInertNodes = [];
+}
+function tsugiOpenLinkModal(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) {
+        return;
+    }
+    var iframe = overlay.querySelector('iframe.tsugi-link-modal-frame');
+    if (iframe && iframe.getAttribute('data-src')) {
+        iframe.src = iframe.getAttribute('data-src');
+    }
+    visiturlModalReturn = document.getElementById('visiturl-open');
+    overlay.style.display = 'block';
+    overlay.setAttribute('data-opened-at', String(Date.now()));
+    visiturlSetBackgroundInert(overlay);
+    if (visiturlModalKeys) {
+        document.removeEventListener('keydown', visiturlModalKeys);
+    }
+    visiturlModalKeys = function (event) {
+        if (overlay.style.display === 'none') {
+            return;
+        }
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            tsugiCloseLinkModal(id);
+            return;
+        }
+        if (event.key !== 'Tab') {
+            return;
+        }
+        var items = visiturlModalFocusables(overlay);
+        if (!items.length) {
+            return;
+        }
+        var first = items[0];
+        var last = items[items.length - 1];
+        var active = document.activeElement;
+        if (event.shiftKey && (active === first || !overlay.contains(active))) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (active === last || !overlay.contains(active))) {
+            event.preventDefault();
+            first.focus();
+        }
+    };
+    document.addEventListener('keydown', visiturlModalKeys);
+    var closeBtn = overlay.querySelector('.tsugi-link-modal-close');
+    if (closeBtn) {
+        closeBtn.focus();
+    }
+    var startMsg = <?= $start_js ?>;
+    if (startMsg) {
+        console.log(startMsg);
+    }
+}
+function tsugiCloseLinkModal(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay || overlay.style.display === 'none') {
+        return;
+    }
+    var iframe = overlay.querySelector('iframe.tsugi-link-modal-frame');
+    if (iframe) {
+        iframe.src = 'about:blank';
+    }
+    if (visiturlModalKeys) {
+        document.removeEventListener('keydown', visiturlModalKeys);
+        visiturlModalKeys = null;
+    }
+    visiturlClearBackgroundInert();
+    overlay.style.display = 'none';
+    if (visiturlModalReturn && typeof visiturlModalReturn.focus === 'function') {
+        visiturlModalReturn.focus();
+    }
+    var opened = parseInt(overlay.getAttribute('data-opened-at'), 10) || Date.now();
+    var wait = 1500 - (Date.now() - opened);
+    if (wait < 0) {
+        wait = 0;
+    }
+    window.setTimeout(function () {
+        window.location.href = <?= $reload_url ?>;
+    }, wait);
+}
+document.querySelectorAll('.w3schools-overlay.tsugi-link-modal').forEach(function (overlay) {
+    overlay.addEventListener('click', function (event) {
+        if (event.target === overlay) {
+            tsugiCloseLinkModal(overlay.id);
+        }
+    });
+});
+</script>
+<?php
+    }
+    if ( $timer && ! $already && $visited ) {
 ?>
 <script>
 (function () {
@@ -247,6 +395,7 @@ if ( $timer && ! $already && $visited ) {
 })();
 </script>
 <?php
+    }
     $OUTPUT->footerEnd();
 } else {
     $OUTPUT->footer();
