@@ -39,6 +39,8 @@ if ( $stmt->success ) {
 }
 if ( is_object($PDOX) ) {
     echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
+    echo \Tsugi\Services\Admin\AdminService::clientConfigConflictNotice();
+    echo \Tsugi\Services\Admin\AdminService::keyDeploymentConflictNotice();
 }
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
