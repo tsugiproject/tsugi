@@ -91,9 +91,8 @@ will need different commands):
 to put in the appropriate values.  Make sure to change all the secrets.
 If you are just getting started turn on DEVELOPER mode so you can launch
 the tools easily.  Each of the fields is documented in the config-dist.php
-file - here is some additional documentation on the configuration values:
-
-    http://do1.dr-chuck.com/tsugi/phpdoc/classes/Tsugi.Config.ConfigInfo.html
+file.  The configuration reference is
+[Tsugi\Config\ConfigInfo](https://tsugiproject.github.io/tsugi/classes/Tsugi-Config-ConfigInfo.html).
 
 * Go to the main page, and click on "Admin" to make all the database
 tables - you will need the Admin password you just put into config.php.
@@ -154,7 +153,7 @@ You can view some of the developer documentation for the PHP version of Tsugi at
 
 * [Developer Documentation](docs/README.md)
 
-* [PHP API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
+* [PHP API Documentation](https://tsugiproject.github.io/tsugi/)
 
 ## Other Repositories
 

@@ -49,8 +49,9 @@ if ( $apphome ) {
 // $wwwroot = "https://fb610139.ngrok.io/tsugi";  // To test with ngrok
 
 // We store the configuration in a global object
-// Additional documentation on these fields is
-// available in that class or in the PHPDoc for that class
+// Additional documentation on these fields is in the docblocks
+// on Tsugi\Config\ConfigInfo.
+// https://tsugiproject.github.io/tsugi/classes/Tsugi-Config-ConfigInfo.html
 unset($CFG);
 global $CFG;
 $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);

@@ -1,0 +1,69 @@
+# Publishes lib/.out_phpdoc to https://tsugiproject.github.io/tsugi/
+
+name: PHP API docs
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: phpdoc-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          extensions: ctype, dom, iconv, mbstring, tokenizer, xml, xmlwriter
+
+      - name: Download phpDocumentor
+        run: |
+          # Not a Composer dependency. vendor/ is committed without dev packages.
+          curl -fsSL -o /tmp/phpDocumentor.phar \
+            https://github.com/phpDocumentor/phpDocumentor/releases/download/v3.10.0/phpDocumentor.phar
+          echo "fe1e7c23ba3329aa6f19ac3c807446159a431a195ec5d9163b0c281a15105207  /tmp/phpDocumentor.phar" | sha256sum -c -
+
+      - name: Generate API docs
+        working-directory: lib
+        run: |
+          php -d memory_limit=1G /tmp/phpDocumentor.phar run --force --no-progress --no-interaction
+          test -f .out_phpdoc/index.html
+          test -f .out_phpdoc/classes/Tsugi-Config-ConfigInfo.html
+
+      - name: Setup Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: lib/.out_phpdoc
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
