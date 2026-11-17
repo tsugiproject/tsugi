@@ -310,7 +310,7 @@ $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
 ksort($parms);
 
 // targets is not present or included "iframe"
-$iframeattr = "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\"";
+$iframeattr = "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" allow=\"fullscreen *\" allowfullscreen";
 
 // "targets" =>  array("window"),
 if ( isset($tool["targets"]) && is_array($tool["targets"]) && ! in_array("iframe", $tool["targets"]) ) {

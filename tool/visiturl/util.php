@@ -289,7 +289,7 @@ function visiturl_echo_modal($id, $title, $frame_src, $open_href) {
       <a class="tsugi-link-modal-open-new" href="<?= $open_href ?>" target="_blank" rel="noopener noreferrer"><?= $open_lbl ?></a>
       <button type="button" class="tsugi-overlay-close tsugi-link-modal-close" aria-label="Close" onclick="tsugiCloseLinkModal('<?= $id ?>');">×</button>
     </div>
-    <iframe class="tsugi-link-modal-frame lti_frameClose" title="<?= $title_esc ?>" data-src="<?= $frame_src ?>" src="about:blank"></iframe>
+    <iframe class="tsugi-link-modal-frame lti_frameClose" title="<?= $title_esc ?>" data-src="<?= $frame_src ?>" src="about:blank" allow="fullscreen *" allowfullscreen></iframe>
   </div>
 </div>
 <?php

@@ -333,7 +333,7 @@ if ( ! isset($parms['resource_link_title']) ) {
 
             ksort($parms);
             $content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']),
-                "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\"", false, $title);
+                "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" allow=\"fullscreen *\" allowfullscreen", false, $title);
             print($content);
             ?>
         </div>
