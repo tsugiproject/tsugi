@@ -3349,7 +3349,7 @@ $(function(){
       <a class="tsugi-link-modal-open-new" href="<?= $safe_href ?>" target="_blank" rel="noopener noreferrer"><?= $open_lbl ?></a>
       <button type="button" class="tsugi-overlay-close tsugi-link-modal-close" aria-label="Close" onclick="tsugiCloseLinkModal('<?= $id ?>');">×</button>
     </div>
-    <iframe class="tsugi-link-modal-frame lti_frameClose" title="<?= $title_esc ?>" data-src="<?= $safe_href ?>" src="about:blank"></iframe>
+    <iframe class="tsugi-link-modal-frame lti_frameClose" title="<?= $title_esc ?>" data-src="<?= $safe_href ?>" src="about:blank" allow="fullscreen *" allowfullscreen></iframe>
   </div>
 </div>
 <button type="button" class="<?= htmlspecialchars($css_class, ENT_QUOTES, 'UTF-8') ?> tsugi-video-play-btn" style="display: inline-flex; align-items: center;" onclick="tsugiOpenLinkModal('<?= $id ?>');">

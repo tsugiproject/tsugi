@@ -1182,6 +1182,8 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('tsugi-link-modal', $output);
         $this->assertStringContainsString('lti_frameClose', $output);
         $this->assertStringContainsString('data-src="http://example.com/modal"', $output);
+        $this->assertStringContainsString('allow="fullscreen *"', $output);
+        $this->assertStringContainsString('allowfullscreen', $output);
         $this->assertStringContainsString('tsugiOpenLinkModal', $output);
         $this->assertStringNotContainsString('target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link"', $output);
     }
