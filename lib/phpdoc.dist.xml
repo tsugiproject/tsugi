@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--  How to run this
-    rm -r .tmp_phpdoc .out_phpdoc
-    php phpDocumentor.phar -c phpdoc.dist.xml
-    rm -r .tmp_phpdoc
+<!--
+    Generate the API docs from this directory:
+
+        php phpDocumentor.phar run
+
+    phpDocumentor reads this file automatically. Output is .out_phpdoc/
+    and the cache is .tmp_phpdoc/. CI publishes .out_phpdoc/ to GitHub Pages.
 -->
-<phpdoc>
-  <parser>
-    <target>.tmp_phpdoc</target>
-  </parser>
-  <transformer>
-    <target>.out_phpdoc</target>
-  </transformer>
-  <files>
-    <directory>src</directory>
-    <ignore>mod/php-intro/lib/goutte/*</ignore>
-    <ignore>mod/php-intro/webauto*.php</ignore>
-  </files>
-    <transformations>
-        <template name="clean"/>
-        <!-- <template name="responsive-twig"/> -->
-    </transformations>
-</phpdoc>
+<phpdocumentor
+        configVersion="3"
+        xmlns="https://www.phpdoc.org"
+>
+    <title>Tsugi</title>
+    <paths>
+        <output>.out_phpdoc</output>
+        <cache>.tmp_phpdoc</cache>
+    </paths>
+    <version number="latest">
+        <api>
+            <source dsn=".">
+                <path>src</path>
+            </source>
+            <visibility>public</visibility>
+            <visibility>protected</visibility>
+            <visibility>private</visibility>
+            <include-source>true</include-source>
+        </api>
+    </version>
+</phpdocumentor>
