@@ -35,7 +35,7 @@ be pretty close to the tip of the main branch.
 
 But sometimes, folks want to "hold back" from upgrading for a while.  Perhaps they have an old
 version of PHP and can't run the latest.  It is risky to hold back too long.  But to help those
-running Tsugi that want to hold back, a series of versions / tags are maintained as "safe
+running Tsugi that want to hold back, a series of [versions / tags](https://github.com/tsugiproject/tsugi/releases) are maintained as "safe
 plateaus".  These tags are often snapped right before a significant upgrade or data model change
 and announced on the dev list.
 
