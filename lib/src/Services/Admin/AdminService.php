@@ -542,7 +542,8 @@ class AdminService {
 
     /**
      * Red warning for the admin console and the key list. Empty when every
-     * issuer, client id, and deployment id fits in varchar(255).
+     * issuer, client id, deployment id, context id, and resource link id
+     * fits in varchar(255).
      *
      * Same admin-only scan as the other Client ID Check notices.
      */
@@ -846,12 +847,14 @@ class AdminService {
     }
 
     /**
-     * Columns that store an issuer, a client id, or a deployment id as TEXT.
+     * TEXT columns that store an issuer, client id, deployment id, context id,
+     * or resource link id.
      *
      * These are the values a varchar(255) column would have to hold. Outbound
      * lti_tool_registration.lti13_client_id and lti_tool_deployment.deployment_id
      * are already varchar(255). lti_link is listed so a deployment column added
-     * later is included. It has none today.
+     * later is included. It has none today. A link's resource link id is
+     * link_key. lti_content keeps its own copy. cal_context keeps the course id.
      *
      * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool}>
      */
@@ -888,11 +891,36 @@ class AdminService {
                 'id_column' => 'link_id',
                 'via_context' => true,
             ),
+            array(
+                'table' => 'lti_context',
+                'column' => 'context_key',
+                'label' => 'Context id',
+                'id_column' => 'context_id',
+            ),
+            array(
+                'table' => 'cal_context',
+                'column' => 'context_key',
+                'label' => 'Context id',
+                'id_column' => 'context_id',
+            ),
+            array(
+                'table' => 'lti_link',
+                'column' => 'link_key',
+                'label' => 'Resource link id',
+                'id_column' => 'link_id',
+                'via_context' => true,
+            ),
+            array(
+                'table' => 'lti_content',
+                'column' => 'resource_link_id',
+                'label' => 'Resource link id',
+                'id_column' => 'content_id',
+            ),
         );
     }
 
     /**
-     * Issuer, client id, and deployment id values that do not fit in varchar(255).
+     * Identity values that do not fit in varchar(255).
      *
      * CHAR_LENGTH counts characters, which is the varchar limit. Blank values
      * are short, so they are absent. Deleted rows are included.

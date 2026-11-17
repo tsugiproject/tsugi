@@ -222,14 +222,18 @@ The page says, when this check is clean:
 ### Values longer than 255 characters
 
 No data change. Issuer, client id, and deployment id are `TEXT` on the key, and
-the context stores its own deployment id. A later `varchar(255)` column cannot
-hold a longer value. `CHAR_LENGTH` counts characters. A blank value is short, so
-it is not listed. Deleted rows are included.
+the context stores its own deployment id. Context id is `lti_context.context_key`
+and `cal_context.context_key`. Resource link id is `lti_link.link_key` and
+`lti_content.resource_link_id`. A later `varchar(255)` column cannot hold a
+longer value. `CHAR_LENGTH` counts characters. A blank value is short, so it is
+not listed. Deleted rows are included.
 
 The columns are `lti_key.lms_issuer`, `lti_key.lms_client`, `lti_key.deploy_key`,
-and `lti_context.lti13_deployment_id`. `lti_link` has no deployment id column.
-`lti_tool_registration.lti13_client_id` and `lti_tool_deployment.deployment_id`
-are already `varchar(255)`, so this check does not read them.
+`lti_context.lti13_deployment_id`, `lti_context.context_key`,
+`cal_context.context_key`, `lti_link.link_key`, and `lti_content.resource_link_id`.
+`lti_link` has no deployment id column. `lti_tool_registration.lti13_client_id`
+and `lti_tool_deployment.deployment_id` are already `varchar(255)`, so this check
+does not read them.
 
 The admin console and the tenant key list show a red banner when any value is
 longer than 255 characters. Admin → Client ID Check names the field, the key,
@@ -242,7 +246,7 @@ Value longer than 255: field=Issuer table=lti_key column=lms_issuer key_id=… r
 
 The page says, when this check is clean:
 
-> There are no issuer, client id, or deployment id values longer than 255 characters.
+> There are no issuer, client id, deployment id, context id, or resource link id values longer than 255 characters.
 
 ### What production said
 

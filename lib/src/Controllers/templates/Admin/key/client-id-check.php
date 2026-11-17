@@ -163,10 +163,11 @@ A blank value does not count. Links have no deployment id column.
 <h2>Longer than 255 characters</h2>
 <p>
 Issuer, client id, and deployment id are read from the key. Deployment id is also read from each context.
+Context id is read from each course, including the calendar copy. Resource link id is read from each link and each content row.
 A varchar(255) column cannot store a longer value. Outbound tool client ids and deployment ids are already varchar(255).
 </p>
 <?php if ( count($long_values) < 1 ) { ?>
-<p>There are no issuer, client id, or deployment id values longer than 255 characters.</p>
+<p>There are no issuer, client id, deployment id, context id, or resource link id values longer than 255 characters.</p>
 <?php } else {
     $value_word = count($long_values) === 1 ? 'value is' : 'values are';
 ?>
