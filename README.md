@@ -156,12 +156,8 @@ You can view some of the developer documentation for the PHP version of Tsugi at
 
 ## Other Repositories
 
-The Tsugi Administration Console and Tsugi Modules / Applications depend on two other
-repositories:
-
-* [Tsugi PHP Library](https://github.com/tsugiproject/tsugi-php) - This is the code for the
-Tsugi run-time used by the Tsugi administration console and Tsugi PHP Modules
-and Applications.
+The Tsugi Administration Console and Tsugi Modules / Applications depend on one other
+repository:
 
 * [Tsugi Static Content](https://github.com/tsugiproject/tsugi-static) - This repository contains
 JavaScript, images, and CSS files shared across the various Tsugi implementations
