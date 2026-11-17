@@ -170,31 +170,6 @@ https://static.tsugi.org/ - if you like you can check out your own copy
 of this repo locally or for your production environment and point your Tsugi `config.php`
 at your own copy of the library.
 
-## Other Languages
-
-There were some emergent efforts to port the core Tsugi code to Java and Node.  Partial implementations
-were built with the hopes that those interested in these languages would pick the code up, use it,
-and invest in those implementations.  This has not happened so those projects are deprecated
-until some resources show up.
-
-Going forward, there is an effort to increasingly move away from PHP and towards Python in a series of careful
-steps that won't break existing tools or servers.
-
-The first step is to build a way to develop and host Python-based tools and then being to build a 
-parallel version of the Tsugi core code and administration in Python.
-
-You can play with an early version of a [Tsugi Python Tool](https://www.tsugi.org/django_sakai.txt).
-
-While the PHP Implementation of Tsugi is the most well developed, there are additional
-Tsugi implementations being developed:
-
-* [Tsugi Java](https://github.com/tsugicontrib/tsugi-java-servlet) This is a reasonably complete
-implementation of the Tsugi run-time in Java.  It shares low level IMS libraries with
-Sakai and is ready for production use.
-
-* [Tsugi NodeJS](https://github.com/tsugicontrib/tsugi-node-sample) - This is early
-pre-emergent code and not under active development.
-
 ## Tsugi Developer List
 
 Please join the
