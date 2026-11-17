@@ -164,10 +164,12 @@ A blank value does not count. Links have no deployment id column.
 <p>
 Issuer, client id, and deployment id are read from the key. Deployment id is also read from each context.
 Context id is read from each course, including the calendar copy. Resource link id is read from each link and each content row.
-A varchar(255) column cannot store a longer value. Outbound tool client ids and deployment ids are already varchar(255).
+The LTI 1.1 consumer key and secret are read from the key, including a pending new secret and the calendar copy. A domain stores its own consumer key and secret. An outbound tool registration stores its own secret.
+A varchar(255) column cannot store a longer value. Outbound tool client ids, deployment ids, and LTI 1.1 consumer keys are already varchar(255).
+The start of a secret is not shown.
 </p>
 <?php if ( count($long_values) < 1 ) { ?>
-<p>There are no issuer, client id, deployment id, context id, or resource link id values longer than 255 characters.</p>
+<p>There are no issuer, client id, deployment id, context id, resource link id, consumer key, or secret values longer than 255 characters.</p>
 <?php } else {
     $value_word = count($long_values) === 1 ? 'value is' : 'values are';
 ?>
@@ -197,7 +199,7 @@ A varchar(255) column cannot store a longer value. Outbound tool client ids and 
   <td><?php if ( $key_id > 0 ) { ?><a href="<?= htmlentities($detail) ?>"><?= $key_id ?></a><?php } else { ?>0<?php } ?></td>
   <td><?= htmlentities($where) ?></td>
   <td><?= (int) U::get($long_row, 'length', 0) ?></td>
-  <td><?= htmlentities((string) U::get($long_row, 'sample', '')) ?></td>
+  <td><?php if ( ! empty($long_row['redacted']) ) { ?>(not shown)<?php } else { ?><?= htmlentities((string) U::get($long_row, 'sample', '')) ?><?php } ?></td>
 </tr>
 <?php } ?>
 </tbody>
