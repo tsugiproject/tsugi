@@ -150,6 +150,40 @@ class LTI13 {
     }
 
     /**
+     * Client id from an ID token aud claim.
+     *
+     * IMS Security Framework 1.0 allows aud to be one string or an array of
+     * strings. A string (Canvas) and a one-element array (Schoology) are the
+     * same client id. With several audiences, azp is the client id when it is
+     * one of those audiences. Otherwise there is no single client id to look up.
+     *
+     * @param mixed $aud aud claim
+     * @param mixed $azp optional azp claim
+     * @return string|null
+     */
+    public static function client_id_from_aud($aud, $azp = null) {
+        $audiences = array();
+        if ( is_string($aud) ) {
+            $aud = trim($aud);
+            if ( $aud !== '' ) $audiences[] = $aud;
+        } else if ( is_array($aud) ) {
+            foreach ( $aud as $one ) {
+                if ( ! is_string($one) ) continue;
+                $one = trim($one);
+                if ( $one !== '' ) $audiences[] = $one;
+            }
+        }
+        $audiences = array_values(array_unique($audiences));
+        if ( count($audiences) < 1 ) return null;
+        if ( count($audiences) === 1 ) return $audiences[0];
+
+        if ( ! is_string($azp) ) return null;
+        $azp = trim($azp);
+        if ( $azp === '' || ! in_array($azp, $audiences, true) ) return null;
+        return $azp;
+    }
+
+    /**
      * Print out the contents of the JWT
      *
      * @param object The parsed JWT object.
@@ -1416,7 +1450,10 @@ class LTI13 {
         $nonce =  $lj->nonce;
         $expires = $lj->exp;
         $issuer = $lj->iss;
-        $client_id = $lj->aud;
+        $client_id = self::client_id_from_aud(
+            isset($lj->aud) ? $lj->aud : null,
+            isset($lj->azp) ? $lj->azp : null
+        );
         $subject = $lj->sub;
         $deployment_id = $lj->{self::DEPLOYMENT_ID_CLAIM};
         if ( $nonce == null || $issuer == null || $expires == null ||

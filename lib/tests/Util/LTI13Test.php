@@ -171,5 +171,28 @@ EOF
         $this->assertNull($pub_key);
     }
 
+    public function testClientIdFromAud() {
+        $id = 'PM48OJSfGDTAzAo';
+        $this->assertSame($id, \Tsugi\Util\LTI13::client_id_from_aud($id));
+        $this->assertSame($id, \Tsugi\Util\LTI13::client_id_from_aud(array($id)));
+        $this->assertSame($id, \Tsugi\Util\LTI13::client_id_from_aud(array(' '.$id.' ')));
+        $this->assertSame($id, \Tsugi\Util\LTI13::client_id_from_aud(array($id, $id)));
+        $this->assertSame('client-a', \Tsugi\Util\LTI13::client_id_from_aud(array('client-a', 'client-b'), 'client-a'));
+        $this->assertSame('client-b', \Tsugi\Util\LTI13::client_id_from_aud(array('client-a', 'client-b'), 'client-b'));
+        $this->assertNull(\Tsugi\Util\LTI13::client_id_from_aud(array('client-a', 'client-b')));
+        $this->assertNull(\Tsugi\Util\LTI13::client_id_from_aud(array('client-a', 'client-b'), 'client-c'));
+        $this->assertNull(\Tsugi\Util\LTI13::client_id_from_aud(null));
+        $this->assertNull(\Tsugi\Util\LTI13::client_id_from_aud(array()));
+        $this->assertNull(\Tsugi\Util\LTI13::client_id_from_aud(array(1, 2)));
+    }
+
+    public function testTransitionBaseArrayAud() {
+        $lj = json_decode($this->test_jwt_str);
+        $lj->aud = array('PM48OJSfGDTAzAo');
+        $base = \Tsugi\Util\LTI13::getLTI11TransitionBase($lj);
+        $expected_base = "179248902&689302&https://lmsvendor.com&PM48OJSfGDTAzAo&1551290856&172we8671fd8z";
+        $this->assertEquals($base, $expected_base);
+    }
+
 
 }
