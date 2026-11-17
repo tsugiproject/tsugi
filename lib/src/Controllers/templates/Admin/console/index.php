@@ -42,6 +42,7 @@ if ( is_object($PDOX) ) {
     echo \Tsugi\Services\Admin\AdminService::clientConfigConflictNotice();
     echo \Tsugi\Services\Admin\AdminService::keyDeploymentConflictNotice();
     echo \Tsugi\Services\Admin\AdminService::valuesLongerThan255Notice();
+    echo \Tsugi\Services\Admin\AdminService::nonAsciiValuesNotice();
 }
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">

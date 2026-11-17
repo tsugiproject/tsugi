@@ -2864,6 +2864,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo(htmlentities($message)."<br/>\n");
     }
 
+    $non_ascii_rows = \Tsugi\Services\Admin\AdminService::nonAsciiValues();
+    foreach ( $non_ascii_rows as $non_ascii_row ) {
+        $message = 'Value outside ASCII: field='.\Tsugi\Util\U::get($non_ascii_row, 'label')
+            .' table='.\Tsugi\Util\U::get($non_ascii_row, 'table')
+            .' column='.\Tsugi\Util\U::get($non_ascii_row, 'column')
+            .' key_id='.\Tsugi\Util\U::get($non_ascii_row, 'key_id')
+            .' row_id='.\Tsugi\Util\U::get($non_ascii_row, 'row_id')
+            .' length='.\Tsugi\Util\U::get($non_ascii_row, 'length')
+            .' bytes='.\Tsugi\Util\U::get($non_ascii_row, 'bytes');
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 202611070000;

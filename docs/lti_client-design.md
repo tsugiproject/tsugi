@@ -256,6 +256,27 @@ The page says, when this check is clean:
 
 > There are no issuer, client id, deployment id, context id, resource link id, consumer key, or secret values longer than 255 characters.
 
+### Characters outside ASCII
+
+Same columns. No character set change. These columns are utf8, so a character
+outside ASCII makes `LENGTH` greater than `CHAR_LENGTH`. An `ascii` column,
+including `ascii_bin`, cannot store that character. A blank value is ASCII, so
+it is not listed. Deleted rows are included. A secret is reported by character
+length and byte length only.
+
+The admin console and the tenant key list show a red banner when any value
+contains a character outside ASCII. Admin → Client ID Check names the field,
+the key, the row, both lengths, and a short sample. Upgrade prints one line
+per value, with no secret text, and stays silent when every value is ASCII:
+
+```text
+Value outside ASCII: field=Issuer table=lti_key column=lms_issuer key_id=… row_id=… length=… bytes=…
+```
+
+The page says, when this check is clean:
+
+> There are no issuer, client id, deployment id, context id, resource link id, consumer key, or secret values with a character outside ASCII.
+
 ### What production said
 
 Both production hosts pulled `1bd332712` and ran upgrade. Every site that
