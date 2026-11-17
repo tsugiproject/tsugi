@@ -12,6 +12,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 $rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
 $groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
 $deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
+$long_values = \Tsugi\Services\Admin\AdminService::valuesLongerThan255();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -158,6 +159,48 @@ A blank value does not count. Links have no deployment id column.
 </tbody>
 </table>
 <?php } ?>
+<?php } ?>
+<h2>Longer than 255 characters</h2>
+<p>
+Issuer, client id, and deployment id are read from the key. Deployment id is also read from each context.
+A varchar(255) column cannot store a longer value. Outbound tool client ids and deployment ids are already varchar(255).
+</p>
+<?php if ( count($long_values) < 1 ) { ?>
+<p>There are no issuer, client id, or deployment id values longer than 255 characters.</p>
+<?php } else {
+    $value_word = count($long_values) === 1 ? 'value is' : 'values are';
+?>
+<div class="alert alert-danger" style="margin: 10px;">
+<p><?= count($long_values) ?> <?= $value_word ?> longer than 255 characters.</p>
+</div>
+<table class="table table-striped">
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Key</th>
+  <th>Row</th>
+  <th>Length</th>
+  <th>Starts with</th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ( $long_values as $long_row ) {
+    $key_id = (int) U::get($long_row, 'key_id', 0);
+    $row_id = (int) U::get($long_row, 'row_id', 0);
+    $table = (string) U::get($long_row, 'table', '');
+    $where = $table.' '.$row_id;
+    $detail = 'key-detail?key_id='.$key_id;
+?>
+<tr>
+  <td><?= htmlentities((string) U::get($long_row, 'label', '')) ?></td>
+  <td><?php if ( $key_id > 0 ) { ?><a href="<?= htmlentities($detail) ?>"><?= $key_id ?></a><?php } else { ?>0<?php } ?></td>
+  <td><?= htmlentities($where) ?></td>
+  <td><?= (int) U::get($long_row, 'length', 0) ?></td>
+  <td><?= htmlentities((string) U::get($long_row, 'sample', '')) ?></td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
 <?php } ?>
 <?php
 $OUTPUT->footer();
