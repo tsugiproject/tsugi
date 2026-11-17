@@ -542,7 +542,8 @@ class AdminService {
 
     /**
      * Red warning for the admin console and the key list. Empty when every
-     * issuer, client id, and deployment id fits in varchar(255).
+     * issuer, client id, deployment id, context id, resource link id,
+     * consumer key, and secret fits in varchar(255).
      *
      * Same admin-only scan as the other Client ID Check notices.
      */
@@ -846,14 +847,18 @@ class AdminService {
     }
 
     /**
-     * Columns that store an issuer, a client id, or a deployment id as TEXT.
+     * TEXT columns that store an issuer, client id, deployment id, context id,
+     * resource link id, LTI 1.1 consumer key, or secret.
      *
      * These are the values a varchar(255) column would have to hold. Outbound
-     * lti_tool_registration.lti13_client_id and lti_tool_deployment.deployment_id
-     * are already varchar(255). lti_link is listed so a deployment column added
-     * later is included. It has none today.
+     * lti_tool_registration.lti13_client_id, lti_tool_registration.lti11_key,
+     * and lti_tool_deployment.deployment_id are already varchar(255). lti_link
+     * is listed so a deployment column added later is included. It has none
+     * today. A link's resource link id is link_key. lti_content keeps its own
+     * copy. cal_context keeps the course id. A secret column is marked redact
+     * so the check can report its length without returning the secret.
      *
-     * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool}>
+     * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool, redact?:bool}>
      */
     private static function valuesLongerThan255Copies() {
         return array(
@@ -888,16 +893,87 @@ class AdminService {
                 'id_column' => 'link_id',
                 'via_context' => true,
             ),
+            array(
+                'table' => 'lti_context',
+                'column' => 'context_key',
+                'label' => 'Context id',
+                'id_column' => 'context_id',
+            ),
+            array(
+                'table' => 'cal_context',
+                'column' => 'context_key',
+                'label' => 'Context id',
+                'id_column' => 'context_id',
+            ),
+            array(
+                'table' => 'lti_link',
+                'column' => 'link_key',
+                'label' => 'Resource link id',
+                'id_column' => 'link_id',
+                'via_context' => true,
+            ),
+            array(
+                'table' => 'lti_content',
+                'column' => 'resource_link_id',
+                'label' => 'Resource link id',
+                'id_column' => 'content_id',
+            ),
+            array(
+                'table' => 'lti_key',
+                'column' => 'key_key',
+                'label' => 'Consumer key',
+                'id_column' => 'key_id',
+            ),
+            array(
+                'table' => 'lti_key',
+                'column' => 'secret',
+                'label' => 'Secret',
+                'id_column' => 'key_id',
+                'redact' => true,
+            ),
+            array(
+                'table' => 'lti_key',
+                'column' => 'new_secret',
+                'label' => 'New secret',
+                'id_column' => 'key_id',
+                'redact' => true,
+            ),
+            array(
+                'table' => 'cal_key',
+                'column' => 'key_key',
+                'label' => 'Consumer key',
+                'id_column' => 'key_id',
+            ),
+            array(
+                'table' => 'lti_domain',
+                'column' => 'consumer_key',
+                'label' => 'Consumer key',
+                'id_column' => 'domain_id',
+            ),
+            array(
+                'table' => 'lti_domain',
+                'column' => 'secret',
+                'label' => 'Secret',
+                'id_column' => 'domain_id',
+                'redact' => true,
+            ),
+            array(
+                'table' => 'lti_tool_registration',
+                'column' => 'lti11_secret',
+                'label' => 'Secret',
+                'id_column' => 'registration_id',
+                'redact' => true,
+            ),
         );
     }
 
     /**
-     * Issuer, client id, and deployment id values that do not fit in varchar(255).
+     * Identity values that do not fit in varchar(255).
      *
      * CHAR_LENGTH counts characters, which is the varchar limit. Blank values
      * are short, so they are absent. Deleted rows are included.
      *
-     * @return array<int, array{label:string, table:string, column:string, row_id:int, key_id:int, length:int, sample:string}>
+     * @return array<int, array{label:string, table:string, column:string, row_id:int, key_id:int, length:int, sample:string, redacted:bool}>
      */
     public static function valuesLongerThan255() {
         global $PDOX, $CFG;
@@ -924,17 +1000,19 @@ class AdminService {
             }
 
             $expr = 't.'.$copy['column'];
+            $redact = ! empty($copy['redact']);
             $key_sql = in_array('key_id', $names, true) ? 't.key_id' : '0';
             $join = '';
             if ( ! empty($copy['via_context']) ) {
                 $key_sql = 'ctx.key_id';
                 $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
             }
+            $sample_sql = $redact ? 'NULL AS sample_value' : "SUBSTRING({$expr}, 1, 80) AS sample_value";
             $rows = $PDOX->allRowsDie(
                 "SELECT {$key_sql} AS key_id,
                         t.{$copy['id_column']} AS row_id,
                         CHAR_LENGTH({$expr}) AS value_length,
-                        SUBSTRING({$expr}, 1, 80) AS sample_value
+                        {$sample_sql}
                     FROM {$table} AS t
                     {$join}
                     WHERE {$expr} IS NOT NULL
@@ -944,8 +1022,8 @@ class AdminService {
             if ( ! is_array($rows) ) continue;
             foreach ( $rows as $row ) {
                 $length = (int) U::get($row, 'value_length', 0);
-                $sample = (string) U::get($row, 'sample_value', '');
-                if ( $length > 80 ) $sample .= '...';
+                $sample = $redact ? '' : (string) U::get($row, 'sample_value', '');
+                if ( ! $redact && $length > 80 ) $sample .= '...';
                 $found[] = array(
                     'label' => $copy['label'],
                     'table' => $copy['table'],
@@ -954,6 +1032,7 @@ class AdminService {
                     'key_id' => (int) U::get($row, 'key_id', 0),
                     'length' => $length,
                     'sample' => $sample,
+                    'redacted' => $redact,
                 );
             }
         }
