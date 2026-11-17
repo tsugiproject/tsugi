@@ -2852,6 +2852,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo(htmlentities($message)."<br/>\n");
     }
 
+    $long_rows = \Tsugi\Services\Admin\AdminService::valuesLongerThan255();
+    foreach ( $long_rows as $long_row ) {
+        $message = 'Value longer than 255: field='.\Tsugi\Util\U::get($long_row, 'label')
+            .' table='.\Tsugi\Util\U::get($long_row, 'table')
+            .' column='.\Tsugi\Util\U::get($long_row, 'column')
+            .' key_id='.\Tsugi\Util\U::get($long_row, 'key_id')
+            .' row_id='.\Tsugi\Util\U::get($long_row, 'row_id')
+            .' length='.\Tsugi\Util\U::get($long_row, 'length');
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 202611070000;

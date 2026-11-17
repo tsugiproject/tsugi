@@ -541,6 +541,23 @@ class AdminService {
     }
 
     /**
+     * Red warning for the admin console and the key list. Empty when every
+     * issuer, client id, and deployment id fits in varchar(255).
+     *
+     * Same admin-only scan as the other Client ID Check notices.
+     */
+    public static function valuesLongerThan255Notice() {
+        $count = count(self::valuesLongerThan255());
+        if ( $count < 1 ) {
+            return '';
+        }
+        $verb = $count === 1 ? 'value is' : 'values are';
+        return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
+            .'<p>'.$count.' '.$verb.' longer than 255 characters.</p>'."\n"
+            ."</div>\n";
+    }
+
+    /**
      * URL columns that would move onto one client row for an issuer and client id.
      *
      * @return array<string, string> column => label
@@ -826,6 +843,127 @@ class AdminService {
             $groups[] = $group;
         }
         return $groups;
+    }
+
+    /**
+     * Columns that store an issuer, a client id, or a deployment id as TEXT.
+     *
+     * These are the values a varchar(255) column would have to hold. Outbound
+     * lti_tool_registration.lti13_client_id and lti_tool_deployment.deployment_id
+     * are already varchar(255). lti_link is listed so a deployment column added
+     * later is included. It has none today.
+     *
+     * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool}>
+     */
+    private static function valuesLongerThan255Copies() {
+        return array(
+            array(
+                'table' => 'lti_key',
+                'column' => 'lms_issuer',
+                'label' => 'Issuer',
+                'id_column' => 'key_id',
+            ),
+            array(
+                'table' => 'lti_key',
+                'column' => 'lms_client',
+                'label' => 'Client id',
+                'id_column' => 'key_id',
+            ),
+            array(
+                'table' => 'lti_key',
+                'column' => 'deploy_key',
+                'label' => 'Deployment id',
+                'id_column' => 'key_id',
+            ),
+            array(
+                'table' => 'lti_context',
+                'column' => 'lti13_deployment_id',
+                'label' => 'Deployment id',
+                'id_column' => 'context_id',
+            ),
+            array(
+                'table' => 'lti_link',
+                'column' => 'lti13_deployment_id',
+                'label' => 'Deployment id',
+                'id_column' => 'link_id',
+                'via_context' => true,
+            ),
+        );
+    }
+
+    /**
+     * Issuer, client id, and deployment id values that do not fit in varchar(255).
+     *
+     * CHAR_LENGTH counts characters, which is the varchar limit. Blank values
+     * are short, so they are absent. Deleted rows are included.
+     *
+     * @return array<int, array{label:string, table:string, column:string, row_id:int, key_id:int, length:int, sample:string}>
+     */
+    public static function valuesLongerThan255() {
+        global $PDOX, $CFG;
+
+        $empty = array();
+        if ( ! is_object($PDOX) ) {
+            return $empty;
+        }
+        $prefix = $CFG->dbprefix;
+        $found = array();
+        foreach ( self::valuesLongerThan255Copies() as $copy ) {
+            $table = "{$prefix}{$copy['table']}";
+            $described = $PDOX->describe($table);
+            if ( ! is_array($described) ) continue;
+            $names = array();
+            foreach ( $described as $column ) {
+                if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+            }
+            if ( ! in_array($copy['column'], $names, true) || ! in_array($copy['id_column'], $names, true) ) {
+                continue;
+            }
+            if ( ! empty($copy['via_context']) && ! in_array('context_id', $names, true) ) {
+                continue;
+            }
+
+            $expr = 't.'.$copy['column'];
+            $key_sql = in_array('key_id', $names, true) ? 't.key_id' : '0';
+            $join = '';
+            if ( ! empty($copy['via_context']) ) {
+                $key_sql = 'ctx.key_id';
+                $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
+            }
+            $rows = $PDOX->allRowsDie(
+                "SELECT {$key_sql} AS key_id,
+                        t.{$copy['id_column']} AS row_id,
+                        CHAR_LENGTH({$expr}) AS value_length,
+                        SUBSTRING({$expr}, 1, 80) AS sample_value
+                    FROM {$table} AS t
+                    {$join}
+                    WHERE {$expr} IS NOT NULL
+                        AND CHAR_LENGTH({$expr}) > 255
+                    ORDER BY CHAR_LENGTH({$expr}) DESC, t.{$copy['id_column']}"
+            );
+            if ( ! is_array($rows) ) continue;
+            foreach ( $rows as $row ) {
+                $length = (int) U::get($row, 'value_length', 0);
+                $sample = (string) U::get($row, 'sample_value', '');
+                if ( $length > 80 ) $sample .= '...';
+                $found[] = array(
+                    'label' => $copy['label'],
+                    'table' => $copy['table'],
+                    'column' => $copy['column'],
+                    'row_id' => (int) U::get($row, 'row_id', 0),
+                    'key_id' => (int) U::get($row, 'key_id', 0),
+                    'length' => $length,
+                    'sample' => $sample,
+                );
+            }
+        }
+
+        usort($found, function ($a, $b) {
+            if ( $a['length'] !== $b['length'] ) return $b['length'] - $a['length'];
+            if ( $a['key_id'] !== $b['key_id'] ) return $a['key_id'] - $b['key_id'];
+            return $a['row_id'] - $b['row_id'];
+        });
+        return $found;
     }
 
     /**

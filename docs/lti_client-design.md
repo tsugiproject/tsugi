@@ -219,6 +219,31 @@ The page says, when this check is clean:
 
 > There are no keys with more than one deployment id.
 
+### Values longer than 255 characters
+
+No data change. Issuer, client id, and deployment id are `TEXT` on the key, and
+the context stores its own deployment id. A later `varchar(255)` column cannot
+hold a longer value. `CHAR_LENGTH` counts characters. A blank value is short, so
+it is not listed. Deleted rows are included.
+
+The columns are `lti_key.lms_issuer`, `lti_key.lms_client`, `lti_key.deploy_key`,
+and `lti_context.lti13_deployment_id`. `lti_link` has no deployment id column.
+`lti_tool_registration.lti13_client_id` and `lti_tool_deployment.deployment_id`
+are already `varchar(255)`, so this check does not read them.
+
+The admin console and the tenant key list show a red banner when any value is
+longer than 255 characters. Admin → Client ID Check names the field, the key,
+the row, the length, and the first 80 characters. Upgrade prints one line per
+value and stays silent when every value fits:
+
+```text
+Value longer than 255: field=Issuer table=lti_key column=lms_issuer key_id=… row_id=… length=…
+```
+
+The page says, when this check is clean:
+
+> There are no issuer, client id, or deployment id values longer than 255 characters.
+
 ### What production said
 
 Both production hosts pulled `1bd332712` and ran upgrade. Every site that
@@ -276,9 +301,9 @@ of the URL columns on the key.
 
 | File | Role |
 |------|------|
-| `lib/src/Services/Admin/AdminService.php` | `clientConfigColumns()`, `clientConfigConflictGroups()`, `keyDeploymentConflictGroups()`, and the existing duplicate-identity queries |
-| `lib/src/Controllers/templates/Admin/key/client-id-check.php` | Admin page for the three checks |
-| `lib/src/Services/Lti/database.php` | Upgrade notices for the three checks. `lti_key` schema. No `lti_client` table yet |
+| `lib/src/Services/Admin/AdminService.php` | `clientConfigColumns()`, `clientConfigConflictGroups()`, `keyDeploymentConflictGroups()`, `valuesLongerThan255()`, and the existing duplicate-identity queries |
+| `lib/src/Controllers/templates/Admin/key/client-id-check.php` | Admin page for the four checks |
+| `lib/src/Services/Lti/database.php` | Upgrade notices for the four checks. `lti_key` schema. No `lti_client` table yet |
 | `lib/src/Core/LTIX.php` | Launch lookup by issuer and client id, lowest `key_id` |
 | `lti/oidc_login.php` | Login by `key_id` in the URL |
 | `lib/src/Services/Settings/DynamicRegistration.php` | Writes issuer, client id, URLs, and an optional deployment onto the draft key |
