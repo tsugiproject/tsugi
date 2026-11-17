@@ -221,6 +221,8 @@ The page says, when this check is clean:
 
 ### Values longer than 255 characters
 
+The plan for narrowing these columns is [identity-varchar.md](identity-varchar.md).
+
 No data change. Issuer, client id, and deployment id are `TEXT` on the key, and
 the context stores its own deployment id. Context id is `lti_context.context_key`
 and `cal_context.context_key`. Resource link id is `lti_link.link_key` and
