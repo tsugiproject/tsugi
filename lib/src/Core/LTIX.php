@@ -976,7 +976,10 @@ class LTIX {
         $retval = array();
         $retval['issuer_key'] = $issuer_key;
         $retval['issuer_sha256'] = $issuer_sha256;
-        $retval['issuer_client'] = $jwt->body->aud;
+        $retval['issuer_client'] = LTI13::client_id_from_aud(
+            isset($body->aud) ? $body->aud : null,
+            isset($body->azp) ? $body->azp : null
+        );
         if ( isset($body->nonce) ) $retval['nonce'] = $body->nonce;
 
         // Don't set user_id for LTI 1.3
@@ -1023,6 +1026,7 @@ class LTIX {
         LTI13::jonPostel($body, $failures);
 
         if ( ! U::get($retval,'issuer_key') ) $failures[] = "Could not deterimine key issuer_from iss/aud";
+        if ( U::isEmpty(U::get($retval,'issuer_client')) ) $failures[] = "Could not determine client_id from aud";
         if ( ! U::get($retval,'nonce') ) $failures[] = "Missing nonce";
         if ( in_array(self::USER, $needed) &&
             ! ( U::get($retval,'user_id') || U::get($retval,'user_subject')) ) $failures[] = "Missing subject/user_id (sub)";
