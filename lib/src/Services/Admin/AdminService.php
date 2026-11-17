@@ -559,6 +559,23 @@ class AdminService {
     }
 
     /**
+     * Red warning for the admin console and the key list. Empty when every
+     * checked identifier is ASCII.
+     *
+     * Same columns and same admin-only scan as the varchar(255) length notice.
+     */
+    public static function nonAsciiValuesNotice() {
+        $count = count(self::nonAsciiValues());
+        if ( $count < 1 ) {
+            return '';
+        }
+        $verb = $count === 1 ? 'value contains' : 'values contain';
+        return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
+            .'<p>'.$count.' '.$verb.' a character outside ASCII.</p>'."\n"
+            ."</div>\n";
+    }
+
+    /**
      * URL columns that would move onto one client row for an issuer and client id.
      *
      * @return array<string, string> column => label
@@ -850,13 +867,15 @@ class AdminService {
      * TEXT columns that store an issuer, client id, deployment id, context id,
      * resource link id, LTI 1.1 consumer key, or secret.
      *
-     * These are the values a varchar(255) column would have to hold. Outbound
+     * These are the values a varchar(255) column would have to hold, and the
+     * values an ascii column would have to hold. The length check and the
+     * non-ASCII check both read this list. Outbound
      * lti_tool_registration.lti13_client_id, lti_tool_registration.lti11_key,
      * and lti_tool_deployment.deployment_id are already varchar(255). lti_link
      * is listed so a deployment column added later is included. It has none
      * today. A link's resource link id is link_key. lti_content keeps its own
      * copy. cal_context keeps the course id. A secret column is marked redact
-     * so the check can report its length without returning the secret.
+     * so a check can report the row without returning the secret.
      *
      * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool, redact?:bool}>
      */
@@ -1043,6 +1062,116 @@ class AdminService {
             return $a['row_id'] - $b['row_id'];
         });
         return $found;
+    }
+
+    /**
+     * Identity values that contain a character outside ASCII.
+     *
+     * These columns are utf8, so a character outside ASCII is more than one
+     * byte. LENGTH counts bytes and CHAR_LENGTH counts characters. An ascii
+     * column, including ascii_bin, cannot store that character. Blank values
+     * are ASCII, so they are absent. Deleted rows are included. A secret is
+     * reported by its lengths only.
+     *
+     * @return array<int, array{label:string, table:string, column:string, row_id:int, key_id:int, length:int, bytes:int, sample:string, redacted:bool}>
+     */
+    public static function nonAsciiValues() {
+        global $PDOX, $CFG;
+
+        $empty = array();
+        if ( ! is_object($PDOX) ) {
+            return $empty;
+        }
+        $prefix = $CFG->dbprefix;
+        $found = array();
+        foreach ( self::valuesLongerThan255Copies() as $copy ) {
+            $table = "{$prefix}{$copy['table']}";
+            $described = $PDOX->describe($table);
+            if ( ! is_array($described) ) continue;
+            $names = array();
+            foreach ( $described as $column ) {
+                if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+            }
+            if ( ! in_array($copy['column'], $names, true) || ! in_array($copy['id_column'], $names, true) ) {
+                continue;
+            }
+            if ( ! empty($copy['via_context']) && ! in_array('context_id', $names, true) ) {
+                continue;
+            }
+
+            $expr = 't.'.$copy['column'];
+            $redact = ! empty($copy['redact']);
+            $key_sql = in_array('key_id', $names, true) ? 't.key_id' : '0';
+            $join = '';
+            if ( ! empty($copy['via_context']) ) {
+                $key_sql = 'ctx.key_id';
+                $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
+            }
+            $sample_sql = $redact ? 'NULL AS sample_value' : "SUBSTRING({$expr}, 1, 255) AS sample_value";
+            $rows = $PDOX->allRowsDie(
+                "SELECT {$key_sql} AS key_id,
+                        t.{$copy['id_column']} AS row_id,
+                        CHAR_LENGTH({$expr}) AS value_length,
+                        LENGTH({$expr}) AS value_bytes,
+                        {$sample_sql}
+                    FROM {$table} AS t
+                    {$join}
+                    WHERE {$expr} IS NOT NULL
+                        AND CHAR_LENGTH({$expr}) <> LENGTH({$expr})
+                    ORDER BY LENGTH({$expr}) DESC, t.{$copy['id_column']}"
+            );
+            if ( ! is_array($rows) ) continue;
+            foreach ( $rows as $row ) {
+                $length = (int) U::get($row, 'value_length', 0);
+                $bytes = (int) U::get($row, 'value_bytes', 0);
+                $sample = '';
+                if ( ! $redact ) {
+                    $raw = (string) U::get($row, 'sample_value', '');
+                    $sample = self::nonAsciiSample($raw, $length > 255);
+                }
+                $found[] = array(
+                    'label' => $copy['label'],
+                    'table' => $copy['table'],
+                    'column' => $copy['column'],
+                    'row_id' => (int) U::get($row, 'row_id', 0),
+                    'key_id' => (int) U::get($row, 'key_id', 0),
+                    'length' => $length,
+                    'bytes' => $bytes,
+                    'sample' => $sample,
+                    'redacted' => $redact,
+                );
+            }
+        }
+
+        usort($found, function ($a, $b) {
+            if ( $a['bytes'] !== $b['bytes'] ) return $b['bytes'] - $a['bytes'];
+            if ( $a['key_id'] !== $b['key_id'] ) return $a['key_id'] - $b['key_id'];
+            return $a['row_id'] - $b['row_id'];
+        });
+        return $found;
+    }
+
+    /**
+     * A short window of a non-secret value, centered on the first character
+     * outside ASCII when that character is in the fetched prefix.
+     */
+    private static function nonAsciiSample($raw, $truncated) {
+        $raw = (string) $raw;
+        $at_byte = null;
+        if ( $raw !== '' && preg_match('/[^\x00-\x7F]/u', $raw, $match, PREG_OFFSET_CAPTURE) ) {
+            $at_byte = $match[0][1];
+        }
+        if ( $at_byte === null ) {
+            $sample = mb_substr($raw, 0, 80);
+            if ( $truncated || mb_strlen($raw) > 80 ) $sample .= '...';
+            return $sample;
+        }
+        $char_at = mb_strlen(substr($raw, 0, $at_byte));
+        $start = max(0, $char_at - 20);
+        $sample = mb_substr($raw, $start, 60);
+        if ( $start > 0 ) $sample = '...'.$sample;
+        if ( $truncated || mb_strlen($raw) > $start + 60 ) $sample .= '...';
+        return $sample;
     }
 
     /**

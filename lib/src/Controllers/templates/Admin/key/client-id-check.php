@@ -13,6 +13,7 @@ $rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
 $groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
 $deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
 $long_values = \Tsugi\Services\Admin\AdminService::valuesLongerThan255();
+$non_ascii_values = \Tsugi\Services\Admin\AdminService::nonAsciiValues();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -200,6 +201,51 @@ The start of a secret is not shown.
   <td><?= htmlentities($where) ?></td>
   <td><?= (int) U::get($long_row, 'length', 0) ?></td>
   <td><?php if ( ! empty($long_row['redacted']) ) { ?>(not shown)<?php } else { ?><?= htmlentities((string) U::get($long_row, 'sample', '')) ?><?php } ?></td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
+<?php } ?>
+<h2>Characters outside ASCII</h2>
+<p>
+Same columns as the length check. These columns are utf8, so a character outside ASCII takes more than one byte.
+An ascii column, including ascii_bin, cannot store that character. A blank value is ASCII.
+The start of a secret is not shown.
+</p>
+<?php if ( count($non_ascii_values) < 1 ) { ?>
+<p>There are no issuer, client id, deployment id, context id, resource link id, consumer key, or secret values with a character outside ASCII.</p>
+<?php } else {
+    $ascii_word = count($non_ascii_values) === 1 ? 'value contains' : 'values contain';
+?>
+<div class="alert alert-danger" style="margin: 10px;">
+<p><?= count($non_ascii_values) ?> <?= $ascii_word ?> a character outside ASCII.</p>
+</div>
+<table class="table table-striped">
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Key</th>
+  <th>Row</th>
+  <th>Characters</th>
+  <th>Bytes</th>
+  <th>Sample</th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ( $non_ascii_values as $ascii_row ) {
+    $key_id = (int) U::get($ascii_row, 'key_id', 0);
+    $row_id = (int) U::get($ascii_row, 'row_id', 0);
+    $table = (string) U::get($ascii_row, 'table', '');
+    $where = $table.' '.$row_id;
+    $detail = 'key-detail?key_id='.$key_id;
+?>
+<tr>
+  <td><?= htmlentities((string) U::get($ascii_row, 'label', '')) ?></td>
+  <td><?php if ( $key_id > 0 ) { ?><a href="<?= htmlentities($detail) ?>"><?= $key_id ?></a><?php } else { ?>0<?php } ?></td>
+  <td><?= htmlentities($where) ?></td>
+  <td><?= (int) U::get($ascii_row, 'length', 0) ?></td>
+  <td><?= (int) U::get($ascii_row, 'bytes', 0) ?></td>
+  <td><?php if ( ! empty($ascii_row['redacted']) ) { ?>(not shown)<?php } else { ?><?= htmlentities((string) U::get($ascii_row, 'sample', '')) ?><?php } ?></td>
 </tr>
 <?php } ?>
 </tbody>

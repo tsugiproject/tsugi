@@ -146,3 +146,24 @@ production hosts ran that upgrade. Every site that finished printed no
 "Value longer than 255" line. Context id, resource link id, consumer key, and
 secret shipped in #375. Those columns have not been read from production yet.
 
+## Characters outside ASCII
+
+Same columns as the length check. No character set has changed.
+
+These columns are utf8. A character outside ASCII takes more than one byte, so
+`LENGTH` is greater than `CHAR_LENGTH`. An `ascii` column cannot store that
+character. `ascii_bin` would keep case distinct if these identifiers move to
+`ascii`. A blank value is one byte per character, so it is absent. Deleted rows
+are included. A missing column is skipped.
+
+Admin → Client ID Check lists the field, the key, the row, the character
+length, the byte length, and a short sample around the first character outside
+ASCII. A secret is reported by its lengths only. The page says "(not shown)"
+and the query does not select the secret text. The admin console and the tenant
+key list show a red banner when any value contains a character outside ASCII.
+Upgrade prints one line per value and stays silent when every value is ASCII:
+
+```text
+Value outside ASCII: field=Issuer table=lti_key column=lms_issuer key_id=… row_id=… length=… bytes=…
+```
+
