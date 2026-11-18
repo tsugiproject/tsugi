@@ -203,10 +203,28 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Authorization: Bearer [redacted]', $report);
         $this->assertStringNotContainsString('secret-token', $report);
         $this->assertStringNotContainsString('initiate_login_uri', $report);
+        $this->assertStringContainsString("cURL error:\n(none)", $report);
         $this->assertSame(
             'https://canvas.example/config?registration_token=[redacted]&x=1',
             DynamicRegistration::redactSecrets('https://canvas.example/config?registration_token=eyJsecret&x=1')
         );
+    }
+
+    public function testFailureReportRedactsTokensBeforeTruncation(): void
+    {
+        $report = DynamicRegistration::registrationFailureReport(
+            500,
+            str_repeat('a', 2500).' registration_token=body-secret-value',
+            "HTTP/1.1 500\r\nAuthorization: Bearer header-secret\r\n",
+            'Failed registration_token=curl-secret-value'
+        );
+
+        $this->assertStringContainsString('registration_token=[redacted]', $report);
+        $this->assertStringContainsString('Authorization: Bearer [redacted]', $report);
+        $this->assertStringNotContainsString('body-secret-value', $report);
+        $this->assertStringNotContainsString('header-secret', $report);
+        $this->assertStringNotContainsString('curl-secret-value', $report);
+        $this->assertStringNotContainsString('curl-secret-value', substr($report, 0, 2000));
     }
 
     public function testCanvasDeploymentIdIsOnTheResponse(): void

@@ -309,34 +309,18 @@ class DynamicRegistration {
         $response_code = Net::getLastHttpResponse();
 
         if ( $response_code != 200 && $response_code != 201 ) {
-            $curl_err = Net::getLastCurlError();
-            $headers_recvd = (string) Net::getLastHeadersReceived();
-
-            $escape = static function ($s) {
-                return htmlentities((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            };
-
-            error_log(sprintf(
-                'LTI13: dynamic registration failed: HTTP %s; curl=%s; headers=%s; body=%s',
+            // Redact the whole LMS response before the log truncates it.
+            $report = self::registrationFailureReport(
                 $response_code,
-                $curl_err === false ? '(none)' : substr($curl_err, 0, 500),
-                substr($headers_recvd, 0, 500),
-                is_string($response) ? substr($response, 0, 2000) : ''
-            ));
+                is_string($response) ? $response : '',
+                Net::getLastHeadersReceived(),
+                Net::getLastCurlError()
+            );
+
+            error_log('LTI13: dynamic registration failed: '.substr($report, 0, 2000));
 
             echo("<pre>\n");
-
-            echo "HTTP response code: ", $escape($response_code), "\n\n";
-
-            echo "cURL error:\n";
-            echo $curl_err === false ? "(none)\n\n" : $escape($curl_err) . "\n\n";
-
-            echo "Response headers:\n";
-            echo $escape($headers_recvd), "\n\n";
-
-            echo "Response body:\n";
-            echo $escape(is_string($response) ? substr($response, 0, 10000) : ''), "\n";
-
+            echo(htmlentities($report, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
             echo("</pre>\n");
             echo("<p>The one-time unlock code is still set, so you can try this registration again.</p>\n");
             return '';
@@ -476,13 +460,19 @@ class DynamicRegistration {
     /**
      * Text for a failed registration POST. The body is the LMS response.
      *
+     * Secrets are removed from the cURL error, headers, and body before any
+     * truncation, so a cut cannot leave a token behind without its marker.
+     *
      * @param mixed $status
      * @param mixed $body
      * @param mixed $headers
+     * @param mixed $curl_error
      * @return string
      */
-    public static function registrationFailureReport($status, $body, $headers) {
-        $report = "Http response code: ".(string) $status."\n\n";
+    public static function registrationFailureReport($status, $body, $headers, $curl_error = false) {
+        $curl_text = (is_string($curl_error) && $curl_error !== '') ? self::redactSecrets($curl_error) : '(none)';
+        $report = "cURL error:\n".$curl_text."\n\n";
+        $report .= "Http response code: ".(string) $status."\n\n";
         $report .= "Response headers:\n";
         $header_text = is_string($headers) ? trim(self::redactSecrets($headers)) : '';
         $report .= ($header_text === '' ? "(none)" : $header_text)."\n\n";
