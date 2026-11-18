@@ -126,9 +126,9 @@ class Net {
      *
      *     $CFG->setExtension('user_agent', 'MyTool/1.0 Tsugi/25.05');
      *
-     * The default looks like this:
+     * The default looks like this, using TSUGI_VERSION from setup.php:
      *
-     *     Tsugi/2025.12 (https://www.py4e.com/tsugi) PHP/8.4.1
+     *     Tsugi/26.11.5 (https://www.py4e.com/tsugi) PHP/8.4.1
      *
      * @return string
      */
