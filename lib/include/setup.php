@@ -177,7 +177,8 @@ $CONTEXT = false;
 $LINK = false;
 
 if (!defined('TSUGI_VERSION')) {
-    define('TSUGI_VERSION', '2025.12');   // ← update this occasionally
+    // Newest release tag. qa/pre-commit-version.sh rewrites this before each commit.
+    define('TSUGI_VERSION', '26.11.5');
 }
 
 if (!defined('TSUGI_MINIMUM_PHP')) {
