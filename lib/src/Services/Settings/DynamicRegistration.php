@@ -100,26 +100,42 @@ class DynamicRegistration {
         ];
 
         $missing = [];
+        $not_string = [];
         $invalid = [];
+        $insecure = [];
         $values  = [];
         foreach ($required_fields as $field) {
-            $set_and_string = (isset($platform_configuration->$field) && is_string($platform_configuration->$field));
-            $value = $set_and_string ? trim($platform_configuration->$field) : '';
-
-            if ($value === '') {
+            if ( ! isset($platform_configuration->$field) ) {
                 $missing[] = $field;
                 continue;
-            } elseif (!filter_var($value, FILTER_VALIDATE_URL)) {
+            }
+            if ( ! is_string($platform_configuration->$field) ) {
+                $not_string[] = $field;
+                continue;
+            }
+            $value = trim($platform_configuration->$field);
+            if ( $value === '' ) {
+                $missing[] = $field;
+                continue;
+            }
+            if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
                 $invalid[] = $field;
+                continue;
+            }
+            // The bearer token is sent to this URL. http is only for a local LMS.
+            if ( $field === 'registration_endpoint' && ! self::allowsRegistrationEndpoint($value) ) {
+                $insecure[] = $field;
                 continue;
             }
             $values[$field] = $value;
         }
 
-        if ($missing || $invalid) {
+        if ( $missing || $not_string || $invalid || $insecure ) {
             $problems = [];
-            if ($missing) { $problems[] = 'missing or empty: ' . implode(', ', $missing); }
-            if ($invalid) { $problems[] = 'not a valid URL: '  . implode(', ', $invalid); }
+            if ( $missing ) { $problems[] = 'missing or empty: ' . implode(', ', $missing); }
+            if ( $not_string ) { $problems[] = 'must be a URL string: ' . implode(', ', $not_string); }
+            if ( $invalid ) { $problems[] = 'not a valid URL: ' . implode(', ', $invalid); }
+            if ( $insecure ) { $problems[] = 'must use https (http is allowed only for localhost and loopback): ' . implode(', ', $insecure); }
 
             error_log('Dynamic registration: OpenID configuration field(s) ' . implode('; ', $problems));
 
@@ -181,14 +197,10 @@ class DynamicRegistration {
         }
 
         if ( empty($tool_domain) ) {
-            error_log('LTI13: unable to determine tool registration domain (apphome=' .
-                var_export($CFG->apphome ?? null, true) . ', wwwroot=' .
-                var_export($CFG->wwwroot ?? null, true) . ')');
+            error_log('LTI13: unable to determine tool registration domain from apphome or wwwroot');
 
             echo("<pre>\n");
-            echo "Unable to determine LTI tool registration domain.\n";
-            echo 'apphome: ', htmlentities(var_export($CFG->apphome ?? null, true)), "\n";
-            echo 'wwwroot: ', htmlentities(var_export($CFG->wwwroot ?? null, true)), "\n";
+            echo "Unable to determine LTI tool registration domain from apphome or wwwroot.\n";
             echo("</pre>\n");
             return '';
         }
@@ -307,14 +319,18 @@ class DynamicRegistration {
         $response = Net::doBody($url, $method, $body, $header);
 
         $response_code = Net::getLastHttpResponse();
+        $curl_error = Net::getLastCurlError();
+        $transfer_failed = is_string($curl_error) && $curl_error !== '';
 
-        if ( $response_code != 200 && $response_code != 201 ) {
+        // A dropped connection can still leave a 201 in the status line.
+        if ( $transfer_failed || ( $response_code != 200 && $response_code != 201 ) ) {
             // Redact the whole LMS response before the log truncates it.
             $report = self::registrationFailureReport(
                 $response_code,
                 is_string($response) ? $response : '',
                 Net::getLastHeadersReceived(),
-                Net::getLastCurlError()
+                $curl_error,
+                $registration_token
             );
 
             error_log('LTI13: dynamic registration failed: '.substr($report, 0, 2000));
@@ -322,22 +338,26 @@ class DynamicRegistration {
             echo("<pre>\n");
             echo(htmlentities($report, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
             echo("</pre>\n");
+            if ( $transfer_failed && ( $response_code == 200 || $response_code == 201 ) ) {
+                echo("<p>The LMS returned a success status but the response did not finish transferring. Check the LMS before trying again. It may already have created the client.</p>\n");
+            }
             echo("<p>The one-time unlock code is still set, so you can try this registration again.</p>\n");
             return '';
         }
 
         $resp = is_string($response) ? json_decode($response) : null;
-        $OUTPUT->togglePre("Registration response from LMS", self::prettyJson($response));
+        $shown_response = self::redactSecrets(is_string($response) ? $response : '', $registration_token);
+        $OUTPUT->togglePre("Registration response from LMS", self::prettyJson($shown_response));
         if ( ! $resp || ! is_object($resp) ) {
             echo("Unable to parse JSON retrieved from:\n".htmlentities($registration_endpoint)."\n\n");
-            echo(htmlentities($response));
+            echo(htmlentities(self::redactSecrets(is_string($response) ? $response : '', $registration_token)));
             echo("</pre>\n");
             return '';
         }
 
         if ( !isset($resp->client_id) ) {
             echo("Did not find client_id in response\n");
-            echo htmlentities(print_r($resp, true), ENT_QUOTES, 'UTF-8');
+            echo htmlentities(self::redactSecrets(print_r($resp, true), $registration_token), ENT_QUOTES, 'UTF-8');
             echo("</pre>\n");
             return '';
         }
@@ -467,17 +487,18 @@ class DynamicRegistration {
      * @param mixed $body
      * @param mixed $headers
      * @param mixed $curl_error
+     * @param mixed $token Registration token to remove wherever the LMS echoed it
      * @return string
      */
-    public static function registrationFailureReport($status, $body, $headers, $curl_error = false) {
-        $curl_text = (is_string($curl_error) && $curl_error !== '') ? self::redactSecrets($curl_error) : '(none)';
+    public static function registrationFailureReport($status, $body, $headers, $curl_error = false, $token = null) {
+        $curl_text = (is_string($curl_error) && $curl_error !== '') ? self::redactSecrets($curl_error, $token) : '(none)';
         $report = "cURL error:\n".$curl_text."\n\n";
         $report .= "Http response code: ".(string) $status."\n\n";
         $report .= "Response headers:\n";
-        $header_text = is_string($headers) ? trim(self::redactSecrets($headers)) : '';
+        $header_text = is_string($headers) ? trim(self::redactSecrets($headers, $token)) : '';
         $report .= ($header_text === '' ? "(none)" : $header_text)."\n\n";
         $report .= "Response body:\n";
-        $shown = is_string($body) ? self::prettyJson(self::redactSecrets($body)) : '';
+        $shown = is_string($body) ? self::prettyJson(self::redactSecrets($body, $token)) : '';
         if ( ! is_string($shown) || $shown === '' ) {
             $report .= "(empty)\n";
         } else {
@@ -492,17 +513,53 @@ class DynamicRegistration {
     }
 
     /**
+     * The registration POST carries the bearer token.
+     *
+     * https is required. http is allowed only when the host is localhost,
+     * 127.0.0.1, or ::1, so a local LMS can still be registered.
+     *
+     * @param string $url
+     * @return bool
+     */
+    public static function allowsRegistrationEndpoint($url) {
+        if ( ! is_string($url) || $url === '' ) {
+            return false;
+        }
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if ( $scheme === 'https' ) {
+            return true;
+        }
+        if ( $scheme !== 'http' ) {
+            return false;
+        }
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $host = trim($host, '[]');
+        return $host === 'localhost' || $host === '127.0.0.1' || $host === '::1';
+    }
+
+    /**
      * Hide a registration token or bearer token in text shown to the browser.
      *
+     * The known token is removed first, before any caller truncates the text.
+     * A token shorter than 8 characters is left alone so a tiny value cannot
+     * wipe ordinary words out of the error.
+     *
      * @param mixed $text
+     * @param mixed $token
      * @return string
      */
-    public static function redactSecrets($text) {
+    public static function redactSecrets($text, $token = null) {
         if ( ! is_string($text) || $text === '' ) {
             return '';
         }
+        if ( is_string($token) && strlen($token) >= 8 && strpos($text, $token) !== false ) {
+            $text = str_replace($token, '[redacted]', $text);
+        }
         $text = preg_replace('/(registration_token=)[^&\s]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/("registration_token"\s*:\s*")[^"]*/i', '$1[redacted]', $text);
+        $text = preg_replace("/('registration_token'\\s*:\\s*')[^']*/i", '$1[redacted]', $text);
         $text = preg_replace('/(Authorization:\s*Bearer\s+)\S+/i', '$1[redacted]', $text);
+        $text = preg_replace('/("Authorization"\s*:\s*"Bearer\s+)[^"]*/i', '$1[redacted]', $text);
         return is_string($text) ? $text : '';
     }
 

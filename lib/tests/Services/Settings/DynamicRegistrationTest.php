@@ -212,19 +212,44 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
 
     public function testFailureReportRedactsTokensBeforeTruncation(): void
     {
-        $report = DynamicRegistration::registrationFailureReport(
+        $token = str_repeat('S', 30);
+        $lead = "cURL error:\n";
+        // Ten characters of the token sit inside a 2,000-character cut unless
+        // the full token is removed before that cut.
+        $curl = str_repeat('b', 2000 - strlen($lead) - 10).$token;
+        $report = DynamicRegistration::registrationFailureReport(500, '{}', '', $curl, $token);
+
+        $this->assertStringNotContainsString($token, $report);
+        $this->assertStringNotContainsString(substr($token, 0, 10), substr($report, 0, 2000));
+
+        $pretty = DynamicRegistration::registrationFailureReport(
             500,
-            str_repeat('a', 2500).' registration_token=body-secret-value',
+            '{"error":"nope","registration_token":"json-secret-value","Authorization":"Bearer json-bearer-value"} registration_token=body-secret-value',
             "HTTP/1.1 500\r\nAuthorization: Bearer header-secret\r\n",
-            'Failed registration_token=curl-secret-value'
+            'Failed registration_token=curl-secret-value',
+            $token
         );
 
-        $this->assertStringContainsString('registration_token=[redacted]', $report);
-        $this->assertStringContainsString('Authorization: Bearer [redacted]', $report);
-        $this->assertStringNotContainsString('body-secret-value', $report);
-        $this->assertStringNotContainsString('header-secret', $report);
-        $this->assertStringNotContainsString('curl-secret-value', $report);
-        $this->assertStringNotContainsString('curl-secret-value', substr($report, 0, 2000));
+        $this->assertStringContainsString("cURL error:\nFailed registration_token=[redacted]", $pretty);
+        $this->assertStringContainsString('"registration_token":"[redacted]"', $pretty);
+        $this->assertStringContainsString('"Authorization":"Bearer [redacted]"', $pretty);
+        $this->assertStringContainsString('Authorization: Bearer [redacted]', $pretty);
+        $this->assertStringNotContainsString('body-secret-value', $pretty);
+        $this->assertStringNotContainsString('header-secret', $pretty);
+        $this->assertStringNotContainsString('json-secret-value', $pretty);
+        $this->assertStringNotContainsString('json-bearer-value', $pretty);
+        $this->assertStringNotContainsString($token, $pretty);
+    }
+
+    public function testRegistrationEndpointAllowsHttpsAndLocalHttp(): void
+    {
+        $this->assertTrue(DynamicRegistration::allowsRegistrationEndpoint('https://sakai.example.edu/imsblis/lti13/registration'));
+        $this->assertTrue(DynamicRegistration::allowsRegistrationEndpoint('http://localhost:8080/imsblis/lti13/registration'));
+        $this->assertTrue(DynamicRegistration::allowsRegistrationEndpoint('http://127.0.0.1:8888/registration'));
+        $this->assertTrue(DynamicRegistration::allowsRegistrationEndpoint('http://[::1]/registration'));
+        $this->assertFalse(DynamicRegistration::allowsRegistrationEndpoint('http://sakai.example.edu/registration'));
+        $this->assertFalse(DynamicRegistration::allowsRegistrationEndpoint('http://localhost.evil.example/registration'));
+        $this->assertFalse(DynamicRegistration::allowsRegistrationEndpoint('file:///etc/passwd'));
     }
 
     public function testCanvasDeploymentIdIsOnTheResponse(): void
