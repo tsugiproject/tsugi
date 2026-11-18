@@ -122,8 +122,9 @@ class DynamicRegistration {
                 $invalid[] = $field;
                 continue;
             }
-            // The bearer token is sent to this URL. http is only for a local LMS.
-            if ( $field === 'registration_endpoint' && ! self::allowsRegistrationEndpoint($value) ) {
+            // LTI Dynamic Registration 1.0 section 2.1.1 requires https.
+            // http is only for a local LMS on localhost or loopback.
+            if ( ! self::allowsOpenIdEndpoint($value) ) {
                 $insecure[] = $field;
                 continue;
             }
@@ -150,6 +151,19 @@ class DynamicRegistration {
         $token_endpoint = $values['token_endpoint'];
         $jwks_uri = $values['jwks_uri'];
         $registration_endpoint = $values['registration_endpoint'];
+
+        // LTI Dynamic Registration 1.0 sections 3.4 and 3.5.1. Stop before the
+        // registration POST, and before this issuer is stored.
+        if ( ! self::openidConfigurationMatchesIssuer($openid_configuration, $issuer) ) {
+            error_log('Dynamic registration: OpenID configuration URL is not under the declared issuer');
+            echo("<pre>\n");
+            echo "OpenID configuration URL must be the issuer, or a path under the issuer.\n";
+            echo "The host must match exactly. A subdomain does not count.\n";
+            echo 'openid_configuration: ', htmlentities(self::redactSecrets((string) $openid_configuration)), "\n";
+            echo 'issuer: ', htmlentities(self::redactSecrets((string) $issuer)), "\n";
+            echo("</pre>\n");
+            return '';
+        }
 
         $authorization_server = isset($platform_configuration->authorization_server) ? $platform_configuration->authorization_server : null;
 
@@ -346,18 +360,21 @@ class DynamicRegistration {
         }
 
         $resp = is_string($response) ? json_decode($response) : null;
-        $shown_response = self::redactSecrets(is_string($response) ? $response : '', $registration_token);
-        $OUTPUT->togglePre("Registration response from LMS", self::prettyJson($shown_response));
+        $shown_response = self::redactSecrets(
+            self::prettyJson(is_string($response) ? $response : ''),
+            $registration_token
+        );
+        $OUTPUT->togglePre("Registration response from LMS", $shown_response);
         if ( ! $resp || ! is_object($resp) ) {
             echo("Unable to parse JSON retrieved from:\n".htmlentities($registration_endpoint)."\n\n");
-            echo(htmlentities(self::redactSecrets(is_string($response) ? $response : '', $registration_token)));
+            echo(htmlentities($shown_response));
             echo("</pre>\n");
             return '';
         }
 
         if ( !isset($resp->client_id) ) {
             echo("Did not find client_id in response\n");
-            echo htmlentities(self::redactSecrets(print_r($resp, true), $registration_token), ENT_QUOTES, 'UTF-8');
+            echo htmlentities($shown_response, ENT_QUOTES, 'UTF-8');
             echo("</pre>\n");
             return '';
         }
@@ -498,7 +515,8 @@ class DynamicRegistration {
         $header_text = is_string($headers) ? trim(self::redactSecrets($headers, $token)) : '';
         $report .= ($header_text === '' ? "(none)" : $header_text)."\n\n";
         $report .= "Response body:\n";
-        $shown = is_string($body) ? self::prettyJson(self::redactSecrets($body, $token)) : '';
+        // Pretty-print first so a JSON \/ becomes / before the token is removed.
+        $shown = is_string($body) ? self::redactSecrets(self::prettyJson($body), $token) : '';
         if ( ! is_string($shown) || $shown === '' ) {
             $report .= "(empty)\n";
         } else {
@@ -513,15 +531,16 @@ class DynamicRegistration {
     }
 
     /**
-     * The registration POST carries the bearer token.
+     * https is required for an OpenID endpoint.
      *
-     * https is required. http is allowed only when the host is localhost,
-     * 127.0.0.1, or ::1, so a local LMS can still be registered.
+     * LTI Dynamic Registration 1.0 section 2.1.1 requires an https issuer.
+     * http is allowed only for localhost, 127.0.0.1, or ::1, so a local LMS
+     * can still be registered.
      *
      * @param string $url
      * @return bool
      */
-    public static function allowsRegistrationEndpoint($url) {
+    public static function allowsOpenIdEndpoint($url) {
         if ( ! is_string($url) || $url === '' ) {
             return false;
         }
@@ -535,6 +554,81 @@ class DynamicRegistration {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
         $host = trim($host, '[]');
         return $host === 'localhost' || $host === '127.0.0.1' || $host === '::1';
+    }
+
+    /**
+     * The configuration URL must be the issuer, or a path concatenated onto it.
+     *
+     * LTI Dynamic Registration 1.0 section 3.4. Query parameters are allowed.
+     * A fragment is not. The host must match exactly, so a subdomain of the
+     * issuer is rejected. Section 3.5.1 requires this check before registration,
+     * to guard against impersonation.
+     * https://www.imsglobal.org/spec/lti-dr/v1p0
+     *
+     * @param mixed $configuration_url
+     * @param mixed $issuer
+     * @return bool
+     */
+    public static function openidConfigurationMatchesIssuer($configuration_url, $issuer) {
+        if ( ! is_string($configuration_url) || ! is_string($issuer) ) {
+            return false;
+        }
+        $config = parse_url($configuration_url);
+        $iss = parse_url($issuer);
+        if ( ! is_array($config) || ! is_array($iss) ) {
+            return false;
+        }
+        if ( isset($config['fragment']) || isset($iss['fragment']) || isset($iss['query']) ) {
+            return false;
+        }
+        $config_scheme = strtolower((string) ($config['scheme'] ?? ''));
+        $issuer_scheme = strtolower((string) ($iss['scheme'] ?? ''));
+        if ( $config_scheme === '' || $config_scheme !== $issuer_scheme ) {
+            return false;
+        }
+        $config_host = strtolower(trim((string) ($config['host'] ?? ''), '[]'));
+        $issuer_host = strtolower(trim((string) ($iss['host'] ?? ''), '[]'));
+        if ( $config_host === '' || $config_host !== $issuer_host ) {
+            return false;
+        }
+        if ( self::urlPort($config, $config_scheme) !== self::urlPort($iss, $issuer_scheme) ) {
+            return false;
+        }
+        $issuer_path = self::pathUnderOrigin((string) ($iss['path'] ?? ''));
+        $config_path = self::pathUnderOrigin((string) ($config['path'] ?? ''));
+        if ( $issuer_path === '' ) {
+            return true;
+        }
+        return $config_path === $issuer_path || str_starts_with($config_path, $issuer_path.'/');
+    }
+
+    /**
+     * @param array<string, mixed> $parts
+     * @param string $scheme
+     * @return int
+     */
+    private static function urlPort($parts, $scheme) {
+        if ( isset($parts['port']) ) {
+            return (int) $parts['port'];
+        }
+        if ( $scheme === 'https' ) {
+            return 443;
+        }
+        if ( $scheme === 'http' ) {
+            return 80;
+        }
+        return 0;
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    private static function pathUnderOrigin($path) {
+        if ( $path === '' || $path === '/' ) {
+            return '';
+        }
+        return rtrim($path, '/');
     }
 
     /**
@@ -560,6 +654,8 @@ class DynamicRegistration {
         $text = preg_replace("/('registration_token'\\s*:\\s*')[^']*/i", '$1[redacted]', $text);
         $text = preg_replace('/(Authorization:\s*Bearer\s+)\S+/i', '$1[redacted]', $text);
         $text = preg_replace('/("Authorization"\s*:\s*"Bearer\s+)[^"]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/("registration_access_token"\s*:\s*")[^"]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/("client_secret"\s*:\s*")[^"]*/i', '$1[redacted]', $text);
         return is_string($text) ? $text : '';
     }
 
