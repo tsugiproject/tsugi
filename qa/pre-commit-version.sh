@@ -92,7 +92,8 @@ if ($count !== 1 || !is_string($updated)) {
 }
 $tmp = $dest . ".tmp." . getmypid();
 $written = file_put_contents($tmp, $updated);
-if ($written !== strlen($updated)) {
+$check = $written === false ? false : file_get_contents($tmp);
+if ($written !== strlen($updated) || $check !== $updated) {
     @unlink($tmp);
     fwrite(STDERR, "Could not write the new TSUGI_VERSION\n");
     exit(1);
@@ -131,6 +132,12 @@ trap cleanup EXIT
 git show ":$SETUP" > "$index_copy"
 write_version "$index_copy" "$updated" "$latest"
 
+# Update the working copy before touching the index. A failed write then
+# leaves the commit's version unchanged, and other unstaged lines stay put.
+if worktree="$(read_version "$SETUP" 2>/dev/null)" && [[ "$worktree" != "$latest" ]]; then
+    write_version "$SETUP" "$SETUP" "$latest"
+fi
+
 mode="$(git ls-files -s -- "$SETUP" | awk '{print $1; exit}')"
 if [[ ! "$mode" =~ ^[0-7]{6}$ ]]; then
     echo "TSUGI_VERSION: could not read the index mode of $SETUP" >&2
@@ -138,11 +145,5 @@ if [[ ! "$mode" =~ ^[0-7]{6}$ ]]; then
 fi
 blob="$(git hash-object -w -- "$updated")"
 git update-index --cacheinfo "$mode,$blob,$SETUP"
-
-# Keep the working copy on the same tag when it still has the define.
-# Other unstaged lines are left untouched.
-if worktree="$(read_version "$SETUP" 2>/dev/null)" && [[ "$worktree" != "$latest" ]]; then
-    write_version "$SETUP" "$SETUP" "$latest"
-fi
 
 echo "TSUGI_VERSION $staged -> $latest staged"
