@@ -70,6 +70,17 @@ class DynamicRegistration {
         echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
         echo(htmlentities(self::redactSecrets($openid_configuration ?? ''))."\n</p>\n");
 
+        // A . or .. segment is removed by the fetch, so the path that is
+        // requested can leave the issuer prefix this check will apply later.
+        if ( is_string($openid_configuration) && self::pathUsesDotSegment(parse_url($openid_configuration, PHP_URL_PATH)) ) {
+            error_log('Dynamic registration: OpenID configuration URL uses a . or .. path segment');
+            echo("<pre>\n");
+            echo "OpenID configuration URL must not use . or .. path segments.\n";
+            echo 'openid_configuration: ', htmlentities(self::redactSecrets($openid_configuration)), "\n";
+            echo("</pre>\n");
+            return '';
+        }
+
         $response = Net::doGet($openid_configuration );
         $code = Net::getLastHttpResponse();
         if ( ! $response || U::strlen($response) < 1 ) {
@@ -91,15 +102,76 @@ class DynamicRegistration {
             return '';
         }
 
-        try {
-            $issuer = $platform_configuration->issuer;
-            $authorization_endpoint = $platform_configuration->authorization_endpoint;
-            $token_endpoint = $platform_configuration->token_endpoint;
-            $jwks_uri = $platform_configuration->jwks_uri;
-            $registration_endpoint = $platform_configuration->registration_endpoint;
-        } catch (\Exception $e) {
+        $required_fields = [
+            'issuer',
+            'authorization_endpoint',
+            'token_endpoint',
+            'jwks_uri',
+            'registration_endpoint',
+        ];
+
+        $missing = [];
+        $not_string = [];
+        $invalid = [];
+        $insecure = [];
+        $values  = [];
+        foreach ($required_fields as $field) {
+            if ( ! isset($platform_configuration->$field) ) {
+                $missing[] = $field;
+                continue;
+            }
+            if ( ! is_string($platform_configuration->$field) ) {
+                $not_string[] = $field;
+                continue;
+            }
+            $value = trim($platform_configuration->$field);
+            if ( $value === '' ) {
+                $missing[] = $field;
+                continue;
+            }
+            if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
+                $invalid[] = $field;
+                continue;
+            }
+            // LTI Dynamic Registration 1.0 section 2.1.1 requires https.
+            // http is only for a local LMS on localhost or loopback.
+            if ( ! self::allowsOpenIdEndpoint($value) ) {
+                $insecure[] = $field;
+                continue;
+            }
+            $values[$field] = $value;
+        }
+
+        if ( $missing || $not_string || $invalid || $insecure ) {
+            $problems = [];
+            if ( $missing ) { $problems[] = 'missing or empty: ' . implode(', ', $missing); }
+            if ( $not_string ) { $problems[] = 'must be a URL string: ' . implode(', ', $not_string); }
+            if ( $invalid ) { $problems[] = 'not a valid URL: ' . implode(', ', $invalid); }
+            if ( $insecure ) { $problems[] = 'must use https (http is allowed only for localhost and loopback): ' . implode(', ', $insecure); }
+
+            error_log('Dynamic registration: OpenID configuration field(s) ' . implode('; ', $problems));
+
             echo("<pre>\n");
-            echo 'Missing required value: ',  htmlentities($e->getMessage()), "\n";
+            echo "OpenID configuration field(s) problem:\n" . htmlentities('  - ' . implode("\n  - ", $problems)) . "\n";
+            echo("</pre>\n");
+            return '';
+        }
+
+        $issuer = $values['issuer'];
+        $authorization_endpoint = $values['authorization_endpoint'];
+        $token_endpoint = $values['token_endpoint'];
+        $jwks_uri = $values['jwks_uri'];
+        $registration_endpoint = $values['registration_endpoint'];
+
+        // LTI Dynamic Registration 1.0 sections 3.4 and 3.5.1. Stop before the
+        // registration POST, and before this issuer is stored.
+        if ( ! self::openidConfigurationMatchesIssuer($openid_configuration, $issuer) ) {
+            error_log('Dynamic registration: OpenID configuration URL is not under the declared issuer');
+            echo("<pre>\n");
+            echo "OpenID configuration URL must be the issuer, or a path under the issuer.\n";
+            echo "The host must match exactly. A subdomain does not count.\n";
+            echo 'openid_configuration: ', htmlentities(self::redactSecrets((string) $openid_configuration)), "\n";
+            echo 'issuer: ', htmlentities(self::redactSecrets((string) $issuer)), "\n";
             echo("</pre>\n");
             return '';
         }
@@ -139,8 +211,26 @@ class DynamicRegistration {
         $tool->product_family_code = "tsugi.org";
         $tool->target_link_uri = $CFG->wwwroot . '/lti/store/';
 
-        $pieces = parse_url(is_string($CFG->apphome) ? $CFG->apphome : $CFG->apphome);
-        if ( U::get($pieces, 'host') ) $tool->domain = U::get($pieces, 'host');
+        // Determine the tool domain for LTI 1.3 registration.
+        $tool_domain = '';
+        if ( !empty($CFG->apphome) && is_string($CFG->apphome) ) {
+            $tool_domain = parse_url($CFG->apphome, PHP_URL_HOST) ?: '';
+        }
+
+        if ( empty($tool_domain) && !empty($CFG->wwwroot) && is_string($CFG->wwwroot) ) {
+            $tool_domain = parse_url($CFG->wwwroot, PHP_URL_HOST) ?: '';
+        }
+
+        if ( empty($tool_domain) ) {
+            error_log('LTI13: unable to determine tool registration domain from apphome or wwwroot');
+
+            echo("<pre>\n");
+            echo "Unable to determine LTI tool registration domain from apphome or wwwroot.\n";
+            echo("</pre>\n");
+            return '';
+        }
+
+        $tool->domain = strtolower($tool_domain);
 
         if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {
             $tool->description = $CFG->servicedesc;
@@ -251,34 +341,51 @@ class DynamicRegistration {
         echo(htmlentities($url)."\n</p>\n");
         $OUTPUT->togglePre("Registration data sent to LMS", self::prettyJson($body));
 
-        $response = Net::bodyCurl($url, $method, $body, $header);
+        $response = Net::doBody($url, $method, $body, $header);
 
         $response_code = Net::getLastHttpResponse();
+        $curl_error = Net::getLastCurlError();
+        $transfer_failed = is_string($curl_error) && $curl_error !== '';
 
-        if ( $response_code != 200 && $response_code != 201 ) {
-            echo("<pre>\n");
-            echo(htmlentities(self::registrationFailureReport(
+        // A dropped connection can still leave a 201 in the status line.
+        if ( $transfer_failed || ( $response_code != 200 && $response_code != 201 ) ) {
+            // Redact the whole LMS response before the log truncates it.
+            $report = self::registrationFailureReport(
                 $response_code,
                 is_string($response) ? $response : '',
-                Net::getLastHeadersReceived()
-            )));
+                Net::getLastHeadersReceived(),
+                $curl_error,
+                $registration_token
+            );
+
+            error_log('LTI13: dynamic registration failed: '.substr($report, 0, 2000));
+
+            echo("<pre>\n");
+            echo(htmlentities($report, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
             echo("</pre>\n");
+            if ( $transfer_failed && ( $response_code == 200 || $response_code == 201 ) ) {
+                echo("<p>The LMS returned a success status but the response did not finish transferring. Check the LMS before trying again. It may already have created the client.</p>\n");
+            }
             echo("<p>The one-time unlock code is still set, so you can try this registration again.</p>\n");
             return '';
         }
 
         $resp = is_string($response) ? json_decode($response) : null;
-        $OUTPUT->togglePre("Registration response from LMS", self::prettyJson($response));
+        $shown_response = self::redactSecrets(
+            self::prettyJson(is_string($response) ? $response : ''),
+            $registration_token
+        );
+        $OUTPUT->togglePre("Registration response from LMS", $shown_response);
         if ( ! $resp || ! is_object($resp) ) {
             echo("Unable to parse JSON retrieved from:\n".htmlentities($registration_endpoint)."\n\n");
-            echo(htmlentities($response));
+            echo(htmlentities($shown_response));
             echo("</pre>\n");
             return '';
         }
 
         if ( !isset($resp->client_id) ) {
             echo("Did not find client_id in response\n");
-            echo htmlentities(print_r($resp, true), ENT_QUOTES, 'UTF-8');
+            echo htmlentities($shown_response, ENT_QUOTES, 'UTF-8');
             echo("</pre>\n");
             return '';
         }
@@ -401,18 +508,26 @@ class DynamicRegistration {
     /**
      * Text for a failed registration POST. The body is the LMS response.
      *
+     * Secrets are removed from the cURL error, headers, and body before any
+     * truncation, so a cut cannot leave a token behind without its marker.
+     *
      * @param mixed $status
      * @param mixed $body
      * @param mixed $headers
+     * @param mixed $curl_error
+     * @param mixed $token Registration token to remove wherever the LMS echoed it
      * @return string
      */
-    public static function registrationFailureReport($status, $body, $headers) {
-        $report = "Http response code: ".(string) $status."\n\n";
+    public static function registrationFailureReport($status, $body, $headers, $curl_error = false, $token = null) {
+        $curl_text = (is_string($curl_error) && $curl_error !== '') ? self::redactSecrets($curl_error, $token) : '(none)';
+        $report = "cURL error:\n".$curl_text."\n\n";
+        $report .= "Http response code: ".(string) $status."\n\n";
         $report .= "Response headers:\n";
-        $header_text = is_string($headers) ? trim(self::redactSecrets($headers)) : '';
+        $header_text = is_string($headers) ? trim(self::redactSecrets($headers, $token)) : '';
         $report .= ($header_text === '' ? "(none)" : $header_text)."\n\n";
         $report .= "Response body:\n";
-        $shown = is_string($body) ? self::prettyJson(self::redactSecrets($body)) : '';
+        // Pretty-print first so a JSON \/ becomes / before the token is removed.
+        $shown = is_string($body) ? self::redactSecrets(self::prettyJson($body), $token) : '';
         if ( ! is_string($shown) || $shown === '' ) {
             $report .= "(empty)\n";
         } else {
@@ -427,17 +542,231 @@ class DynamicRegistration {
     }
 
     /**
-     * Hide a registration token or bearer token in text shown to the browser.
+     * https is required for an OpenID endpoint.
      *
-     * @param mixed $text
+     * LTI Dynamic Registration 1.0 section 2.1.1 requires an https issuer.
+     * http is allowed only for localhost, 127.0.0.1, or ::1, so a local LMS
+     * can still be registered.
+     *
+     * @param string $url
+     * @return bool
+     */
+    public static function allowsOpenIdEndpoint($url) {
+        if ( ! is_string($url) || $url === '' ) {
+            return false;
+        }
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if ( $scheme === 'https' ) {
+            return true;
+        }
+        if ( $scheme !== 'http' ) {
+            return false;
+        }
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $host = trim($host, '[]');
+        return $host === 'localhost' || $host === '127.0.0.1' || $host === '::1';
+    }
+
+    /**
+     * The configuration URL must be the issuer, or a path concatenated onto it.
+     *
+     * LTI Dynamic Registration 1.0 section 3.4. Query parameters are allowed.
+     * A fragment is not. The host must match exactly, so a subdomain of the
+     * issuer is rejected. Section 3.5.1 requires this check before registration,
+     * to guard against impersonation.
+     * Dot segments are removed first. A fetch resolves /tenant/../outside to
+     * /outside, and that path is what the prefix is compared to.
+     * An empty segment stays, so /tenant//blue is not /tenant/blue.
+     * A percent-encoded reserved character stays encoded. RFC 3986 section
+     * 6.2.2.2 does not treat %3B as the same character as ";".
+     * https://www.imsglobal.org/spec/lti-dr/v1p0
+     *
+     * @param mixed $configuration_url
+     * @param mixed $issuer
+     * @return bool
+     */
+    public static function openidConfigurationMatchesIssuer($configuration_url, $issuer) {
+        if ( ! is_string($configuration_url) || ! is_string($issuer) ) {
+            return false;
+        }
+        $config = parse_url($configuration_url);
+        $iss = parse_url($issuer);
+        if ( ! is_array($config) || ! is_array($iss) ) {
+            return false;
+        }
+        if ( isset($config['fragment']) || isset($iss['fragment']) || isset($iss['query']) ) {
+            return false;
+        }
+        $config_scheme = strtolower((string) ($config['scheme'] ?? ''));
+        $issuer_scheme = strtolower((string) ($iss['scheme'] ?? ''));
+        if ( $config_scheme === '' || $config_scheme !== $issuer_scheme ) {
+            return false;
+        }
+        $config_host = strtolower(trim((string) ($config['host'] ?? ''), '[]'));
+        $issuer_host = strtolower(trim((string) ($iss['host'] ?? ''), '[]'));
+        if ( $config_host === '' || $config_host !== $issuer_host ) {
+            return false;
+        }
+        if ( self::urlPort($config, $config_scheme) !== self::urlPort($iss, $issuer_scheme) ) {
+            return false;
+        }
+        $issuer_path = self::resolvedPath((string) ($iss['path'] ?? ''));
+        $config_path = self::resolvedPath((string) ($config['path'] ?? ''));
+        if ( $issuer_path === false || $config_path === false ) {
+            return false;
+        }
+        if ( $issuer_path === '' ) {
+            return true;
+        }
+        return $config_path === $issuer_path || str_starts_with($config_path, $issuer_path.'/');
+    }
+
+    /**
+     * @param array<string, mixed> $parts
+     * @param string $scheme
+     * @return int
+     */
+    private static function urlPort($parts, $scheme) {
+        if ( isset($parts['port']) ) {
+            return (int) $parts['port'];
+        }
+        if ( $scheme === 'https' ) {
+            return 443;
+        }
+        if ( $scheme === 'http' ) {
+            return 80;
+        }
+        return 0;
+    }
+
+    /**
+     * Path after . and .. segments are removed, including a once-decoded
+     * segment such as %2e%2e. Interior empty segments are kept. A trailing
+     * slash is not. False when the path climbs above the root or a segment
+     * hides a slash.
+     *
+     * @param string|null $path
+     * @return string|false
+     */
+    private static function resolvedPath($path) {
+        if ( ! is_string($path) || $path === '' || $path === '/' ) {
+            return '';
+        }
+        $absolute = str_starts_with($path, '/');
+        $out = array();
+        $first = true;
+        foreach ( explode('/', $path) as $segment ) {
+            if ( $first ) {
+                $first = false;
+                if ( $segment === '' && $absolute ) {
+                    continue;
+                }
+            }
+            if ( $segment === '' ) {
+                $out[] = '';
+                continue;
+            }
+            $decoded = rawurldecode($segment);
+            if ( $segment === '.' || $decoded === '.' ) {
+                continue;
+            }
+            if ( str_contains($decoded, '/') || str_contains($decoded, '\\') ) {
+                return false;
+            }
+            if ( $segment === '..' || $decoded === '..' ) {
+                if ( count($out) === 0 ) {
+                    return false;
+                }
+                array_pop($out);
+                continue;
+            }
+            $out[] = self::comparisonSegment($segment);
+        }
+        while ( count($out) > 0 && $out[count($out) - 1] === '' ) {
+            array_pop($out);
+        }
+        if ( count($out) === 0 ) {
+            return '';
+        }
+        return '/'.implode('/', $out);
+    }
+
+    /**
+     * Decode percent-encoded unreserved characters. Leave a reserved
+     * escape, such as %3B, in the path so it does not compare equal to ";".
+     *
+     * @param string $segment
      * @return string
      */
-    public static function redactSecrets($text) {
+    private static function comparisonSegment($segment) {
+        $out = '';
+        $length = strlen($segment);
+        for ( $i = 0; $i < $length; $i++ ) {
+            $hex = substr($segment, $i + 1, 2);
+            if ( $segment[$i] === '%' && strlen($hex) === 2 && ctype_xdigit($hex) ) {
+                $hex = strtoupper($hex);
+                $char = chr(hexdec($hex));
+                if ( preg_match('/^[A-Za-z0-9._~-]$/', $char) === 1 ) {
+                    $out .= $char;
+                } else {
+                    $out .= '%'.$hex;
+                }
+                $i += 2;
+                continue;
+            }
+            $out .= $segment[$i];
+        }
+        return $out;
+    }
+
+    /**
+     * @param string|null|false $path
+     * @return bool
+     */
+    private static function pathUsesDotSegment($path) {
+        if ( ! is_string($path) || $path === '' ) {
+            return false;
+        }
+        foreach ( explode('/', $path) as $segment ) {
+            if ( $segment === '' ) {
+                continue;
+            }
+            $decoded = rawurldecode($segment);
+            if ( $segment === '.' || $segment === '..' || $decoded === '.' || $decoded === '..' ) {
+                return true;
+            }
+            if ( str_contains($decoded, '/') || str_contains($decoded, '\\') ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Hide a registration token or bearer token in text shown to the browser.
+     *
+     * The known token is removed first, before any caller truncates the text.
+     * A token shorter than 8 characters is left alone so a tiny value cannot
+     * wipe ordinary words out of the error.
+     *
+     * @param mixed $text
+     * @param mixed $token
+     * @return string
+     */
+    public static function redactSecrets($text, $token = null) {
         if ( ! is_string($text) || $text === '' ) {
             return '';
         }
+        if ( is_string($token) && strlen($token) >= 8 && strpos($text, $token) !== false ) {
+            $text = str_replace($token, '[redacted]', $text);
+        }
         $text = preg_replace('/(registration_token=)[^&\s]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/("registration_token"\s*:\s*")[^"]*/i', '$1[redacted]', $text);
+        $text = preg_replace("/('registration_token'\\s*:\\s*')[^']*/i", '$1[redacted]', $text);
         $text = preg_replace('/(Authorization:\s*Bearer\s+)\S+/i', '$1[redacted]', $text);
+        $text = preg_replace('/("Authorization"\s*:\s*"Bearer\s+)[^"]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/("registration_access_token"\s*:\s*")[^"]*/i', '$1[redacted]', $text);
+        $text = preg_replace('/("client_secret"\s*:\s*")[^"]*/i', '$1[redacted]', $text);
         return is_string($text) ? $text : '';
     }
 

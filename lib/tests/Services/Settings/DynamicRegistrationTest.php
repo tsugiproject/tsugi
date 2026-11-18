@@ -203,10 +203,168 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Authorization: Bearer [redacted]', $report);
         $this->assertStringNotContainsString('secret-token', $report);
         $this->assertStringNotContainsString('initiate_login_uri', $report);
+        $this->assertStringContainsString("cURL error:\n(none)", $report);
         $this->assertSame(
             'https://canvas.example/config?registration_token=[redacted]&x=1',
             DynamicRegistration::redactSecrets('https://canvas.example/config?registration_token=eyJsecret&x=1')
         );
+    }
+
+    public function testFailureReportRedactsTokensBeforeTruncation(): void
+    {
+        $token = str_repeat('S', 30);
+        $lead = "cURL error:\n";
+        // Ten characters of the token sit inside a 2,000-character cut unless
+        // the full token is removed before that cut.
+        $curl = str_repeat('b', 2000 - strlen($lead) - 10).$token;
+        $report = DynamicRegistration::registrationFailureReport(500, '{}', '', $curl, $token);
+
+        $this->assertStringNotContainsString($token, $report);
+        $this->assertStringNotContainsString(substr($token, 0, 10), substr($report, 0, 2000));
+
+        $pretty = DynamicRegistration::registrationFailureReport(
+            500,
+            '{"error":"nope","registration_token":"json-secret-value","Authorization":"Bearer json-bearer-value"} registration_token=body-secret-value',
+            "HTTP/1.1 500\r\nAuthorization: Bearer header-secret\r\n",
+            'Failed registration_token=curl-secret-value',
+            $token
+        );
+
+        $this->assertStringContainsString("cURL error:\nFailed registration_token=[redacted]", $pretty);
+        $this->assertStringContainsString('"registration_token":"[redacted]"', $pretty);
+        $this->assertStringContainsString('"Authorization":"Bearer [redacted]"', $pretty);
+        $this->assertStringContainsString('Authorization: Bearer [redacted]', $pretty);
+        $this->assertStringNotContainsString('body-secret-value', $pretty);
+        $this->assertStringNotContainsString('header-secret', $pretty);
+        $this->assertStringNotContainsString('json-secret-value', $pretty);
+        $this->assertStringNotContainsString('json-bearer-value', $pretty);
+        $this->assertStringNotContainsString($token, $pretty);
+    }
+
+    public function testOpenIdEndpointAllowsHttpsAndLocalHttp(): void
+    {
+        $this->assertTrue(DynamicRegistration::allowsOpenIdEndpoint('https://sakai.example.edu/imsblis/lti13/registration'));
+        $this->assertTrue(DynamicRegistration::allowsOpenIdEndpoint('http://localhost:8080/imsblis/lti13/registration'));
+        $this->assertTrue(DynamicRegistration::allowsOpenIdEndpoint('http://127.0.0.1:8888/registration'));
+        $this->assertTrue(DynamicRegistration::allowsOpenIdEndpoint('http://[::1]/registration'));
+        $this->assertFalse(DynamicRegistration::allowsOpenIdEndpoint('http://sakai.example.edu/registration'));
+        $this->assertFalse(DynamicRegistration::allowsOpenIdEndpoint('http://localhost.evil.example/registration'));
+        $this->assertFalse(DynamicRegistration::allowsOpenIdEndpoint('ftp://sakai.example.edu/jwks'));
+        $this->assertFalse(DynamicRegistration::allowsOpenIdEndpoint('file:///etc/passwd'));
+    }
+
+    public function testOpenidConfigurationMustBeUnderTheIssuer(): void
+    {
+        $issuer = 'https://platform.example.com';
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/.well-known/openid-configuration',
+            $issuer
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/.well-known/openid-configuration?r=7462647772',
+            $issuer
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/openid-configuration/reg/849021',
+            $issuer
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com:443/lti/openid-configuration',
+            $issuer
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'http://localhost:8080/lti/openid-configuration',
+            'http://localhost:8080'
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://attacker.io/.well-known/openid-configuration',
+            $issuer
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.org/.well-known/openid-configuration',
+            $issuer
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://lti.platform.example.com/openid-configuration',
+            $issuer
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/openid-configuration#frag',
+            $issuer
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'http://127.0.0.1:8080/lti/openid-configuration',
+            'http://localhost:8080'
+        ));
+        $issuer_path = 'https://platform.example.com/lti';
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/openid-configuration',
+            $issuer_path
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti-evil/openid-configuration',
+            $issuer_path
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/../.well-known/openid-configuration',
+            $issuer_path
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/%2e%2e/.well-known/openid-configuration',
+            $issuer_path
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/../../outside',
+            $issuer_path
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/reg/849021?x=1',
+            $issuer_path
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/foo/../openid-configuration?x=1',
+            $issuer_path
+        ));
+        $doubled = 'https://platform.example.com/tenant//blue';
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant/blue/config',
+            $doubled
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant//blue/config?x=1',
+            $doubled
+        ));
+        $semicolon = 'https://platform.example.com/tenant;east';
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant;east/config',
+            $semicolon
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant%3Beast/config',
+            $semicolon
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant%3beast/config',
+            'https://platform.example.com/tenant%3Beast'
+        ));
+    }
+
+    public function testFailureReportRedactsPrettyJsonSecrets(): void
+    {
+        $token = 'secret/with/slash';
+        $body = json_encode(array(
+            'error' => 'bad '.$token,
+            'client_id' => 'abc123',
+            'client_secret' => 'super-secret',
+            'registration_access_token' => 'reg-access-token-value',
+        ));
+        $report = DynamicRegistration::registrationFailureReport(500, $body, '', false, $token);
+
+        $this->assertStringContainsString('abc123', $report);
+        $this->assertStringContainsString('[redacted]', $report);
+        $this->assertStringNotContainsString($token, $report);
+        $this->assertStringNotContainsString('super-secret', $report);
+        $this->assertStringNotContainsString('reg-access-token-value', $report);
     }
 
     public function testCanvasDeploymentIdIsOnTheResponse(): void
