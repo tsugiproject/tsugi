@@ -576,6 +576,9 @@ class DynamicRegistration {
      * to guard against impersonation.
      * Dot segments are removed first. A fetch resolves /tenant/../outside to
      * /outside, and that path is what the prefix is compared to.
+     * An empty segment stays, so /tenant//blue is not /tenant/blue.
+     * A percent-encoded reserved character stays encoded. RFC 3986 section
+     * 6.2.2.2 does not treat %3B as the same character as ";".
      * https://www.imsglobal.org/spec/lti-dr/v1p0
      *
      * @param mixed $configuration_url
@@ -638,8 +641,9 @@ class DynamicRegistration {
 
     /**
      * Path after . and .. segments are removed, including a once-decoded
-     * segment such as %2e%2e. False when the path climbs above the root
-     * or a segment hides a slash.
+     * segment such as %2e%2e. Interior empty segments are kept. A trailing
+     * slash is not. False when the path climbs above the root or a segment
+     * hides a slash.
      *
      * @param string|null $path
      * @return string|false
@@ -648,13 +652,22 @@ class DynamicRegistration {
         if ( ! is_string($path) || $path === '' || $path === '/' ) {
             return '';
         }
+        $absolute = str_starts_with($path, '/');
         $out = array();
+        $first = true;
         foreach ( explode('/', $path) as $segment ) {
-            if ( $segment === '' || $segment === '.' ) {
+            if ( $first ) {
+                $first = false;
+                if ( $segment === '' && $absolute ) {
+                    continue;
+                }
+            }
+            if ( $segment === '' ) {
+                $out[] = '';
                 continue;
             }
             $decoded = rawurldecode($segment);
-            if ( $decoded === '.' || $decoded === '' ) {
+            if ( $segment === '.' || $decoded === '.' ) {
                 continue;
             }
             if ( str_contains($decoded, '/') || str_contains($decoded, '\\') ) {
@@ -667,12 +680,43 @@ class DynamicRegistration {
                 array_pop($out);
                 continue;
             }
-            $out[] = $decoded;
+            $out[] = self::comparisonSegment($segment);
+        }
+        while ( count($out) > 0 && $out[count($out) - 1] === '' ) {
+            array_pop($out);
         }
         if ( count($out) === 0 ) {
             return '';
         }
         return '/'.implode('/', $out);
+    }
+
+    /**
+     * Decode percent-encoded unreserved characters. Leave a reserved
+     * escape, such as %3B, in the path so it does not compare equal to ";".
+     *
+     * @param string $segment
+     * @return string
+     */
+    private static function comparisonSegment($segment) {
+        $out = '';
+        $length = strlen($segment);
+        for ( $i = 0; $i < $length; $i++ ) {
+            $hex = substr($segment, $i + 1, 2);
+            if ( $segment[$i] === '%' && strlen($hex) === 2 && ctype_xdigit($hex) ) {
+                $hex = strtoupper($hex);
+                $char = chr(hexdec($hex));
+                if ( preg_match('/^[A-Za-z0-9._~-]$/', $char) === 1 ) {
+                    $out .= $char;
+                } else {
+                    $out .= '%'.$hex;
+                }
+                $i += 2;
+                continue;
+            }
+            $out .= $segment[$i];
+        }
+        return $out;
     }
 
     /**

@@ -325,6 +325,28 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
             'https://platform.example.com/lti/foo/../openid-configuration?x=1',
             $issuer_path
         ));
+        $doubled = 'https://platform.example.com/tenant//blue';
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant/blue/config',
+            $doubled
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant//blue/config?x=1',
+            $doubled
+        ));
+        $semicolon = 'https://platform.example.com/tenant;east';
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant;east/config',
+            $semicolon
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant%3Beast/config',
+            $semicolon
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/tenant%3beast/config',
+            'https://platform.example.com/tenant%3Beast'
+        ));
     }
 
     public function testFailureReportRedactsPrettyJsonSecrets(): void
