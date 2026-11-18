@@ -47,8 +47,7 @@ fi
 
 # Staged or unstaged. Rewriting the file would mix the version into that edit.
 if ! git diff --quiet HEAD -- "$SETUP"; then
-    echo "TSUGI_VERSION is ${current:-missing}; latest tag is $latest."
-    echo "$SETUP has changes, so leaving the constant unchanged."
+    echo "TSUGI_VERSION of ${current:-missing} is out of date and should be $latest"
     exit 0
 fi
 
