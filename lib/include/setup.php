@@ -177,7 +177,9 @@ $CONTEXT = false;
 $LINK = false;
 
 if (!defined('TSUGI_VERSION')) {
-    // Newest release tag. qa/pre-commit-version.sh rewrites this before each commit.
+    // Latest local release tag. The pre-commit hook rewrites this when it
+    // does not match that tag. No matching tag, or a value that is already
+    // current, leaves this line alone.
     define('TSUGI_VERSION', '26.11.5');
 }
 
