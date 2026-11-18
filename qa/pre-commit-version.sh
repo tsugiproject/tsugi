@@ -67,8 +67,11 @@ echo $match[1];
 ' "$1"
 }
 
-# Rewrite the define in $1 and write the full result to $2. Fail if the
-# define is missing or the write does not land.
+# Rewrite the define in $1 and write the full result to $2.
+# The replacement keeps $2's permission bits. A rename otherwise creates the
+# new file with the process umask, so a 0644 setup.php can become 0600.
+# When $1 and $2 are the same path, refuse to replace it if the file changed
+# after we read it.
 write_version() {
     php -r '
 $src = $argv[1];
@@ -97,6 +100,23 @@ if ($written !== strlen($updated) || $check !== $updated) {
     @unlink($tmp);
     fwrite(STDERR, "Could not write the new TSUGI_VERSION\n");
     exit(1);
+}
+if (file_exists($dest)) {
+    $mode = fileperms($dest);
+    if ($mode === false || !chmod($tmp, $mode & 0777)) {
+        @unlink($tmp);
+        fwrite(STDERR, "Could not preserve the mode of $dest\n");
+        exit(1);
+    }
+    if ($src === $dest) {
+        clearstatcache(true, $dest);
+        $again = file_get_contents($dest);
+        if ($again !== $source) {
+            @unlink($tmp);
+            fwrite(STDERR, "Working copy of $dest changed during the rewrite\n");
+            exit(1);
+        }
+    }
 }
 if (!rename($tmp, $dest)) {
     @unlink($tmp);
@@ -130,12 +150,15 @@ cleanup() {
 trap cleanup EXIT
 
 git show ":$SETUP" > "$index_copy"
+seen="$(git rev-parse ":$SETUP")"
 write_version "$index_copy" "$updated" "$latest"
 
-# Update the working copy before touching the index. A failed write then
-# leaves the commit's version unchanged, and other unstaged lines stay put.
-if worktree="$(read_version "$SETUP" 2>/dev/null)" && [[ "$worktree" != "$latest" ]]; then
-    write_version "$SETUP" "$SETUP" "$latest"
+# Someone may have staged another hunk of setup.php while we were reading.
+# Replacing the index entry would drop that hunk, so refuse instead.
+now="$(git rev-parse ":$SETUP")"
+if [[ "$now" != "$seen" ]]; then
+    echo "TSUGI_VERSION: the index copy of $SETUP changed while preparing the bump. Commit again." >&2
+    exit 1
 fi
 
 mode="$(git ls-files -s -- "$SETUP" | awk '{print $1; exit}')"
@@ -145,5 +168,13 @@ if [[ ! "$mode" =~ ^[0-7]{6}$ ]]; then
 fi
 blob="$(git hash-object -w -- "$updated")"
 git update-index --cacheinfo "$mode,$blob,$SETUP"
+
+# The commit already has the new tag. A failure here must not abort it:
+# the next attempt would see a current index and skip the working copy.
+if worktree="$(read_version "$SETUP" 2>/dev/null)" && [[ "$worktree" != "$latest" ]]; then
+    if ! write_version "$SETUP" "$SETUP" "$latest"; then
+        echo "TSUGI_VERSION $latest is staged. The working copy of $SETUP was left unchanged." >&2
+    fi
+fi
 
 echo "TSUGI_VERSION $staged -> $latest staged"
