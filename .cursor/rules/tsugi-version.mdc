@@ -1,0 +1,22 @@
+---
+description: At the start of a thread, note when TSUGI_VERSION lags the latest release tag
+alwaysApply: true
+---
+
+# TSUGI_VERSION check
+
+At the start of a new thread, before other work, compare `TSUGI_VERSION` in `lib/include/setup.php` with the latest local release tag.
+
+Latest means the most recently created tag whose name matches `YY.M.P` (`^[0-9]{2}\.[0-9]{1,2}\.[0-9]+$`). Sort by creatordate, not by version. `29.10.1` is an older mistyped tag and must not win over a newer `26.*` tag.
+
+```bash
+git for-each-ref --sort=-creatordate --format='%(refname:lstrip=2)' refs/tags
+```
+
+Use `%(refname:lstrip=2)` so a branch with the same name cannot hide the tag.
+
+If they differ, say this once, then continue with the request:
+
+`TSUGI_VERSION of x.y.z is out of date and should be a.b.c`
+
+If they match, or tags cannot be listed, say nothing about the version. Do not edit `setup.php` unless asked.

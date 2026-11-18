@@ -177,7 +177,7 @@ $CONTEXT = false;
 $LINK = false;
 
 if (!defined('TSUGI_VERSION')) {
-    define('TSUGI_VERSION', '2025.12');   // ← update this occasionally
+    define('TSUGI_VERSION', '26.11.5');   // ← update this occasionally
 }
 
 if (!defined('TSUGI_MINIMUM_PHP')) {
