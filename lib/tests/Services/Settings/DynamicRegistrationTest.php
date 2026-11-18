@@ -305,6 +305,26 @@ class DynamicRegistrationTest extends \PHPUnit\Framework\TestCase
             'https://platform.example.com/lti-evil/openid-configuration',
             $issuer_path
         ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/../.well-known/openid-configuration',
+            $issuer_path
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/%2e%2e/.well-known/openid-configuration',
+            $issuer_path
+        ));
+        $this->assertFalse(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/../../outside',
+            $issuer_path
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/reg/849021?x=1',
+            $issuer_path
+        ));
+        $this->assertTrue(DynamicRegistration::openidConfigurationMatchesIssuer(
+            'https://platform.example.com/lti/foo/../openid-configuration?x=1',
+            $issuer_path
+        ));
     }
 
     public function testFailureReportRedactsPrettyJsonSecrets(): void

@@ -70,6 +70,17 @@ class DynamicRegistration {
         echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
         echo(htmlentities(self::redactSecrets($openid_configuration ?? ''))."\n</p>\n");
 
+        // A . or .. segment is removed by the fetch, so the path that is
+        // requested can leave the issuer prefix this check will apply later.
+        if ( is_string($openid_configuration) && self::pathUsesDotSegment(parse_url($openid_configuration, PHP_URL_PATH)) ) {
+            error_log('Dynamic registration: OpenID configuration URL uses a . or .. path segment');
+            echo("<pre>\n");
+            echo "OpenID configuration URL must not use . or .. path segments.\n";
+            echo 'openid_configuration: ', htmlentities(self::redactSecrets($openid_configuration)), "\n";
+            echo("</pre>\n");
+            return '';
+        }
+
         $response = Net::doGet($openid_configuration );
         $code = Net::getLastHttpResponse();
         if ( ! $response || U::strlen($response) < 1 ) {
@@ -563,6 +574,8 @@ class DynamicRegistration {
      * A fragment is not. The host must match exactly, so a subdomain of the
      * issuer is rejected. Section 3.5.1 requires this check before registration,
      * to guard against impersonation.
+     * Dot segments are removed first. A fetch resolves /tenant/../outside to
+     * /outside, and that path is what the prefix is compared to.
      * https://www.imsglobal.org/spec/lti-dr/v1p0
      *
      * @param mixed $configuration_url
@@ -594,8 +607,11 @@ class DynamicRegistration {
         if ( self::urlPort($config, $config_scheme) !== self::urlPort($iss, $issuer_scheme) ) {
             return false;
         }
-        $issuer_path = self::pathUnderOrigin((string) ($iss['path'] ?? ''));
-        $config_path = self::pathUnderOrigin((string) ($config['path'] ?? ''));
+        $issuer_path = self::resolvedPath((string) ($iss['path'] ?? ''));
+        $config_path = self::resolvedPath((string) ($config['path'] ?? ''));
+        if ( $issuer_path === false || $config_path === false ) {
+            return false;
+        }
         if ( $issuer_path === '' ) {
             return true;
         }
@@ -621,14 +637,65 @@ class DynamicRegistration {
     }
 
     /**
-     * @param string $path
-     * @return string
+     * Path after . and .. segments are removed, including a once-decoded
+     * segment such as %2e%2e. False when the path climbs above the root
+     * or a segment hides a slash.
+     *
+     * @param string|null $path
+     * @return string|false
      */
-    private static function pathUnderOrigin($path) {
-        if ( $path === '' || $path === '/' ) {
+    private static function resolvedPath($path) {
+        if ( ! is_string($path) || $path === '' || $path === '/' ) {
             return '';
         }
-        return rtrim($path, '/');
+        $out = array();
+        foreach ( explode('/', $path) as $segment ) {
+            if ( $segment === '' || $segment === '.' ) {
+                continue;
+            }
+            $decoded = rawurldecode($segment);
+            if ( $decoded === '.' || $decoded === '' ) {
+                continue;
+            }
+            if ( str_contains($decoded, '/') || str_contains($decoded, '\\') ) {
+                return false;
+            }
+            if ( $segment === '..' || $decoded === '..' ) {
+                if ( count($out) === 0 ) {
+                    return false;
+                }
+                array_pop($out);
+                continue;
+            }
+            $out[] = $decoded;
+        }
+        if ( count($out) === 0 ) {
+            return '';
+        }
+        return '/'.implode('/', $out);
+    }
+
+    /**
+     * @param string|null|false $path
+     * @return bool
+     */
+    private static function pathUsesDotSegment($path) {
+        if ( ! is_string($path) || $path === '' ) {
+            return false;
+        }
+        foreach ( explode('/', $path) as $segment ) {
+            if ( $segment === '' ) {
+                continue;
+            }
+            $decoded = rawurldecode($segment);
+            if ( $segment === '.' || $segment === '..' || $decoded === '.' || $decoded === '..' ) {
+                return true;
+            }
+            if ( str_contains($decoded, '/') || str_contains($decoded, '\\') ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
