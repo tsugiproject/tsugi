@@ -177,9 +177,9 @@ $CONTEXT = false;
 $LINK = false;
 
 if (!defined('TSUGI_VERSION')) {
-    // Latest local release tag. The pre-commit hook rewrites this when it
-    // does not match that tag. No matching tag, or a value that is already
-    // current, leaves this line alone.
+    // Latest local release tag. The pre-commit hook updates this when
+    // setup.php has no other changes. If the file is already modified,
+    // the hook leaves this line alone.
     define('TSUGI_VERSION', '26.11.5');
 }
 
