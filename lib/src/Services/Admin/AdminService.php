@@ -416,8 +416,26 @@ class AdminService {
     }
 
     /**
+     * Rows for a client id check. A failed query throws so the caller can
+     * keep going. allRowsDie() would end the upgrade.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private static function diagnosticRows($sql) {
+        global $PDOX;
+        $rows = $PDOX->allRows($sql);
+        if ( ! is_array($rows) ) {
+            throw new \RuntimeException('client id check query failed');
+        }
+        return $rows;
+    }
+
+    /**
      * Tenant keys that share an issuer, client id, and deployment id.
      * A blank deployment id is its own value in that tuple. This does not change any unique key.
+     *
+     * The cache is set only after the query returns. A throw leaves it unset
+     * so a later call retries instead of reporting zero duplicates.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -427,21 +445,20 @@ class AdminService {
         if ( is_array(self::$issuerClientDuplicateRows) ) {
             return self::$issuerClientDuplicateRows;
         }
-        self::$issuerClientDuplicateRows = array();
         $table = "{$CFG->dbprefix}lti_key";
         if ( ! is_object($PDOX) ) {
-            return self::$issuerClientDuplicateRows;
+            return array();
         }
         $columns = $PDOX->describe($table);
         if ( ! is_array($columns) ) {
-            return self::$issuerClientDuplicateRows;
+            return array();
         }
         $names = array();
         foreach ( $columns as $column ) {
             if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
         }
         if ( ! in_array('lms_issuer', $names, true) || ! in_array('lms_client', $names, true) ) {
-            return self::$issuerClientDuplicateRows;
+            return array();
         }
         if ( in_array('deploy_key', $names, true) ) {
             $deploy_sql = 'k.deploy_key';
@@ -453,7 +470,7 @@ class AdminService {
             $deploy_group_k = "''";
         }
         $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
-        $rows = $PDOX->allRowsDie(
+        $rows = self::diagnosticRows(
             "SELECT k.key_id, k.key_title, TRIM(k.lms_issuer) AS lms_issuer,
                     TRIM(k.lms_client) AS lms_client, {$deploy_sql} AS deploy_key, {$deleted_sql} AS deleted
                 FROM {$table} AS k
@@ -471,7 +488,7 @@ class AdminService {
                     AND {$deploy_group_k} = d.deploy_group
                 ORDER BY k.lms_issuer, k.lms_client, {$deploy_group_k}, k.key_id"
         );
-        self::$issuerClientDuplicateRows = is_array($rows) ? $rows : array();
+        self::$issuerClientDuplicateRows = $rows;
         return self::$issuerClientDuplicateRows;
     }
 
@@ -655,7 +672,7 @@ class AdminService {
             $select[] = "NULLIF(TRIM(k.{$column}), '') AS {$column}";
         }
         $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
-        $rows = $PDOX->allRowsDie(
+        $rows = self::diagnosticRows(
             "SELECT k.key_id, k.key_title, {$deleted_sql} AS deleted,
                     TRIM(k.lms_issuer) AS lms_issuer, TRIM(k.lms_client) AS lms_client,
                     ".implode(",\n                    ", $select)."
@@ -818,8 +835,7 @@ class AdminService {
                             -- keeps every other difference, including case.
                             AND CAST(LOWER(TRIM({$expr})) AS BINARY) <> 'null'
                         GROUP BY {$key_sql}, CAST(TRIM({$expr}) AS BINARY)";
-            $found = $PDOX->allRowsDie($sql);
-            if ( ! is_array($found) ) continue;
+            $found = self::diagnosticRows($sql);
             foreach ( $found as $row ) $found_rows[] = $row;
         }
 
@@ -1027,7 +1043,7 @@ class AdminService {
                 $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
             }
             $sample_sql = $redact ? 'NULL AS sample_value' : "SUBSTRING({$expr}, 1, 80) AS sample_value";
-            $rows = $PDOX->allRowsDie(
+            $rows = self::diagnosticRows(
                 "SELECT {$key_sql} AS key_id,
                         t.{$copy['id_column']} AS row_id,
                         CHAR_LENGTH({$expr}) AS value_length,
@@ -1038,7 +1054,6 @@ class AdminService {
                         AND CHAR_LENGTH({$expr}) > 255
                     ORDER BY CHAR_LENGTH({$expr}) DESC, t.{$copy['id_column']}"
             );
-            if ( ! is_array($rows) ) continue;
             foreach ( $rows as $row ) {
                 $length = (int) U::get($row, 'value_length', 0);
                 $sample = $redact ? '' : (string) U::get($row, 'sample_value', '');
@@ -1108,7 +1123,7 @@ class AdminService {
                 $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
             }
             $sample_sql = $redact ? 'NULL AS sample_value' : "SUBSTRING({$expr}, 1, 255) AS sample_value";
-            $rows = $PDOX->allRowsDie(
+            $rows = self::diagnosticRows(
                 "SELECT {$key_sql} AS key_id,
                         t.{$copy['id_column']} AS row_id,
                         CHAR_LENGTH({$expr}) AS value_length,
@@ -1120,7 +1135,6 @@ class AdminService {
                         AND CHAR_LENGTH({$expr}) <> LENGTH({$expr})
                     ORDER BY LENGTH({$expr}) DESC, t.{$copy['id_column']}"
             );
-            if ( ! is_array($rows) ) continue;
             foreach ( $rows as $row ) {
                 $length = (int) U::get($row, 'value_length', 0);
                 $bytes = (int) U::get($row, 'value_bytes', 0);

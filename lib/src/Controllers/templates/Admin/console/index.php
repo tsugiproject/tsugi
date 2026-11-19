@@ -136,6 +136,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   Upgrade Database
   </a>
 </li>
+<li><a href="beacon">Send Beacon</a></li>
 <hr/>
 <li>
   <a href="#" title="Manage OAuth2 Keyset"

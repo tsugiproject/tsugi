@@ -1039,6 +1039,31 @@ class ConfigInfo {
      */
     public $trust_forwarded_ip = true;
 
+    /**
+     * Post an upgrade beacon to www.tsugi.org at the end of admin/upgrade.php.
+     *
+     * The post is unauthenticated JSON: the site host, service name, owner,
+     * Tsugi version, one database version, and the PHP and MySQL versions.
+     * No passwords, database credentials, or user rows. A failed post does
+     * not fail the upgrade. Set this to false to skip it.
+     * `php upgrade.php beacon` still runs the upgrade and sends the
+     * beacon at the end when this is false. The admin console page Send
+     * Beacon sends one report and does not migrate.
+     *
+     *     $CFG->beacon = false;
+     *
+     * upgrade_report_url sends the same post somewhere other than
+     * https://www.tsugi.org. A site root is enough; /api/beacon/upgrade
+     * is added when it is missing. Null keeps the default URL. False,
+     * or any other non-string, skips the post.
+     *
+     *     $CFG->upgrade_report_url = 'http://localhost:8888/tsugi-org';
+     *     $CFG->upgrade_report_url = false;
+     */
+    public $beacon = true;
+
+    public $upgrade_report_url = null;
+
     /*
      * This is the internal version of the datbase.   This is an internal
      * value and set in setup.php and read in migrate.php - you should not

@@ -2784,6 +2784,8 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Notice only. A failed count query must not stop the upgrade.
+    try {
     // Notice only. These rows share an issuer, client id, and deployment id.
     foreach ( \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows() as $identity_row ) {
         $stored_deploy = \Tsugi\Util\U::get($identity_row, 'deploy_key');
@@ -2873,6 +2875,11 @@ $DATABASE_UPGRADE = function($oldversion) {
             .' row_id='.\Tsugi\Util\U::get($non_ascii_row, 'row_id')
             .' length='.\Tsugi\Util\U::get($non_ascii_row, 'length')
             .' bytes='.\Tsugi\Util\U::get($non_ascii_row, 'bytes');
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    }
+    } catch (\Throwable $e) {
+        $message = 'Client id check failed: '.$e->getMessage();
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     }
