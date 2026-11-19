@@ -246,6 +246,23 @@ class PDOX extends \PDO {
         return $rows;
     }
 
+    /**
+     * Same rows as allRowsDie(), but a failed query returns false.
+     * The caller decides whether that failure is fatal.
+     *
+     * @return array|false
+     */
+    function allRows($sql, $arr=FALSE, $error_log=TRUE) {
+        $stmt = self::queryReturnError($sql, $arr, $error_log);
+        if ( ! $stmt->success ) return false;
+        $rows = array();
+        while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
+            $rows[] = $row;
+        }
+        $stmt->closeCursor();
+        return $rows;
+    }
+
     //  TODO: Sample return data
 
     /**

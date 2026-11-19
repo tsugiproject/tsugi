@@ -20,7 +20,7 @@ These directories hold command-line maintenance scripts. Their names do not matc
 
 `route-controller.php` is the front controller. The other PHP files in this folder are maintenance. The admin UI includes them after the passphrase gate, or you run them from the shell.
 
-- `upgrade.php` — `php admin/upgrade.php`, and the Upgrade Database action.
+- `upgrade.php` — `php admin/upgrade.php`, and the Upgrade Database action. `php upgrade.php beacon` runs that upgrade and sends the beacon at the end even when automatic reports are off. `/admin/beacon` sends one report and does not migrate.
 - `migrate-setup.php` and `migrate-run.php` — included while an upgrade applies a schema file.
 - `sanity.php` — included while the console boots, to check PHP and `config.php`.
 - `sanity-db.php` — forwards to the copy at the Tsugi root.
