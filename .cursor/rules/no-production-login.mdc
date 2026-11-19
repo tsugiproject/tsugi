@@ -1,0 +1,10 @@
+---
+description: Never log in to production without explicit permission
+alwaysApply: true
+---
+
+# No production login
+
+Never SSH, log in, or otherwise connect to production servers unless the user explicitly tells you to in that conversation.
+
+A task that needs production data is not permission. Ask, then wait.
