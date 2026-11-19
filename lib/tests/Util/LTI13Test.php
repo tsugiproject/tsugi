@@ -161,6 +161,15 @@ EOF
 );
         $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet($json_str, '2011-04-29');
         $this->assertEquals(trim($pub_key), $pub_expected);
+        $json_no_alg = $json;
+        unset($json_no_alg['keys'][0]['alg']);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet(json_encode($json_no_alg), '2011-04-29');
+        $this->assertEquals(trim($pub_key), $pub_expected);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet(
+            '{"keys":[{"kid":"bad","kty":"RSA","n":[],"e":"AQAB"}]}',
+            'bad'
+        );
+        $this->assertNull($pub_key);
         $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet($json_str, 'bob');
         $this->assertNull($pub_key);
         $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet('{{{{{', 'bob');
