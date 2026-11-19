@@ -431,6 +431,25 @@ class AdminService {
     }
 
     /**
+     * Column names for lti_key. A failed describe throws so an unread table
+     * is not reported as an empty result.
+     *
+     * @return array<int, string>
+     */
+    private static function ltiKeyColumnNames($table) {
+        global $PDOX;
+        $columns = $PDOX->describe($table);
+        if ( ! is_array($columns) ) {
+            throw new \RuntimeException('client id check query failed');
+        }
+        $names = array();
+        foreach ( $columns as $column ) {
+            if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+        }
+        return $names;
+    }
+
+    /**
      * Tenant keys that share an issuer, client id, and deployment id.
      * A blank deployment id is its own value in that tuple. This does not change any unique key.
      *
@@ -449,14 +468,7 @@ class AdminService {
         if ( ! is_object($PDOX) ) {
             return array();
         }
-        $columns = $PDOX->describe($table);
-        if ( ! is_array($columns) ) {
-            return array();
-        }
-        $names = array();
-        foreach ( $columns as $column ) {
-            if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
-        }
+        $names = self::ltiKeyColumnNames($table);
         if ( ! in_array('lms_issuer', $names, true) || ! in_array('lms_client', $names, true) ) {
             return array();
         }
@@ -593,6 +605,24 @@ class AdminService {
     }
 
     /**
+     * The five client id warnings, or one warning when a check cannot run.
+     */
+    public static function clientIdCheckNotices() {
+        try {
+            return self::issuerClientDuplicateNotice()
+                .self::clientConfigConflictNotice()
+                .self::keyDeploymentConflictNotice()
+                .self::valuesLongerThan255Notice()
+                .self::nonAsciiValuesNotice();
+        } catch (\Throwable $e) {
+            error_log('Client id check failed: '.$e->getMessage());
+            return '<div class="alert alert-warning" style="margin: 10px;">'."\n"
+                .'<p>Client id check failed.</p>'."\n"
+                ."</div>\n";
+        }
+    }
+
+    /**
      * URL columns that would move onto one client row for an issuer and client id.
      *
      * @return array<string, string> column => label
@@ -643,14 +673,7 @@ class AdminService {
         if ( ! is_object($PDOX) ) {
             return $empty;
         }
-        $columns = $PDOX->describe($table);
-        if ( ! is_array($columns) ) {
-            return $empty;
-        }
-        $names = array();
-        foreach ( $columns as $column ) {
-            if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
-        }
+        $names = self::ltiKeyColumnNames($table);
         if ( ! in_array('lms_issuer', $names, true) || ! in_array('lms_client', $names, true) ) {
             return $empty;
         }
@@ -782,25 +805,22 @@ class AdminService {
         }
         $prefix = $CFG->dbprefix;
         $key_table = "{$prefix}lti_key";
-        $key_columns = $PDOX->describe($key_table);
-        if ( ! is_array($key_columns) ) {
-            return $empty;
-        }
-        $key_names = array();
-        foreach ( $key_columns as $column ) {
-            if ( is_array($column) && isset($column['Field']) ) $key_names[] = $column['Field'];
-        }
+        $key_names = self::ltiKeyColumnNames($key_table);
         $deleted_sql = in_array('deleted', $key_names, true) ? 'MIN(k.deleted)' : '0';
         $title_sql = in_array('key_title', $key_names, true) ? 'MIN(k.key_title)' : "''";
 
         $found_rows = array();
         foreach ( self::deploymentIdCopies() as $copy ) {
             $table = "{$prefix}{$copy['table']}";
-            $described = ($copy['table'] === 'lti_key') ? $key_columns : $PDOX->describe($table);
-            if ( ! is_array($described) ) continue;
-            $names = array();
-            foreach ( $described as $column ) {
-                if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+            if ( $copy['table'] === 'lti_key' ) {
+                $names = $key_names;
+            } else {
+                $described = $PDOX->describe($table);
+                if ( ! is_array($described) ) continue;
+                $names = array();
+                foreach ( $described as $column ) {
+                    if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+                }
             }
             if ( ! in_array($copy['column'], $names, true) || ! in_array($copy['id_column'], $names, true) ) {
                 continue;

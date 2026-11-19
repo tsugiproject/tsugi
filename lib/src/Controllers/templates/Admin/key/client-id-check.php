@@ -9,19 +9,37 @@ header('Content-Type: text/html; charset=utf-8');
 
 if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 
-$rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
-$groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
-$deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
-$long_values = \Tsugi\Services\Admin\AdminService::valuesLongerThan255();
-$non_ascii_values = \Tsugi\Services\Admin\AdminService::nonAsciiValues();
+$check_error = '';
+try {
+    $rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
+    $groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
+    $deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
+    $long_values = \Tsugi\Services\Admin\AdminService::valuesLongerThan255();
+    $non_ascii_values = \Tsugi\Services\Admin\AdminService::nonAsciiValues();
+} catch (\Throwable $e) {
+    error_log('Client id check failed: '.$e->getMessage());
+    $check_error = 'Client id check failed.';
+    $rows = array();
+    $groups = array();
+    $deployment_groups = array();
+    $long_values = array();
+    $non_ascii_values = array();
+}
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
-echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
 ?>
 <h1>Client Id Check</h1>
+<?php if ( $check_error !== '' ) { ?>
+<div class="alert alert-warning" style="margin: 10px;"><p><?= htmlentities($check_error) ?></p></div>
+<?php
+$OUTPUT->footer();
+return;
+}
+echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
+?>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Tenant Keys</a>
   <a href="client-id-check" class="btn btn-default active">Client Id Check</a>
