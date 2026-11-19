@@ -38,11 +38,7 @@ if ( $stmt->success ) {
     }
 }
 if ( is_object($PDOX) ) {
-    echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
-    echo \Tsugi\Services\Admin\AdminService::clientConfigConflictNotice();
-    echo \Tsugi\Services\Admin\AdminService::keyDeploymentConflictNotice();
-    echo \Tsugi\Services\Admin\AdminService::valuesLongerThan255Notice();
-    echo \Tsugi\Services\Admin\AdminService::nonAsciiValuesNotice();
+    echo \Tsugi\Services\Admin\AdminService::clientIdCheckNotices();
 }
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
@@ -136,6 +132,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   Upgrade Database
   </a>
 </li>
+<li><a href="beacon">Send Beacon</a></li>
 <hr/>
 <li>
   <a href="#" title="Manage OAuth2 Keyset"

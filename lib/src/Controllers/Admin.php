@@ -32,6 +32,7 @@ class Admin extends Tool {
     public static function routes(Application $app) {
         self::map($app, self::class, 'index', self::paths(''));
         self::map($app, self::class, 'upgrade', self::paths('upgrade'));
+        self::map($app, self::class, 'beacon', self::paths('beacon'));
         self::map($app, self::class, 'clear12345', self::paths('clear12345'));
         self::map($app, self::class, 'patchProfile', self::paths('patch_profile'));
         self::map($app, self::class, 'proxy', self::paths('proxy_small_json'));
@@ -283,6 +284,43 @@ class Admin extends Tool {
         require_once $CFG->dirroot.'/admin/upgrade.php';
         tsugi_admin_upgrade_run();
         exit;
+    }
+
+    /**
+     * Preview and send one beacon. Does not migrate.
+     */
+    public function beacon() {
+        if ( $r = $this->gate('beacon.send') ) return $r;
+        require_once __DIR__.'/../../../admin/upgrade.php';
+
+        $entered = '';
+        $error = '';
+        $sent = null;
+        if ( (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') ) {
+            $entered = isset($_POST['comment']) && is_string($_POST['comment']) ? $_POST['comment'] : '';
+            if ( ! Tool::csrfOk() ) {
+                $error = 'Missing or invalid CSRF token';
+            } else {
+                $sent = tsugi_admin_upgrade_beacon_send(tsugi_admin_upgrade_manual_comment($entered));
+            }
+        }
+
+        $preview = is_array($sent) ? $sent['payload'] : tsugi_admin_upgrade_report_payload(
+            0,
+            '',
+            tsugi_admin_upgrade_mysql_version(),
+            tsugi_admin_upgrade_manual_comment('')
+        );
+        $json = json_encode($preview, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        $this->view('console/beacon.php', array(
+            'beaconUrl' => is_array($sent) ? $sent['url'] : tsugi_admin_upgrade_report_url(),
+            'beaconJson' => is_string($json) ? $json : '',
+            'beaconSent' => $sent,
+            'beaconComment' => $entered,
+            'beaconDefaultComment' => tsugi_admin_upgrade_manual_comment(''),
+            'beaconError' => $error,
+            'beaconSkip' => tsugi_admin_upgrade_report_skip_reason(),
+        ));
     }
 
     public function clear12345() {

@@ -414,6 +414,18 @@ $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 // navigation.
 $CFG->DEVELOPER = true;
 
+// Database upgrade posts one unauthenticated JSON beacon to www.tsugi.org
+// (site host, service name, owner, Tsugi version, database version). No passwords.
+// Set this to false to skip that post. A failed post does not fail the upgrade.
+// php upgrade.php beacon still runs the upgrade and sends the beacon
+// at the end when this is false. Send Beacon in the admin console
+// sends one report without running an upgrade.
+// $CFG->beacon = false;
+// Send the beacon to another server. /api/beacon/upgrade is added if needed.
+// Null keeps www.tsugi.org. False, or any other non-string, skips the post.
+// $CFG->upgrade_report_url = 'http://localhost:8888/tsugi-org';
+// $CFG->upgrade_report_url = false;
+
 // Is this is true, Tsugi will do a translation log into the table
 // tsugi_string while the application is being executed.  This allows
 // you to see all of messages that go through the translation methods
