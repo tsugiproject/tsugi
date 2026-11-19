@@ -133,6 +133,9 @@ $CFG->install_folder = $CFG->dirroot.'/mod';
 // Also copy upgrading-dist.php to upgrading.php and add your message
 $CFG->upgrading = false;
 
+// Container start runs admin/upgrade.php. Do not post a beacon from CI.
+$CFG->beacon = false;
+
 // This is how the system will refer to itself.
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
