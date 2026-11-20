@@ -406,6 +406,13 @@ class DynamicRegistration {
         // on the registration response itself.
         $deployment_id = self::deploymentIdFromResponse($resp);
 
+        // The LMS has created the client. A second POST with the same unlock
+        // would register the tool again.
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
+            array(":KID" => $tsugi_key)
+        );
+
         $identity_message = LTI::ascii255First(array(
             'Issuer' => $issuer,
             'Client id' => $client_id,
@@ -414,17 +421,10 @@ class DynamicRegistration {
         if ( is_string($identity_message) ) {
             error_log('Dynamic registration: '.$identity_message);
             echo("<p><b>".htmlentities($identity_message)."</b></p>\n");
-            echo("<p>The key was not updated. The one-time unlock code is still set, so you can try this registration again.</p>\n");
+            echo("<p>The LMS already created the client. This key was not updated, and the unlock code is cleared. Do not run registration again. Copy the client id and deployment id from that LMS client onto this key.</p>\n");
             $OUTPUT->footer();
             return '';
         }
-
-        // The LMS has created the client. A second POST with the same unlock
-        // would register the tool again.
-        $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
-            array(":KID" => $tsugi_key)
-        );
 
         // A missing deployment id leaves the stored deploy_key unchanged.
         $deploy_for_check = $deployment_id ? $deployment_id : U::get($row, 'deploy_key');

@@ -457,27 +457,32 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
-     * Resource link id from a cartridge. Too-long values are cut to 255 characters.
-     * A space, a non-printing character, or a character outside ASCII rejects the import.
+     * Resource link id from a cartridge, repaired so the resource can still be imported.
+     * Spaces become underscores. Other non-printing characters and characters outside
+     * ASCII are dropped. What remains is cut to 255 characters. Nothing left means no id.
      *
      * @param mixed $value
      * @return string|null
      */
     public static function importResourceLinkId($value) {
-        if ( ! is_string($value) ) {
+        if ( ! is_string($value) || $value === '' ) {
             return null;
         }
-        if ( $value === '' ) {
+        $repaired = preg_replace('/[^\x20-\x7E]/', '', $value);
+        if ( ! is_string($repaired) ) {
             return null;
         }
-        $message = LTI::ascii255Message('Resource link id', $value);
-        if ( is_string($message) && $message !== 'Resource link id is longer than 255 characters.' ) {
-            throw new \Tsugi\Services\Cartridge\ImportException($message);
+        $repaired = trim(str_replace(' ', '_', $repaired), '_');
+        if ( $repaired === '' ) {
+            return null;
         }
-        if ( strlen($value) > 255 ) {
-            return substr($value, 0, 255);
+        if ( strlen($repaired) > 255 ) {
+            $repaired = substr($repaired, 0, 255);
         }
-        return $value;
+        if ( $repaired !== $value ) {
+            error_log('Cartridge resource link id was repaired to '.$repaired);
+        }
+        return $repaired;
     }
 
     /**

@@ -119,9 +119,6 @@ class Importer {
                     $lessonsByRes[$id] = $lesson;
                 }
             } catch ( \Throwable $e ) {
-                if ( $e instanceof ImportException ) {
-                    throw $e;
-                }
                 $session->error($e->getMessage(), array(
                     'resource_identifier' => $id,
                     'resource_type' => $type,

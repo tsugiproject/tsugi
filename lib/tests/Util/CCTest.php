@@ -315,19 +315,16 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Moodle Course', $save);
     }
 
-    public function testImportResourceLinkIdTruncatesAndRejects() {
+    public function testImportResourceLinkIdRepairs() {
         $long = str_repeat('a', 300);
         $this->assertSame(str_repeat('a', 255), CC::importResourceLinkId($long));
         $this->assertSame('quiz1_k0123', CC::importResourceLinkId('quiz1_k0123'));
         $this->assertNull(CC::importResourceLinkId(''));
-
-        foreach ( array('course 1', "course-\xC3\xA9", "course-\n", "course-\x07") as $bad ) {
-            try {
-                CC::importResourceLinkId($bad);
-                $this->fail('Expected the cartridge import to reject '.$bad);
-            } catch ( \Tsugi\Services\Cartridge\ImportException $ex ) {
-                $this->assertStringContainsString('Resource link id', $ex->getMessage());
-            }
-        }
+        $this->assertNull(CC::importResourceLinkId('   '));
+        $this->assertSame('course_1', CC::importResourceLinkId('course 1'));
+        $this->assertSame('course-', CC::importResourceLinkId("course-\xC3\xA9"));
+        $this->assertSame('course-', CC::importResourceLinkId("course-\n"));
+        $this->assertSame('course-', CC::importResourceLinkId("course-\x07"));
+        $this->assertSame('deploy-1', CC::importResourceLinkId(' deploy-1 '));
     }
 }
