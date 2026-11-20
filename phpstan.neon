@@ -17,7 +17,6 @@ parameters:
         - api
         - assertions
         - cc
-        - cron
         - dev
         - ext
         - ims
