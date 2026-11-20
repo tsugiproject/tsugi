@@ -430,6 +430,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @return string|null
      */
     public static function organizationResourceLinkId($source) {
+        $fromCartridge = is_string($source);
         if ( is_object($source) && isset($source->resource_link_id) ) {
             $source = $source->resource_link_id;
         } else if ( is_array($source) && array_key_exists('resource_link_id', $source) ) {
@@ -438,14 +439,45 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( ! is_string($source) ) {
             return null;
         }
+        if ( $fromCartridge ) {
+            return self::importResourceLinkId($source);
+        }
         $source = trim($source);
-        if ( $source === '' || strlen($source) > 256 ) {
+        if ( $source === '' ) {
             return null;
         }
-        if ( preg_match('/[\x00-\x1F\x7F]/', $source) === 1 ) {
+        $message = LTI::ascii255Message('Resource link id', $source);
+        if ( $message === 'Resource link id is longer than 255 characters.' ) {
+            return substr($source, 0, 255);
+        }
+        if ( is_string($message) ) {
             return null;
         }
         return $source;
+    }
+
+    /**
+     * Resource link id from a cartridge. Too-long values are cut to 255 characters.
+     * A space, a non-printing character, or a character outside ASCII rejects the import.
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function importResourceLinkId($value) {
+        if ( ! is_string($value) ) {
+            return null;
+        }
+        if ( $value === '' ) {
+            return null;
+        }
+        $message = LTI::ascii255Message('Resource link id', $value);
+        if ( is_string($message) && $message !== 'Resource link id is longer than 255 characters.' ) {
+            throw new \Tsugi\Services\Cartridge\ImportException($message);
+        }
+        if ( strlen($value) > 255 ) {
+            return substr($value, 0, 255);
+        }
+        return $value;
     }
 
     /**

@@ -517,15 +517,16 @@ class ToolDeploymentService {
      * @return string|null
      */
     private static function optionalDeploymentId($deploymentId) {
-        if ( $deploymentId === null ) {
+        if ( $deploymentId === null || $deploymentId === '' ) {
             return null;
+        }
+        $message = \Tsugi\Util\LTI::ascii255Message('Deployment id', $deploymentId);
+        if ( is_string($message) ) {
+            throw new \InvalidArgumentException($message);
         }
         $deploymentId = trim((string) $deploymentId);
         if ( $deploymentId === '' ) {
             return null;
-        }
-        if ( strlen($deploymentId) > 255 ) {
-            throw new \InvalidArgumentException('Deployment id is too long.');
         }
         return $deploymentId;
     }

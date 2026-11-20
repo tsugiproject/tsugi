@@ -1,6 +1,7 @@
 <?php
 // In the top frame, we use cookies for session.
 
+use \Tsugi\Util\LTI;
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
@@ -56,6 +57,7 @@ if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
 
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
+$raw_deploy_key = array_key_exists('deploy_key', $_POST) ? $_POST['deploy_key'] : null;
 if ( isset($_POST['deploy_key']) ) {
     $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
 }
@@ -87,6 +89,23 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     $old_deploy_key = $row['deploy_key'];
     $lms_issuer_val = array_key_exists('lms_issuer', $_POST) ? $_POST['lms_issuer'] : $row['lms_issuer'];
     $lms_client_val = array_key_exists('lms_client', $_POST) ? $_POST['lms_client'] : $row['lms_client'];
+    $posted_secret = array_key_exists('secret', $_POST) ? $_POST['secret'] : $row['secret'];
+    if ( $posted_secret === '' ) {
+        $posted_secret = $row['secret'];
+    }
+    $posted_deploy = array_key_exists('deploy_key', $_POST) ? $raw_deploy_key : $deploy_key;
+    $identity_message = LTI::ascii255First(array(
+        'OAuth consumer key' => $key_key === '' ? null : $key_key,
+        'Secret' => $posted_secret === '' ? null : $posted_secret,
+        'Issuer' => $lms_issuer_val === '' ? null : $lms_issuer_val,
+        'Client id' => $lms_client_val === '' ? null : $lms_client_val,
+        'Deployment id' => $posted_deploy === '' ? null : $posted_deploy,
+    ));
+    if ( is_string($identity_message) ) {
+        U::flashError($identity_message);
+        header("Location: ".$redir);
+        return;
+    }
 
     $retval = \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer_val, $old_key_key, $old_deploy_key, $lms_client_val, $key_id);
 

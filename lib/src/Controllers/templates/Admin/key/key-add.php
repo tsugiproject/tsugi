@@ -1,6 +1,7 @@
 <?php
 // In the top frame, we use cookies for session.
 
+use \Tsugi\Util\LTI;
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
@@ -63,12 +64,29 @@ if ( isset($_POST['doSave']) ) {
     $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
 }
 
+if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+    $lms_issuer = U::get($_POST, 'lms_issuer');
+    $lms_client = U::get($_POST, 'lms_client');
+    $identity_message = LTI::ascii255First(array(
+        'OAuth consumer key' => $key_key === '' ? null : $key_key,
+        'Secret' => U::get($_POST, 'secret') === '' ? null : U::get($_POST, 'secret'),
+        'Issuer' => $lms_issuer === '' ? null : $lms_issuer,
+        'Client id' => $lms_client === '' ? null : $lms_client,
+        'Deployment id' => $deploy_key === '' ? null : $deploy_key,
+    ));
+    if ( is_string($identity_message) ) {
+        U::flashError($identity_message);
+        header("Location: key-add");
+        return;
+    }
+}
+
 if ( isset($_POST['doSave']) && isset($_POST['deploy_key']) ) {
     $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
+    $deploy_key = $_POST['deploy_key'];
 }
 
 if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
-    $deploy_key = U::get($_POST, 'deploy_key');
     $lms_issuer = U::get($_POST, 'lms_issuer');
     $lms_client = U::get($_POST, 'lms_client');
     if ( ! \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer, null, null, $lms_client) ) {

@@ -23,6 +23,63 @@ use \Tsugi\Util\Mimeparse;
 class LTI {
 
     /**
+     * A stored LTI identifier must be 255 printable ASCII characters, with no spaces.
+     * Newline, tab, BEL, and the other control characters are rejected. An empty string is rejected.
+     *
+     * @param string $label
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function ascii255Message($label, $value) {
+        if ( $value === null || $value === false ) return null;
+        if ( is_int($value) || is_float($value) ) $value = (string) $value;
+        if ( ! is_string($value) ) {
+            return $label.' must be 255 ASCII characters or fewer.';
+        }
+        if ( $value === '' ) {
+            return $label.' is blank.';
+        }
+        $reasons = array();
+        if ( preg_match('/[^\x00-\x7F]/', $value) === 1 ) {
+            $reasons[] = 'contains a character outside ASCII';
+        }
+        $chars = strlen($value);
+        if ( $reasons && function_exists('mb_strlen') ) {
+            $counted = mb_strlen($value, 'UTF-8');
+            if ( is_int($counted) ) $chars = $counted;
+        }
+        if ( $chars > 255 ) {
+            $reasons[] = 'is longer than 255 characters';
+        }
+        if ( preg_match('/ /', $value) === 1 ) {
+            $reasons[] = 'contains a space';
+        }
+        if ( preg_match('/[\x00-\x1F\x7F]/', $value) === 1 ) {
+            $reasons[] = 'contains a non-printing character';
+        }
+        if ( count($reasons) < 1 ) return null;
+        if ( count($reasons) === 1 ) return $label.' '.$reasons[0].'.';
+        $last = array_pop($reasons);
+        return $label.' '.implode(', ', $reasons).' and '.$last.'.';
+    }
+
+    /**
+     * Every problem among labeled values, or null when every value fits.
+     *
+     * @param array<string, mixed> $labeled
+     * @return string|null
+     */
+    public static function ascii255First(array $labeled) {
+        $problems = array();
+        foreach ( $labeled as $label => $value ) {
+            $message = self::ascii255Message((string) $label, $value);
+            if ( is_string($message) ) $problems[] = $message;
+        }
+        if ( count($problems) < 1 ) return null;
+        return implode(' ', $problems);
+    }
+
+    /**
      * Determines if this is a valid Basic LTI message
      *
      * @retval mixed Returns true if this is a Basic LTI message

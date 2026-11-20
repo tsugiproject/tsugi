@@ -119,6 +119,9 @@ class Importer {
                     $lessonsByRes[$id] = $lesson;
                 }
             } catch ( \Throwable $e ) {
+                if ( $e instanceof ImportException ) {
+                    throw $e;
+                }
                 $session->error($e->getMessage(), array(
                     'resource_identifier' => $id,
                     'resource_type' => $type,
@@ -265,10 +268,15 @@ class Importer {
                     : ($res['identifier'] ?? '')
             );
             if ( $linkKey === '' ) {
-                $linkKey = (string) $res['identifier'];
+                $fallback = \Tsugi\Util\CC::importResourceLinkId((string) $res['identifier']);
+                $linkKey = $fallback === null ? '' : $fallback;
             }
-            if ( $isCopy ) {
-                $linkKey .= '-'.bin2hex(random_bytes(3));
+            if ( $isCopy && $linkKey !== '' ) {
+                $suffix = '-'.bin2hex(random_bytes(3));
+                if ( strlen($linkKey) + strlen($suffix) > 255 ) {
+                    $linkKey = substr($linkKey, 0, 255 - strlen($suffix));
+                }
+                $linkKey .= $suffix;
             }
             // The lesson item holds the launch until a deployment is chosen.
             // No lti_content row and no grade column until then.

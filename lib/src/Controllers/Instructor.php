@@ -2,6 +2,7 @@
 
 namespace Tsugi\Controllers;
 
+use Tsugi\Util\LTI;
 use Tsugi\Util\U;
 use Tsugi\Core\Guid;
 use Tsugi\Core\LTIX;
@@ -1187,6 +1188,21 @@ you will need to request a key and have it approved.
             $_POST['key_key'] = $oldrow['key_key'];
         }
 
+        if ( isset($_POST['doUpdate']) ) {
+            $posted_secret = U::get($_POST, 'secret');
+            if ( $posted_secret === '' ) {
+                $posted_secret = $oldrow['secret'];
+            }
+            $posted_deploy = U::get($_POST, 'deploy_key');
+            $identity_message = LTI::ascii255First(array(
+                'Secret' => $posted_secret === '' ? null : $posted_secret,
+                'Deployment id' => $posted_deploy === '' ? null : $posted_deploy,
+            ));
+            if ( is_string($identity_message) ) {
+                U::flashError($identity_message);
+                return new RedirectResponse($from_location);
+            }
+        }
         if ( isset($_POST['deploy_key']) ) {
             $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
         }

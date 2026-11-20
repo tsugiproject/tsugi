@@ -807,6 +807,46 @@ class LTITest extends \PHPUnit\Framework\TestCase
 }', 'JSON should be indented correctly');
     }
 
+    /**
+     * @dataProvider ascii255Provider
+     */
+    public function testAscii255Message($label, $value, $expected) {
+        $this->assertSame($expected, \Tsugi\Util\LTI::ascii255Message($label, $value));
+    }
+
+    public static function ascii255Provider() {
+        return array(
+            'blank' => array('Field', '', 'Field is blank.'),
+            'null' => array('Field', null, null),
+            'ascii 255' => array('Field', str_repeat('a', 255), null),
+            'ascii 256' => array('Field', str_repeat('a', 256), 'Field is longer than 255 characters.'),
+            'one non-ascii' => array('Context id', "course-\xC3\xA9", 'Context id contains a character outside ASCII.'),
+            'long and non-ascii' => array('Issuer', str_repeat("\xC3\xA9", 256), 'Issuer contains a character outside ASCII and is longer than 255 characters.'),
+            'not text' => array('Client id', array('x'), 'Client id must be 255 ASCII characters or fewer.'),
+            'leading space' => array('Deployment id', ' deploy-1', 'Deployment id contains a space.'),
+            'trailing space' => array('Secret', 'secret ', 'Secret contains a space.'),
+            'middle space' => array('Client id', 'client 1', 'Client id contains a space.'),
+            'only spaces' => array('Issuer', '   ', 'Issuer contains a space.'),
+            'newline' => array('Context id', "course-1\n", 'Context id contains a non-printing character.'),
+            'bel' => array('Client id', "client-\x07", 'Client id contains a non-printing character.'),
+            'tab' => array('Deployment id', "deploy-\t1", 'Deployment id contains a non-printing character.'),
+            'space and newline' => array('Secret', "secret \n", 'Secret contains a space and contains a non-printing character.'),
+        );
+    }
+
+    public function testAscii255FirstReportsEveryProblem() {
+        $message = \Tsugi\Util\LTI::ascii255First(array(
+            'OAuth consumer key' => str_repeat('a', 256),
+            'Context id' => "course-\xC3\xA9",
+            'Deployment id' => null,
+        ));
+        $this->assertSame(
+            'OAuth consumer key is longer than 255 characters. Context id contains a character outside ASCII.',
+            $message
+        );
+        $this->assertNull(\Tsugi\Util\LTI::ascii255First(array('Secret' => 'short-secret')));
+    }
+
     function testSigning() {
         $signed = \Tsugi\Util\LTI::signParameters($this->parms, $this->endpoint, 'POST', '12345', 'secret',
                         'Finish Launch', 'http://www.wa4e.com', 'WA4E');

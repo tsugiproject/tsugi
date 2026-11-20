@@ -24,7 +24,7 @@ class Lti11CourseTool {
                     array('name' => 'title', 'label' => 'Tool title', 'type' => 'text', 'maxlength' => 512),
                     array('name' => 'lti11_url', 'label' => 'Launch URL', 'type' => 'url'),
                     array('name' => 'lti11_key', 'label' => 'Key', 'type' => 'text', 'maxlength' => 255),
-                    array('name' => 'lti11_secret', 'label' => 'Secret', 'type' => 'password', 'maxlength' => 512),
+                    array('name' => 'lti11_secret', 'label' => 'Secret', 'type' => 'password', 'maxlength' => 255),
                 ),
             ),
             array(
@@ -272,8 +272,8 @@ class Lti11CourseTool {
         return array(
             'title' => $title,
             'lti_version' => '1.1',
-            'lti11_key' => self::postedText($post, 'lti11_key', 'Key', 255),
-            'lti11_secret' => self::postedText($post, 'lti11_secret', 'Secret', 512),
+            'lti11_key' => self::postedIdentity($post, 'lti11_key', 'Key'),
+            'lti11_secret' => self::postedIdentity($post, 'lti11_secret', 'Secret'),
             'lti11_url' => $url,
             'messages' => $messages,
             'placements' => self::postedChecks($post, 'placements'),
@@ -348,5 +348,22 @@ class Lti11CourseTool {
             throw new \InvalidArgumentException($label.' is too long.');
         }
         return $value;
+    }
+
+    /**
+     * Key and secret are checked before trim, so a leading or trailing space is rejected.
+     *
+     * @param array<string, mixed> $post
+     * @param string $name
+     * @param string $label
+     * @return string
+     */
+    private static function postedIdentity(array $post, $name, $label) {
+        $raw = $post[$name] ?? '';
+        $message = \Tsugi\Util\LTI::ascii255Message($label, $raw);
+        if ( is_string($message) ) {
+            throw new \InvalidArgumentException($message);
+        }
+        return self::postedText($post, $name, $label, 255);
     }
 }

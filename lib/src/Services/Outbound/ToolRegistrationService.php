@@ -952,10 +952,16 @@ class ToolRegistrationService {
                 $out[$key] = $encoded;
                 continue;
             }
-            if ( $key === 'lti13_client_id' || $key === 'lti11_key' ) {
-                $client = trim((string) $meta[$key]);
-                if ( strlen($client) > 255 ) {
-                    throw new \InvalidArgumentException('Registration '.$key.' is too long.');
+            if ( $key === 'lti13_client_id' || $key === 'lti11_key' || $key === 'lti11_secret' ) {
+                $client = (string) $meta[$key];
+                $labels = array(
+                    'lti13_client_id' => 'Client id',
+                    'lti11_key' => 'Key',
+                    'lti11_secret' => 'Secret',
+                );
+                $message = \Tsugi\Util\LTI::ascii255Message($labels[$key], $client);
+                if ( is_string($message) ) {
+                    throw new \InvalidArgumentException($message);
                 }
                 $out[$key] = $client === '' ? null : $client;
                 continue;

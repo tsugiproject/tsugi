@@ -369,6 +369,18 @@ class LTIX {
             self::abort_with_error_log('LTI Launch Error: '.$msg, $request_data);
         }
 
+        $identity_message = LTI::ascii255First(array(
+            'OAuth consumer key' => U::get($post, 'key'),
+            'Resource link id' => U::get($post, 'link_id'),
+            'Context id' => U::get($post, 'context_id'),
+            'Deployment id' => U::get($post, 'deployment_id'),
+            'Issuer' => U::get($post, 'issuer_key'),
+            'Client id' => U::get($post, 'issuer_client'),
+        ));
+        if ( is_string($identity_message) ) {
+            self::abort_with_error_log('This launch was not accepted. '.$identity_message);
+        }
+
         // Tools also accept direct posts. Enforce nonce binding here before creating
         // a launch session, so bypassing oidc_launch cannot bypass its nonce check.
         if ( $LTI13 ) {

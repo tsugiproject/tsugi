@@ -4,6 +4,7 @@ namespace Tsugi\Services\Settings;
 
 use Tsugi\Services\Outbound\ToolRegistrationDocument;
 use Tsugi\Util\SakaiCustom;
+use Tsugi\Util\LTI;
 use Tsugi\Util\U;
 use Tsugi\Util\Net;
 use Tsugi\Core\LTIX;
@@ -165,6 +166,15 @@ class DynamicRegistration {
 
         // LTI Dynamic Registration 1.0 sections 3.4 and 3.5.1. Stop before the
         // registration POST, and before this issuer is stored.
+        $issuer_message = LTI::ascii255Message('Issuer', $issuer);
+        if ( is_string($issuer_message) ) {
+            error_log('Dynamic registration: '.$issuer_message);
+            echo("<p><b>".htmlentities($issuer_message)."</b></p>\n");
+            echo("<p>The key was not updated.</p>\n");
+            $OUTPUT->footer();
+            return '';
+        }
+
         if ( ! self::openidConfigurationMatchesIssuer($openid_configuration, $issuer) ) {
             error_log('Dynamic registration: OpenID configuration URL is not under the declared issuer');
             echo("<pre>\n");
@@ -392,16 +402,29 @@ class DynamicRegistration {
 
         $client_id = $resp->client_id;
 
+        // Sakai puts deployment_id inside the tool configuration. Canvas puts it
+        // on the registration response itself.
+        $deployment_id = self::deploymentIdFromResponse($resp);
+
+        $identity_message = LTI::ascii255First(array(
+            'Issuer' => $issuer,
+            'Client id' => $client_id,
+            'Deployment id' => $deployment_id,
+        ));
+        if ( is_string($identity_message) ) {
+            error_log('Dynamic registration: '.$identity_message);
+            echo("<p><b>".htmlentities($identity_message)."</b></p>\n");
+            echo("<p>The key was not updated. The one-time unlock code is still set, so you can try this registration again.</p>\n");
+            $OUTPUT->footer();
+            return '';
+        }
+
         // The LMS has created the client. A second POST with the same unlock
         // would register the tool again.
         $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
             array(":KID" => $tsugi_key)
         );
-
-        // Sakai puts deployment_id inside the tool configuration. Canvas puts it
-        // on the registration response itself.
-        $deployment_id = self::deploymentIdFromResponse($resp);
 
         // A missing deployment id leaves the stored deploy_key unchanged.
         $deploy_for_check = $deployment_id ? $deployment_id : U::get($row, 'deploy_key');

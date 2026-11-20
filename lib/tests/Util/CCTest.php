@@ -314,4 +314,20 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<file href="'.$file.'"/>', $save);
         $this->assertStringContainsString('Moodle Course', $save);
     }
+
+    public function testImportResourceLinkIdTruncatesAndRejects() {
+        $long = str_repeat('a', 300);
+        $this->assertSame(str_repeat('a', 255), CC::importResourceLinkId($long));
+        $this->assertSame('quiz1_k0123', CC::importResourceLinkId('quiz1_k0123'));
+        $this->assertNull(CC::importResourceLinkId(''));
+
+        foreach ( array('course 1', "course-\xC3\xA9", "course-\n", "course-\x07") as $bad ) {
+            try {
+                CC::importResourceLinkId($bad);
+                $this->fail('Expected the cartridge import to reject '.$bad);
+            } catch ( \Tsugi\Services\Cartridge\ImportException $ex ) {
+                $this->assertStringContainsString('Resource link id', $ex->getMessage());
+            }
+        }
+    }
 }
