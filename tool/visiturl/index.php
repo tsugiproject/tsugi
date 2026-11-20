@@ -354,7 +354,8 @@ function tsugiCloseLinkModal(id) {
 }
 // A click on the dimmed margin does not close this player. Closing
 // reloads the page, so a miss while watching would throw the video away.
-// Use the close button or Escape.
+// The close button always works. Escape works only while focus is outside
+// the frame. Shift+Tab leaves the frame and returns to that button.
 </script>
 <?php
     }
