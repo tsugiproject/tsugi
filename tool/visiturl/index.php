@@ -352,13 +352,9 @@ function tsugiCloseLinkModal(id) {
         window.location.href = <?= $reload_url ?>;
     }, wait);
 }
-document.querySelectorAll('.w3schools-overlay.tsugi-link-modal').forEach(function (overlay) {
-    overlay.addEventListener('click', function (event) {
-        if (event.target === overlay) {
-            tsugiCloseLinkModal(overlay.id);
-        }
-    });
-});
+// A click on the dimmed margin does not close this player. Closing
+// reloads the page, so a miss while watching would throw the video away.
+// Use the close button or Escape.
 </script>
 <?php
     }
