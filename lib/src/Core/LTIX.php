@@ -92,7 +92,6 @@ class LTIX {
         $PDOX->addPDOXMeta("{$p}lti_service", array("pk" => "service_id", "lk" => array("service_sha256", "key_id")));
         $PDOX->addPDOXMeta("{$p}lti_result", array("pk" => "result_id", "lk" => array("user_id", "link_id")));
         $PDOX->addPDOXMeta("{$p}lti_nonce", array("pk" => "none", "lk" => array("key_id", "nonce")));
-        $PDOX->addPDOXMeta("{$p}cal_event", array("pk" => "event_id"));
         $PDOX->addPDOXMeta("{$p}tsugi_string", array("pk" => "string_id", "lk" => array("domain", "string_sha256")));
         $PDOX->addPDOXMeta("{$p}profile", array("pk" => "profile_id", "lk" => array("profile_sha256")));
         $PDOX->addPDOXMeta("{$p}blob_blob", array("pk" => "blob_id", "lk" => array("blob_sha256")));
@@ -645,38 +644,6 @@ class LTIX {
                     }
                 }
             }
-
-            // Now the place the event into the circular buffer
-            if ( $CFG->eventcheck !== false ) {
-                $event_nonce = $post['nonce'].':'.$row['key_key'];
-
-                // Store binary nonce in fixed-length CHAR field with no encoding
-                // https://stackoverflow.com/questions/3554296/how-to-store-hashes-in-mysql-databases-without-using-text-fields
-                $event_nonce = md5($event_nonce, True);   // Was UNHEX(MD5(:nonce)) in MySQL
-                $event_launch = null;
-                $canvasUrl = U::get($request_data,'custom_sub_canvas_caliper_url');
-                if ( $canvasUrl ) {
-                    $event_launch = 'canvas::'.$canvasUrl;
-                }
-
-                $sql = "INSERT INTO {$CFG->dbprefix}cal_event
-                        (event, key_id, context_id, link_id, user_id, nonce, launch, updated_at) VALUES
-                        (0, :key_id, :context_id, :link_id, :user_id, :nonce, :launch, NOW())";
-                $stmt = $PDOX->queryReturnError($sql, array(
-                    ':key_id' => U::get($row, 'key_id'),
-                    ':context_id' => U::get($row, 'context_id'),
-                    ':link_id' => U::get($row, 'link_id'),
-                    ':user_id' => U::get($row, 'user_id'),
-                    ':nonce' => $event_nonce,
-                    ':launch' => $event_launch
-                ));
-
-                if ( ! $stmt->success ) {
-                    error_log("Unable to insert event record");
-                }
-                $row['event_nonce'] = $event_nonce;
-                $row['event_launch'] = $event_launch;
-            }
         }
 
         // Make sure we debounce really fast relaunches
@@ -930,17 +897,6 @@ class LTIX {
             if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
             // Local superuser would be 10000
         }
-
-        // Copy in some extensions.  Backwards compatibility for canvas xapi urls in legacy cartridges
-        $sub_canvas_caliper_url = U::get($FIXED,'sub_canvas_xapi_url');
-        if ( $sub_canvas_caliper_url ) {
-            $sub_canvas_caliper_url = str_replace('xapi','caliper',$sub_canvas_caliper_url);
-        }
-        $sub_canvas_caliper_url = U::get($FIXED,'sub_canvas_caliper_url', $sub_canvas_caliper_url);
-        if ($sub_canvas_caliper_url ) $retval['sub_canvas_caliper_url'] = $sub_canvas_caliper_url;
-
-        $sub_caliper_url = U::get($FIXED,'sub_caliper_url');
-        if ($sub_caliper_url ) $retval['sub_caliper_url'] = $sub_caliper_url;
 
         // Get the theme data
         $retval['theme_base'] = isset($FIXED['theme_base']) ? $FIXED['theme_base'] : null;
@@ -2610,30 +2566,6 @@ class LTIX {
         $secret = self::decrypt_secret(self::ltiParameter('secret'));
 
         $retval = LTI::sendJSONSettings($settings, $settings_url, $key_key, $secret, $debug_log);
-        return $retval;
-    }
-
-    /**
-     * Send a Caliper Body to the correct URL using the key and secret
-     *
-     * This is not yet a standard or production - it uses the Canvas
-     * extension only.
-     *
-     */
-    public static function caliperSend($caliperBody, $content_type='application/json', &$debug_log=false)
-    {
-
-        $caliperURL = LTIX::ltiRawParameter('custom_sub_canvas_xapi_url');
-        if ( U::strlen($caliperURL) == 0 ) {
-            if ( is_array($debug_log) ) $debug_log[] = array('custom_sub_canvas_xapi_url not found in launch data');
-            return false;
-        }
-
-        $key_key = self::ltiParameter('key_key');
-        $secret = self::decrypt_secret(self::ltiParameter('secret'));
-
-        $retval = LTI::sendJSONBody("POST", $caliperBody, $content_type,
-            $caliperURL, $key_key, $secret, $debug_log);
         return $retval;
     }
 

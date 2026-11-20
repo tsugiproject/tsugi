@@ -240,34 +240,6 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         "5": ""
     },
     {
-        "Field": "caliper_url",
-        "0": "caliper_url",
-        "Type": "text",
-        "1": "text",
-        "Null": "YES",
-        "2": "YES",
-        "Key": "",
-        "3": "",
-        "Default": null,
-        "4": null,
-        "Extra": "",
-        "5": ""
-    },
-    {
-        "Field": "caliper_key",
-        "0": "caliper_key",
-        "Type": "text",
-        "1": "text",
-        "Null": "YES",
-        "2": "YES",
-        "Key": "",
-        "3": "",
-        "Default": null,
-        "4": null,
-        "Extra": "",
-        "5": ""
-    },
-    {
         "Field": "json",
         "0": "json",
         "Type": "mediumtext",

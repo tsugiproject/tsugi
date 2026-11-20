@@ -21,8 +21,6 @@ class RemoteTsugiLaunchProvider implements ExternalLaunchProvider
         string $callback_endpoint,
         string $callback_token
     ): ExternalLaunchRequest {
-        unset($launch_data['event_nonce']);
-
         $jwt_claim = LTI13::base_jwt("iss", "subj");
         $jwt_claim["lti"] = $launch_data;
         $jwt_claim["callback"] = array(

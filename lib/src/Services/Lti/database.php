@@ -124,13 +124,6 @@ array( "{$CFG->dbprefix}lti_key",
 
     unlock_code         MEDIUMTEXT NULL,
 
-    xapi_url            TEXT NULL,
-    xapi_user           TEXT NULL,
-    xapi_password       TEXT NULL,
-
-    caliper_url         TEXT NULL,
-    caliper_key         TEXT NULL,
-
     json                MEDIUMTEXT NULL,
     user_json           MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
@@ -1020,69 +1013,6 @@ array( "{$CFG->dbprefix}sessions",
         updated_at          TIMESTAMP NULL
 ) COLLATE utf8_bin, ENGINE = InnoDB;"),
 
-// Caliper tables - event oriented - no foreign keys to the lti_tables
-
-// "FIFO" buffer of events no explicit foreign key
-// relationships as these are short-lived records
-array( "{$CFG->dbprefix}cal_event",
-"create table {$CFG->dbprefix}cal_event (
-    event_id        INTEGER NOT NULL AUTO_INCREMENT,
-    event           INTEGER NOT NULL,
-
-    state           SMALLINT NULL,
-
-    link_id         INTEGER NULL,
-    key_id          INTEGER NULL,
-    context_id      INTEGER NULL,
-    user_id         INTEGER NULL,
-
-    nonce           BINARY(16) NULL,
-    launch          MEDIUMTEXT NULL,
-    json            MEDIUMTEXT NULL,
-
-    entity_version      INTEGER NOT NULL DEFAULT 0,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NULL,
-
-    CONSTRAINT `{$CFG->dbprefix}cal_event_const_pk` PRIMARY KEY (event_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-array( "{$CFG->dbprefix}cal_key",
-"create table {$CFG->dbprefix}cal_key (
-    key_id              INTEGER NOT NULL AUTO_INCREMENT,
-    key_sha256          CHAR(64) NOT NULL,
-    key_key             TEXT NOT NULL,
-
-    activity            VARBINARY(8192) NULL,
-
-    entity_version      INTEGER NOT NULL DEFAULT 0,
-    login_at            TIMESTAMP NULL,
-    login_count         BIGINT DEFAULT 0,
-    login_time          BIGINT DEFAULT 0,
-
-    CONSTRAINT `{$CFG->dbprefix}cal_key_const_1` UNIQUE(key_sha256),
-    CONSTRAINT `{$CFG->dbprefix}cal_key_const_pk` PRIMARY KEY (key_id)
- ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-array( "{$CFG->dbprefix}cal_context",
-"create table {$CFG->dbprefix}cal_context (
-    context_id          INTEGER NOT NULL AUTO_INCREMENT,
-    context_sha256      CHAR(64) NOT NULL,
-    context_key         TEXT NOT NULL,
-
-    key_id              INTEGER NOT NULL,
-
-    activity            VARBINARY(8192) NULL,
-
-    entity_version      INTEGER NOT NULL DEFAULT 0,
-    login_at            TIMESTAMP NULL,
-    login_count         BIGINT DEFAULT 0,
-    login_time          BIGINT DEFAULT 0,
-
-    CONSTRAINT `{$CFG->dbprefix}cal_context_const_1` UNIQUE(key_id, context_sha256),
-    CONSTRAINT `{$CFG->dbprefix}cal_context_const_pk` PRIMARY KEY (context_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
 // Outbound LTI tool registration inside one tenant key.
 // key_id is the tenant. It is not an extra owner_tenant_id.
 // owner_org_id and owner_context_id are administrative ownership, not
@@ -1663,9 +1593,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_context', 'lti13_membership_url', 'TEXT NULL'),
         array('lti_key', 'deploy_key', 'TEXT NULL'),
         array('lti_key', 'user_json', 'MEDIUMTEXT NULL'),
-        array('lti_key', 'xapi_url', 'TEXT NULL'),
-        array('lti_key', 'xapi_user', 'TEXT NULL'),
-        array('lti_key', 'xapi_password', 'TEXT NULL'),
 
         // 2021-08-26 - Add key-local security arrangements
         array('lti_key', 'lms_issuer', 'TEXT NULL'),
@@ -2784,6 +2711,55 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // 2026-11-20 Drop the unused outbound analytics queue.
+    $legacy_names = array();
+    foreach ( array('cal_event', 'cal_key', 'cal_context') as $legacy_table ) {
+        $legacy_names[$legacy_table] = "{$CFG->dbprefix}{$legacy_table}";
+    }
+    $legacy_present = array();
+    $legacy_rows = $PDOX->allRows(
+        "SELECT TABLE_NAME AS table_name
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (:a, :b, :c)",
+        array(
+            ':a' => $legacy_names['cal_event'],
+            ':b' => $legacy_names['cal_key'],
+            ':c' => $legacy_names['cal_context'],
+        ),
+        false
+    );
+    if ( is_array($legacy_rows) ) {
+        foreach ( $legacy_rows as $legacy_row ) {
+            $legacy_present[\Tsugi\Util\U::get($legacy_row, 'table_name')] = true;
+        }
+    }
+    foreach ( $legacy_names as $legacy_table => $physical ) {
+        if ( empty($legacy_present[$physical]) ) continue;
+        $sql = "DROP TABLE {$physical}";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal drop {$legacy_table}: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+    $key_table = "{$CFG->dbprefix}lti_key";
+    foreach ( array('caliper_url', 'caliper_key', 'xapi_url', 'xapi_user', 'xapi_password') as $legacy_column ) {
+        if ( ! $PDOX->columnExists($legacy_column, $key_table) ) continue;
+        $sql = "ALTER TABLE {$key_table} DROP COLUMN {$legacy_column}";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal drop {$legacy_column}: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
     // Notice only. A failed count query must not stop the upgrade.
     try {
     // Notice only. These rows share an issuer, client id, and deployment id.
@@ -2824,7 +2800,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Notice only. A key with more than one deployment id cannot drop the
-    // copies on context (and link, when that column exists) and read the key.
+    // copies on context and read the key.
     foreach ( \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups() as $deploy_group ) {
         $deploy_values = \Tsugi\Util\U::get($deploy_group, 'values', array());
         if ( ! is_array($deploy_values) ) continue;
@@ -2886,7 +2862,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202611070000;
+    return 202611200001;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

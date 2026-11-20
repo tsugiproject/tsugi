@@ -177,9 +177,9 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   </a></li>
 <li><a href="mail/">Mail</a></li>
 <li>
-  <a href="#" title="Event Status"
+  <a href="#" title="Launch Activity"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'events', _TSUGI.spinnerUrl, true); return false;" >
-  Event Status
+  Launch Activity
   </a>
 </li>
 <li>

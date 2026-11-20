@@ -44,8 +44,6 @@ characters. It does not cut the value.
 | `lti_user` | `user_key` | `user_sha256` | `(key_id, user_sha256)` |
 | `lti_user` | `subject_key` | `subject_sha256` | `(key_id, subject_sha256)` |
 | `lti_service` | `service_key` | `service_sha256` | `(key_id, service_sha256)` |
-| `cal_key` | `key_key` | `key_sha256` | `(key_sha256)` |
-| `cal_context` | `context_key` | `context_sha256` | `(key_id, context_sha256)` |
 | `tsugi_string` | `string_text` | `string_sha256` | `(domain, string_sha256)` |
 
 `lti_content.resource_link_sha256` is `lti_sha256(resource_link_id)`. When a
@@ -56,8 +54,8 @@ grade column is created, that hash is the same value as `lti_link.link_sha256`.
 
 `lti_key.secret` and `lti_key.new_secret` are `TEXT` and have no hash.
 `lti_context.lti13_deployment_id` is `TEXT` and has no hash. `lti_link` has no
-deployment id column. `lti_domain.consumer_key` and `lti_domain.secret` are
-`TEXT` and have no hash. `lti_tool_registration.lti11_secret` is `TEXT` and has
+deployment id column, and one will not be added. `lti_domain.consumer_key` and
+`lti_domain.secret` are `TEXT` and have no hash. `lti_tool_registration.lti11_secret` is `TEXT` and has
 no hash. `lti_result.sourcedid` is `TEXT` and has no hash.
 
 `lti_tool_registration_token.token_sha256` is a different use. The raw token is
@@ -77,19 +75,14 @@ The length check already reads them.
 | Issuer | `lti_key.lms_issuer` |
 | Client id | `lti_key.lms_client` |
 | Deployment id | `lti_key.deploy_key`, `lti_context.lti13_deployment_id` |
-| Context id | `lti_context.context_key`, `cal_context.context_key` |
+| Context id | `lti_context.context_key` |
 | Resource link id | `lti_link.link_key`, `lti_content.resource_link_id` |
-| LTI 1.1 consumer key | `lti_key.key_key`, `cal_key.key_key`, `lti_domain.consumer_key` |
+| LTI 1.1 consumer key | `lti_key.key_key`, `lti_domain.consumer_key` |
 | Secret | `lti_key.secret`, `lti_key.new_secret`, `lti_domain.secret`, `lti_tool_registration.lti11_secret` |
 
 Already `varchar(255)`, so the check does not read them:
 `lti_tool_registration.lti13_client_id`, `lti_tool_registration.lti11_key`, and
 `lti_tool_deployment.deployment_id`.
-
-`cal_key` and `cal_context` are Caliper tables. Their `key_id` is not
-`lti_key.key_id`. [Issue #376](https://github.com/tsugiproject/tsugi/issues/376)
-is the later removal of Caliper. Those two columns leave this list when the
-tables go.
 
 A unique index on the real columns replaces the hash unique for that pair.
 `(lms_issuer, lms_client, deploy_key)` is the key unique that was discussed,
@@ -127,9 +120,8 @@ the value they send when they do not store one.
 ## The length check
 
 Shipped before any `ALTER`. `CHAR_LENGTH` counts characters. A blank value is
-short, so it is absent. Deleted rows are included. A missing column is skipped,
-which is how `lti_link.lti13_deployment_id` stays in the list before that column
-exists.
+short, so it is absent. Deleted rows are included. A missing column is skipped.
+`lti_link` has no deployment id column, and one will not be added.
 
 Admin → Client ID Check lists the field, the key, the row, the length, and the
 first 80 characters. A secret is reported by length only. The page says "(not

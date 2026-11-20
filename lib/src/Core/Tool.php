@@ -334,7 +334,6 @@ $retval .= '    <lticm:property name="sub_canvas_assignment_id">$Canvas.assignme
     <lticm:property name="sub_canvas_user_id">$Canvas.user.id</lticm:property>
     <lticm:property name="sub_canvas_user_login_id">$Canvas.user.loginId</lticm:property>
     <lticm:property name="sub_canvas_user_sis_source_id">$Canvas.user.sisSourceId</lticm:property>
-    <lticm:property name="sub_canvas_caliper_url">$Caliper.url</lticm:property>
     <lticm:property name="api_url">$Sakai.api.url</lticm:property>
     <lticm:property name="direct_url">$Sakai.direct.url</lticm:property>
     <lticm:property name="scopes">$Sakai.scopes.available</lticm:property>
@@ -402,7 +401,6 @@ $retval .= '    <lticm:property name="sub_canvas_assignment_id">$Canvas.assignme
     <lticm:property name="sub_canvas_user_id">$Canvas.user.id</lticm:property>
     <lticm:property name="sub_canvas_user_login_id">$Canvas.user.loginId</lticm:property>
     <lticm:property name="sub_canvas_user_sis_source_id">$Canvas.user.sisSourceId</lticm:property>
-    <lticm:property name="sub_canvas_caliper_url">$Caliper.url</lticm:property>
     <lticm:property name="api_url">$Sakai.api.url</lticm:property>
     <lticm:property name="direct_url">$Sakai.direct.url</lticm:property>
     <lticm:property name="scopes">$Sakai.scopes.available</lticm:property>

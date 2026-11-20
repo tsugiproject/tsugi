@@ -143,7 +143,7 @@ final class AdminTest extends TsugiPantherTestCase
             'admin/dbsize.php' => 'Database size',
             'admin/guid' => 'GUID status',
             'admin/mail/' => '<h1>Mail</h1>',
-            'admin/events' => 'Event Detail',
+            'admin/events' => 'Launch Activity',
             'admin/blob_status' => 'Blob Status',
             'admin/blob_move' => 'Blob Migration',
             'admin/blob_clean' => 'Blob cleanup',

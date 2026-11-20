@@ -21,8 +21,6 @@ $fields = array('key_title', 'plus', 'key_key', 'key_sha256', 'secret',
     'lms_client',
     'deploy_key', 'deploy_sha256',
     'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
-    'xapi_url', 'xapi_user', 'xapi_password',
-    'caliper_url', 'caliper_key',
     'created_at', 'updated_at',
     'user_id',
 );

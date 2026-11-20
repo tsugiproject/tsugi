@@ -81,7 +81,6 @@ $json_str = <<<JSON
         "submissionEnd": "\$ResourceLink.submission.endDateTime",
         "resourcelink_id_history": "\$ResourceLink.id.history",
         "context_id_history": "\$Context.id.history",
-        "canvas_caliper_url": "\$Caliper.url",
         "api_url": "\$Sakai.api.url",
         "direct_url": "\$Sakai.direct.url",
         "scopes": "\$Sakai.scopes.available",

@@ -456,14 +456,6 @@ $CFG->branch_override = array(
 // Should we record launch activity - multi-bucket lossy historgram
 $CFG->launchactivity = true;
 
-// how many launches between event cleanups (probabilistic)
-$CFG->eventcheck = 200;        // Set to false to suspend event recording
-$CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
-
-// Maximum events to push in a batch
-$CFG->eventpushcount = 50;     // Set to zero to suspend event push
-$CFG->eventpushtime = 2;       // Maximum length in seconds to push events
-
 // See if our apphome folder has any opinions about settings
 if ( isset($CFG->apphome) && $CFG->apphome ) {
     $tsugi_settings = $CFG->dirroot."/../tsugi_settings.php";

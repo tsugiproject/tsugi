@@ -755,10 +755,10 @@ class AdminService {
     /**
      * Tables that store an LTI deployment id which should be a function of key_id.
      *
-     * lti_link is listed so a column added later is included. It has none today.
-     * lti_tool_deployment.deployment_id is an outbound tool id. One key may have many.
+     * lti_link has no deployment id column. lti_tool_deployment.deployment_id is
+     * an outbound tool id. One key may have many.
      *
-     * @return array<int, array{table:string, column:string, id_column:string, label:string, via_context?:bool}>
+     * @return array<int, array{table:string, column:string, id_column:string, label:string}>
      */
     private static function deploymentIdCopies() {
         return array(
@@ -774,21 +774,14 @@ class AdminService {
                 'id_column' => 'context_id',
                 'label' => 'Context',
             ),
-            array(
-                'table' => 'lti_link',
-                'column' => 'lti13_deployment_id',
-                'id_column' => 'link_id',
-                'label' => 'Link',
-                'via_context' => true,
-            ),
         );
     }
 
     /**
      * Keys whose deployment id is not a single value.
      *
-     * The key's own deployment id and every copy on a context (and a link, when
-     * that column exists) are read together. A blank value, or the literal
+     * The key's own deployment id and every copy on a context are read together.
+     * A blank value, or the literal
      * word "null" in any ASCII case, does not count. That matches how the key
      * form stores a blank deployment id. Every other value is compared as
      * stored bytes, so a difference in case or accents is a conflict. Deleted
@@ -825,19 +818,13 @@ class AdminService {
             if ( ! in_array($copy['column'], $names, true) || ! in_array($copy['id_column'], $names, true) ) {
                 continue;
             }
-            if ( ! empty($copy['via_context']) && ! in_array('context_id', $names, true) ) {
+            if ( ! in_array('key_id', $names, true) ) {
                 continue;
             }
 
             $expr = 't.'.$copy['column'];
-            $key_sql = 't.key_id';
-            $join = '';
-            if ( ! empty($copy['via_context']) ) {
-                $key_sql = 'ctx.key_id';
-                $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
-            }
             $label_sql = str_replace("'", "''", $copy['label']);
-            $sql = "SELECT {$key_sql} AS key_id,
+            $sql = "SELECT t.key_id AS key_id,
                            {$title_sql} AS key_title,
                            {$deleted_sql} AS deleted,
                            '{$label_sql}' AS source,
@@ -845,8 +832,7 @@ class AdminService {
                            COUNT(*) AS row_count,
                            MIN(t.{$copy['id_column']}) AS example_id
                         FROM {$table} AS t
-                        {$join}
-                        INNER JOIN {$key_table} AS k ON k.key_id = {$key_sql}
+                        INNER JOIN {$key_table} AS k ON k.key_id = t.key_id
                         WHERE {$expr} IS NOT NULL
                             AND TRIM({$expr}) <> ''
                             -- The word null, in any ASCII case, is a blank. Compare
@@ -854,7 +840,7 @@ class AdminService {
                             -- accented value into that word. The GROUP BY below
                             -- keeps every other difference, including case.
                             AND CAST(LOWER(TRIM({$expr})) AS BINARY) <> 'null'
-                        GROUP BY {$key_sql}, CAST(TRIM({$expr}) AS BINARY)";
+                        GROUP BY t.key_id, CAST(TRIM({$expr}) AS BINARY)";
             $found = self::diagnosticRows($sql);
             foreach ( $found as $row ) $found_rows[] = $row;
         }
@@ -908,9 +894,8 @@ class AdminService {
      * non-ASCII check both read this list. Outbound
      * lti_tool_registration.lti13_client_id, lti_tool_registration.lti11_key,
      * and lti_tool_deployment.deployment_id are already varchar(255). lti_link
-     * is listed so a deployment column added later is included. It has none
-     * today. A link's resource link id is link_key. lti_content keeps its own
-     * copy. cal_context keeps the course id. A secret column is marked redact
+     * has no deployment id column, and one will not be added. A link's resource
+     * link id is link_key. lti_content keeps its own copy. A secret column is marked redact
      * so a check can report the row without returning the secret.
      *
      * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool, redact?:bool}>
@@ -942,20 +927,7 @@ class AdminService {
                 'id_column' => 'context_id',
             ),
             array(
-                'table' => 'lti_link',
-                'column' => 'lti13_deployment_id',
-                'label' => 'Deployment id',
-                'id_column' => 'link_id',
-                'via_context' => true,
-            ),
-            array(
                 'table' => 'lti_context',
-                'column' => 'context_key',
-                'label' => 'Context id',
-                'id_column' => 'context_id',
-            ),
-            array(
-                'table' => 'cal_context',
                 'column' => 'context_key',
                 'label' => 'Context id',
                 'id_column' => 'context_id',
@@ -992,12 +964,6 @@ class AdminService {
                 'label' => 'New secret',
                 'id_column' => 'key_id',
                 'redact' => true,
-            ),
-            array(
-                'table' => 'cal_key',
-                'column' => 'key_key',
-                'label' => 'Consumer key',
-                'id_column' => 'key_id',
             ),
             array(
                 'table' => 'lti_domain',
