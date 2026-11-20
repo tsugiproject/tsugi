@@ -82,12 +82,12 @@ array( "{$CFG->dbprefix}lti_key",
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
     key_title           TEXT NULL,
     key_sha256          CHAR(64) NULL,
-    key_key             TEXT NULL,   -- oauth_consumer_key
+    key_key             VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,   -- oauth_consumer_key
 
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
-    secret              TEXT NULL,
-    new_secret          TEXT NULL,
+    secret              VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    new_secret          VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
 
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
@@ -96,15 +96,15 @@ array( "{$CFG->dbprefix}lti_key",
     -- Issuer / client_id / deployment_id defines a client (i.e. who pays the bill)
 
     deploy_sha256       CHAR(64) NULL,
-    deploy_key          TEXT NULL,     -- deployment_id renamed
+    deploy_key          VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,     -- deployment_id renamed
 
     -- Per-key LTI 1.3 platform configuration (dynamic registration or manual entry).
     -- oidc_login uses key_id in the URL, so launch lookup is by primary key plus
     -- lms_client and wildcard iss handling in LTIX::loadAllData().
 
-    lms_issuer           TEXT NULL,  -- iss from the JWT
+    lms_issuer           VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,  -- iss from the JWT
     lms_issuer_sha256    CHAR(64) NULL,
-    lms_client           TEXT NULL,  -- aud from the JWT / client_id in OAuth
+    lms_client           VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,  -- aud from the JWT / client_id in OAuth
 
     lms_oidc_auth       TEXT NULL,
     lms_keyset_url      TEXT NULL,
@@ -284,7 +284,7 @@ array( "{$CFG->dbprefix}lti_context",
     -- Same type as context_id. NULL until a later change records one. No foreign key.
     previous_context_id INTEGER NULL,
     context_sha256      CHAR(64) NOT NULL,
-    context_key         TEXT NOT NULL,
+    context_key         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     secret              VARCHAR(128) NULL,
@@ -332,7 +332,7 @@ array( "{$CFG->dbprefix}lti_context",
     -- 1 when anyone may open this course's lessons without membership.
     anonymous_lessons   TINYINT(1) NOT NULL DEFAULT 0,
     -- Deployment id from the Plus launch. Token calls read this.
-    lti13_deployment_id TEXT NULL,
+    lti13_deployment_id VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
     -- lti_link of the Plus launch. No foreign key: lti_link already points here.
     plus_launch_link_id INTEGER NULL,
     -- When the Names and Roles pull last started.
@@ -492,7 +492,7 @@ array( "{$CFG->dbprefix}lti_link",
 "create table {$CFG->dbprefix}lti_link (
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
     link_sha256         CHAR(64) NOT NULL,
-    link_key            TEXT NOT NULL,
+    link_key            VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     context_id          INTEGER NOT NULL,
@@ -944,8 +944,8 @@ array( "{$CFG->dbprefix}lti_domain",
     deleted     TINYINT(1) NOT NULL DEFAULT 0,
     domain      VARCHAR(128),
     port        INTEGER NULL,
-    consumer_key  TEXT,
-    secret      TEXT,
+    consumer_key  VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin,
+    secret      VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin,
     json        TEXT NULL,
     created_at  TIMESTAMP NOT NULL,
     updated_at         TIMESTAMP NULL,
@@ -1040,11 +1040,11 @@ array( "{$CFG->dbprefix}lti_tool_registration",
     -- json and registration_json are shared. An LTI 1.1 registration has exactly
     -- one deployment row, created with the registration. Its deployment_id is null.
     lti_version         VARCHAR(8) NOT NULL DEFAULT '1.3',
-    lti11_key           VARCHAR(255) NULL,
-    lti11_secret        TEXT NULL,
+    lti11_key           VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    lti11_secret        VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
     lti11_url           TEXT NULL,
 
-    lti13_client_id     VARCHAR(255) NULL,
+    lti13_client_id     VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
     lti13_oidc_login_url TEXT NULL,
     lti13_jwks_url      TEXT NULL,
     lti13_launch_url    TEXT NULL,
@@ -1118,7 +1118,7 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
     registration_id     INTEGER NOT NULL,
     key_id              INTEGER NOT NULL,
 
-    deployment_id       VARCHAR(255) NULL,
+    deployment_id       VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
@@ -1188,7 +1188,7 @@ array( "{$CFG->dbprefix}lti_content",
     -- A deep link content item's custom object is stored here.
     custom              JSON NULL,
 
-    resource_link_id    TEXT NOT NULL,
+    resource_link_id    VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- lti_sha256(resource_link_id). The same value as lti_link.link_sha256
     -- when the grade column is created.
     resource_link_sha256 CHAR(64) NOT NULL,
@@ -2860,9 +2860,137 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo(htmlentities($message)."<br/>\n");
     }
 
+    // One column at a time. Count values longer than 255 characters and values
+    // with a character outside ASCII. Alter only when both counts are zero and
+    // the column is not already varchar(255) ascii_bin. A column already in
+    // that form is reported and left alone. A dirty column is reported and
+    // left alone so a later upgrade can alter it after the data is cleaned.
+    $identity_note = function($message) {
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    };
+    $identity_ascii_columns = array(
+        array('lti_key', 'key_key', 'key_id'),
+        array('lti_key', 'secret', 'key_id'),
+        array('lti_key', 'new_secret', 'key_id'),
+        array('lti_key', 'deploy_key', 'key_id'),
+        array('lti_key', 'lms_issuer', 'key_id'),
+        array('lti_key', 'lms_client', 'key_id'),
+        array('lti_context', 'context_key', 'context_id'),
+        array('lti_context', 'lti13_deployment_id', 'context_id'),
+        array('lti_link', 'link_key', 'link_id'),
+        array('lti_content', 'resource_link_id', 'content_id'),
+        array('lti_domain', 'consumer_key', 'domain_id'),
+        array('lti_domain', 'secret', 'domain_id'),
+        array('lti_tool_registration', 'lti11_key', 'registration_id'),
+        array('lti_tool_registration', 'lti11_secret', 'registration_id'),
+        array('lti_tool_registration', 'lti13_client_id', 'registration_id'),
+        array('lti_tool_deployment', 'deployment_id', 'tool_deployment_id'),
+    );
+    $identity_note('Checking identity columns for varchar(255) character set ascii collation ascii_bin.');
+    $identity_described = array();
+    foreach ( $identity_ascii_columns as $identity_column ) {
+        $identity_table = $identity_column[0];
+        $identity_field = $identity_column[1];
+        $identity_id = $identity_column[2];
+        $identity_label = 'Identity column '.$identity_table.'.'.$identity_field;
+        $identity_physical = $CFG->dbprefix.$identity_table;
+        if ( ! array_key_exists($identity_physical, $identity_described) ) {
+            $identity_meta = $PDOX->describe($identity_physical);
+            $identity_described[$identity_physical] = is_array($identity_meta) ? $identity_meta : false;
+        }
+        if ( $identity_described[$identity_physical] === false ) {
+            $identity_note($identity_label.': table '.$identity_table.' is absent. Left unchanged.');
+            continue;
+        }
+        $identity_field_meta = null;
+        foreach ( $identity_described[$identity_physical] as $identity_field_row ) {
+            if ( \Tsugi\Util\U::getIgnoreCase($identity_field_row, 'Field') === $identity_field ) {
+                $identity_field_meta = $identity_field_row;
+                break;
+            }
+        }
+        if ( ! is_array($identity_field_meta) ) {
+            $identity_note($identity_label.': column is absent. Left unchanged.');
+            continue;
+        }
+        $identity_count_sql = "SELECT COALESCE(SUM(CASE WHEN CHAR_LENGTH({$identity_field}) > 255 THEN 1 ELSE 0 END), 0) AS too_long,
+                COALESCE(SUM(CASE WHEN {$identity_field} IS NOT NULL AND CHAR_LENGTH({$identity_field}) <> LENGTH({$identity_field}) THEN 1 ELSE 0 END), 0) AS non_ascii
+            FROM {$identity_physical}";
+        $identity_counts = $PDOX->allRows($identity_count_sql, false, false);
+        if ( ! is_array($identity_counts) || ! isset($identity_counts[0]) ) {
+            $identity_note($identity_label.': could not count values. Left unchanged.');
+            continue;
+        }
+        $identity_too_long = (int) \Tsugi\Util\U::get($identity_counts[0], 'too_long', 0);
+        $identity_non_ascii = (int) \Tsugi\Util\U::get($identity_counts[0], 'non_ascii', 0);
+        $identity_long_word = $identity_too_long === 1 ? 'value' : 'values';
+        $identity_ascii_word = $identity_non_ascii === 1 ? 'value' : 'values';
+        $identity_summary = $identity_label.': '.$identity_too_long.' '.$identity_long_word.' longer than 255 characters, '.$identity_non_ascii.' '.$identity_ascii_word.' outside ASCII.';
+        // SHOW COLUMNS on this server does not return the collation.
+        $identity_schema_sql = "SELECT DATA_TYPE AS data_type,
+                CHARACTER_MAXIMUM_LENGTH AS char_length,
+                CHARACTER_SET_NAME AS charset_name,
+                COLLATION_NAME AS collation_name
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = :table_name
+                AND COLUMN_NAME = :column_name";
+        $identity_schema_rows = $PDOX->allRows($identity_schema_sql, array(
+            ':table_name' => $identity_physical,
+            ':column_name' => $identity_field,
+        ), false);
+        if ( ! is_array($identity_schema_rows) || ! isset($identity_schema_rows[0]) ) {
+            $identity_note($identity_label.': could not read the column type. Left unchanged.');
+            continue;
+        }
+        $identity_schema = $identity_schema_rows[0];
+        $identity_already = strtolower((string) \Tsugi\Util\U::getIgnoreCase($identity_schema, 'data_type')) === 'varchar'
+            && (int) \Tsugi\Util\U::getIgnoreCase($identity_schema, 'char_length') === 255
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($identity_schema, 'charset_name')) === 'ascii'
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($identity_schema, 'collation_name')) === 'ascii_bin';
+        if ( $identity_too_long > 0 || $identity_non_ascii > 0 ) {
+            $identity_example_sql = "SELECT {$identity_id} AS row_id,
+                    CHAR_LENGTH({$identity_field}) AS value_length,
+                    LENGTH({$identity_field}) AS value_bytes
+                FROM {$identity_physical}
+                WHERE CHAR_LENGTH({$identity_field}) > 255
+                    OR ({$identity_field} IS NOT NULL AND CHAR_LENGTH({$identity_field}) <> LENGTH({$identity_field}))
+                ORDER BY CHAR_LENGTH({$identity_field}) DESC, {$identity_id}
+                LIMIT 5";
+            $identity_examples = $PDOX->allRows($identity_example_sql, false, false);
+            $identity_example_bits = array();
+            if ( is_array($identity_examples) ) {
+                foreach ( $identity_examples as $identity_example ) {
+                    $identity_example_bits[] = $identity_id.'='.\Tsugi\Util\U::get($identity_example, 'row_id')
+                        .' length='.\Tsugi\Util\U::get($identity_example, 'value_length')
+                        .' bytes='.\Tsugi\Util\U::get($identity_example, 'value_bytes');
+                }
+            }
+            $identity_example_text = count($identity_example_bits) > 0 ? ' Examples: '.implode('; ', $identity_example_bits).'.' : '';
+            $identity_note($identity_summary.$identity_example_text.' Left unchanged.');
+            continue;
+        }
+        if ( $identity_already ) {
+            $identity_note($identity_summary.' Already varchar(255) character set ascii collation ascii_bin.');
+            continue;
+        }
+        $identity_nullable = strtoupper((string) \Tsugi\Util\U::getIgnoreCase($identity_field_meta, 'Null')) === 'YES';
+        $identity_null_sql = $identity_nullable ? 'NULL' : 'NOT NULL';
+        $identity_alter_sql = "ALTER TABLE {$identity_physical} MODIFY {$identity_field} VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin {$identity_null_sql}";
+        $identity_note($identity_summary.' Altering to varchar(255) character set ascii collation ascii_bin.');
+        $identity_note('Upgrading: '.$identity_alter_sql);
+        $identity_alter = $PDOX->queryReturnError($identity_alter_sql, false, false);
+        if ( ! $identity_alter->success ) {
+            $identity_note($identity_label.': alter failed: '.$identity_alter->errorImplode.'. Left unchanged.');
+            continue;
+        }
+        $identity_note($identity_label.': altered to varchar(255) character set ascii collation ascii_bin.');
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202611200001;
+    return 202611200002;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
