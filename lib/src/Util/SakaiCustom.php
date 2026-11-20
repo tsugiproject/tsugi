@@ -62,14 +62,10 @@ class SakaiCustom {
     /**
      * Full custom map for Sakai deep link content items and tool registration.
      *
-     * @param bool $includeCaliper Include $Caliper.url (legacy custom name canvas_caliper_url)
      * @param bool $includeCourseGroup Include $CourseGroup.id
      */
-    public static function deepLinkCustom($includeCaliper = true, $includeCourseGroup = false) {
+    public static function deepLinkCustom($includeCourseGroup = false) {
         $custom = array_merge(self::assignmentDateCustom(), self::commonCustom());
-        if ( $includeCaliper ) {
-            $custom['canvas_caliper_url'] = '$Caliper.url';
-        }
         if ( $includeCourseGroup ) {
             $custom['coursegroup_id'] = '$CourseGroup.id';
         }

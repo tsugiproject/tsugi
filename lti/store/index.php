@@ -406,7 +406,7 @@ if ( isset($_GET['install']) ) {
 
     if ( is_array($submissionReview) ) $additionalParams['submissionReview'] = $submissionReview;
 
-    $custom = SakaiCustom::deepLinkCustom(true, true);
+    $custom = SakaiCustom::deepLinkCustom(true);
 
     // Optional per-tool custom choices from register.php ($tool['custom']).
     // Install modal posts custom_<key>=<value>; only allowlisted values are accepted.

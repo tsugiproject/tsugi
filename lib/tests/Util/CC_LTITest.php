@@ -22,7 +22,6 @@ class CC_LTITest extends \PHPUnit\Framework\TestCase
   <blti:title>Autograder: Single-table SQL</blti:title>
   <blti:description>Create a single SQL table and insert some records.</blti:description>
   <blti:custom>
-    <lticm:property name="caliper_url">$Caliper.url</lticm:property>
     <lticm:property name="api_url">$Sakai.api.url</lticm:property>
     <lticm:property name="direct_url">$Sakai.direct.url</lticm:property>
     <lticm:property name="scopes">$Sakai.scopes.available</lticm:property>
@@ -30,9 +29,6 @@ class CC_LTITest extends \PHPUnit\Framework\TestCase
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="apphome">http://www.php-intro.com</lticm:property>
-  </blti:extensions>
-  <blti:extensions platform="canvas.instructure.com">
-    <lticm:property name="canvas_caliper_url">$Caliper.url</lticm:property>
   </blti:extensions>
   <blti:launch_url>https://www.php-intro.com/tools/sql/index.php</blti:launch_url>
   <blti:secure_launch_url>https://www.php-intro.com/tools/sql/index.php</blti:secure_launch_url>

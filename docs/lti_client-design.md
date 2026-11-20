@@ -195,7 +195,7 @@ before any later copy.
 No data change. Before a deployment id stored beside a key can be dropped, that
 `key_id` must map to one deployment id. The check reads `lti_key.deploy_key`
 and `lti_context.lti13_deployment_id` together. `lti_link` has no deployment id
-column, so there is nothing there to collapse. `lti_tool_deployment.deployment_id`
+column, and one will not be added. `lti_tool_deployment.deployment_id`
 is an outbound tool id. One key may have many of those, and they are not part
 of this check.
 
@@ -224,21 +224,22 @@ The page says, when this check is clean:
 The plan for narrowing these columns is [identity-varchar.md](identity-varchar.md).
 
 No data change. Issuer, client id, and deployment id are `TEXT` on the key, and
-the context stores its own deployment id. Context id is `lti_context.context_key`
-and `cal_context.context_key`. Resource link id is `lti_link.link_key` and
-`lti_content.resource_link_id`. The LTI 1.1 consumer key is `lti_key.key_key`,
-`cal_key.key_key`, and `lti_domain.consumer_key`. The secret is `lti_key.secret`,
+the context stores its own deployment id. Context id is `lti_context.context_key`.
+Resource link id is `lti_link.link_key` and
+`lti_content.resource_link_id`. The LTI 1.1 consumer key is `lti_key.key_key`
+and `lti_domain.consumer_key`. The secret is `lti_key.secret`,
 `lti_key.new_secret`, `lti_domain.secret`, and `lti_tool_registration.lti11_secret`.
 A later `varchar(255)` column cannot hold a longer value. `CHAR_LENGTH` counts
 characters. A blank value is short, so it is not listed. Deleted rows are included.
 
 The columns are `lti_key.lms_issuer`, `lti_key.lms_client`, `lti_key.deploy_key`,
 `lti_context.lti13_deployment_id`, `lti_context.context_key`,
-`cal_context.context_key`, `lti_link.link_key`, `lti_content.resource_link_id`,
-`lti_key.key_key`, `lti_key.secret`, `lti_key.new_secret`, `cal_key.key_key`,
+`lti_link.link_key`, `lti_content.resource_link_id`,
+`lti_key.key_key`, `lti_key.secret`, `lti_key.new_secret`,
 `lti_domain.consumer_key`, `lti_domain.secret`, and
-`lti_tool_registration.lti11_secret`. `lti_link` has no deployment id column.
-`lti_tool_registration.lti13_client_id`, `lti_tool_registration.lti11_key`, and
+`lti_tool_registration.lti11_secret`. `lti_link` has no deployment id column,
+and one will not be added. `lti_tool_registration.lti13_client_id`,
+`lti_tool_registration.lti11_key`, and
 `lti_tool_deployment.deployment_id` are already `varchar(255)`, so this check
 does not read them.
 

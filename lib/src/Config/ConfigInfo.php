@@ -849,14 +849,6 @@ class ConfigInfo {
     public $unify = false;
 
     /*
-     * Controls the event push logic
-     */
-    public $eventcheck = false;
-    public $eventtime = 7*24*60*60;
-    public $eventpushtime = 2;
-    public $eventpushcount = 0;
-
-    /*
      * Controls google log in and maps setup.
      *
      * Go to https://console.developers.google.com/apis/credentials

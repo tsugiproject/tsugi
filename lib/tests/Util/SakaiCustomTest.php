@@ -23,15 +23,14 @@ class SakaiCustomTest extends TestCase {
     }
 
     public function testDeepLinkCustomMergesCommonAndOptional() {
-        $custom = SakaiCustom::deepLinkCustom(true, true);
+        $custom = SakaiCustom::deepLinkCustom(true);
         $this->assertArrayHasKey('sak_api_url', $custom);
         $this->assertArrayHasKey('sak_openDate', $custom);
         $this->assertArrayHasKey('submissionStart', $custom);
-        $this->assertArrayHasKey('canvas_caliper_url', $custom);
         $this->assertArrayHasKey('coursegroup_id', $custom);
 
-        $minimal = SakaiCustom::deepLinkCustom(false, false);
-        $this->assertArrayNotHasKey('canvas_caliper_url', $minimal);
+        $minimal = SakaiCustom::deepLinkCustom(false);
+        $this->assertArrayNotHasKey('coursegroup_id', $minimal);
         $this->assertArrayHasKey('sak_dueDate', $minimal);
         $this->assertArrayNotHasKey('api_url', $minimal);
     }

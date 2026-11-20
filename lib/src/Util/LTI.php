@@ -1132,7 +1132,7 @@ class LTI {
         $response = self::sendOAuthBody($method, $rest_url, $key_key,
             $secret, $content_type, $postBody);
 
-        if ( is_array($debug_log) )  $debug_log[] = array('Caliper JSON Response',$response);
+        if ( is_array($debug_log) )  $debug_log[] = array('JSON Response',$response);
 
         global $LastOAuthBodyBaseString;
         $lbs = $LastOAuthBodyBaseString;
