@@ -568,17 +568,20 @@ class Quiz1Repository {
             $hex = substr($identifier, strlen('rlhex_'));
             if ( $hex !== '' && strlen($hex) % 2 === 0 && ctype_xdigit($hex) ) {
                 $raw = hex2bin($hex);
-                if ( is_string($raw) && self::acceptableLinkKey($raw)
-                    && self::cartridgeIdentifierForLinkKey($raw) === $identifier ) {
-                    return $raw;
+                if ( is_string($raw) ) {
+                    // A real encoding round-trips, and a value longer than 255 is still repaired.
+                    // rlhex_20 decodes to a space and does not round-trip, so the literal stays.
+                    $fitted = \Tsugi\Util\CC::importResourceLinkId($raw);
+                    $roundTrip = self::cartridgeIdentifierForLinkKey($raw);
+                    if ( $fitted !== null && ($roundTrip === $identifier || strlen($raw) > 255) ) {
+                        return $fitted;
+                    }
                 }
             }
         }
         $identifier = str_replace('_colon_', ':', $identifier);
-        if ( ! self::acceptableLinkKey($identifier) ) {
-            return '';
-        }
-        return $identifier;
+        $fitted = \Tsugi\Util\CC::importResourceLinkId($identifier);
+        return $fitted === null ? '' : $fitted;
     }
 
     /**
@@ -588,8 +591,11 @@ class Quiz1Repository {
         if ( ! is_string($key) ) {
             return false;
         }
+        if ( preg_match('/\s/', $key) === 1 || preg_match('/[^\x00-\x7F]/', $key) === 1 ) {
+            return false;
+        }
         $key = trim($key);
-        if ( $key === '' || strlen($key) > 256 ) {
+        if ( $key === '' || strlen($key) > 255 ) {
             return false;
         }
         return preg_match('/[\x00-\x1F\x7F]/', $key) !== 1;

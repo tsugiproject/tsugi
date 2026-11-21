@@ -67,6 +67,7 @@ class Importer {
         $actions = array();
         $lessonsByRes = array();
         $fileHrefToLocal = array();
+        $claimedLinkIds = self::resourceLinkIdsInUse($context_id);
 
         $importable = $pkg->importableResources();
         usort($importable, function ($a, $b) {
@@ -92,7 +93,7 @@ class Importer {
                 $localKey = null;
                 $lesson = null;
                 if ( $d->isNew() || $d->isCopy() ) {
-                    $made = self::materialize($pkg, $res, $kind, $context_id, $user_id, $fileHrefToLocal, $d->isCopy());
+                    $made = self::materialize($pkg, $res, $kind, $context_id, $user_id, $fileHrefToLocal, $claimedLinkIds, $d->isCopy());
                     $kind = $made['local_kind'];
                     $localId = $made['local_id'];
                     $localKey = $made['local_key'];
@@ -150,7 +151,7 @@ class Importer {
      * @param array<string, array<string, mixed>> $fileHrefToLocal
      * @return array{local_kind:string,local_id:?int,local_key:?string,lesson:?array,sha256?:string,href?:string}
      */
-    private static function materialize(Package $pkg, array $res, $kind, $context_id, $user_id, array $fileHrefToLocal, $isCopy = false) {
+    private static function materialize(Package $pkg, array $res, $kind, $context_id, $user_id, array $fileHrefToLocal, array &$claimedLinkIds, $isCopy = false) {
         $type = (string) $res['type'];
         $href = (string) $res['href'];
         $title = (string) ($res['title'] ?? '');
@@ -216,8 +217,12 @@ class Importer {
             // The item identifier is the resource link id. _colon_ restores to ":".
             // An older hash such as Q1_ca934192ea441d46 is kept as-is.
             // A copy of a resource this course already imported mints a new key.
-            $linkKey = $isCopy ? null : self::quizLinkKeyFromResource($res);
-            Quiz1Repository::insertQuiz($quiz, $linkKey !== '' ? $linkKey : null);
+            $linkKey = $isCopy ? '' : self::quizLinkKeyFromResource($res);
+            if ( $linkKey === '' ) {
+                $linkKey = Quiz1Repository::allocateLinkKey();
+            }
+            $linkKey = self::claimResourceLinkId($linkKey, $claimedLinkIds, false);
+            Quiz1Repository::insertQuiz($quiz, $linkKey);
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_QUIZ,
                 'title' => $quiz->title,
@@ -265,11 +270,10 @@ class Importer {
                     : ($res['identifier'] ?? '')
             );
             if ( $linkKey === '' ) {
-                $linkKey = (string) $res['identifier'];
+                $fallback = \Tsugi\Util\CC::importResourceLinkId((string) $res['identifier']);
+                $linkKey = $fallback === null ? '' : $fallback;
             }
-            if ( $isCopy ) {
-                $linkKey .= '-'.bin2hex(random_bytes(3));
-            }
+            $linkKey = self::claimResourceLinkId($linkKey, $claimedLinkIds, $isCopy);
             // The lesson item holds the launch until a deployment is chosen.
             // No lti_content row and no grade column until then.
             $lesson = array(
@@ -639,6 +643,85 @@ class Importer {
             }
         }
         return '';
+    }
+
+    /**
+     * Link keys already stored for this course, including lesson resource link ids.
+     *
+     * @param int|string $contextId
+     * @return array<string, bool>
+     */
+    private static function resourceLinkIdsInUse($contextId) {
+        global $CFG, $PDOX;
+        $used = array();
+        $rows = $PDOX->allRows(
+            "SELECT link_key FROM {$CFG->dbprefix}lti_link WHERE context_id = :CID AND link_key IS NOT NULL",
+            array(':CID' => (int) $contextId)
+        );
+        if ( is_array($rows) ) {
+            foreach ( $rows as $row ) {
+                $key = isset($row['link_key']) ? (string) $row['link_key'] : '';
+                if ( $key !== '' ) {
+                    $used[$key] = true;
+                }
+            }
+        }
+        $current = Manifest::currentDocument();
+        if ( is_array($current) && isset($current['json']) && is_string($current['json']) ) {
+            $doc = json_decode($current['json'], true);
+            if ( is_array($doc) ) {
+                self::collectResourceLinkIds($doc, $used);
+            }
+        }
+        return $used;
+    }
+
+    /**
+     * @param mixed $node
+     * @param array<string, bool> $used
+     */
+    private static function collectResourceLinkIds($node, array &$used) {
+        if ( ! is_array($node) ) {
+            return;
+        }
+        if ( isset($node['resource_link_id']) && is_string($node['resource_link_id']) && $node['resource_link_id'] !== '' ) {
+            $used[$node['resource_link_id']] = true;
+        }
+        foreach ( $node as $child ) {
+            if ( is_array($child) ) {
+                self::collectResourceLinkIds($child, $used);
+            }
+        }
+    }
+
+    /**
+     * Keep the preferred id when this import and this course do not already use it.
+     * A copy, or any other collision, gets a different id.
+     *
+     * @param string $preferred
+     * @param array<string, bool> $used
+     */
+    private static function claimResourceLinkId($preferred, array &$used, $forceNew) {
+        $preferred = is_string($preferred) ? $preferred : '';
+        if ( $preferred === '' ) {
+            if ( ! isset($used['']) ) {
+                $used[''] = true;
+                return '';
+            }
+            $chosen = CC::distinctResourceLinkId('', $used);
+            $used[$chosen] = true;
+            return $chosen;
+        }
+        $blocked = $used;
+        if ( $forceNew ) {
+            $blocked[$preferred] = true;
+        }
+        $chosen = CC::distinctResourceLinkId($preferred, $blocked);
+        $used[$chosen] = true;
+        if ( $chosen !== $preferred ) {
+            error_log('Cartridge resource link id '.$preferred.' was already used. Imported as '.$chosen.'.');
+        }
+        return $chosen;
     }
 
     /**

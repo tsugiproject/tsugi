@@ -430,6 +430,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @return string|null
      */
     public static function organizationResourceLinkId($source) {
+        $fromCartridge = is_string($source);
         if ( is_object($source) && isset($source->resource_link_id) ) {
             $source = $source->resource_link_id;
         } else if ( is_array($source) && array_key_exists('resource_link_id', $source) ) {
@@ -438,14 +439,81 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( ! is_string($source) ) {
             return null;
         }
+        if ( $fromCartridge ) {
+            return self::importResourceLinkId($source);
+        }
         $source = trim($source);
-        if ( $source === '' || strlen($source) > 256 ) {
+        if ( $source === '' ) {
             return null;
         }
-        if ( preg_match('/[\x00-\x1F\x7F]/', $source) === 1 ) {
+        $message = LTI::ascii255Message('Resource link id', $source);
+        if ( $message === 'Resource link id is longer than 255 characters.' ) {
+            return substr($source, 0, 255);
+        }
+        if ( is_string($message) ) {
             return null;
         }
         return $source;
+    }
+
+    /**
+     * Resource link id from a cartridge, repaired so the resource can still be imported.
+     * Leading and trailing spaces are removed. A space in the middle becomes an underscore.
+     * Underscores already in the id are kept. Other non-printing characters and characters
+     * outside ASCII are dropped. What remains is cut to 255 characters. Nothing left means no id.
+     * The same repaired value can come from two cartridge ids. The importer keeps one and
+     * assigns the other a different id.
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function importResourceLinkId($value) {
+        if ( ! is_string($value) || $value === '' ) {
+            return null;
+        }
+        $repaired = preg_replace('/[^\x20-\x7E]/', '', $value);
+        if ( ! is_string($repaired) ) {
+            return null;
+        }
+        $repaired = trim($repaired, ' ');
+        $repaired = str_replace(' ', '_', $repaired);
+        if ( $repaired === '' ) {
+            return null;
+        }
+        if ( strlen($repaired) > 255 ) {
+            $repaired = substr($repaired, 0, 255);
+        }
+        if ( $repaired !== $value ) {
+            error_log('Cartridge resource link id was repaired to '.$repaired);
+        }
+        return $repaired;
+    }
+
+    /**
+     * Preferred resource link id when it is free, otherwise a different id of at most 255 characters.
+     *
+     * @param string $preferred
+     * @param array<string, bool> $used
+     */
+    public static function distinctResourceLinkId($preferred, array $used) {
+        $preferred = is_string($preferred) ? $preferred : '';
+        if ( $preferred !== '' && ! isset($used[$preferred]) ) {
+            return $preferred;
+        }
+        $base = $preferred !== '' ? $preferred : 'rlid';
+        for ( $n = 0; $n < 8; $n++ ) {
+            $suffix = '-'.bin2hex(random_bytes(3));
+            $room = 255 - strlen($suffix);
+            $stem = strlen($base) > $room ? substr($base, 0, $room) : $base;
+            $next = $stem.$suffix;
+            if ( ! isset($used[$next]) ) {
+                return $next;
+            }
+        }
+        $suffix = '-'.bin2hex(random_bytes(8));
+        $room = 255 - strlen($suffix);
+        $stem = strlen($base) > $room ? substr($base, 0, $room) : $base;
+        return $stem.$suffix;
     }
 
     /**

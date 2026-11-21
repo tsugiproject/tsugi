@@ -314,4 +314,34 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<file href="'.$file.'"/>', $save);
         $this->assertStringContainsString('Moodle Course', $save);
     }
+
+    public function testImportResourceLinkIdRepairs() {
+        $long = str_repeat('a', 300);
+        $this->assertSame(str_repeat('a', 255), CC::importResourceLinkId($long));
+        $this->assertSame('quiz1_k0123', CC::importResourceLinkId('quiz1_k0123'));
+        $this->assertNull(CC::importResourceLinkId(''));
+        $this->assertNull(CC::importResourceLinkId('   '));
+        $this->assertSame('course_1', CC::importResourceLinkId('course 1'));
+        $this->assertSame('course-', CC::importResourceLinkId("course-\xC3\xA9"));
+        $this->assertSame('course-', CC::importResourceLinkId("course-\n"));
+        $this->assertSame('course-', CC::importResourceLinkId("course-\x07"));
+        $this->assertSame('deploy-1', CC::importResourceLinkId(' deploy-1 '));
+        $this->assertSame('_quiz1_42', CC::importResourceLinkId('_quiz1_42'));
+        $this->assertSame('_quiz1_42_', CC::importResourceLinkId('_quiz1_42_'));
+    }
+
+    public function testDistinctResourceLinkIdAvoidsCollisions() {
+        $used = array('cours' => true);
+        $this->assertSame('cours', CC::distinctResourceLinkId('cours', array()));
+        $other = CC::distinctResourceLinkId('cours', $used);
+        $this->assertNotSame('cours', $other);
+        $this->assertStringStartsWith('cours-', $other);
+        $this->assertLessThanOrEqual(255, strlen($other));
+        $this->assertArrayNotHasKey($other, $used);
+
+        $long = str_repeat('a', 255);
+        $moved = CC::distinctResourceLinkId($long, array($long => true));
+        $this->assertNotSame($long, $moved);
+        $this->assertLessThanOrEqual(255, strlen($moved));
+    }
 }
