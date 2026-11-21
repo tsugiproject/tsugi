@@ -23,18 +23,18 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_title', 'plus', 'key_key', 'secret',
+$fields = array('key_id', 'key_title', 'plus', 'user_id', 'key_key', 'secret',
      'lms_issuer', 'lms_client',
      'deploy_key', 'unlock_code',
      'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
-     'created_at', 'updated_at', 'user_id',
+     'created_at', 'updated_at',
 );
 
 $realfields = array('key_id', 'key_title', 'plus', 'key_key', 'key_sha256', 'secret',
      'lms_issuer', 'lms_issuer_sha256', 'lms_client',
      'deploy_key', 'deploy_sha256', 'unlock_code',
      'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
-     'created_at', 'updated_at', 'user_id',
+     'created_at', 'updated_at', 'user_id', 'lti_registration_id',
 );
 
 $titles = array(
@@ -72,6 +72,12 @@ $deploy_key = U::get($_POST,'deploy_key');
 
 // Check the complex validation
 if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
+    if ( ! \Tsugi\Services\Admin\AdminService::applyPostedRegistrationToKey() ) {
+        $redir = U::add_url_parm('key-detail', 'key_id', $key_id);
+        $redir = U::add_url_parm($redir, 'edit', 'yes');
+        header("Location: ".$redir);
+        return;
+    }
     $row = $PDOX->rowDie( "SELECT * FROM {$CFG->dbprefix}lti_key
             WHERE key_id = :key_id",
         array(':key_id' => $key_id)
@@ -130,21 +136,20 @@ if ( ! is_array($row) ) {
     return;
 }
 
-$key_type = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
-
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Tenant Details
+<h1>Key
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
   <a class="btn btn-success" href="key-settings.php?key_id=<?= htmlentities($row['key_id']) ?>">View/Edit Key Settings</a>
-  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">All Tenants</a>
+  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">All Keys</a>
+  <a class="btn btn-default" href="registrations">All Registrations</a>
 </h1>
 <p>
-<b>Key status: <?= $key_type ?></b>
+<b>Key status: <?= \Tsugi\Services\Admin\AdminService::keyTypeHtml($row) ?></b>
 </p>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
@@ -162,7 +167,19 @@ $OUTPUT->flashMessages();
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset';
 $from_location = null;
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons, $titles, array('plus'));
+$registration_html = \Tsugi\Services\Admin\AdminService::matchingRegistrationNote($row);
+$registration_html .= \Tsugi\Services\Admin\AdminService::inboundRegistrationControl(
+    (int) U::get($row, 'lti_registration_id'),
+    $inedit == 'yes'
+);
+$after_fields = array('secret' => $registration_html);
+if ( $inedit == 'yes' ) {
+    $after_fields['lms_token_audience'] = '<p id="create-registration-from-key" style="display:none">'
+        .'<button type="button" class="btn btn-primary" id="create-registration-from-key-button">Create Registration From This Data</button>'
+        .'</p>'
+        .'<p id="create-registration-from-key-note" style="display:none"></p>';
+}
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons, $titles, array('plus'), $after_fields);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 $dynamicConfigUrl = null;
@@ -191,12 +208,12 @@ function showDynamicConfig($url) {
 ?>
 </div>
 <div class="tab-pane fade" id="info">
-<h2>Tenant Key Options</h2>
+<h2>Key Options</h2>
 <p>
-A single entry in this table defines a "distinct tenant" in Tsugi.
-Data in Tsugi is isolated to a tenant.  You can route both
-LTI 1.1 and LTI 1.3 launches to one tenant by setting fields on
-this entry properly.   If a tenant key is in "Draft" status - launches
+A single entry in this table is one key.
+Data in Tsugi is isolated to a key.  You can route both
+LTI 1.1 and LTI 1.3 launches to one key by setting fields on
+this entry properly.   If a key is in "Draft" status, launches
 will not work.
 </p>
 <p>
@@ -204,19 +221,19 @@ For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
 </p>
 <p>
 For LTI 1.3, you can either
-(a) create a global issuer and select it here, and then set the <b>deployment_id</b> if you want this tenant to match only that deployment,
+(a) create a global issuer and select it here, and then set the <b>deployment_id</b> if you want this key to match only that deployment,
 <b>or</b> you can
 (b) leave the global issuer unset and set all of the LMS values in this screen.  If you mix
-a global issuer and per-key LTI 1.3 settings, you will most likely end up with a tenant that
+a global issuer and per-key LTI 1.3 settings, you will most likely end up with a key that
 won't be able to receive launches.
 </p>
 <p>
 For the <b>LTI 1.3 Deployment ID</b> field on this key: leave blank to accept any value from the LMS
 (Tsugi still uses the deployment id from the launch for services such as grading).
-Enter a specific deployment id when you want this tenant to accept only that deployment.
+Enter a specific deployment id when you want this key to accept only that deployment.
 </p>
 <p>
-If this is a pre-existing LTI 1.1 tenant, the LMS must provide the <b>oauth_consumer_key</b>
+If this is a pre-existing LTI 1.1 key, the LMS must provide the <b>oauth_consumer_key</b>
 and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the accounts
 and courses regardless of the type of launch.  For this to work, the LMS must support
 LTI Advantage legacy LTI 1.1 support.
@@ -233,9 +250,9 @@ Sakai, Moodle, and Brightspace support the
 <a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>
 process.  This process takes
 a draft Tsugi key, and sends its data to the LMS and the LMS responds with all of its values
-and Tsugi automatically updates the Tenant key with the LMS values.  It is basically a one-click
+and Tsugi automatically updates the key with the LMS values.  It is basically a one-click
 LTI Advantage install.
-Create a tenant key with at least a <b>title</b> and <b>issuer</b> (or start from a draft key), then use the Dynamic Registration URL below in the LMS.
+Create a key with at least a <b>title</b> and <b>issuer</b> (or start from a draft key), then use the Dynamic Registration URL below in the LMS.
 </p>
 <?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
@@ -245,11 +262,11 @@ matches an existing issuer in this system, that issuer will be used for this key
 the new issuer data will be added to this key.
 </p>
 <p>
-A secondary and optional part of Dynamic Registration is to communicate the <b>Deployment ID</b> for this tenant / key.
+A secondary and optional part of Dynamic Registration is to communicate the <b>Deployment ID</b> for this key.
 Sometimes this is included in the dynamic registration exchange (Sakai, Moodle, and Brightspace for example).
 For other LMS's you may need to run the dynamic registration process, and then manually enter the Deployment Id
 later if you want a specific deployment. You can also leave Deployment ID blank so the key accepts any value from the LMS.
-Many single-tenant Sakai or Moodle installs still send a concrete deployment id in launches (for example <b>1</b>);
+Many single-site Sakai or Moodle installs still send a concrete deployment id in launches (for example <b>1</b>);
 a blank Deployment ID field accepts that without storing it on the key row.
 </p>
 </div>
@@ -327,8 +344,8 @@ URL.
 </p>
 <?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
-Sakai supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
-in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
+Sakai supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this key
+in the Dynamic Registration process so once the process is done, the key should be fully configured and ready to launch.
 You may leave Deployment ID blank on the Tsugi key so it accepts any value from the LMS; Sakai often sends <b>deployment_id</b> <b>1</b> in launches, which is fine when this field is blank.
 </p>
 <?php require __DIR__ . '/plus-config.php'; ?>
@@ -368,8 +385,8 @@ Moodle will prompt you for the Dynamic Registration URL.
 </p>
 <?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
-Moodle supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
-in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
+Moodle supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this key
+in the Dynamic Registration process so once the process is done, the key should be fully configured and ready to launch.
 You may leave Deployment ID blank on the Tsugi key so it accepts any value from the LMS; Moodle may still send a concrete deployment id in launches.
 </p>
 <?php require __DIR__ . '/plus-config.php'; ?>
@@ -477,6 +494,159 @@ Each tool listing provides its direct launch endpoints.
 
 </div>
 </div>
+<?php if ( $inedit == 'yes' ) { ?>
+<div id="create-registration-modal" class="modal fade" role="dialog" aria-modal="true" aria-labelledby="create-registration-modal-title">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="fa fa-times" aria-hidden="true"></span></button>
+        <h4 class="modal-title" id="create-registration-modal-title">Create Registration</h4>
+      </div>
+      <div class="modal-body" id="create-registration-modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="create-registration-confirm" style="display:none">Create Registration</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+    var required = ['lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url'];
+    var copied = required.concat(['lms_token_audience', 'unlock_code', 'key_title']);
+    var buttonWrap = document.getElementById('create-registration-from-key');
+    var openButton = document.getElementById('create-registration-from-key-button');
+    var note = document.getElementById('create-registration-from-key-note');
+    var confirmButton = document.getElementById('create-registration-confirm');
+    var body = document.getElementById('create-registration-modal-body');
+    var checked = null;
+    if ( ! buttonWrap || ! openButton || ! confirmButton || ! body ) return;
+
+    function fieldValue(name) {
+        var el = document.getElementById(name);
+        if ( ! el ) return '';
+        return String(el.value || '').replace(/^\s+|\s+$/g, '');
+    }
+
+    function complete() {
+        for ( var i = 0; i < required.length; i++ ) {
+            if ( fieldValue(required[i]) === '' ) return false;
+        }
+        return true;
+    }
+
+    function refreshButton() {
+        buttonWrap.style.display = complete() ? '' : 'none';
+    }
+    window.tsugiRefreshCreateRegistration = refreshButton;
+
+    function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+        });
+    }
+
+    function payload(create) {
+        var params = new URLSearchParams();
+        var token = document.querySelector('form input[name="CSRF_TOKEN"]');
+        if ( token ) params.set('CSRF_TOKEN', token.value);
+        copied.forEach(function(name) { params.set(name, fieldValue(name)); });
+        if ( create ) params.set('doCreate', '1');
+        return params;
+    }
+
+    function render(data) {
+        var html = '';
+        if ( data && data.fields ) {
+            html += '<dl>';
+            Object.keys(data.fields).forEach(function(label) {
+                var value = data.fields[label];
+                if ( value == null || value === '' ) return;
+                html += '<dt>'+esc(label)+'</dt><dd style="word-break:break-all">'+esc(value)+'</dd>';
+            });
+            html += '</dl>';
+        }
+        if ( data && data.ok ) {
+            html += '<p>This issuer and client id are not already registered.</p>';
+            confirmButton.style.display = '';
+        } else {
+            html += '<p>'+esc(data && data.error ? data.error : 'Could not check this registration.')+'</p>';
+            if ( data && data.existing_id ) {
+                html += '<p><a href="registration-detail?lti_registration_id='+encodeURIComponent(data.existing_id)+'">Open the existing registration</a></p>';
+            }
+            confirmButton.style.display = 'none';
+        }
+        body.innerHTML = html;
+    }
+
+    function post(params) {
+        return fetch('registration-from-key', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+            body: params.toString(),
+            credentials: 'same-origin'
+        }).then(function(response) { return response.json(); });
+    }
+
+    function applyCreated(data) {
+        var select = document.getElementById('lti_registration_id');
+        if ( select ) {
+            var empty = select.querySelector('option[value=""]');
+            if ( empty ) empty.text = 'Select';
+            var option = document.createElement('option');
+            option.value = String(data.id);
+            option.text = data.label || String(data.id);
+            select.appendChild(option);
+            select.value = String(data.id);
+        }
+        if ( note ) {
+            note.style.display = '';
+            note.textContent = 'You must save this key to complete the connection to the newly created registration.';
+        }
+        if ( window.tsugiSyncEmptyKeyPlatformFields ) window.tsugiSyncEmptyKeyPlatformFields();
+        buttonWrap.style.display = 'none';
+        if ( window.jQuery ) window.jQuery('#create-registration-modal').modal('hide');
+    }
+
+    required.concat(['lms_token_audience']).forEach(function(name) {
+        var el = document.getElementById(name);
+        if ( ! el ) return;
+        el.addEventListener('input', refreshButton);
+        el.addEventListener('change', refreshButton);
+    });
+    refreshButton();
+
+    openButton.addEventListener('click', function() {
+        if ( ! complete() ) return;
+        checked = payload(false);
+        body.innerHTML = '<p>Checking this issuer and client id...</p>';
+        confirmButton.style.display = 'none';
+        if ( window.jQuery ) window.jQuery('#create-registration-modal').modal('show');
+        post(checked).then(render).catch(function() {
+            render({ok: false, error: 'Could not check this registration.'});
+        });
+    });
+
+    confirmButton.addEventListener('click', function() {
+        if ( ! checked ) return;
+        var createParams = new URLSearchParams(checked.toString());
+        createParams.set('doCreate', '1');
+        confirmButton.disabled = true;
+        post(createParams).then(function(data) {
+            confirmButton.disabled = false;
+            if ( data && data.ok && data.id ) {
+                applyCreated(data);
+                return;
+            }
+            render(data);
+        }).catch(function() {
+            confirmButton.disabled = false;
+            render({ok: false, error: 'Could not create registration.'});
+        });
+    });
+})();
+</script>
+<?php } ?>
 <?php
 $OUTPUT->footerStart();
 $OUTPUT->footerEnd();
