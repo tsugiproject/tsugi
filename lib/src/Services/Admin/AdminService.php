@@ -1306,9 +1306,9 @@ class AdminService {
         if ( $row ) {
             $label = U::isNotEmpty($row['key_title']) ? $row['key_title'] : ('key_id '.$row['key_id']);
             if ( $deploy === null ) {
-                U::flashError('A tenant/key with this LTI 1.3 issuer, client id, and a blank deployment id already exists ('.$label.')');
+                U::flashError('A key with this LTI 1.3 issuer, client id, and a blank deployment id already exists ('.$label.')');
             } else {
-                U::flashError('A tenant/key with this LTI 1.3 issuer, client id, and deployment id already exists ('.$label.')');
+                U::flashError('A key with this LTI 1.3 issuer, client id, and deployment id already exists ('.$label.')');
             }
             return false;
         }
@@ -1346,10 +1346,534 @@ class AdminService {
             }
         }
 
+        $registration_id = (int) U::get($row, 'lti_registration_id');
+        if ( $registration_id > 0 ) {
+            $parts[] = 'Registration';
+        }
+
         if ( $draft || count($parts) < 1 ) {
             $parts[] = 'Draft';
         }
         return implode(' / ', $parts);
+    }
+
+    /**
+     * keyTypeLabel with the Registration word linked to that registration.
+     *
+     * @param array<string, mixed> $row
+     */
+    public static function keyTypeHtml(array $row) {
+        $label = htmlspecialchars(self::keyTypeLabel($row), ENT_QUOTES, 'UTF-8');
+        $id = (int) U::get($row, 'lti_registration_id');
+        if ( $id < 1 ) {
+            return $label;
+        }
+        $href = 'registration-detail?lti_registration_id='.$id;
+        $link = '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">Registration</a>';
+        return str_replace('Registration', $link, $label);
+    }
+
+    /**
+     * Hand-entered inbound registrations for the key admin screens.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function inboundRegistrationChoices() {
+        global $PDOX, $CFG;
+
+        $rows = $PDOX->allRowsDie(
+            "SELECT lti_registration_id, title, issuer, client_id
+                FROM {$CFG->dbprefix}lti_registration
+                ORDER BY title, issuer, client_id, lti_registration_id",
+            array()
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * @param int $id
+     * @return array<string, mixed>|null
+     */
+    public static function inboundRegistrationById($id) {
+        global $PDOX, $CFG;
+
+        $id = (int) $id;
+        if ( $id < 1 ) {
+            return null;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT lti_registration_id, title, notes, issuer, client_id, oidc_auth_url, keyset_url,
+                    token_url, token_audience, unlock_code
+                FROM {$CFG->dbprefix}lti_registration
+                WHERE lti_registration_id = :id",
+            array(':id' => $id)
+        );
+        return is_array($row) ? $row : null;
+    }
+
+    /**
+     * Keys that point at one inbound registration.
+     *
+     * @param int $id
+     * @return array<int, array<string, mixed>>
+     */
+    public static function keysForInboundRegistration($id) {
+        global $PDOX, $CFG;
+
+        $id = (int) $id;
+        if ( $id < 1 ) {
+            return array();
+        }
+        $rows = $PDOX->allRowsDie(
+            "SELECT key_id, key_title, key_key, secret, lms_issuer, lms_client,
+                    lms_oidc_auth, lms_keyset_url, lms_token_url, deploy_key, lti_registration_id
+                FROM {$CFG->dbprefix}lti_key
+                WHERE lti_registration_id = :id
+                ORDER BY key_title, key_id",
+            array(':id' => $id)
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * Registrations with this key's issuer, client id, and platform URLs.
+     *
+     * @param array<string, mixed> $key
+     * @return array<int, array<string, mixed>>
+     */
+    public static function registrationsMatchingKeyPlatform(array $key) {
+        global $PDOX, $CFG;
+
+        $issuer = self::trimToNull(U::get($key, 'lms_issuer'));
+        $client = self::trimToNull(U::get($key, 'lms_client'));
+        $oidc = self::trimToNull(U::get($key, 'lms_oidc_auth'));
+        $keyset = self::trimToNull(U::get($key, 'lms_keyset_url'));
+        $token = self::trimToNull(U::get($key, 'lms_token_url'));
+        if ( $issuer === null || $client === null || $oidc === null || $keyset === null || $token === null ) {
+            return array();
+        }
+        $rows = $PDOX->allRowsDie(
+            "SELECT lti_registration_id, title, issuer, client_id, oidc_auth_url, keyset_url, token_url
+                FROM {$CFG->dbprefix}lti_registration
+                WHERE issuer = :issuer AND client_id = :client",
+            array(':issuer' => $issuer, ':client' => $client)
+        );
+        if ( ! is_array($rows) ) {
+            return array();
+        }
+        $matches = array();
+        foreach ( $rows as $row ) {
+            if ( self::trimToNull(U::get($row, 'oidc_auth_url')) !== $oidc ) continue;
+            if ( self::trimToNull(U::get($row, 'keyset_url')) !== $keyset ) continue;
+            if ( self::trimToNull(U::get($row, 'token_url')) !== $token ) continue;
+            $matches[] = $row;
+        }
+        return $matches;
+    }
+
+    /**
+     * Note when a saved key already lines up with a registration.
+     *
+     * @param array<string, mixed> $key
+     */
+    public static function matchingRegistrationNote(array $key) {
+        $matches = self::registrationsMatchingKeyPlatform($key);
+        if ( count($matches) < 1 ) {
+            return '';
+        }
+        $links = array();
+        foreach ( $matches as $match ) {
+            $id = (int) U::get($match, 'lti_registration_id');
+            $href = 'registration-detail?lti_registration_id='.$id;
+            $label = htmlspecialchars(self::inboundRegistrationLabel($match), ENT_QUOTES, 'UTF-8');
+            $links[] = '<a href="'.$href.'">'.$label.'</a>';
+        }
+        $linked = (int) U::get($key, 'lti_registration_id');
+        $same = count($matches) === 1 && $linked > 0 && (int) U::get($matches[0], 'lti_registration_id') === $linked;
+        if ( $same ) {
+            $text = 'This registration matches this key\'s issuer, client id, and platform URLs: ';
+        } else if ( count($matches) === 1 ) {
+            $text = 'A registration already matches this key\'s issuer, client id, and platform URLs: ';
+        } else {
+            $text = 'These registrations match this key\'s issuer, client id, and platform URLs: ';
+        }
+        return '<p>'.$text.implode(', ', $links).'.</p>'."\n";
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function inboundRegistrationLabel(array $row) {
+        $issuer = (string) U::get($row, 'issuer', '');
+        $client = U::get($row, 'client_id');
+        $title = self::trimToNull(U::get($row, 'title'));
+        $client_label = U::isNotEmpty($client) ? (string) $client : '(no client id)';
+        $parts = array();
+        if ( $title !== null ) $parts[] = $title;
+        if ( $issuer !== '' ) $parts[] = $issuer;
+        $parts[] = $client_label;
+        return implode(' / ', $parts);
+    }
+
+    /**
+     * Platform columns copied onto a key. Emptying a registration link clears these.
+     *
+     * @return array<int, string>
+     */
+    public static function keyPlatformFields() {
+        return array('lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience');
+    }
+
+    /**
+     * Shown under the registration control. The rule separates it from the platform fields.
+     *
+     * @param bool $edit
+     * @param int $selectedId
+     */
+    private static function registrationPlatformFieldsNote($edit, $selectedId = 0) {
+        $html = '';
+        if ( ! $edit ) {
+            $html .= "<p>The issuer, client id, and platform URLs below stay on this key unless you empty them.</p>\n";
+        }
+        if ( $edit ) {
+            $shown = ((int) $selectedId) > 0 ? '' : ' style="display:none"';
+            $html .= "<div id=\"empty_key_lti13_fields_wrap\"{$shown}>\n"
+                ."<p>After you have associated this key with a registration, you can empty the issuer, client id, and platform URLs on this key.</p>\n"
+                ."<div class=\"checkbox\">\n<label for=\"empty_key_lti13_fields\">\n"
+                ."<input type=\"checkbox\" name=\"empty_key_lti13_fields\" id=\"empty_key_lti13_fields\" value=\"1\">\n"
+                ."Empty the issuer, client id, and platform URLs on this key\n"
+                ."</label>\n"
+                ."<p class=\"help-block\">Checked, these fields are cleared when you save. Unchecked, they stay on the key.</p>\n"
+                ."</div>\n"
+                ."</div>\n"
+                ."<script>\n"
+                ."document.addEventListener('DOMContentLoaded', function() {\n"
+                ."  var fields = ".json_encode(self::keyPlatformFields()).";\n"
+                ."  var wrap = document.getElementById('empty_key_lti13_fields_wrap');\n"
+                ."  var box = document.getElementById('empty_key_lti13_fields');\n"
+                ."  var select = document.getElementById('lti_registration_id');\n"
+                ."  var snapshot = null;\n"
+                ."  function chosen() { return !!(select && select.value !== ''); }\n"
+                ."  function emptyFields() {\n"
+                ."    if (snapshot === null) {\n"
+                ."      snapshot = {};\n"
+                ."      fields.forEach(function(name) {\n"
+                ."        var el = document.getElementById(name);\n"
+                ."        snapshot[name] = el ? el.value : '';\n"
+                ."      });\n"
+                ."    }\n"
+                ."    fields.forEach(function(name) {\n"
+                ."      var el = document.getElementById(name);\n"
+                ."      if (el) el.value = '';\n"
+                ."    });\n"
+                ."  }\n"
+                ."  function restoreFields() {\n"
+                ."    if (!snapshot) return;\n"
+                ."    fields.forEach(function(name) {\n"
+                ."      var el = document.getElementById(name);\n"
+                ."      if (el && Object.prototype.hasOwnProperty.call(snapshot, name)) el.value = snapshot[name];\n"
+                ."    });\n"
+                ."    snapshot = null;\n"
+                ."  }\n"
+                ."  function syncBox() {\n"
+                ."    var on = chosen();\n"
+                ."    if (wrap) wrap.style.display = on ? '' : 'none';\n"
+                ."    if (!box) return;\n"
+                ."    if (!on && box.checked) {\n"
+                ."      box.checked = false;\n"
+                ."      restoreFields();\n"
+                ."    } else if (on && box.checked) {\n"
+                ."      emptyFields();\n"
+                ."    }\n"
+                ."    if (window.tsugiRefreshCreateRegistration) window.tsugiRefreshCreateRegistration();\n"
+                ."  }\n"
+                ."  if (box) box.addEventListener('change', function() {\n"
+                ."    if (box.checked) emptyFields();\n"
+                ."    else restoreFields();\n"
+                ."    if (window.tsugiRefreshCreateRegistration) window.tsugiRefreshCreateRegistration();\n"
+                ."  });\n"
+                ."  if (select) select.addEventListener('change', syncBox);\n"
+                ."  window.tsugiEmptyKeyPlatformFields = emptyFields;\n"
+                ."  window.tsugiSyncEmptyKeyPlatformFields = syncBox;\n"
+                ."  syncBox();\n"
+                ."});\n"
+                ."</script>\n";
+        }
+        $html .= "<hr>\n";
+        return $html;
+    }
+
+    /**
+     * Select or read-only link for the key form. Does not show unused columns.
+     *
+     * @param int $selectedId
+     * @param bool $edit
+     */
+    public static function inboundRegistrationControl($selectedId, $edit) {
+        $selectedId = (int) $selectedId;
+        if ( ! $edit ) {
+            if ( $selectedId < 1 ) {
+                return "<p><strong>LTI 1.3 registration</strong></p>\n<p>None</p>\n"
+                    .self::registrationPlatformFieldsNote(false);
+            }
+            $row = self::inboundRegistrationById($selectedId);
+            if ( ! is_array($row) ) {
+                return "<p><strong>LTI 1.3 registration</strong></p>\n<p>Missing registration ".$selectedId."</p>\n"
+                    .self::registrationPlatformFieldsNote(false);
+            }
+            $href = 'registration-detail?lti_registration_id='.$selectedId;
+            $label = htmlspecialchars(self::inboundRegistrationLabel($row), ENT_QUOTES, 'UTF-8');
+            return "<p><strong>LTI 1.3 registration</strong></p>\n<p><a href=\"{$href}\">{$label}</a></p>\n"
+                .self::registrationPlatformFieldsNote(false);
+        }
+
+        $choices = self::inboundRegistrationChoices();
+        $html = "<div class=\"form-group\">\n<label for=\"lti_registration_id\">LTI 1.3 registration<br/>\n";
+        $html .= "<select id=\"lti_registration_id\" name=\"lti_registration_id\">\n";
+        if ( count($choices) < 1 ) {
+            $html .= "<option value=\"\">No Registrations Available</option>\n";
+        } else {
+            $placeholder = $selectedId < 1 ? ' selected' : '';
+            $html .= "<option value=\"\"{$placeholder}>Select</option>\n";
+            foreach ( $choices as $choice ) {
+                $id = (int) U::get($choice, 'lti_registration_id');
+                $selected = $id === $selectedId ? ' selected' : '';
+                $label = htmlspecialchars(self::inboundRegistrationLabel($choice), ENT_QUOTES, 'UTF-8');
+                $html .= "<option value=\"{$id}\"{$selected}>{$label}</option>\n";
+            }
+        }
+        $html .= "</select>\n</label>\n</div>\n";
+        $html .= self::registrationPlatformFieldsNote(true, $selectedId);
+        return $html;
+    }
+
+    /**
+     * Store the chosen registration id. Empty the key's platform fields only when asked.
+     *
+     * @return bool False when the posted id is not a registration.
+     */
+    public static function applyPostedRegistrationToKey() {
+        if ( ! array_key_exists('lti_registration_id', $_POST) ) {
+            U::flashError('Choose a registration from the list.');
+            return false;
+        }
+        $raw = $_POST['lti_registration_id'];
+        if ( $raw === null || $raw === '' || $raw === '0' ) {
+            $_POST['lti_registration_id'] = null;
+            return true;
+        }
+        $raw = trim((string) $raw);
+        $registration = ctype_digit($raw) && (int) $raw > 0 ? self::inboundRegistrationById((int) $raw) : null;
+        if ( ! is_array($registration) ) {
+            U::flashError('Choose a registration from the list.');
+            return false;
+        }
+        $_POST['lti_registration_id'] = (int) $raw;
+        if ( (string) U::get($_POST, 'empty_key_lti13_fields') === '1' ) {
+            if ( ! self::registrationCanReplaceKey($registration) ) {
+                U::flashError('This registration needs an issuer, client id, and the platform URLs before the key fields can be emptied.');
+                return false;
+            }
+            foreach ( self::keyPlatformFields() as $field ) {
+                $_POST[$field] = null;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * A registration can stand in for the key only when the launch would use it.
+     *
+     * @param array<string, mixed> $row
+     */
+    private static function registrationCanReplaceKey(array $row) {
+        foreach ( array('issuer', 'client_id', 'oidc_auth_url', 'keyset_url', 'token_url') as $field ) {
+            if ( ! U::isNotEmpty(U::get($row, $field)) ) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Insert or update a hand-entered registration. Unused columns stay at their defaults.
+     *
+     * @param int|null $id Null inserts.
+     * @param array<string, mixed> $post
+     * @return int|false
+     */
+    public static function saveInboundRegistration($id, array $post, $announce = true) {
+        global $PDOX, $CFG;
+
+        $issuer = self::trimToNull(U::get($post, 'issuer'));
+        $client = self::trimToNull(U::get($post, 'client_id'));
+        $values = array(
+            ':issuer' => $issuer,
+            ':client' => $client,
+            ':oidc' => self::trimToNull(U::get($post, 'oidc_auth_url')),
+            ':keyset' => self::trimToNull(U::get($post, 'keyset_url')),
+            ':token' => self::trimToNull(U::get($post, 'token_url')),
+            ':audience' => self::trimToNull(U::get($post, 'token_audience')),
+            ':unlock' => self::trimToNull(U::get($post, 'unlock_code')),
+            ':title' => self::trimToNull(U::get($post, 'title')),
+            ':notes' => self::trimToNull(U::get($post, 'notes')),
+        );
+        if ( $issuer === null ) {
+            if ( $announce ) U::flashError('Issuer is required');
+            return false;
+        }
+        $identity = \Tsugi\Util\LTI::ascii255First(array(
+            'Issuer' => $issuer,
+            'Client id' => $client,
+        ));
+        if ( is_string($identity) ) {
+            if ( $announce ) U::flashError($identity);
+            return false;
+        }
+        if ( $client !== null ) {
+            $dup_sql = "SELECT lti_registration_id FROM {$CFG->dbprefix}lti_registration
+                WHERE issuer = :issuer AND client_id = :client";
+            $dup_parms = array(':issuer' => $issuer, ':client' => $client);
+            if ( $id ) {
+                $dup_sql .= " AND lti_registration_id <> :id";
+                $dup_parms[':id'] = (int) $id;
+            }
+            $existing = $PDOX->rowDie($dup_sql, $dup_parms);
+            if ( is_array($existing) ) {
+                if ( $announce ) U::flashError('A registration with this issuer and client id already exists');
+                return false;
+            }
+        }
+
+        $table = "{$CFG->dbprefix}lti_registration";
+        if ( $id ) {
+            $values[':id'] = (int) $id;
+            $sql = "UPDATE {$table} SET
+                    title = :title, notes = :notes,
+                    issuer = :issuer, client_id = :client, oidc_auth_url = :oidc,
+                    keyset_url = :keyset, token_url = :token, token_audience = :audience,
+                    unlock_code = :unlock, updated_at = NOW()
+                WHERE lti_registration_id = :id";
+            $q = $PDOX->queryReturnError($sql, $values);
+            if ( ! $q->success ) {
+                if ( $announce ) U::flashError('Could not update registration');
+                return false;
+            }
+            if ( $announce ) U::flashSuccess('Registration updated');
+            return (int) $id;
+        }
+
+        $user_id = null;
+        if ( \Tsugi\Core\ReqScope::isLoggedInLegacy() ) {
+            $logged_in = (int) \Tsugi\Core\ReqScope::loggedInUserIdLegacy();
+            if ( $logged_in > 0 ) $user_id = $logged_in;
+        }
+        $values[':guid'] = \Tsugi\Core\Guid::uuid7();
+        $values[':user'] = $user_id;
+        $sql = "INSERT INTO {$table}
+                (guid, title, notes, issuer, client_id, oidc_auth_url, keyset_url, token_url, token_audience,
+                    unlock_code, registration_method, created_by_user_id, created_at, updated_at)
+            VALUES (UNHEX(:guid), :title, :notes, :issuer, :client, :oidc, :keyset, :token, :audience,
+                    :unlock, 'manual', :user, NOW(), NOW())";
+        $q = $PDOX->queryReturnError($sql, $values);
+        if ( ! $q->success ) {
+            if ( $announce ) U::flashError('Could not insert registration');
+            return false;
+        }
+        if ( $announce ) U::flashSuccess('Registration inserted');
+        return (int) $PDOX->lastInsertId();
+    }
+
+    /**
+     * Check or create a registration from the LTI 1.3 fields on a key form.
+     * Does not update the key. Audience and unlock code are copied when present.
+     *
+     * @param array<string, mixed> $source Key form fields (lms_*) or registration fields.
+     * @param bool $create
+     * @return array<string, mixed>
+     */
+    public static function registrationFromKeyRequest(array $source, $create) {
+        global $PDOX, $CFG;
+
+        $post = array(
+            'issuer' => self::trimToNull(U::get($source, 'lms_issuer', U::get($source, 'issuer'))),
+            'client_id' => self::trimToNull(U::get($source, 'lms_client', U::get($source, 'client_id'))),
+            'oidc_auth_url' => self::trimToNull(U::get($source, 'lms_oidc_auth', U::get($source, 'oidc_auth_url'))),
+            'keyset_url' => self::trimToNull(U::get($source, 'lms_keyset_url', U::get($source, 'keyset_url'))),
+            'token_url' => self::trimToNull(U::get($source, 'lms_token_url', U::get($source, 'token_url'))),
+            'token_audience' => self::trimToNull(U::get($source, 'lms_token_audience', U::get($source, 'token_audience'))),
+            'unlock_code' => self::trimToNull(U::get($source, 'unlock_code')),
+            'title' => self::trimToNull(U::get($source, 'key_title', U::get($source, 'title'))),
+            'notes' => self::trimToNull(U::get($source, 'notes')),
+        );
+        $required = array(
+            'issuer' => 'Issuer',
+            'client_id' => 'Client id',
+            'oidc_auth_url' => 'OIDC login URL',
+            'keyset_url' => 'Keyset URL',
+            'token_url' => 'Token URL',
+        );
+        $missing = array();
+        foreach ( $required as $key => $label ) {
+            if ( $post[$key] === null ) $missing[] = $label;
+        }
+        $shown = array(
+            'Title' => $post['title'],
+            'Issuer' => $post['issuer'],
+            'Client id' => $post['client_id'],
+            'OIDC login URL' => $post['oidc_auth_url'],
+            'Keyset URL' => $post['keyset_url'],
+            'Token URL' => $post['token_url'],
+            'Token audience' => $post['token_audience'],
+            'Unlock code' => $post['unlock_code'],
+        );
+        if ( count($missing) > 0 ) {
+            return array(
+                'ok' => false,
+                'error' => 'Required fields are missing: '.implode(', ', $missing).'.',
+                'fields' => $shown,
+            );
+        }
+        $identity = \Tsugi\Util\LTI::ascii255First(array(
+            'Issuer' => $post['issuer'],
+            'Client id' => $post['client_id'],
+        ));
+        if ( is_string($identity) ) {
+            return array('ok' => false, 'error' => $identity, 'fields' => $shown);
+        }
+        $existing = $PDOX->rowDie(
+            "SELECT lti_registration_id FROM {$CFG->dbprefix}lti_registration
+                WHERE issuer = :issuer AND client_id = :client",
+            array(':issuer' => $post['issuer'], ':client' => $post['client_id'])
+        );
+        if ( is_array($existing) ) {
+            return array(
+                'ok' => false,
+                'error' => 'A registration with this issuer and client id already exists.',
+                'existing_id' => (int) $existing['lti_registration_id'],
+                'fields' => $shown,
+            );
+        }
+        if ( ! $create ) {
+            return array('ok' => true, 'fields' => $shown);
+        }
+        $id = self::saveInboundRegistration(null, $post, false);
+        if ( ! $id ) {
+            return array('ok' => false, 'error' => 'Could not create registration.', 'fields' => $shown);
+        }
+        $row = self::inboundRegistrationById($id);
+        $label = is_array($row) ? self::inboundRegistrationLabel($row) : (string) $id;
+        return array('ok' => true, 'id' => (int) $id, 'label' => $label, 'fields' => $shown);
+    }
+
+    /**
+     * @param mixed $value
+     * @return string|null
+     */
+    private static function trimToNull($value) {
+        if ( ! is_string($value) ) {
+            return null;
+        }
+        $value = trim($value);
+        return $value === '' ? null : $value;
     }
 
     /**
