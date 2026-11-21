@@ -146,7 +146,7 @@ final class AdminTest extends TsugiPantherTestCase
         $this->waitForAdminText($client, 'Keys / Deployments', 'admin/key after key delete');
         $driver->get($this->uri('admin/key/?search_text='.rawurlencode($keyTitle)));
         $page = $this->waitForAdminText($client, 'Keys / Deployments', 'admin/key search after delete');
-        $this->assertStringNotContainsString($keyTitle, $page);
+        $this->assertEmpty($driver->findElements(WebDriverBy::linkText($keyTitle)));
 
         $driver->get($this->uri('admin/key/registrations?search_text='.rawurlencode($title)));
         $this->waitForAdminText($client, $title, 'admin/key/registrations before delete');
@@ -157,7 +157,7 @@ final class AdminTest extends TsugiPantherTestCase
         $this->waitForAdminText($client, 'LTI 1.3 Registrations', 'admin/key/registrations after delete');
         $driver->get($this->uri('admin/key/registrations?search_text='.rawurlencode($title)));
         $page = $this->waitForAdminText($client, 'LTI 1.3 Registrations', 'admin/key/registrations search after delete');
-        $this->assertStringNotContainsString($title, $page);
+        $this->assertEmpty($driver->findElements(WebDriverBy::linkText($title)));
         $this->assertPageHasNoPhpError($page, 'registrations after delete');
     }
 

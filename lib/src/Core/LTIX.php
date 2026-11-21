@@ -750,7 +750,7 @@ class LTIX {
             if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
                 $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
                     SET lms_cache_keyset=:KS, updated_at=NOW() WHERE key_id = :ID",
-                array(':ID' => $key_id, ':KS' => $our_keyset) );
+                array(':ID' => $key_id, ':KS' => self::keysetCacheForUrl($our_keyset_url, $our_keyset)) );
                 error_log("Updated lms_cache_keyset $key_id from $our_keyset_url\n");
             } else {
                 self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
@@ -1192,9 +1192,11 @@ class LTIX {
      * Both sets are already on $row. This is not a per-field coalesce.
      * The registration wins only when issuer, client id, OIDC URL, keyset URL,
      * and token URL are all set. Audience is copied with that set and may be null.
-     * Deployment id stays on the key. A different keyset URL drops the cached
-     * key from this row so the next fetch uses the registration URL. The same
-     * URL keeps the cache.
+     * Deployment id stays on the key. The cached key is kept when the key's
+     * own keyset URL matches, or when the cache was fetched from the
+     * registration URL. Any other cache is dropped from this row so the next
+     * fetch uses the registration URL. The key's stored platform fields stay
+     * in the database.
      *
      * @param array<string, mixed> $row
      * @return array<string, mixed>
@@ -1208,8 +1210,10 @@ class LTIX {
             }
         }
         $keyset = U::get($row, 'lms_keyset_url');
-        $reg_keyset = $row['reg_keyset_url'];
-        if ( ! is_string($keyset) || trim($keyset) !== trim((string) $reg_keyset) ) {
+        $reg_keyset = trim((string) $row['reg_keyset_url']);
+        $keyset_same = is_string($keyset) && trim($keyset) === $reg_keyset;
+        $cache_same = self::cachedKeysetUrl(U::get($row, 'lms_cache_keyset')) === $reg_keyset;
+        if ( ! $keyset_same && ! $cache_same ) {
             $row['lms_cache_keyset'] = null;
             $row['lms_cache_pubkey'] = null;
             $row['lms_cache_kid'] = null;
@@ -1241,6 +1245,39 @@ class LTIX {
             .' key_id='.(is_numeric($key_id) ? (int) $key_id : '')
             .' issuer='.$row['reg_issuer']
             .' client_id='.$row['reg_client_id']);
+    }
+
+    /**
+     * Remember which URL a cached keyset came from without changing the key's own URL.
+     *
+     * @param mixed $url
+     * @param mixed $keyset
+     * @return mixed
+     */
+    private static function keysetCacheForUrl($url, $keyset) {
+        if ( ! is_string($keyset) || ! is_string($url) || trim($url) === '' ) {
+            return $keyset;
+        }
+        $decoded = json_decode($keyset, true);
+        if ( ! is_array($decoded) || ! isset($decoded['keys']) || ! is_array($decoded['keys']) ) {
+            return $keyset;
+        }
+        $decoded['tsugi_keyset_url'] = trim($url);
+        $encoded = json_encode($decoded, JSON_UNESCAPED_SLASHES);
+        return is_string($encoded) ? $encoded : $keyset;
+    }
+
+    /**
+     * @param mixed $keyset
+     */
+    private static function cachedKeysetUrl($keyset) {
+        if ( ! is_string($keyset) || $keyset === '' ) return null;
+        $decoded = json_decode($keyset, true);
+        if ( ! is_array($decoded) || ! isset($decoded['tsugi_keyset_url']) || ! is_string($decoded['tsugi_keyset_url']) ) {
+            return null;
+        }
+        $url = trim($decoded['tsugi_keyset_url']);
+        return $url === '' ? null : $url;
     }
 
     /**

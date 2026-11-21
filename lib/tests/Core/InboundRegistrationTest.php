@@ -63,6 +63,60 @@ class InboundRegistrationTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('deploy-kept', $row['deploy_key']);
     }
 
+    public function testCacheFetchedFromTheRegistrationUrlIsKept() {
+        $cached = '{"keys":[],"tsugi_keyset_url":"https://reg.example/keyset"}';
+        $row = LTIX::applyInboundRegistration(array(
+            'key_id' => 3,
+            'deploy_key' => 'deploy-kept',
+            'lms_cache_keyset' => $cached,
+            'lms_cache_pubkey' => 'cached-key',
+            'lms_cache_kid' => 'key-kid',
+            'lms_issuer' => 'https://key.example',
+            'lms_client' => 'key-client',
+            'lms_oidc_auth' => 'https://key.example/oidc',
+            'lms_keyset_url' => 'https://key.example/keyset',
+            'lms_token_url' => 'https://key.example/token',
+            'lms_token_audience' => 'https://key.example/audience',
+            'reg_issuer' => 'https://reg.example',
+            'reg_client_id' => 'reg-client',
+            'reg_oidc_auth_url' => 'https://reg.example/oidc',
+            'reg_keyset_url' => 'https://reg.example/keyset',
+            'reg_token_url' => 'https://reg.example/token',
+            'reg_token_audience' => null,
+        ));
+
+        $this->assertSame($cached, $row['lms_cache_keyset']);
+        $this->assertSame('cached-key', $row['lms_cache_pubkey']);
+        $this->assertSame('key-kid', $row['lms_cache_kid']);
+        $this->assertSame('https://reg.example', $row['lms_issuer']);
+        $this->assertSame('https://reg.example/keyset', $row['lms_keyset_url']);
+        $this->assertSame('deploy-kept', $row['deploy_key']);
+    }
+
+    public function testCacheFetchedFromAnotherUrlIsDropped() {
+        $row = LTIX::applyInboundRegistration(array(
+            'deploy_key' => 'deploy-kept',
+            'lms_cache_keyset' => '{"keys":[],"tsugi_keyset_url":"https://other.example/keyset"}',
+            'lms_cache_pubkey' => 'cached-key',
+            'lms_cache_kid' => 'key-kid',
+            'lms_keyset_url' => 'https://key.example/keyset',
+            'lms_issuer' => 'https://key.example',
+            'lms_client' => 'key-client',
+            'lms_oidc_auth' => 'https://key.example/oidc',
+            'lms_token_url' => 'https://key.example/token',
+            'reg_issuer' => 'https://reg.example',
+            'reg_client_id' => 'reg-client',
+            'reg_oidc_auth_url' => 'https://reg.example/oidc',
+            'reg_keyset_url' => 'https://reg.example/keyset',
+            'reg_token_url' => 'https://reg.example/token',
+        ));
+
+        $this->assertNull($row['lms_cache_keyset']);
+        $this->assertNull($row['lms_cache_pubkey']);
+        $this->assertNull($row['lms_cache_kid']);
+        $this->assertSame('https://reg.example/keyset', $row['lms_keyset_url']);
+    }
+
     public function testIncompleteRegistrationLeavesTheKey() {
         $row = LTIX::applyInboundRegistration(array(
             'lms_issuer' => 'https://key.example',
