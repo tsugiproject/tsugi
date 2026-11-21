@@ -900,18 +900,23 @@ class RosterSync {
         global $CFG;
         $PDOX = LTIX::getConnection();
         $p = $CFG->dbprefix;
-        $row = $PDOX->rowDie(
-            "SELECT c.context_id, c.key_id, c.plus_course, c.plus_launch_link_id,
+        $registration_sql = LTIX::inboundRegistrationSql($p, 'k');
+        // TODO: Remove this lti_registration existence gate by February 2027.
+        $sql = "SELECT c.context_id, c.key_id, c.plus_course, c.plus_launch_link_id,
                     c.lti13_membership_url, c.lti13_deployment_id, c.nrps_at,
                     TIMESTAMPDIFF(SECOND, c.nrps_at, NOW()) AS nrps_age,
-                    k.lms_client, k.lms_token_url, k.lms_token_audience
+                    k.lms_client, k.lms_token_url, k.lms_token_audience";
+        if ( $registration_sql['select'] !== '' ) {
+            $sql .= ', '.$registration_sql['select'];
+        }
+        $sql .= "
              FROM {$p}lti_context AS c
              JOIN {$p}lti_key AS k ON k.key_id = c.key_id
+             ".$registration_sql['join']."
              WHERE c.context_id = :CID
-               AND (c.deleted IS NULL OR c.deleted = 0)",
-            array(':CID' => (int) $contextId)
-        );
-        return is_array($row) ? $row : null;
+               AND (c.deleted IS NULL OR c.deleted = 0)";
+        $row = $PDOX->rowDie($sql, array(':CID' => (int) $contextId));
+        return is_array($row) ? LTIX::applyInboundRegistration($row) : null;
     }
 
     /**
