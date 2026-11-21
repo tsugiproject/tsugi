@@ -569,6 +569,8 @@ class Quiz1Repository {
             if ( $hex !== '' && strlen($hex) % 2 === 0 && ctype_xdigit($hex) ) {
                 $raw = hex2bin($hex);
                 if ( is_string($raw) ) {
+                    // A real encoding round-trips, and a value longer than 255 is still repaired.
+                    // rlhex_20 decodes to a space and does not round-trip, so the literal stays.
                     $fitted = \Tsugi\Util\CC::importResourceLinkId($raw);
                     $roundTrip = self::cartridgeIdentifierForLinkKey($raw);
                     if ( $fitted !== null && ($roundTrip === $identifier || strlen($raw) > 255) ) {

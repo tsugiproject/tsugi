@@ -458,8 +458,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
     /**
      * Resource link id from a cartridge, repaired so the resource can still be imported.
-     * Spaces become underscores. Other non-printing characters and characters outside
-     * ASCII are dropped. What remains is cut to 255 characters. Nothing left means no id.
+     * Leading and trailing spaces are removed. A space in the middle becomes an underscore.
+     * Underscores already in the id are kept. Other non-printing characters and characters
+     * outside ASCII are dropped. What remains is cut to 255 characters. Nothing left means no id.
+     * Two cartridge ids can repair to the same key. The import keeps going either way.
      *
      * @param mixed $value
      * @return string|null
@@ -472,7 +474,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( ! is_string($repaired) ) {
             return null;
         }
-        $repaired = trim(str_replace(' ', '_', $repaired), '_');
+        $repaired = trim($repaired, ' ');
+        $repaired = str_replace(' ', '_', $repaired);
         if ( $repaired === '' ) {
             return null;
         }

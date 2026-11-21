@@ -326,5 +326,7 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('course-', CC::importResourceLinkId("course-\n"));
         $this->assertSame('course-', CC::importResourceLinkId("course-\x07"));
         $this->assertSame('deploy-1', CC::importResourceLinkId(' deploy-1 '));
+        $this->assertSame('_quiz1_42', CC::importResourceLinkId('_quiz1_42'));
+        $this->assertSame('_quiz1_42_', CC::importResourceLinkId('_quiz1_42_'));
     }
 }

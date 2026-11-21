@@ -421,7 +421,7 @@ class DynamicRegistration {
         if ( is_string($identity_message) ) {
             error_log('Dynamic registration: '.$identity_message);
             echo("<p><b>".htmlentities($identity_message)."</b></p>\n");
-            echo("<p>The LMS already created the client. This key was not updated, and the unlock code is cleared. Do not run registration again. Copy the client id and deployment id from that LMS client onto this key.</p>\n");
+            echo("<p>The LMS already created the client. This key was not updated, and the unlock code is cleared. Do not run registration again. The client id or deployment id from the LMS does not fit in this key. Change that value in the LMS before it can be stored here.</p>\n");
             $OUTPUT->footer();
             return '';
         }
