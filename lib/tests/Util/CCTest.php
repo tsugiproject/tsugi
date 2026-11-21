@@ -329,4 +329,19 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('_quiz1_42', CC::importResourceLinkId('_quiz1_42'));
         $this->assertSame('_quiz1_42_', CC::importResourceLinkId('_quiz1_42_'));
     }
+
+    public function testDistinctResourceLinkIdAvoidsCollisions() {
+        $used = array('cours' => true);
+        $this->assertSame('cours', CC::distinctResourceLinkId('cours', array()));
+        $other = CC::distinctResourceLinkId('cours', $used);
+        $this->assertNotSame('cours', $other);
+        $this->assertStringStartsWith('cours-', $other);
+        $this->assertLessThanOrEqual(255, strlen($other));
+        $this->assertArrayNotHasKey($other, $used);
+
+        $long = str_repeat('a', 255);
+        $moved = CC::distinctResourceLinkId($long, array($long => true));
+        $this->assertNotSame($long, $moved);
+        $this->assertLessThanOrEqual(255, strlen($moved));
+    }
 }

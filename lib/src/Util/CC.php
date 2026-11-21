@@ -461,7 +461,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * Leading and trailing spaces are removed. A space in the middle becomes an underscore.
      * Underscores already in the id are kept. Other non-printing characters and characters
      * outside ASCII are dropped. What remains is cut to 255 characters. Nothing left means no id.
-     * Two cartridge ids can repair to the same key. The import keeps going either way.
+     * The same repaired value can come from two cartridge ids. The importer keeps one and
+     * assigns the other a different id.
      *
      * @param mixed $value
      * @return string|null
@@ -486,6 +487,33 @@ class CC extends \Tsugi\Util\TsugiDOM {
             error_log('Cartridge resource link id was repaired to '.$repaired);
         }
         return $repaired;
+    }
+
+    /**
+     * Preferred resource link id when it is free, otherwise a different id of at most 255 characters.
+     *
+     * @param string $preferred
+     * @param array<string, bool> $used
+     */
+    public static function distinctResourceLinkId($preferred, array $used) {
+        $preferred = is_string($preferred) ? $preferred : '';
+        if ( $preferred !== '' && ! isset($used[$preferred]) ) {
+            return $preferred;
+        }
+        $base = $preferred !== '' ? $preferred : 'rlid';
+        for ( $n = 0; $n < 8; $n++ ) {
+            $suffix = '-'.bin2hex(random_bytes(3));
+            $room = 255 - strlen($suffix);
+            $stem = strlen($base) > $room ? substr($base, 0, $room) : $base;
+            $next = $stem.$suffix;
+            if ( ! isset($used[$next]) ) {
+                return $next;
+            }
+        }
+        $suffix = '-'.bin2hex(random_bytes(8));
+        $room = 255 - strlen($suffix);
+        $stem = strlen($base) > $room ? substr($base, 0, $room) : $base;
+        return $stem.$suffix;
     }
 
     /**
