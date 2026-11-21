@@ -886,6 +886,91 @@ class AdminService {
     }
 
     /**
+     * Identity columns the upgrade narrows to varchar(255) character set ascii collation ascii_bin.
+     *
+     * @return array<int, array{0:string,1:string,2:string}>
+     */
+    public static function identityAsciiColumns() {
+        return array(
+            array('lti_key', 'key_key', 'key_id'),
+            array('lti_key', 'secret', 'key_id'),
+            array('lti_key', 'new_secret', 'key_id'),
+            array('lti_key', 'deploy_key', 'key_id'),
+            array('lti_key', 'lms_issuer', 'key_id'),
+            array('lti_key', 'lms_client', 'key_id'),
+            array('lti_context', 'context_key', 'context_id'),
+            array('lti_context', 'lti13_deployment_id', 'context_id'),
+            array('lti_link', 'link_key', 'link_id'),
+            array('lti_content', 'resource_link_id', 'content_id'),
+            array('lti_domain', 'consumer_key', 'domain_id'),
+            array('lti_domain', 'secret', 'domain_id'),
+            array('lti_tool_registration', 'lti11_key', 'registration_id'),
+            array('lti_tool_registration', 'lti11_secret', 'registration_id'),
+            array('lti_tool_registration', 'lti13_client_id', 'registration_id'),
+            array('lti_tool_deployment', 'deployment_id', 'tool_deployment_id'),
+        );
+    }
+
+    /**
+     * Identity columns that are not yet varchar(255) character set ascii collation ascii_bin.
+     * A missing table or column is included. Names are table.column without the database prefix.
+     *
+     * @return array<int, string>
+     */
+    public static function columnsNotYetAscii255() {
+        global $PDOX, $CFG;
+
+        $wanted = array();
+        foreach ( self::identityAsciiColumns() as $column ) {
+            $wanted[$column[0].'.'.$column[1]] = true;
+        }
+        if ( ! is_object($PDOX) ) {
+            throw new \RuntimeException('could not read identity column types');
+        }
+        $prefix = isset($CFG->dbprefix) ? (string) $CFG->dbprefix : '';
+        $clauses = array();
+        $params = array();
+        $i = 0;
+        foreach ( self::identityAsciiColumns() as $column ) {
+            $clauses[] = '(TABLE_NAME = :t'.$i.' AND COLUMN_NAME = :c'.$i.')';
+            $params[':t'.$i] = $prefix.$column[0];
+            $params[':c'.$i] = $column[1];
+            $i++;
+        }
+        $rows = $PDOX->allRows(
+            "SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name,
+                DATA_TYPE AS data_type, CHARACTER_MAXIMUM_LENGTH AS char_length,
+                CHARACTER_SET_NAME AS charset_name, COLLATION_NAME AS collation_name
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND (".implode(' OR ', $clauses).")",
+            $params,
+            false
+        );
+        if ( ! is_array($rows) ) {
+            throw new \RuntimeException('could not read identity column types');
+        }
+        $ready = array();
+        foreach ( $rows as $row ) {
+            $table = (string) U::getIgnoreCase($row, 'table_name');
+            $column = (string) U::getIgnoreCase($row, 'column_name');
+            if ( $prefix !== '' && str_starts_with($table, $prefix) ) {
+                $table = substr($table, strlen($prefix));
+            }
+            $name = $table.'.'.$column;
+            $ok = strtolower((string) U::getIgnoreCase($row, 'data_type')) === 'varchar'
+                && (int) U::getIgnoreCase($row, 'char_length') === 255
+                && strtolower((string) U::getIgnoreCase($row, 'charset_name')) === 'ascii'
+                && strtolower((string) U::getIgnoreCase($row, 'collation_name')) === 'ascii_bin';
+            if ( $ok ) $ready[$name] = true;
+        }
+        $notYet = array();
+        foreach ( array_keys($wanted) as $name ) {
+            if ( ! isset($ready[$name]) ) $notYet[] = $name;
+        }
+        return $notYet;
+    }
+
+    /**
      * TEXT columns that store an issuer, client id, deployment id, context id,
      * resource link id, LTI 1.1 consumer key, or secret.
      *

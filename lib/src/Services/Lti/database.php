@@ -2869,24 +2869,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     };
-    $identity_ascii_columns = array(
-        array('lti_key', 'key_key', 'key_id'),
-        array('lti_key', 'secret', 'key_id'),
-        array('lti_key', 'new_secret', 'key_id'),
-        array('lti_key', 'deploy_key', 'key_id'),
-        array('lti_key', 'lms_issuer', 'key_id'),
-        array('lti_key', 'lms_client', 'key_id'),
-        array('lti_context', 'context_key', 'context_id'),
-        array('lti_context', 'lti13_deployment_id', 'context_id'),
-        array('lti_link', 'link_key', 'link_id'),
-        array('lti_content', 'resource_link_id', 'content_id'),
-        array('lti_domain', 'consumer_key', 'domain_id'),
-        array('lti_domain', 'secret', 'domain_id'),
-        array('lti_tool_registration', 'lti11_key', 'registration_id'),
-        array('lti_tool_registration', 'lti11_secret', 'registration_id'),
-        array('lti_tool_registration', 'lti13_client_id', 'registration_id'),
-        array('lti_tool_deployment', 'deployment_id', 'tool_deployment_id'),
-    );
+    $identity_ascii_columns = \Tsugi\Services\Admin\AdminService::identityAsciiColumns();
     $identity_note('Checking identity columns for varchar(255) character set ascii collation ascii_bin.');
     $identity_described = array();
     foreach ( $identity_ascii_columns as $identity_column ) {

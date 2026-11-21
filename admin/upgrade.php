@@ -419,8 +419,9 @@ function tsugi_admin_upgrade_manual_comment($entered) {
 /**
  * Facts worth keeping about who ran an upgrade.
  *
- * comment is the client id check as counts, with no row detail, unless
- * $comment is a string. A hand send passes that string in.
+ * comment is the client id check as counts, with no row detail, and the
+ * identity columns that are not yet varchar(255) ascii, unless $comment is
+ * a string. A hand send passes that string in.
  * $maxversion and $maxpath are unused. The caller still has them from the migration loop.
  */
 function tsugi_admin_upgrade_report_payload($maxversion, $maxpath, $db_server_version, $comment = null) {
@@ -596,15 +597,20 @@ function tsugi_admin_upgrade_client_id_comment() {
         $deployments = count(\Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups());
         $long = count(\Tsugi\Services\Admin\AdminService::valuesLongerThan255());
         $nonAscii = count(\Tsugi\Services\Admin\AdminService::nonAsciiValues());
+        $notYet = \Tsugi\Services\Admin\AdminService::columnsNotYetAscii255();
     } catch (\Throwable $e) {
         return 'client id check failed';
     }
 
+    $columnNote = count($notYet) < 1
+        ? 'none'
+        : implode(', ', $notYet);
     return 'duplicate (client id, issuer, deployment id) rows: '.$duplicates
         .', rows with mismatched client configuration urls: '.$configRows
         .', keys with more than one deployment id: '.$deployments
         .', fields too long: '.$long
-        .', non-ascii fields: '.$nonAscii;
+        .', non-ascii fields: '.$nonAscii
+        .', columns not yet varchar(255) ascii: '.$columnNote;
 }
 
 /**
