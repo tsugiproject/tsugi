@@ -131,7 +131,8 @@ final class AdminTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::linkText($keyTitle))->click();
         $page = $this->waitForAdminText($client, 'Key status:', 'admin/key/key-detail');
         $this->assertStringContainsString('registration-detail?lti_registration_id=', $page);
-        $this->assertStringNotContainsString($issuer, $page);
+        $this->assertSame('', trim($driver->findElement(WebDriverBy::id('lms_issuer'))->getText()));
+        $this->assertSame('', trim($driver->findElement(WebDriverBy::id('lms_client'))->getText()));
         $this->assertPageHasNoPhpError($page, 'key linked to registration');
 
         $driver->findElement(WebDriverBy::linkText('Registration'))->click();
@@ -140,7 +141,7 @@ final class AdminTest extends TsugiPantherTestCase
 
         $driver->findElement(WebDriverBy::linkText($keyTitle))->click();
         $this->waitForAdminText($client, 'Key status:', 'admin/key/key-detail before delete');
-        $driver->findElement(WebDriverBy::name('doDelete'))->click();
+        $this->clickClearOfNavbar($driver, $driver->findElement(WebDriverBy::name('doDelete')));
         $this->acceptAdminAlert($driver, 'delete this record');
         $this->waitForAdminText($client, 'Keys / Deployments', 'admin/key after key delete');
         $driver->get($this->uri('admin/key/?search_text='.rawurlencode($keyTitle)));
@@ -151,7 +152,7 @@ final class AdminTest extends TsugiPantherTestCase
         $this->waitForAdminText($client, $title, 'admin/key/registrations before delete');
         $driver->findElement(WebDriverBy::linkText($title))->click();
         $this->waitForAdminText($client, 'Registration Details', 'registration before delete');
-        $driver->findElement(WebDriverBy::name('doDelete'))->click();
+        $this->clickClearOfNavbar($driver, $driver->findElement(WebDriverBy::name('doDelete')));
         $this->acceptAdminAlert($driver, 'delete this registration');
         $this->waitForAdminText($client, 'LTI 1.3 Registrations', 'admin/key/registrations after delete');
         $driver->get($this->uri('admin/key/registrations?search_text='.rawurlencode($title)));
