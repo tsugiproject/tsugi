@@ -57,15 +57,28 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("key_id=$key_id iss=".$iss." sha256=".$key_sha256);
 
+$registration_sql = LTIX::inboundRegistrationSql($CFG->dbprefix, 'K');
+// TODO: Remove this lti_registration existence gate by February 2027.
 $sql = "SELECT key_id,
     lms_issuer, lms_client, lms_oidc_auth, lms_keyset_url,
-    lms_token_url, lms_token_audience, lms_cache_keyset, lms_cache_pubkey, lms_cache_kid
-    FROM {$CFG->dbprefix}lti_key AS K
+    lms_token_url, lms_token_audience, lms_cache_keyset, lms_cache_pubkey, lms_cache_kid";
+if ( $registration_sql['select'] !== '' ) {
+    $sql .= ",
+    ".$registration_sql['select'];
+}
+$sql .= "
+    FROM {$CFG->dbprefix}lti_key AS K";
+if ( $registration_sql['join'] !== '' ) {
+    $sql .= "
+    ".$registration_sql['join'];
+}
+$sql .= "
     WHERE K.key_id = :KID AND (K.deleted IS NULL OR K.deleted = 0)";
 $row = $PDOX->rowDie($sql, array(":KID" => $key_id));
 if ( ! is_array($row) || count($row) < 1 ) {
     LTIX::abort_with_error_log('Login could not find key '.htmlentities($key_id)." for iss=".htmlentities($iss));
 }
+$row = LTIX::applyInboundRegistration($row);
 
 $row['issuer_client'] = $row['lms_client'];
 $row['lti13_oidc_auth'] = $row['lms_oidc_auth'];
@@ -81,7 +94,7 @@ $redirect = trim($row['lti13_oidc_auth']);
 $issuer_key = $row['issuer_key'];
 $platform_public_key = $row['lti13_platform_pubkey'];
 $our_kid = $row['lti13_kid'];
-$our_keyset_url = $row['lti13_keyset'];
+$our_keyset_url = $row['lti13_keyset_url'];
 $our_keyset = $row['lti13_keyset'];
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();

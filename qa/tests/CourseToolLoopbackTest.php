@@ -70,19 +70,19 @@ final class CourseToolLoopbackTest extends TsugiPantherTestCase
     {
         $driver = $client->getWebDriver();
         $driver->get($this->uri('admin/key/key-add'));
-        $this->waitForPageText($client, 'Adding Tsugi Tenant/Key');
+        $this->waitForPageText($client, 'Adding Key');
         $driver->findElement(WebDriverBy::id('key_title'))->sendKeys($title);
         $driver->findElement(WebDriverBy::id('lms_issuer'))->sendKeys($this->baseUri());
         $driver->findElement(WebDriverBy::id('lms_client'))->sendKeys('panther-client-'.date('YmdHis'));
         $driver->findElement(WebDriverBy::name('doSave'))->click();
-        $this->waitForPageText($client, 'LTI Tenants');
+        $this->waitForPageText($client, 'Keys / Deployments');
         $this->openKey($client, $title);
 
         $driver->findElement(WebDriverBy::linkText('Edit'))->click();
         $this->waitForPageText($client, 'name="unlock_code"');
         $driver->findElement(WebDriverBy::id('unlock_code'))->sendKeys($unlock);
         $driver->findElement(WebDriverBy::name('doUpdate'))->click();
-        $this->waitForPageText($client, 'LTI Tenants');
+        $this->waitForPageText($client, 'Keys / Deployments');
         $this->openKey($client, $title);
         $this->waitForPageText($client, 'LTI Advantage Dynamic Registration URL');
 
@@ -100,7 +100,7 @@ final class CourseToolLoopbackTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::xpath(
             "//tr[contains(., '".$title."')]//a[contains(@href, 'key-detail')]"
         ))->click();
-        $this->waitForPageText($client, 'Tenant Details');
+        $this->waitForPageText($client, 'Key status:');
         $this->waitForPageText($client, $title);
     }
 }
