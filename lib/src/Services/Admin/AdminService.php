@@ -1663,15 +1663,32 @@ class AdminService {
             return true;
         }
         $raw = trim((string) $raw);
-        if ( $raw === '' || ! ctype_digit($raw) || (int) $raw < 1 || ! is_array(self::inboundRegistrationById((int) $raw)) ) {
+        $registration = ctype_digit($raw) && (int) $raw > 0 ? self::inboundRegistrationById((int) $raw) : null;
+        if ( ! is_array($registration) ) {
             U::flashError('Choose a registration from the list.');
             return false;
         }
         $_POST['lti_registration_id'] = (int) $raw;
         if ( (string) U::get($_POST, 'empty_key_lti13_fields') === '1' ) {
+            if ( ! self::registrationCanReplaceKey($registration) ) {
+                U::flashError('This registration needs an issuer, client id, and the platform URLs before the key fields can be emptied.');
+                return false;
+            }
             foreach ( self::keyPlatformFields() as $field ) {
                 $_POST[$field] = null;
             }
+        }
+        return true;
+    }
+
+    /**
+     * A registration can stand in for the key only when the launch would use it.
+     *
+     * @param array<string, mixed> $row
+     */
+    private static function registrationCanReplaceKey(array $row) {
+        foreach ( array('issuer', 'client_id', 'oidc_auth_url', 'keyset_url', 'token_url') as $field ) {
+            if ( ! U::isNotEmpty(U::get($row, $field)) ) return false;
         }
         return true;
     }

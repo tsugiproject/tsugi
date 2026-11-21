@@ -23,7 +23,8 @@ foreach ( $rows as $row ) {
     $newrow['lti_registration_id'] = $row['lti_registration_id'];
     $newrow['title'] = $row['title'];
     $newrow['issuer'] = $row['issuer'];
-    $newrow['client_id'] = $row['client_id'];
+    $newrow['client'] = $row['client_id'];
+    $newrow['_header_client'] = 'Client ID';
     $newrow['updated_at'] = $row['updated_at'];
     $newrows[] = $newrow;
 }

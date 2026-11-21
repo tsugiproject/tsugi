@@ -10,18 +10,20 @@ if ( ! AdminService::isAdmin() ) {
     die('Must be admin');
 }
 
+$key_admin = $CFG->wwwroot.'/admin/key/';
+
 if ( count($_POST) > 0 ) {
-    if ( \Tsugi\Controllers\Tool::csrfRedirect('registration-add') ) return;
+    if ( \Tsugi\Controllers\Tool::csrfRedirect($key_admin.'registration-add') ) return;
 }
 
+$registration_values = array();
 if ( isset($_POST['doSave']) ) {
     $id = AdminService::saveInboundRegistration(null, $_POST);
     if ( $id ) {
-        header('Location: registration-detail?lti_registration_id='.(int) $id);
+        header('Location: '.$key_admin.'registration-detail?lti_registration_id='.(int) $id);
         return;
     }
-    header('Location: registration-add');
-    return;
+    $registration_values = $_POST;
 }
 
 $OUTPUT->header();
@@ -30,11 +32,15 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
 <h1>Adding LTI 1.3 Registration
-<a class="btn btn-default" href="registrations">Exit</a>
+<a class="btn btn-default" href="<?= $key_admin ?>registrations">Exit</a>
 </h1>
 <p>
 These are the same platform values a key used to store itself.
 </p>
-<?php require __DIR__ . '/registration-fields.php'; ?>
+<?php
+$registration_action = $key_admin.'registration-add';
+$registration_cancel = $key_admin.'registrations';
+require __DIR__ . '/registration-fields.php';
+?>
 <?php
 $OUTPUT->footer();

@@ -40,11 +40,11 @@ final class AdminTest extends TsugiPantherTestCase
         $driver = $client->getWebDriver();
 
         $driver->get($this->uri('admin/key'));
-        $page = $this->waitForAdminText($client, 'LTI Tenants', 'admin/key');
+        $page = $this->waitForAdminText($client, 'Keys / Deployments', 'admin/key');
         $listUrl = $driver->getCurrentURL();
         $this->assertMatchesRegularExpression('#/admin/key/($|\?)#', $listUrl);
 
-        $add = $driver->findElement(WebDriverBy::linkText('Insert Tenant'));
+        $add = $driver->findElement(WebDriverBy::linkText('Insert Key'));
         $this->assertStringContainsString('/admin/key/key-add', $this->resolvedHref($driver, $add));
 
         $detailLinks = $driver->findElements(WebDriverBy::cssSelector('a[href*="key-detail"]'));
@@ -53,7 +53,7 @@ final class AdminTest extends TsugiPantherTestCase
         }
         $this->assertStringContainsString('/admin/key/key-detail', $this->resolvedHref($driver, $detailLinks[0]));
         $detailLinks[0]->click();
-        $page = $this->waitForAdminText($client, 'Tenant Details', 'admin/key/key-detail');
+        $page = $this->waitForAdminText($client, 'Key status:', 'admin/key/key-detail');
         $this->assertPageHasNoPhpError($page, $driver->getCurrentURL());
         $this->captureScreenshot($client, 'admin-key-detail');
     }
@@ -127,7 +127,7 @@ final class AdminTest extends TsugiPantherTestCase
             'admin/catalog' => 'Course catalog',
             'admin/org/' => 'Pick a tenant',
             'admin/catalog/edit.php' => 'Add catalog listing',
-            'admin/key/' => 'LTI Tenants',
+            'admin/key/' => 'Keys / Deployments',
             'admin/expire/' => 'Manage Data Expiry',
             'admin/context/' => ['members', 'Nothing to display.'],
             'admin/activity/' => ['link_title', 'Nothing to display.'],
@@ -187,11 +187,11 @@ final class AdminTest extends TsugiPantherTestCase
             ],
             [
                 'link' => 'Manage Access Keys',
-                'marker' => 'LTI Tenants',
+                'marker' => 'Keys / Deployments',
                 'href' => '/admin/key/',
                 'next' => [
-                    'link' => 'Insert Tenant',
-                    'marker' => 'Adding Tsugi Tenant/Key',
+                    'link' => 'Insert Key',
+                    'marker' => 'Adding Key',
                     'href' => '/admin/key/key-add',
                 ],
             ],

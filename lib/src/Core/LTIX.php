@@ -1192,7 +1192,9 @@ class LTIX {
      * Both sets are already on $row. This is not a per-field coalesce.
      * The registration wins only when issuer, client id, OIDC URL, keyset URL,
      * and token URL are all set. Audience is copied with that set and may be null.
-     * Deployment id and the keyset cache stay on the key.
+     * Deployment id stays on the key. A different keyset URL drops the cached
+     * key from this row so the next fetch uses the registration URL. The same
+     * URL keeps the cache.
      *
      * @param array<string, mixed> $row
      * @return array<string, mixed>
@@ -1204,6 +1206,13 @@ class LTIX {
                 self::clearInboundRegistrationColumns($row);
                 return $row;
             }
+        }
+        $keyset = U::get($row, 'lms_keyset_url');
+        $reg_keyset = $row['reg_keyset_url'];
+        if ( ! is_string($keyset) || trim($keyset) !== trim((string) $reg_keyset) ) {
+            $row['lms_cache_keyset'] = null;
+            $row['lms_cache_pubkey'] = null;
+            $row['lms_cache_kid'] = null;
         }
         $row['lms_issuer'] = $row['reg_issuer'];
         $row['lms_client'] = $row['reg_client_id'];
@@ -1379,19 +1388,36 @@ class LTIX {
             // Match by issuer + client_id only; accept any deployment_id from the LMS.
             // The launch JWT's deployment_id is still copied into $row at runtime for LTI 1.3
             // services (e.g. AGS token requests).
-            // A linked registration is a second way to find the key. Field choice happens
-            // after the row is loaded, in applyInboundRegistration().
+            // A complete registration is found by its own issuer and client.
+            // An incomplete one stays on the key identity, so it cannot answer
+            // for a different platform. A complete registration's old key
+            // identity is not eligible either.
             $sql .= "\nWHERE (
-                    (
-                        (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
-                        AND k.lms_client = :issuer_client
-                    )";
+                    ";
             if ( $have_registration ) {
-                $sql .= "
+                $sql .= "(
+                        (
+                            reg.issuer IS NULL OR reg.issuer = ''
+                            OR reg.client_id IS NULL OR reg.client_id = ''
+                            OR reg.oidc_auth_url IS NULL OR reg.oidc_auth_url = ''
+                            OR reg.keyset_url IS NULL OR reg.keyset_url = ''
+                            OR reg.token_url IS NULL OR reg.token_url = ''
+                        )
+                        AND (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                        AND k.lms_client = :issuer_client
+                    )
                     OR (
-                        SHA2(reg.issuer, 256) = :issuer_sha256
+                        reg.issuer IS NOT NULL AND reg.issuer <> ''
+                        AND reg.client_id IS NOT NULL AND reg.client_id <> ''
+                        AND reg.oidc_auth_url IS NOT NULL AND reg.oidc_auth_url <> ''
+                        AND reg.keyset_url IS NOT NULL AND reg.keyset_url <> ''
+                        AND reg.token_url IS NOT NULL AND reg.token_url <> ''
+                        AND SHA2(reg.issuer, 256) = :issuer_sha256
                         AND reg.client_id = :issuer_client
                     )";
+            } else {
+                $sql .= "(k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                    AND k.lms_client = :issuer_client";
             }
             $sql .= "
                 )

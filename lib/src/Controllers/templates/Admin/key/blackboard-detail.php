@@ -3,7 +3,7 @@
 Blackboard uses one issuer for every school, but
 since the Blackboard developer portal assigns a <b>Well-Known/KeySet URL</b> that is unique
 to each Client ID, skip a reusable issuer in Tsugi and create a key for each client id.
-Select "No Global Issuer Selected" and set all the issuer values on that key.
+Leave the LTI 1.3 registration unset and set all the issuer values on that key.
 The <b>Deployment ID</b> is provided when you place Tsugi into a Blackboard
 instance using the <b>Client ID</b>.
 For Blackboard, the following are the typical values for the Tsugi items:
