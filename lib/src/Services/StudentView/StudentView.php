@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\StudentView;
 
+use Tsugi\Services\Admin\AdminService;
 use Tsugi\Controllers\Courses;
 use Tsugi\Controllers\Tool;
 use Tsugi\Core\Cache;
@@ -570,6 +571,11 @@ body.tsugi-student-view::before {
      * @return array{user_id:int,key_id:int,user_sha256:string,user_key:string}|null
      */
     private static function insertUser($keyId, $userKey, $name, $email) {
+        $problem = AdminService::naturalKeyProblem('user_key', $userKey);
+        if ( $problem !== null ) {
+            error_log($problem);
+            return null;
+        }
         global $CFG, $PDOX;
         $PDOX = LTIX::getConnection();
         $sha = U::lti_sha256($userKey);

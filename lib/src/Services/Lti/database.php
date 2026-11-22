@@ -170,9 +170,16 @@ array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NULL,
-    user_key            TEXT NULL,
+    -- LTI 1.1 user_id, the 1.1 transition id, or googlemail: plus an email.
+    -- 512 covers a 254-character address. The hash stays until a later unique index.
+    user_key            VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
+    -- MariaDB 10.5 rejects NULL or NOT NULL after STORED. Nullability follows the expression.
+    user_key_bin        VARBINARY(512) GENERATED ALWAYS AS (CAST(user_key AS BINARY)) STORED,
     subject_sha256      CHAR(64) NULL,
-    subject_key         TEXT NULL,
+    -- LTI 1.3 sub.
+    subject_key         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    subject_key_bin     VARBINARY(255) GENERATED ALWAYS AS (CAST(subject_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -219,6 +226,10 @@ array( "{$CFG->dbprefix}lti_user",
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_1` UNIQUE(key_id, user_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256),
+    -- Parallel to the sha256 uniques, on the exact bytes. NULL user_key and
+    -- NULL subject_key still allow more than one row on a key.
+    CONSTRAINT `{$CFG->dbprefix}lti_user_const_user_key` UNIQUE(key_id, user_key_bin),
+    CONSTRAINT `{$CFG->dbprefix}lti_user_const_subject_key` UNIQUE(key_id, subject_key_bin),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_guid` UNIQUE (`guid`),
     INDEX `{$CFG->dbprefix}lti_user_indx_email` (email(255)),
     INDEX `{$CFG->dbprefix}lti_user_indx_profile` (profile_id),
@@ -226,7 +237,7 @@ array( "{$CFG->dbprefix}lti_user",
     -- UNIQUE(key_id, user_sha256) walks every user on that key.
     INDEX `{$CFG->dbprefix}lti_user_indx_key_email` (key_id, email(255), updated_at),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC"),
 
 /* If MySQL had CHECK constraints - these would be nice in lti_user - for now
    we will just need to be careful in code.
@@ -706,7 +717,11 @@ array( "{$CFG->dbprefix}lti_service",
 "create table {$CFG->dbprefix}lti_service (
     service_id          INTEGER NOT NULL AUTO_INCREMENT,
     service_sha256      CHAR(64) NOT NULL,
-    service_key         TEXT NOT NULL,
+    -- lis_outcome_service_url. 1024 ascii needs a DYNAMIC table: a COMPACT
+    -- index holds 767 bytes, and this column plus key_id does not fit.
+    service_key         VARCHAR(1024) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
+    service_key_bin     VARBINARY(1024) GENERATED ALWAYS AS (CAST(service_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -725,8 +740,9 @@ array( "{$CFG->dbprefix}lti_service",
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_service_const_1` UNIQUE(key_id, service_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_service_const_key` UNIQUE(key_id, service_key_bin),
     CONSTRAINT `{$CFG->dbprefix}lti_service_const_pk` PRIMARY KEY (service_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC"),
 
 // service_id/sourcedid are for LTI 1.x
 // result_url is for LTI 2.x
@@ -3092,9 +3108,370 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
     // End of the November 2026 inbound registration detour.
 
+    // user_key, subject_key, profile_key, and service_key. Widths are per column.
+    // A value longer than that width, or a character outside ASCII, leaves the
+    // column alone. COMPACT indexes 767 bytes. service_key is varchar(1024),
+    // so the column alter waits until the table row format is DYNAMIC.
+    // A Compact, Redundant, or Compressed table is rebuilt. A failed rebuild
+    // leaves the column. While these columns are rolling out, a table that is
+    // already DYNAMIC and a column that is already ascii_bin are reported too.
+    // Drop those already-done lines once every database has been converted.
+    // After the column is ascii_bin, a generated VARBINARY column holds the
+    // exact bytes. ascii_bin ignores trailing spaces, so the unique constraint
+    // is on that generated column, parallel to the sha256 unique. An older
+    // unique on the varchar itself is replaced. The sha256 unique stays.
+    // NULL user_key and NULL subject_key still allow more than one row on a
+    // key, same as the hash unique. A column that is already ascii_bin skips
+    // the length and ASCII scan.
+    $natural_row_ready = array();
+    $natural_format = function($physical) use ($PDOX) {
+        $rows = $PDOX->allRows(
+            "SELECT ENGINE AS engine_name, ROW_FORMAT AS row_format, CREATE_OPTIONS AS create_options
+                FROM information_schema.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = :table_name",
+            array(':table_name' => $physical),
+            false
+        );
+        if ( ! is_array($rows) || ! isset($rows[0]) ) {
+            return array('engine' => '', 'format' => '', 'options' => '');
+        }
+        return array(
+            'engine' => strtolower(trim((string) \Tsugi\Util\U::getIgnoreCase($rows[0], 'engine_name'))),
+            'format' => strtolower(trim((string) \Tsugi\Util\U::getIgnoreCase($rows[0], 'row_format'))),
+            'options' => strtolower(trim((string) \Tsugi\Util\U::getIgnoreCase($rows[0], 'create_options'))),
+        );
+    };
+    $natural_ensure_dynamic = function($physical) use ($PDOX, $identity_note, $natural_format, &$natural_row_ready) {
+        if ( array_key_exists($physical, $natural_row_ready) ) {
+            return $natural_row_ready[$physical];
+        }
+        $shape = $natural_format($physical);
+        if ( $shape['engine'] !== '' && $shape['engine'] !== 'innodb' ) {
+            $identity_note('Table '.$physical.' engine is '.$shape['engine'].'. Columns left unchanged.');
+            $natural_row_ready[$physical] = false;
+            return false;
+        }
+        if ( $shape['format'] === 'dynamic' ) {
+            $identity_note('Table '.$physical.' row format is DYNAMIC.');
+            $natural_row_ready[$physical] = true;
+            return true;
+        }
+        $shown = $shape['format'] === '' ? 'unknown' : $shape['format'];
+        $row_sql = "ALTER TABLE {$physical} ROW_FORMAT=DYNAMIC";
+        if ( $shape['format'] === 'compressed' || strpos($shape['options'], 'key_block_size') !== false ) {
+            $row_sql .= ', KEY_BLOCK_SIZE=0';
+        }
+        $identity_note('Table '.$physical.' row format is '.$shown.'. Altering to DYNAMIC.');
+        $identity_note('Upgrading: '.$row_sql);
+        $row_alter = $PDOX->queryReturnError($row_sql, false, false);
+        if ( ! $row_alter->success ) {
+            $identity_note('Table '.$physical.' row format alter failed: '.$row_alter->errorImplode.'. Columns left unchanged.');
+            $natural_row_ready[$physical] = false;
+            return false;
+        }
+        $after = $natural_format($physical);
+        if ( $after['format'] !== 'dynamic' ) {
+            $still = $after['format'] === '' ? 'unknown' : $after['format'];
+            $identity_note('Table '.$physical.' row format is still '.$still.' after ALTER. Columns left unchanged.');
+            $natural_row_ready[$physical] = false;
+            return false;
+        }
+        $identity_note('Table '.$physical.' row format is DYNAMIC.');
+        $natural_row_ready[$physical] = true;
+        return true;
+    };
+    // Non-strict mode can truncate a value during MODIFY and still report success.
+    $natural_modify_strict = function($sql) use ($PDOX, $identity_note) {
+        $mode_rows = $PDOX->allRows("SELECT @@SESSION.sql_mode AS sql_mode", false, false);
+        if ( ! is_array($mode_rows) || ! isset($mode_rows[0]) ) {
+            $identity_note('Could not read sql_mode. Column left unchanged.');
+            return false;
+        }
+        $prior = (string) \Tsugi\Util\U::get($mode_rows[0], 'sql_mode');
+        if ( preg_match('/^[A-Za-z0-9_,]*$/', $prior) !== 1 ) {
+            $identity_note('sql_mode is not a mode list. Column left unchanged.');
+            return false;
+        }
+        $next = $prior === '' ? 'STRICT_ALL_TABLES' : $prior.',STRICT_ALL_TABLES';
+        $set_mode = $PDOX->queryReturnError("SET SESSION sql_mode = '".$next."'", false, false);
+        if ( ! $set_mode->success ) {
+            $identity_note('Could not set strict sql_mode: '.$set_mode->errorImplode.'. Column left unchanged.');
+            return false;
+        }
+        $identity_note('Upgrading: '.$sql);
+        $alter = $PDOX->queryReturnError($sql, false, false);
+        $restore = $PDOX->queryReturnError("SET SESSION sql_mode = '".$prior."'", false, false);
+        if ( ! $restore->success ) {
+            $identity_note('Could not restore sql_mode: '.$restore->errorImplode.'.');
+        }
+        return $alter;
+    };
+    $natural_index_columns = function($index_name, $physical) use ($PDOX) {
+        $detail = $PDOX->indexDetail($physical);
+        if ( ! is_array($detail) ) return array();
+        $ranked = array();
+        foreach ( $detail as $index_row ) {
+            if ( (string) \Tsugi\Util\U::get($index_row, 'Key_name') !== $index_name ) continue;
+            $seq = (int) \Tsugi\Util\U::get($index_row, 'Seq_in_index');
+            $ranked[$seq] = strtolower((string) \Tsugi\Util\U::get($index_row, 'Column_name'));
+        }
+        if ( count($ranked) === 0 ) return array();
+        ksort($ranked);
+        return array_values($ranked);
+    };
+    $natural_described = array();
+    foreach ( \Tsugi\Services\Admin\AdminService::naturalKeyAsciiColumns() as $natural_column ) {
+        $natural_table = $natural_column[0];
+        $natural_field = $natural_column[1];
+        $natural_id = $natural_column[2];
+        $natural_width = (int) $natural_column[3];
+        $natural_label = 'Identity column '.$natural_table.'.'.$natural_field;
+        $natural_ident = '/^[A-Za-z0-9_]+$/';
+        if ( preg_match($natural_ident, $natural_table) !== 1
+            || preg_match($natural_ident, $natural_field) !== 1
+            || preg_match($natural_ident, $natural_id) !== 1
+            || $natural_width < 1 || $natural_width > 3072 ) {
+            $identity_note($natural_label.': column description is not usable. Left unchanged.');
+            continue;
+        }
+        $natural_physical = $CFG->dbprefix.$natural_table;
+        if ( ! array_key_exists($natural_physical, $natural_described) ) {
+            $natural_meta = $PDOX->describe($natural_physical);
+            $natural_described[$natural_physical] = is_array($natural_meta) ? $natural_meta : false;
+        }
+        if ( $natural_described[$natural_physical] === false ) {
+            $identity_note($natural_label.': table '.$natural_table.' is absent. Left unchanged.');
+            continue;
+        }
+        $natural_field_meta = null;
+        foreach ( $natural_described[$natural_physical] as $natural_field_row ) {
+            if ( \Tsugi\Util\U::getIgnoreCase($natural_field_row, 'Field') === $natural_field ) {
+                $natural_field_meta = $natural_field_row;
+                break;
+            }
+        }
+        if ( ! is_array($natural_field_meta) ) {
+            $identity_note($natural_label.': column is absent. Left unchanged.');
+            continue;
+        }
+        $natural_schema_rows = $PDOX->allRows(
+            "SELECT DATA_TYPE AS data_type,
+                CHARACTER_MAXIMUM_LENGTH AS char_length,
+                CHARACTER_SET_NAME AS charset_name,
+                COLLATION_NAME AS collation_name
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = :table_name
+                AND COLUMN_NAME = :column_name",
+            array(
+                ':table_name' => $natural_physical,
+                ':column_name' => $natural_field,
+            ),
+            false
+        );
+        if ( ! is_array($natural_schema_rows) || ! isset($natural_schema_rows[0]) ) {
+            $identity_note($natural_label.': could not read the column type. Left unchanged.');
+            continue;
+        }
+        $natural_schema = $natural_schema_rows[0];
+        $natural_already = strtolower((string) \Tsugi\Util\U::getIgnoreCase($natural_schema, 'data_type')) === 'varchar'
+            && (int) \Tsugi\Util\U::getIgnoreCase($natural_schema, 'char_length') === $natural_width
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($natural_schema, 'charset_name')) === 'ascii'
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($natural_schema, 'collation_name')) === 'ascii_bin';
+        $natural_nullable = strtoupper((string) \Tsugi\Util\U::getIgnoreCase($natural_field_meta, 'Null')) === 'YES';
+        $natural_null_sql = $natural_nullable ? 'NULL' : 'NOT NULL';
+        if ( $natural_already ) {
+            $identity_note($natural_label.': already varchar('.$natural_width.') character set ascii collation ascii_bin. Length and ASCII scan skipped.');
+        } else {
+            $natural_count_sql = "SELECT COALESCE(SUM(CASE WHEN CHAR_LENGTH({$natural_field}) > {$natural_width} THEN 1 ELSE 0 END), 0) AS too_long,
+                    COALESCE(SUM(CASE WHEN {$natural_field} IS NOT NULL AND CHAR_LENGTH({$natural_field}) <> LENGTH({$natural_field}) THEN 1 ELSE 0 END), 0) AS non_ascii
+                FROM {$natural_physical}";
+            $natural_counts = $PDOX->allRows($natural_count_sql, false, false);
+            if ( ! is_array($natural_counts) || ! isset($natural_counts[0]) ) {
+                $identity_note($natural_label.': could not count values. Left unchanged.');
+                continue;
+            }
+            $natural_too_long = (int) \Tsugi\Util\U::get($natural_counts[0], 'too_long', 0);
+            $natural_non_ascii = (int) \Tsugi\Util\U::get($natural_counts[0], 'non_ascii', 0);
+            $natural_long_word = $natural_too_long === 1 ? 'value' : 'values';
+            $natural_ascii_word = $natural_non_ascii === 1 ? 'value' : 'values';
+            $natural_summary = $natural_label.': '.$natural_too_long.' '.$natural_long_word.' longer than '.$natural_width.' characters, '.$natural_non_ascii.' '.$natural_ascii_word.' outside ASCII.';
+            if ( $natural_too_long > 0 || $natural_non_ascii > 0 ) {
+                $natural_example_sql = "SELECT {$natural_id} AS row_id,
+                        CHAR_LENGTH({$natural_field}) AS value_length,
+                        LENGTH({$natural_field}) AS value_bytes
+                    FROM {$natural_physical}
+                    WHERE CHAR_LENGTH({$natural_field}) > {$natural_width}
+                        OR ({$natural_field} IS NOT NULL AND CHAR_LENGTH({$natural_field}) <> LENGTH({$natural_field}))
+                    ORDER BY CHAR_LENGTH({$natural_field}) DESC, {$natural_id}
+                    LIMIT 5";
+                $natural_examples = $PDOX->allRows($natural_example_sql, false, false);
+                $natural_example_bits = array();
+                if ( is_array($natural_examples) ) {
+                    foreach ( $natural_examples as $natural_example ) {
+                        $natural_example_bits[] = $natural_id.'='.\Tsugi\Util\U::get($natural_example, 'row_id')
+                            .' length='.\Tsugi\Util\U::get($natural_example, 'value_length')
+                            .' bytes='.\Tsugi\Util\U::get($natural_example, 'value_bytes');
+                    }
+                }
+                $natural_example_text = count($natural_example_bits) > 0 ? ' Examples: '.implode('; ', $natural_example_bits).'.' : '';
+                $natural_shape = $natural_format($natural_physical);
+                $natural_shown = $natural_shape['format'] === '' ? 'unknown' : $natural_shape['format'];
+                $identity_note($natural_summary.$natural_example_text.' Left unchanged. Row format is '.$natural_shown.'.');
+                continue;
+            }
+        }
+        if ( ! $natural_ensure_dynamic($natural_physical) ) {
+            $identity_note($natural_label.': left unchanged.');
+            continue;
+        }
+        if ( ! $natural_already ) {
+            $natural_alter_sql = "ALTER TABLE {$natural_physical} MODIFY {$natural_field} VARCHAR({$natural_width}) CHARACTER SET ascii COLLATE ascii_bin {$natural_null_sql}";
+            $identity_note($natural_summary.' Altering to varchar('.$natural_width.') character set ascii collation ascii_bin.');
+            $natural_alter = $natural_modify_strict($natural_alter_sql);
+            if ( $natural_alter === false || ! $natural_alter->success ) {
+                $natural_alter_error = is_object($natural_alter) ? $natural_alter->errorImplode : 'strict mode was not set';
+                $identity_note($natural_label.': alter failed: '.$natural_alter_error.'. Left unchanged.');
+                continue;
+            }
+            $identity_note($natural_label.': altered to varchar('.$natural_width.') character set ascii collation ascii_bin.');
+        }
+        $natural_bin = $natural_field.'_bin';
+        if ( preg_match($natural_ident, $natural_bin) !== 1 ) {
+            $identity_note($natural_label.': exact-byte column name is not usable. Unique index not added.');
+            continue;
+        }
+        if ( ! $PDOX->columnExists($natural_bin, $natural_physical) ) {
+            // MariaDB 10.5 rejects NULL or NOT NULL after STORED.
+            $natural_bin_sql = "ALTER TABLE {$natural_physical} ADD COLUMN {$natural_bin} VARBINARY({$natural_width}) GENERATED ALWAYS AS (CAST({$natural_field} AS BINARY)) STORED";
+            $identity_note($natural_label.': adding exact-byte column '.$natural_bin.'.');
+            $identity_note('Upgrading: '.$natural_bin_sql);
+            $natural_bin_alter = $PDOX->queryReturnError($natural_bin_sql, false, false);
+            if ( ! $natural_bin_alter->success ) {
+                $identity_note($natural_label.': exact-byte column alter failed: '.$natural_bin_alter->errorImplode.'. Unique index not added.');
+                continue;
+            }
+            $identity_note($natural_label.': added exact-byte column '.$natural_bin.'.');
+        } else {
+            $natural_bin_meta = $PDOX->describeColumn($natural_bin, $natural_physical);
+            $natural_bin_extra = strtolower((string) \Tsugi\Util\U::getIgnoreCase($natural_bin_meta, 'Extra'));
+            if ( strpos($natural_bin_extra, 'generated') === false ) {
+                $identity_note($natural_label.': '.$natural_bin.' exists and is not a generated column. Unique index not added.');
+                continue;
+            }
+            $identity_note($natural_label.': exact-byte column '.$natural_bin.' is already present.');
+        }
+
+        $natural_unique_name = isset($natural_column[4]) ? (string) $natural_column[4] : '';
+        $natural_unique_columns = isset($natural_column[5]) && is_array($natural_column[5]) ? $natural_column[5] : array();
+        $natural_unique_ok = preg_match($natural_ident, $natural_unique_name) === 1 && count($natural_unique_columns) > 0;
+        if ( $natural_unique_ok ) {
+            foreach ( $natural_unique_columns as $natural_unique_column ) {
+                if ( preg_match($natural_ident, (string) $natural_unique_column) !== 1 ) {
+                    $natural_unique_ok = false;
+                    break;
+                }
+            }
+        }
+        if ( ! $natural_unique_ok ) {
+            $identity_note($natural_label.': unique description is not usable. Unique index not added.');
+            continue;
+        }
+        $natural_unique_index = $CFG->dbprefix.$natural_unique_name;
+        $natural_unique_list = implode(', ', $natural_unique_columns);
+        $natural_unique_want = array();
+        foreach ( $natural_unique_columns as $natural_unique_column ) {
+            $natural_unique_want[] = strtolower((string) $natural_unique_column);
+        }
+        $natural_unique_have = $natural_index_columns($natural_unique_index, $natural_physical);
+        $natural_unique_ready = $natural_unique_have === $natural_unique_want;
+        if ( $natural_unique_ready ) {
+            $identity_note($natural_label.': unique ('.$natural_unique_list.') already present.');
+            continue;
+        }
+        $natural_unique_replace = count($natural_unique_have) > 0;
+        $natural_unique_where = array();
+        foreach ( $natural_unique_columns as $natural_unique_column ) {
+            $natural_unique_where[] = $natural_unique_column.' IS NOT NULL';
+        }
+        $natural_unique_where_sql = implode(' AND ', $natural_unique_where);
+        $natural_group_rows = $PDOX->allRows(
+            "SELECT COUNT(*) AS duplicate_groups FROM (
+                SELECT 1 AS present
+                FROM {$natural_physical}
+                WHERE {$natural_unique_where_sql}
+                GROUP BY {$natural_unique_list}
+                HAVING COUNT(*) > 1
+            ) AS duplicate_rows",
+            false,
+            false
+        );
+        if ( ! is_array($natural_group_rows) || ! isset($natural_group_rows[0]) ) {
+            $identity_note($natural_label.': could not count duplicate values for unique ('.$natural_unique_list.'). Unique index not added.');
+            continue;
+        }
+        $natural_groups = (int) \Tsugi\Util\U::get($natural_group_rows[0], 'duplicate_groups', 0);
+        $natural_group_word = $natural_groups === 1 ? 'group' : 'groups';
+        if ( $natural_groups > 0 ) {
+            $natural_has_key_id = in_array('key_id', $natural_unique_columns, true);
+            $natural_example_select = "MIN({$natural_id}) AS example_id, COUNT(*) AS n";
+            if ( $natural_has_key_id ) {
+                $natural_example_select .= ', key_id';
+            } else {
+                $natural_example_select .= ', MIN(key_id) AS key_id, MAX(key_id) AS key_id_max';
+            }
+            $natural_dup_examples = $PDOX->allRows(
+                "SELECT {$natural_example_select}
+                    FROM {$natural_physical}
+                    WHERE {$natural_unique_where_sql}
+                    GROUP BY {$natural_unique_list}
+                    HAVING n > 1
+                    ORDER BY n DESC, example_id
+                    LIMIT 5",
+                false,
+                false
+            );
+            $natural_dup_bits = array();
+            if ( is_array($natural_dup_examples) ) {
+                foreach ( $natural_dup_examples as $natural_dup_example ) {
+                    $natural_dup_bit = $natural_id.'='.\Tsugi\Util\U::get($natural_dup_example, 'example_id')
+                        .' count='.\Tsugi\Util\U::get($natural_dup_example, 'n');
+                    $natural_dup_key = \Tsugi\Util\U::get($natural_dup_example, 'key_id');
+                    $natural_dup_key_max = \Tsugi\Util\U::get($natural_dup_example, 'key_id_max');
+                    if ( $natural_dup_key !== null && $natural_dup_key !== false && $natural_dup_key !== '' ) {
+                        $natural_dup_bit .= ' key_id='.$natural_dup_key;
+                        if ( $natural_dup_key_max !== null && $natural_dup_key_max !== false && (string) $natural_dup_key_max !== (string) $natural_dup_key ) {
+                            $natural_dup_bit .= '..'.$natural_dup_key_max;
+                        }
+                    }
+                    $natural_dup_bits[] = $natural_dup_bit;
+                }
+            }
+            $natural_dup_text = count($natural_dup_bits) > 0 ? ' Examples: '.implode('; ', $natural_dup_bits).'.' : '';
+            $identity_note($natural_label.': '.$natural_groups.' duplicate '.$natural_group_word.' for unique ('.$natural_unique_list.').'.$natural_dup_text.' Unique index not added.');
+            continue;
+        }
+        if ( $natural_unique_replace ) {
+            $natural_unique_sql = "ALTER TABLE {$natural_physical} DROP INDEX `{$natural_unique_index}`, ADD CONSTRAINT `{$natural_unique_index}` UNIQUE ({$natural_unique_list})";
+            $identity_note($natural_label.': unique '.$natural_unique_index.' is on ('.implode(', ', $natural_unique_have).'). 0 duplicate groups for unique ('.$natural_unique_list.'). Replacing it.');
+        } else {
+            $natural_unique_sql = "ALTER TABLE {$natural_physical} ADD CONSTRAINT `{$natural_unique_index}` UNIQUE ({$natural_unique_list})";
+            $identity_note($natural_label.': 0 duplicate groups for unique ('.$natural_unique_list.'). Adding constraint '.$natural_unique_index.'.');
+        }
+        $identity_note('Upgrading: '.$natural_unique_sql);
+        $natural_unique_alter = $PDOX->queryReturnError($natural_unique_sql, false, false);
+        if ( ! $natural_unique_alter->success ) {
+            $identity_note($natural_label.': unique ('.$natural_unique_list.') alter failed: '.$natural_unique_alter->errorImplode.'. Unique index not added.');
+            continue;
+        }
+        $natural_unique_verb = $natural_unique_replace ? 'replaced' : 'added';
+        $identity_note($natural_label.': '.$natural_unique_verb.' unique ('.$natural_unique_list.').');
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202611200002;
+    return 202611220002;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

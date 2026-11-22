@@ -91,7 +91,6 @@ reviews:
   tools:
     phpstan:
       enabled: true
-      config_file: "phpstan.neon"
     phpcs:
       enabled: false
     phpmd:

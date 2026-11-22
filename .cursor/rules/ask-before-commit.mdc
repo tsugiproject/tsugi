@@ -1,0 +1,12 @@
+---
+description: Ask before any commit or push
+alwaysApply: true
+---
+
+# Ask before commit or push
+
+Do not run `git commit`, `git push`, or open a pull request at the end of other work.
+
+When the work is ready, stop and ask. Commit, push, or open a pull request only after an explicit approval in that same conversation. Approval sounds like "commit this", "push it", or "open the PR". Finishing the task is not approval.
+
+"Commit and push" and "open the PR" are approval for that request. Do not wait for a second confirmation.

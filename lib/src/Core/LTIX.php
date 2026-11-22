@@ -20,6 +20,7 @@ use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Services\Plus\GradeSync;
 use \Tsugi\Services\Plus\PlusShell;
+use \Tsugi\Services\Admin\AdminService;
 
 use \Firebase\JWT\JWT;
 
@@ -1472,6 +1473,7 @@ class LTIX {
         // $post['user_subject'] is the user_subject from the launch
         // $row['subject_key'] is the subject from the row
         if ( $row['user_id'] === null && isset($post['user_id']) && U::isNotEmpty($post['user_id']) ) {
+            self::requireNaturalKey('user_key', $post['user_id']);
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: user_sha256,key_id */
                 ( guid, user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
@@ -1497,24 +1499,29 @@ class LTIX {
 
             // TODO: Combine this into the previous query after user_subject migrations run - 28-May-2019
             if ( U::isNotEmpty($post_user_subject) ) {
-                $sql = "UPDATE {$p}lti_user SET
-                    subject_key = :subject_key,
-                    subject_sha256 = :subject_sha256,
-                    updated_at = NOW()
-                    WHERE user_id = :UID";
-
-                $stmt = $PDOX->queryReturnError($sql, array(
-                    ':UID' => $row['user_id'],
-                    ':subject_key' => $post_user_subject,
-                    ':subject_sha256' => lti_sha256($post_user_subject),
-                    )
-                );
-
-                if ( $stmt->success ) {
-                    $row['subject_key'] = $post_user_subject;
-                    $actions[] = "=== Added subject to new user id=".$row['user_id']." ".$row['user_email'];
+                $subject_problem = AdminService::naturalKeyProblem('subject_key', $post_user_subject);
+                if ( $subject_problem !== null ) {
+                    error_log($subject_problem);
                 } else {
-                    error_log("Unable to update user_subject - please upgrade database email=".$row['user_email']);
+                    $sql = "UPDATE {$p}lti_user SET
+                        subject_key = :subject_key,
+                        subject_sha256 = :subject_sha256,
+                        updated_at = NOW()
+                        WHERE user_id = :UID";
+
+                    $stmt = $PDOX->queryReturnError($sql, array(
+                        ':UID' => $row['user_id'],
+                        ':subject_key' => $post_user_subject,
+                        ':subject_sha256' => lti_sha256($post_user_subject),
+                        )
+                    );
+
+                    if ( $stmt->success ) {
+                        $row['subject_key'] = $post_user_subject;
+                        $actions[] = "=== Added subject to new user id=".$row['user_id']." ".$row['user_email'];
+                    } else {
+                        error_log("Unable to update user_subject - please upgrade database email=".$row['user_email']);
+                    }
                 }
             }
         }
@@ -1523,6 +1530,8 @@ class LTIX {
         $lti11_transition_user_id = isset($post['lti11_transition_user_id']) ? $post['lti11_transition_user_id'] : null;
         $lti11_transition_user_id_sha256 = $lti11_transition_user_id === null ? null : lti_sha256($lti11_transition_user_id);
         if ( $row['user_id'] === null && U::isNotEmpty($post_user_subject) ) {
+            self::requireNaturalKey('subject_key', $post_user_subject);
+            self::requireNaturalKey('user_key', $lti11_transition_user_id);
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: subject_sha256,user_sha256,key_id */
                 ( guid, user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
@@ -1554,22 +1563,27 @@ class LTIX {
         // Note that we will forever check for errors because of duplicate key possibilities
         if ( $row['user_id'] > 0 && U::isNotEmpty($post_user_subject) && U::isNotEmpty($lti11_transition_user_id) &&
             $row['user_key'] !=  $lti11_transition_user_id) {
-            $sql = "UPDATE {$p}lti_user
-                SET user_key = :user_key, user_sha256 = :user_sha256, updated_at = NOW()
-                WHERE user_id = :uid";
-            $stmt = $PDOX->queryReturnError($sql, array(
-                ':uid' => $row['user_id'],
-                ':user_key' => $lti11_transition_user_id,
-                ':user_sha256' => $lti11_transition_user_id_sha256,
-                )
-            );
-
-            if ( $stmt->success ) {
-                $row['user_key'] = $lti11_transition_user_id;
-                $actions[] = "=== Updated user_key for id=".$row['user_id']." subject=".$post_user_subject.
-                " transition_user_uid=".$lti11_transition_user_id;
+            $user_key_problem = AdminService::naturalKeyProblem('user_key', $lti11_transition_user_id);
+            if ( $user_key_problem !== null ) {
+                error_log($user_key_problem);
             } else {
-                error_log("Unable to update user_key - transition problem subject=$post_user_subject user_id=".$row['user_id']);
+                $sql = "UPDATE {$p}lti_user
+                    SET user_key = :user_key, user_sha256 = :user_sha256, updated_at = NOW()
+                    WHERE user_id = :uid";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':uid' => $row['user_id'],
+                    ':user_key' => $lti11_transition_user_id,
+                    ':user_sha256' => $lti11_transition_user_id_sha256,
+                    )
+                );
+
+                if ( $stmt->success ) {
+                    $row['user_key'] = $lti11_transition_user_id;
+                    $actions[] = "=== Updated user_key for id=".$row['user_id']." subject=".$post_user_subject.
+                    " transition_user_uid=".$lti11_transition_user_id;
+                } else {
+                    error_log("Unable to update user_key - transition problem subject=$post_user_subject user_id=".$row['user_id']);
+                }
             }
         }
 
@@ -1577,20 +1591,25 @@ class LTIX {
         // Always check and log errors in case the transition went badly and then was reconfigured
         $row_subject_key = U::get($row, 'subject_key');
         if ( $row['user_id'] > 0 && U::isNotEmpty($post_user_subject) && $post_user_subject != $row_subject_key ) {
-            $sql = "UPDATE {$p}lti_user
-                SET subject_key = :subject_key, subject_sha256 = :subject_sha256, updated_at = NOW()
-                WHERE user_id = :uid";
-            $stmt = $PDOX->queryReturnError($sql, array(
-                ':uid' => $row['user_id'],
-                ':subject_key' => $post_user_subject,
-                ':subject_sha256' => lti_sha256($post_user_subject),
-                )
-            );
-            if ( $stmt->success ) {
-                $row['subject_key'] = $post_user_subject;
-                $actions[] = "=== Updated subject_key for id=".$row['user_id']." post_user_subject=".$post_user_subject;
+            $subject_problem = AdminService::naturalKeyProblem('subject_key', $post_user_subject);
+            if ( $subject_problem !== null ) {
+                error_log($subject_problem);
             } else {
-                error_log("Unable to update subject_key - transition problems post_user_subject=".$post_user_subject." user_id=".$row['user_id']);
+                $sql = "UPDATE {$p}lti_user
+                    SET subject_key = :subject_key, subject_sha256 = :subject_sha256, updated_at = NOW()
+                    WHERE user_id = :uid";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':uid' => $row['user_id'],
+                    ':subject_key' => $post_user_subject,
+                    ':subject_sha256' => lti_sha256($post_user_subject),
+                    )
+                );
+                if ( $stmt->success ) {
+                    $row['subject_key'] = $post_user_subject;
+                    $actions[] = "=== Updated subject_key for id=".$row['user_id']." post_user_subject=".$post_user_subject;
+                } else {
+                    error_log("Unable to update subject_key - transition problems post_user_subject=".$post_user_subject." user_id=".$row['user_id']);
+                }
             }
         }
 
@@ -1616,6 +1635,7 @@ class LTIX {
             // This is for LTI 1.x only as service is not used for LTI 2.x
             $oldserviceid = $row['service_id'];
             if ( $row['service_id'] === null && $post['service'] ) {
+                self::requireNaturalKey('service_key', $post['service']);
                 $sql = "INSERT INTO {$p}lti_service
                     ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
                     ( :service_key, :service_sha256, :key_id, NOW(), NOW() )
@@ -3067,6 +3087,22 @@ class LTIX {
     }
 
     /**
+     * Stop before the insert when a natural key cannot be stored.
+     * The column would reject it, and the launch would die as a database failure.
+     *
+     * @param string $column
+     * @param mixed $value
+     */
+    private static function requireNaturalKey($column, $value) {
+        $problem = AdminService::naturalKeyProblem($column, $value);
+        if ( $problem === null ) {
+            return;
+        }
+        error_log($problem);
+        die($problem);
+    }
+
+    /**
      * populateRoster
      *
      * If the LTI Extension: Context Memberships Service is supported in the launch, get the memberships
@@ -3112,11 +3148,20 @@ class LTIX {
                 $key = $PDOX->rowDie("SELECT key_id
                       FROM {$CFG->dbprefix}lti_key WHERE key_key = :key",
                       array(':key' => $TSUGI_LAUNCH->context->key));
-                if (! $key ) return false;
+                if (! $key ) {
+                    $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+                    return false;
+                }
 
                 $insertUserArray = [];
                 $insertUserMembershipArray = [];
                 foreach($ROSTER->data as $user) {
+                    $user_key_problem = AdminService::naturalKeyProblem('user_key', isset($user['user_id']) ? $user['user_id'] : null);
+                    if ( $user_key_problem !== null ) {
+                        error_log($user_key_problem);
+                        $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+                        return false;
+                    }
                     array_push($insertUserArray,
                             "(UNHEX('".Guid::uuid7()."'), '". $user['user_id'] ."', '".
                                     lti_sha256($user['user_id']) ."', '".

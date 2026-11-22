@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Plus;
 
+use Tsugi\Services\Admin\AdminService;
 use Tsugi\Core\Guid;
 use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
@@ -649,6 +650,10 @@ class RosterSync {
      * @param mixed $member
      */
     private static function upsertUser($keyId, $subject, $member) {
+        $problem = AdminService::naturalKeyProblem('subject_key', $subject);
+        if ( $problem !== null ) {
+            throw new \RuntimeException($problem);
+        }
         global $CFG;
         $PDOX = LTIX::getConnection();
         $p = $CFG->dbprefix;

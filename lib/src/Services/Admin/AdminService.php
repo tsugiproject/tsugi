@@ -912,6 +912,91 @@ class AdminService {
     }
 
     /**
+     * Natural keys the upgrade narrows to ascii_bin. The fourth value is the varchar length.
+     *
+     * subject_key is an LTI 1.3 sub, so it matches the other identity columns at 255.
+     * user_key and profile_key also store googlemail: plus an email. An email can be
+     * 254 characters, so 255 would reject a legal value. 512 covers it.
+     * service_key is lis_outcome_service_url. 1024. A COMPACT index holds 767 bytes,
+     * and 1024 plus key_id does not fit, so that alter waits until the table is DYNAMIC.
+     * string_text stays TEXT. A translation string is not one of these columns.
+     *
+     * The fifth value is the unique constraint name without the database prefix.
+     * The sixth is the unique column list. ascii_bin ignores trailing spaces, so the
+     * unique is on a generated VARBINARY column of the exact bytes, named column_bin.
+     * The seventh value is true when the varchar accepts NULL.
+     * NULL user_key and NULL subject_key stay allowed more than once per key.
+     *
+     * @return array<int, array{0:string,1:string,2:string,3:int,4:string,5:array<int,string>,6:bool}>
+     */
+    public static function naturalKeyAsciiColumns() {
+        return array(
+            array('lti_user', 'subject_key', 'user_id', 255, 'lti_user_const_subject_key', array('key_id', 'subject_key_bin'), true),
+            array('lti_user', 'user_key', 'user_id', 512, 'lti_user_const_user_key', array('key_id', 'user_key_bin'), true),
+            array('profile', 'profile_key', 'profile_id', 512, 'profile_const_key', array('profile_key_bin'), false),
+            array('lti_service', 'service_key', 'service_id', 1024, 'lti_service_const_key', array('key_id', 'service_key_bin'), false),
+        );
+    }
+
+    /**
+     * Why this value cannot be stored in a natural-key column, or null when it can.
+     *
+     * Null is allowed for user_key and subject_key. A leading or trailing space
+     * is rejected, and so is a non-printing character, same as an issuer or client id.
+     * A space in the middle is kept. The value itself is left out of the message,
+     * because user_key and profile_key can be an email address.
+     *
+     * @param string $column
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function naturalKeyProblem($column, $value) {
+        $spec = null;
+        foreach ( self::naturalKeyAsciiColumns() as $natural ) {
+            if ( $natural[1] === $column ) {
+                $spec = $natural;
+                break;
+            }
+        }
+        if ( $spec === null ) {
+            return $column.' is not a natural key column.';
+        }
+        $width = (int) $spec[3];
+        $nullable = ! empty($spec[6]);
+        if ( $value === null ) {
+            return $nullable ? null : $column.' has no value.';
+        }
+        if ( ! is_string($value) ) {
+            return $column.' is not text.';
+        }
+        $reasons = array();
+        if ( preg_match('/[^\x00-\x7F]/', $value) === 1 ) {
+            $reasons[] = 'has a character outside ASCII';
+        }
+        $length = strlen($value);
+        if ( $reasons && function_exists('mb_strlen') ) {
+            $counted = mb_strlen($value, 'UTF-8');
+            if ( is_int($counted) ) $length = $counted;
+        }
+        if ( $length > $width ) {
+            $reasons[] = 'is '.$length.' characters and the limit is '.$width;
+        }
+        if ( preg_match('/^ /', $value) === 1 ) {
+            $reasons[] = 'has a leading space';
+        }
+        if ( preg_match('/ $/', $value) === 1 ) {
+            $reasons[] = 'has a trailing space';
+        }
+        if ( preg_match('/[\x00-\x1F\x7F]/', $value) === 1 ) {
+            $reasons[] = 'contains a non-printing character';
+        }
+        if ( count($reasons) < 1 ) return null;
+        if ( count($reasons) === 1 ) return $column.' '.$reasons[0].'.';
+        $last = array_pop($reasons);
+        return $column.' '.implode(', ', $reasons).' and '.$last.'.';
+    }
+
+    /**
      * Identity columns that are not yet varchar(255) character set ascii collation ascii_bin.
      * A missing table or column is included. Names are table.column without the database prefix.
      *
