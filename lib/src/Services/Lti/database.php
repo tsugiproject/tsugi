@@ -2988,6 +2988,110 @@ $DATABASE_UPGRADE = function($oldversion) {
         $identity_note($identity_label.': altered to varchar(255) character set ascii collation ascii_bin.');
     }
 
+    // Inbound LTI registration (November 2026) was a temporary idea. It was
+    // reverted. A site that ran that upgrade still has the lti_registration
+    // table, a foreign key from lti_key.lti_registration_id, the index InnoDB
+    // keeps for that key, and five columns on lti_key. Nothing in this tree
+    // reads them. This block drops that leftover schema. It is not part of
+    // the add-field or drop-field lists above. Delete this whole block once
+    // every site has upgraded past it.
+    //
+    // A missing table, column, foreign key, or index is left alone and not
+    // reported. Rows still in lti_registration are dropped with the table.
+    // This is not lti_tool_registration or lti_tool_deployment.
+    $revert_prefix = $CFG->dbprefix;
+    $revert_key = $revert_prefix.'lti_key';
+    $revert_table = $revert_prefix.'lti_registration';
+    $revert_index = $revert_prefix.'lti_key_ibfk_1';
+    $revert_columns = array(
+        'lti_registration_id',
+        'deployment_status',
+        'deployment_approved_at',
+        'platform_guid',
+        'dynamic_registration_unlocked_at',
+    );
+    $revert_exec = function($sql) use ($PDOX) {
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $revert_query = $PDOX->queryReturnError($sql);
+        if ( ! $revert_query->success ) {
+            $revert_message = "Non-Fatal: ".$revert_query->errorImplode;
+            error_log($revert_message);
+            echo($revert_message."<br/>\n");
+        }
+    };
+    $revert_foreign_keys = $PDOX->allRows(
+        "SELECT kcu.CONSTRAINT_NAME AS constraint_name
+            FROM information_schema.KEY_COLUMN_USAGE AS kcu
+            INNER JOIN information_schema.TABLE_CONSTRAINTS AS tc
+                ON tc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+               AND tc.TABLE_NAME = kcu.TABLE_NAME
+               AND tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+            WHERE kcu.TABLE_SCHEMA = DATABASE()
+              AND kcu.TABLE_NAME = :table_name
+              AND kcu.COLUMN_NAME = 'lti_registration_id'
+              AND kcu.REFERENCED_TABLE_NAME = :ref_table
+              AND tc.CONSTRAINT_TYPE = 'FOREIGN KEY'",
+        array(
+            ':table_name' => $revert_key,
+            ':ref_table' => $revert_table,
+        ),
+        false
+    );
+    if ( is_array($revert_foreign_keys) ) {
+        foreach ( $revert_foreign_keys as $revert_foreign_key ) {
+            $revert_fk_name = \Tsugi\Util\U::get($revert_foreign_key, 'constraint_name');
+            if ( ! is_string($revert_fk_name) || $revert_fk_name === '' ) continue;
+            $revert_exec("ALTER TABLE `{$revert_key}` DROP FOREIGN KEY `{$revert_fk_name}`");
+        }
+    }
+    foreach ( $revert_columns as $revert_column ) {
+        if ( ! $PDOX->columnExists($revert_column, $revert_key) ) continue;
+        $revert_exec("ALTER TABLE `{$revert_key}` DROP COLUMN `{$revert_column}`");
+    }
+    $revert_index_owner = $PDOX->allRows(
+        "SELECT CONSTRAINT_NAME AS constraint_name
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND CONSTRAINT_NAME = :constraint_name
+              AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+        array(
+            ':table_name' => $revert_key,
+            ':constraint_name' => $revert_index,
+        ),
+        false
+    );
+    if ( $revert_index_owner === array() && $PDOX->indexExists($revert_index, $revert_key) ) {
+        $revert_exec("ALTER TABLE `{$revert_key}` DROP INDEX `{$revert_index}`");
+    }
+    $revert_tables = $PDOX->allRows(
+        "SELECT TABLE_NAME AS table_name
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name",
+        array(':table_name' => $revert_table),
+        false
+    );
+    if ( is_array($revert_tables) && count($revert_tables) > 0 ) {
+        $revert_count_rows = $PDOX->allRows(
+            "SELECT COUNT(*) AS n FROM `{$revert_table}`",
+            false,
+            false
+        );
+        $revert_count = 0;
+        if ( is_array($revert_count_rows) && isset($revert_count_rows[0]) ) {
+            $revert_count = (int) \Tsugi\Util\U::get($revert_count_rows[0], 'n');
+        }
+        if ( $revert_count > 0 ) {
+            $revert_note = "Dropping {$revert_table} with {$revert_count} leftover registration row(s).";
+            echo($revert_note."<br/>\n");
+            error_log($revert_note);
+        }
+        $revert_exec("DROP TABLE `{$revert_table}`");
+    }
+    // End of the November 2026 inbound registration detour.
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 202611200002;
