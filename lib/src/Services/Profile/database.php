@@ -15,6 +15,8 @@ $DATABASE_INSTALL = array(
     profile_sha256      CHAR(64) NOT NULL UNIQUE,
     -- Same value as lti_user.user_key. googlemail: plus an email can pass 255.
     profile_key         VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
+    profile_key_bin     VARBINARY(512) GENERATED ALWAYS AS (CAST(profile_key AS BINARY)) STORED NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -44,8 +46,8 @@ $DATABASE_INSTALL = array(
     INDEX `{$CFG->dbprefix}profile_indx_email` (email(255)),
     INDEX `{$CFG->dbprefix}profile_indx_map` (`map`),
 
-    -- Parallel to the unique on profile_sha256. One value across every key.
-    CONSTRAINT `{$CFG->dbprefix}profile_const_key` UNIQUE(profile_key),
+    -- Parallel to the unique on profile_sha256, on the exact bytes. One value across every key.
+    CONSTRAINT `{$CFG->dbprefix}profile_const_key` UNIQUE(profile_key_bin),
 
     CONSTRAINT `{$CFG->dbprefix}profile_const_pk` PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC")

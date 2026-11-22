@@ -9,6 +9,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\User;
 use \Tsugi\Controllers\Login;
+use Tsugi\Services\Admin\AdminService;
 use Tsugi\Services\Permissions\PermissionTables;
 
 /**
@@ -146,6 +147,12 @@ class GoogleLoginService {
         global $CFG, $PDOX;
 
         $result = new GoogleLoginResult();
+        $user_problem = AdminService::naturalKeyProblem('user_key', $user_key);
+        $profile_problem = AdminService::naturalKeyProblem('profile_key', $user_key);
+        if ( $user_problem !== null || $profile_problem !== null ) {
+            $result->error = $user_problem !== null ? $user_problem : $profile_problem;
+            return $result;
+        }
         if ( session_id() == "" ) {
             session_start();
         }
