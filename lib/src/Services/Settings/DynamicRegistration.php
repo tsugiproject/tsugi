@@ -468,6 +468,11 @@ class DynamicRegistration {
             echo("Unable to store LMS platform configuration on the key\n");
             return '';
         }
+        $old_keyset = trim((string) U::get($row, 'lms_keyset_url'));
+        $new_keyset = trim((string) $jwks_uri);
+        if ( $old_keyset !== $new_keyset ) {
+            LTIX::clearKeysetCache($tsugi_key);
+        }
 
         error_log("Stored issuer $issuer / $client_id in lti_key table");
 

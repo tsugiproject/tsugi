@@ -1152,6 +1152,26 @@ class LTIX {
     }
 
     /**
+     * Drop a stored platform keyset. The next launch fetches it again.
+     *
+     * Call this when the keyset URL on the key changes. A launch's login
+     * timestamp and the cache fill itself are not URL changes.
+     *
+     * @param mixed $key_id
+     */
+    public static function clearKeysetCache($key_id) {
+        global $PDOX, $CFG;
+        $id = (int) $key_id;
+        if ( $id < 1 || ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset = NULL, lms_cache_pubkey = NULL, lms_cache_kid = NULL
+                WHERE key_id = :ID",
+            array(':ID' => $id)
+        );
+    }
+
+    /**
      * Load the data from our lti_ tables using one long LEFT JOIN
      *
      * This data may or may not exist - hence the use of the long
