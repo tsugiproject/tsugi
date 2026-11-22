@@ -2994,14 +2994,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     // One column at a time. Count values longer than 255 characters and values
     // with a character outside ASCII. Alter only when both counts are zero and
     // the column is not already varchar(255) ascii_bin. A column already in
-    // that form is reported and left alone. A dirty column is reported and
+    // that form is left alone with no message. A dirty column is reported and
     // left alone so a later upgrade can alter it after the data is cleaned.
     $identity_note = function($message) {
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     };
     $identity_ascii_columns = \Tsugi\Services\Admin\AdminService::identityAsciiColumns();
-    $identity_note('Checking identity columns for varchar(255) character set ascii collation ascii_bin.');
     $identity_described = array();
     foreach ( $identity_ascii_columns as $identity_column ) {
         $identity_table = $identity_column[0];
@@ -3086,7 +3085,6 @@ $DATABASE_UPGRADE = function($oldversion) {
             continue;
         }
         if ( $identity_already ) {
-            $identity_note($identity_summary.' Already varchar(255) character set ascii collation ascii_bin.');
             continue;
         }
         $identity_nullable = strtoupper((string) \Tsugi\Util\U::getIgnoreCase($identity_field_meta, 'Null')) === 'YES';
