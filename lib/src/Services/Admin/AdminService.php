@@ -919,6 +919,9 @@ class AdminService {
      * 254 characters, so 255 would reject a legal value. 512 covers it.
      * service_key is lis_outcome_service_url. 1024. A COMPACT index holds 767 bytes,
      * and 1024 plus key_id does not fit, so that alter waits until the table is DYNAMIC.
+     * context_key, link_key, and resource_link_id are varchar(255) and NOT NULL.
+     * Their uniques match the sha256 uniques: (key_id, context_key),
+     * (link_key, context_id), and (context_id, resource_link_id).
      * string_text stays TEXT. A translation string is not one of these columns.
      *
      * The fifth value is the unique constraint name without the database prefix.
@@ -935,6 +938,9 @@ class AdminService {
             array('lti_user', 'user_key', 'user_id', 512, 'lti_user_const_user_key', array('key_id', 'user_key_bin'), true),
             array('profile', 'profile_key', 'profile_id', 512, 'profile_const_key', array('profile_key_bin'), false),
             array('lti_service', 'service_key', 'service_id', 1024, 'lti_service_const_key', array('key_id', 'service_key_bin'), false),
+            array('lti_context', 'context_key', 'context_id', 255, 'lti_context_const_context_key', array('key_id', 'context_key_bin'), false),
+            array('lti_link', 'link_key', 'link_id', 255, 'lti_link_const_link_key', array('link_key_bin', 'context_id'), false),
+            array('lti_content', 'resource_link_id', 'content_id', 255, 'lti_content_const_resource_link', array('context_id', 'resource_link_id_bin'), false),
         );
     }
 

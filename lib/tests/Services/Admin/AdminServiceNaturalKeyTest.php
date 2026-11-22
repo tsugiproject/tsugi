@@ -16,6 +16,9 @@ class AdminServiceNaturalKeyTest extends \PHPUnit\Framework\TestCase
     public function testNullIsRefusedWhenTheColumnRequiresAValue() {
         $this->assertSame('profile_key has no value.', AdminService::naturalKeyProblem('profile_key', null));
         $this->assertSame('service_key has no value.', AdminService::naturalKeyProblem('service_key', null));
+        $this->assertSame('context_key has no value.', AdminService::naturalKeyProblem('context_key', null));
+        $this->assertSame('link_key has no value.', AdminService::naturalKeyProblem('link_key', null));
+        $this->assertSame('resource_link_id has no value.', AdminService::naturalKeyProblem('resource_link_id', null));
     }
 
     public function testACharacterOutsideAsciiIsRefused() {
@@ -38,6 +41,15 @@ class AdminServiceNaturalKeyTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(
             'service_key is 1025 characters and the limit is 1024.',
             AdminService::naturalKeyProblem('service_key', str_repeat('c', 1025))
+        );
+        $this->assertNull(AdminService::naturalKeyProblem('context_key', str_repeat('d', 255)));
+        $this->assertSame(
+            'link_key is 256 characters and the limit is 255.',
+            AdminService::naturalKeyProblem('link_key', str_repeat('d', 256))
+        );
+        $this->assertSame(
+            'resource_link_id is 256 characters and the limit is 255.',
+            AdminService::naturalKeyProblem('resource_link_id', str_repeat('e', 256))
         );
     }
 
