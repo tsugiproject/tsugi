@@ -174,11 +174,12 @@ array( "{$CFG->dbprefix}lti_user",
     -- 512 covers a 254-character address. The hash stays until a later unique index.
     user_key            VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NULL,
     -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    user_key_bin        VARBINARY(512) GENERATED ALWAYS AS (CAST(user_key AS BINARY)) STORED NULL,
+    -- MariaDB 10.5 rejects NULL or NOT NULL after STORED. Nullability follows the expression.
+    user_key_bin        VARBINARY(512) GENERATED ALWAYS AS (CAST(user_key AS BINARY)) STORED,
     subject_sha256      CHAR(64) NULL,
     -- LTI 1.3 sub.
     subject_key         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    subject_key_bin     VARBINARY(255) GENERATED ALWAYS AS (CAST(subject_key AS BINARY)) STORED NULL,
+    subject_key_bin     VARBINARY(255) GENERATED ALWAYS AS (CAST(subject_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -720,7 +721,7 @@ array( "{$CFG->dbprefix}lti_service",
     -- index holds 767 bytes, and this column plus key_id does not fit.
     service_key         VARCHAR(1024) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    service_key_bin     VARBINARY(1024) GENERATED ALWAYS AS (CAST(service_key AS BINARY)) STORED NOT NULL,
+    service_key_bin     VARBINARY(1024) GENERATED ALWAYS AS (CAST(service_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -3342,7 +3343,8 @@ $DATABASE_UPGRADE = function($oldversion) {
             continue;
         }
         if ( ! $PDOX->columnExists($natural_bin, $natural_physical) ) {
-            $natural_bin_sql = "ALTER TABLE {$natural_physical} ADD COLUMN {$natural_bin} VARBINARY({$natural_width}) GENERATED ALWAYS AS (CAST({$natural_field} AS BINARY)) STORED {$natural_null_sql}";
+            // MariaDB 10.5 rejects NULL or NOT NULL after STORED.
+            $natural_bin_sql = "ALTER TABLE {$natural_physical} ADD COLUMN {$natural_bin} VARBINARY({$natural_width}) GENERATED ALWAYS AS (CAST({$natural_field} AS BINARY)) STORED";
             $identity_note($natural_label.': adding exact-byte column '.$natural_bin.'.');
             $identity_note('Upgrading: '.$natural_bin_sql);
             $natural_bin_alter = $PDOX->queryReturnError($natural_bin_sql, false, false);

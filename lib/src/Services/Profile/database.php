@@ -16,7 +16,8 @@ $DATABASE_INSTALL = array(
     -- Same value as lti_user.user_key. googlemail: plus an email can pass 255.
     profile_key         VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    profile_key_bin     VARBINARY(512) GENERATED ALWAYS AS (CAST(profile_key AS BINARY)) STORED NOT NULL,
+    -- MariaDB 10.5 rejects NULL or NOT NULL after STORED.
+    profile_key_bin     VARBINARY(512) GENERATED ALWAYS AS (CAST(profile_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
