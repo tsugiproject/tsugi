@@ -1923,12 +1923,16 @@ $DATABASE_UPGRADE = function($oldversion) {
     // The unique guid key is added later in this upgrade. This pass must not
     // drop it when the table already has it.
     $keep_guid_index = $CFG->dbprefix."lti_key_const_guid";
+    // InnoDB names the registration foreign key's supporting index after the
+    // constraint. Dropping it fails on every upgrade and looks like a problem.
+    $keep_registration_fk = $CFG->dbprefix."lti_key_ibfk_1";
     foreach($indexes as $index) {
         if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
         if ( strcasecmp($index, "ibfk") == 0 ) continue;
         // lti_key_const_2 backs issuer_id until lti_issuer phase 3 (2026-10-01 UTC)
         if ( $keep_issuer_index && $index === $CFG->dbprefix."lti_key_const_2" ) continue;
         if ( $index === $keep_guid_index ) continue;
+        if ( $index === $keep_registration_fk ) continue;
         $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
         if ( is_string($command) ) continue;
         $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
