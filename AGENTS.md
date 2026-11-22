@@ -58,6 +58,7 @@ File-based lessons (`$CFG->lessons`, no `manifest_id`) must keep working.
 - **App Store test harness (no login):** anything under `mod/` and anything under `tool/` can be launched from the store without signing in. Start at `$CFG->wwwroot/tool` (redirects to the store) or go directly to `$CFG->wwwroot/store/test/{name}` (for example `/tsugi/store/test/trophy`). Use **Try It**, pick an identity (Jane Instructor or a student), and exercise the tool in the iframe. Some instructor views (Trophy is one) show a launch var dump — that is expected, not a broken page. Do not assume a site login is required for this path.
 
 ## Commit & Pull Request Guidelines
+- Do not commit, push, or open a pull request when a task is finished. Stop and ask. Do that work only after an explicit approval in the same conversation. See `.cursor/rules/ask-before-commit.mdc`.
 - Recent commits are short, sentence-style summaries (e.g., “Add item to headers.”). Keep messages concise and action-oriented.
 - PRs go through GitHub and require a CLA before acceptance (see `CONTRIBUTING.md`).
 - If you touch vendored libraries in `vendor/`, include clear notes in the PR so maintainers can propagate changes across related repos.
