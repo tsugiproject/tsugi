@@ -1757,6 +1757,7 @@ class AdminService {
                 if ( $announce ) U::flashError('Could not update registration');
                 return false;
             }
+            \Tsugi\Core\LTIX::clearKeysetCacheForRegistration((int) $id);
             if ( $announce ) U::flashSuccess('Registration updated');
             return (int) $id;
         }

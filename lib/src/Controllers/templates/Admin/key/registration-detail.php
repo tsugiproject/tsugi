@@ -27,6 +27,7 @@ if ( isset($_POST['doSave']) || isset($_POST['doDelete']) ) {
 }
 
 if ( isset($_POST['doDelete']) ) {
+    LTIX::clearKeysetCacheForRegistration($registration_id);
     $gone = $PDOX->queryReturnError(
         "DELETE FROM {$CFG->dbprefix}lti_registration WHERE lti_registration_id = :id",
         array(':id' => $registration_id)

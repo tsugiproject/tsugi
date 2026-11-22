@@ -127,6 +127,9 @@ $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
+    if ( $row === CrudForm::CRUD_SUCCESS && isset($_POST['doUpdate']) ) {
+        LTIX::clearKeysetCache($key_id);
+    }
     header('Location: '.$from_location);
     return;
 }

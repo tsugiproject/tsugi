@@ -300,6 +300,89 @@ class InboundRegistrationTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testASaveDropsTheKeysetCache() {
+        $pdo = $this->beginFixtureTransaction();
+        if ( $pdo === null ) {
+            $this->markTestSkipped('Database not available for registration fixtures.');
+        }
+        $p = $this->prefix();
+        if ( ! LTIX::ltiRegistrationTableExists($p) || ! $pdo->columnExists('lti_registration_id', $p.'lti_key') ) {
+            $pdo->rollBack();
+            $this->markTestSkipped('lti_registration is not installed.');
+        }
+        try {
+            $stamp = 'cache'.bin2hex(random_bytes(4));
+            $pdo->queryDie(
+                "INSERT INTO {$p}lti_registration
+                    (issuer, client_id, oidc_auth_url, keyset_url, token_url, created_at, updated_at)
+                 VALUES (:ISS, :CLIENT, :OIDC, :KEYSET, :TOKEN, NOW(), NOW())",
+                array(
+                    ':ISS' => 'http://'.$stamp.'.example',
+                    ':CLIENT' => $stamp.'-client',
+                    ':OIDC' => 'http://'.$stamp.'.example/oidc',
+                    ':KEYSET' => 'http://'.$stamp.'.example/keyset',
+                    ':TOKEN' => 'http://'.$stamp.'.example/token',
+                )
+            );
+            $registrationId = (int) $pdo->lastInsertId();
+            $pdo->queryDie(
+                "INSERT INTO {$p}lti_registration
+                    (issuer, client_id, created_at, updated_at)
+                 VALUES (:ISS, :CLIENT, NOW(), NOW())",
+                array(
+                    ':ISS' => 'http://other-'.$stamp.'.example',
+                    ':CLIENT' => $stamp.'-other',
+                )
+            );
+            $otherRegistrationId = (int) $pdo->lastInsertId();
+            $linked = $this->insertCachedKey($pdo, $p, $stamp.'-linked', $registrationId);
+            $other = $this->insertCachedKey($pdo, $p, $stamp.'-other', $otherRegistrationId);
+            $plain = $this->insertCachedKey($pdo, $p, $stamp.'-plain', null);
+
+            LTIX::clearKeysetCache($plain);
+            $this->assertNull($this->cachedKid($pdo, $p, $plain));
+            $this->assertSame('kid-'.$stamp.'-linked', $this->cachedKid($pdo, $p, $linked));
+
+            LTIX::clearKeysetCacheForRegistration($registrationId);
+            $this->assertNull($this->cachedKid($pdo, $p, $linked));
+            $this->assertSame('kid-'.$stamp.'-other', $this->cachedKid($pdo, $p, $other));
+        } finally {
+            $pdo->rollBack();
+        }
+    }
+
+    private function insertCachedKey($pdo, $prefix, $stamp, $registrationId) {
+        $pdo->queryDie(
+            "INSERT INTO {$prefix}lti_key
+                (key_key, key_sha256, lms_cache_keyset, lms_cache_pubkey, lms_cache_kid,
+                 lti_registration_id, created_at, updated_at)
+             VALUES (:K, :SHA, :KS, :PK, :KID, :RID, NOW(), NOW())",
+            array(
+                ':K' => $stamp,
+                ':SHA' => hash('sha256', $stamp),
+                ':KS' => '{"keys":[]}',
+                ':PK' => 'cached-key',
+                ':KID' => 'kid-'.$stamp,
+                ':RID' => $registrationId,
+            )
+        );
+        return (int) $pdo->lastInsertId();
+    }
+
+    private function cachedKid($pdo, $prefix, $keyId) {
+        $row = $pdo->rowDie(
+            "SELECT lms_cache_keyset, lms_cache_pubkey, lms_cache_kid
+             FROM {$prefix}lti_key WHERE key_id = :ID",
+            array(':ID' => $keyId)
+        );
+        $this->assertIsArray($row);
+        if ( $row['lms_cache_kid'] === null ) {
+            $this->assertNull($row['lms_cache_keyset']);
+            $this->assertNull($row['lms_cache_pubkey']);
+        }
+        return $row['lms_cache_kid'];
+    }
+
     private function launchPost($issuer, $client) {
         $stamp = bin2hex(random_bytes(4));
         return array(

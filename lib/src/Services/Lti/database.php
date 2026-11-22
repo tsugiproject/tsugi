@@ -1836,6 +1836,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+        if ( $table === 'lti_key' && $column === 'lti_registration_id' && ! $q->success ) {
+            die("Unable to add lti_key.lti_registration_id: ".$q->errorImplode."<br/>\n");
+        }
     }
 
     // Generally wait a while to drop the fields - there is no rush
@@ -2552,17 +2555,20 @@ $DATABASE_UPGRADE = function($oldversion) {
     $inbound_table = "{$p}lti_registration";
     $key_registration_fk = "{$p}lti_key_ibfk_1";
     if ( $PDOX->metadata($key_table) !== false
-        && $PDOX->metadata($inbound_table) !== false
-        && $PDOX->columnExists('lti_registration_id', $key_table)
-        && ! $constraint_exists($key_table, $key_registration_fk) ) {
-        $sql = "ALTER TABLE {$key_table} ADD CONSTRAINT `{$key_registration_fk}`
-            FOREIGN KEY (`lti_registration_id`)
-            REFERENCES `{$inbound_table}` (`lti_registration_id`)
-            ON DELETE SET NULL ON UPDATE CASCADE";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) die("Unable to add {$key_registration_fk}: ".$q->errorImplode."<br/>\n");
+        && $PDOX->metadata($inbound_table) !== false ) {
+        if ( ! $PDOX->columnExists('lti_registration_id', $key_table) ) {
+            die("lti_registration exists but lti_key.lti_registration_id is missing. The foreign key was not added.<br/>\n");
+        }
+        if ( ! $constraint_exists($key_table, $key_registration_fk) ) {
+            $sql = "ALTER TABLE {$key_table} ADD CONSTRAINT `{$key_registration_fk}`
+                FOREIGN KEY (`lti_registration_id`)
+                REFERENCES `{$inbound_table}` (`lti_registration_id`)
+                ON DELETE SET NULL ON UPDATE CASCADE";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$key_registration_fk}: ".$q->errorImplode."<br/>\n");
+        }
     }
 
     if ( $PDOX->metadata($org_table) !== false && $PDOX->columnExists('org_id', $context_table) ) {

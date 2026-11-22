@@ -1248,6 +1248,44 @@ class LTIX {
     }
 
     /**
+     * Drop a stored platform keyset. The next launch fetches it again.
+     *
+     * Call this when a key or a registration is saved. A launch's login
+     * timestamp and the cache fill itself are not saves.
+     *
+     * @param mixed $key_id
+     */
+    public static function clearKeysetCache($key_id) {
+        global $PDOX, $CFG;
+        $id = (int) $key_id;
+        if ( $id < 1 || ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset = NULL, lms_cache_pubkey = NULL, lms_cache_kid = NULL
+                WHERE key_id = :ID",
+            array(':ID' => $id)
+        );
+    }
+
+    /**
+     * Drop the stored platform keyset on every key that points at a registration.
+     *
+     * @param mixed $registration_id
+     */
+    public static function clearKeysetCacheForRegistration($registration_id) {
+        global $PDOX, $CFG;
+        $id = (int) $registration_id;
+        if ( $id < 1 || ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return;
+        if ( ! $PDOX->columnExists('lti_registration_id', $CFG->dbprefix.'lti_key') ) return;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset = NULL, lms_cache_pubkey = NULL, lms_cache_kid = NULL
+                WHERE lti_registration_id = :ID",
+            array(':ID' => $id)
+        );
+    }
+
+    /**
      * Remember which URL a cached keyset came from without changing the key's own URL.
      *
      * @param mixed $url
