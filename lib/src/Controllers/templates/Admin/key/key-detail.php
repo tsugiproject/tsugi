@@ -70,6 +70,9 @@ $key_id = U::get($_POST,'key_id');
 $key_key = U::get($_POST,'key_key');
 $deploy_key = U::get($_POST,'deploy_key');
 
+$old_keyset_url = null;
+$saw_old_keyset = false;
+
 // Check the complex validation
 if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     $row = $PDOX->rowDie( "SELECT * FROM {$CFG->dbprefix}lti_key
@@ -87,6 +90,8 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
 
     $old_key_key = $row['key_key'];
     $old_deploy_key = $row['deploy_key'];
+    $old_keyset_url = $row['lms_keyset_url'];
+    $saw_old_keyset = true;
     $lms_issuer_val = array_key_exists('lms_issuer', $_POST) ? $_POST['lms_issuer'] : $row['lms_issuer'];
     $lms_client_val = array_key_exists('lms_client', $_POST) ? $_POST['lms_client'] : $row['lms_client'];
     $posted_secret = array_key_exists('secret', $_POST) ? $_POST['secret'] : $row['secret'];
@@ -121,6 +126,14 @@ $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
+    if ( $row === CrudForm::CRUD_SUCCESS && isset($_POST['doUpdate']) && $saw_old_keyset
+        && array_key_exists('lms_keyset_url', $_POST) ) {
+        $posted_keyset = trim((string) $_POST['lms_keyset_url']);
+        $stored_keyset = trim((string) $old_keyset_url);
+        if ( $posted_keyset !== $stored_keyset ) {
+            LTIX::clearKeysetCache($key_id);
+        }
+    }
     header('Location: '.$from_location);
     return;
 }

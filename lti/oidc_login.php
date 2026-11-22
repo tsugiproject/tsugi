@@ -81,7 +81,7 @@ $redirect = trim($row['lti13_oidc_auth']);
 $issuer_key = $row['issuer_key'];
 $platform_public_key = $row['lti13_platform_pubkey'];
 $our_kid = $row['lti13_kid'];
-$our_keyset_url = $row['lti13_keyset'];
+$our_keyset_url = $row['lti13_keyset_url'];
 $our_keyset = $row['lti13_keyset'];
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
