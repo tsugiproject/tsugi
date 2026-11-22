@@ -296,6 +296,8 @@ array( "{$CFG->dbprefix}lti_context",
     previous_context_id INTEGER NULL,
     context_sha256      CHAR(64) NOT NULL,
     context_key         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
+    context_key_bin     VARBINARY(255) GENERATED ALWAYS AS (CAST(context_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     secret              VARCHAR(128) NULL,
@@ -381,6 +383,7 @@ array( "{$CFG->dbprefix}lti_context",
         ON DELETE SET NULL ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_context_key` UNIQUE(key_id, context_key_bin),
     -- Deployment scope and registration ownership reference (context_id, key_id)
     -- so a course link cannot leave this tenant key.
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_2` UNIQUE(context_id, key_id),
@@ -504,6 +507,8 @@ array( "{$CFG->dbprefix}lti_link",
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
     link_sha256         CHAR(64) NOT NULL,
     link_key            VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
+    link_key_bin        VARBINARY(255) GENERATED ALWAYS AS (CAST(link_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     context_id          INTEGER NOT NULL,
@@ -586,6 +591,7 @@ array( "{$CFG->dbprefix}lti_link",
         ON DELETE SET NULL ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_link_const_link_key` UNIQUE(link_key_bin, context_id),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -1205,6 +1211,8 @@ array( "{$CFG->dbprefix}lti_content",
     custom              JSON NULL,
 
     resource_link_id    VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
+    resource_link_id_bin VARBINARY(255) GENERATED ALWAYS AS (CAST(resource_link_id AS BINARY)) STORED,
     -- lti_sha256(resource_link_id). The same value as lti_link.link_sha256
     -- when the grade column is created.
     resource_link_sha256 CHAR(64) NOT NULL,
@@ -1229,6 +1237,7 @@ array( "{$CFG->dbprefix}lti_content",
 
     CONSTRAINT `{$CFG->dbprefix}lti_content_const_1` UNIQUE (link_id),
     CONSTRAINT `{$CFG->dbprefix}lti_content_const_2` UNIQUE (context_id, resource_link_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_content_const_resource_link` UNIQUE (context_id, resource_link_id_bin),
     CONSTRAINT `{$CFG->dbprefix}lti_content_chk_1` CHECK (
         target IN ('window', 'iframe', 'inline')
     ),
@@ -3108,7 +3117,8 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
     // End of the November 2026 inbound registration detour.
 
-    // user_key, subject_key, profile_key, and service_key. Widths are per column.
+    // user_key, subject_key, profile_key, service_key, context_key, link_key,
+    // and resource_link_id. Widths are per column.
     // A value longer than that width, or a character outside ASCII, leaves the
     // column alone. COMPACT indexes 767 bytes. service_key is varchar(1024),
     // so the column alter waits until the table row format is DYNAMIC.
@@ -3414,11 +3424,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         $natural_groups = (int) \Tsugi\Util\U::get($natural_group_rows[0], 'duplicate_groups', 0);
         $natural_group_word = $natural_groups === 1 ? 'group' : 'groups';
         if ( $natural_groups > 0 ) {
+            $natural_table_has_key_id = false;
+            foreach ( $natural_described[$natural_physical] as $natural_key_row ) {
+                if ( \Tsugi\Util\U::getIgnoreCase($natural_key_row, 'Field') === 'key_id' ) {
+                    $natural_table_has_key_id = true;
+                    break;
+                }
+            }
             $natural_has_key_id = in_array('key_id', $natural_unique_columns, true);
             $natural_example_select = "MIN({$natural_id}) AS example_id, COUNT(*) AS n";
             if ( $natural_has_key_id ) {
                 $natural_example_select .= ', key_id';
-            } else {
+            } else if ( $natural_table_has_key_id ) {
                 $natural_example_select .= ', MIN(key_id) AS key_id, MAX(key_id) AS key_id_max';
             }
             $natural_dup_examples = $PDOX->allRows(
