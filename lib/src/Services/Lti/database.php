@@ -1817,9 +1817,28 @@ $DATABASE_UPGRADE = function($oldversion) {
     // The unique guid key is added later in this upgrade. This pass must not
     // drop it when the table already has it.
     $keep_guid_index = $CFG->dbprefix."lti_key_const_guid";
+    // InnoDB names a foreign key's supporting index after the constraint.
+    // DROP INDEX fails while that constraint still exists.
+    $foreign_key_indexes = array();
+    $foreign_key_rows = $PDOX->allRows(
+        "SELECT CONSTRAINT_NAME AS constraint_name
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+        array(':table_name' => $CFG->dbprefix."lti_key")
+    );
+    if ( is_array($foreign_key_rows) ) {
+        foreach ( $foreign_key_rows as $foreign_key_row ) {
+            $foreign_key_name = \Tsugi\Util\U::get($foreign_key_row, 'constraint_name');
+            if ( ! is_string($foreign_key_name) || $foreign_key_name === '' ) continue;
+            $foreign_key_indexes[$foreign_key_name] = true;
+        }
+    }
     foreach($indexes as $index) {
         if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
         if ( strcasecmp($index, "ibfk") == 0 ) continue;
+        if ( isset($foreign_key_indexes[$index]) ) continue;
         // lti_key_const_2 backs issuer_id until lti_issuer phase 3 (2026-10-01 UTC)
         if ( $keep_issuer_index && $index === $CFG->dbprefix."lti_key_const_2" ) continue;
         if ( $index === $keep_guid_index ) continue;
@@ -2863,14 +2882,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     // One column at a time. Count values longer than 255 characters and values
     // with a character outside ASCII. Alter only when both counts are zero and
     // the column is not already varchar(255) ascii_bin. A column already in
-    // that form is reported and left alone. A dirty column is reported and
+    // that form is left alone with no message. A dirty column is reported and
     // left alone so a later upgrade can alter it after the data is cleaned.
     $identity_note = function($message) {
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     };
     $identity_ascii_columns = \Tsugi\Services\Admin\AdminService::identityAsciiColumns();
-    $identity_note('Checking identity columns for varchar(255) character set ascii collation ascii_bin.');
     $identity_described = array();
     foreach ( $identity_ascii_columns as $identity_column ) {
         $identity_table = $identity_column[0];
@@ -2955,7 +2973,6 @@ $DATABASE_UPGRADE = function($oldversion) {
             continue;
         }
         if ( $identity_already ) {
-            $identity_note($identity_summary.' Already varchar(255) character set ascii collation ascii_bin.');
             continue;
         }
         $identity_nullable = strtoupper((string) \Tsugi\Util\U::getIgnoreCase($identity_field_meta, 'Null')) === 'YES';
