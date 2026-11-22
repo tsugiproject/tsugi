@@ -13,7 +13,8 @@ $DATABASE_INSTALL = array(
         "create table {$CFG->dbprefix}profile (
     profile_id          INTEGER NOT NULL AUTO_INCREMENT,
     profile_sha256      CHAR(64) NOT NULL UNIQUE,
-    profile_key         TEXT NOT NULL,
+    -- Same value as lti_user.user_key. googlemail: plus an email can pass 255.
+    profile_key         VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -43,8 +44,11 @@ $DATABASE_INSTALL = array(
     INDEX `{$CFG->dbprefix}profile_indx_email` (email(255)),
     INDEX `{$CFG->dbprefix}profile_indx_map` (`map`),
 
+    -- Parallel to the unique on profile_sha256. One value across every key.
+    CONSTRAINT `{$CFG->dbprefix}profile_const_key` UNIQUE(profile_key),
+
     CONSTRAINT `{$CFG->dbprefix}profile_const_pk` PRIMARY KEY (profile_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8")
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC")
 );
 
 $DATABASE_UPGRADE = function($oldversion) {

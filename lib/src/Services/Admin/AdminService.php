@@ -912,6 +912,31 @@ class AdminService {
     }
 
     /**
+     * Natural keys the upgrade narrows to ascii_bin. The fourth value is the varchar length.
+     *
+     * subject_key is an LTI 1.3 sub, so it matches the other identity columns at 255.
+     * user_key and profile_key also store googlemail: plus an email. An email can be
+     * 254 characters, so 255 would reject a legal value. 512 covers it.
+     * service_key is lis_outcome_service_url. 1024. A COMPACT index holds 767 bytes,
+     * and 1024 plus key_id does not fit, so that alter waits until the table is DYNAMIC.
+     * string_text stays TEXT. A translation string is not one of these columns.
+     *
+     * The fifth value is the unique constraint name without the database prefix.
+     * The sixth is the column list, parallel to the sha256 unique on that table.
+     * NULL user_key and NULL subject_key stay allowed more than once per key.
+     *
+     * @return array<int, array{0:string,1:string,2:string,3:int,4:string,5:array<int,string>}>
+     */
+    public static function naturalKeyAsciiColumns() {
+        return array(
+            array('lti_user', 'subject_key', 'user_id', 255, 'lti_user_const_subject_key', array('key_id', 'subject_key')),
+            array('lti_user', 'user_key', 'user_id', 512, 'lti_user_const_user_key', array('key_id', 'user_key')),
+            array('profile', 'profile_key', 'profile_id', 512, 'profile_const_key', array('profile_key')),
+            array('lti_service', 'service_key', 'service_id', 1024, 'lti_service_const_key', array('key_id', 'service_key')),
+        );
+    }
+
+    /**
      * Identity columns that are not yet varchar(255) character set ascii collation ascii_bin.
      * A missing table or column is included. Names are table.column without the database prefix.
      *
