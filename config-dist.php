@@ -174,6 +174,10 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // $CFG->home_path = 'https://example.com/';
 // Legacy: $CFG->setExtension('home_path', $CFG->apphome);
 
+// Temporary log when a launch or Plus token takes LTI config from lti_registration
+// instead of lti_key. On unless set false. Remove by February 2027.
+// $CFG->setExtension('log_registration_keys', false);
+
 // Temporary ReqScope dump at /reqscope and tool/reqscope. Remove around December 2026.
 // /admin lists this with the QA settings when it is on.
 // $CFG->setExtension('reqscope_debug', true);

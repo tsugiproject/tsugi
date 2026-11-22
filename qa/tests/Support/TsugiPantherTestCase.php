@@ -32,6 +32,15 @@ abstract class TsugiPantherTestCase extends PantherTestCase
         return rtrim($base, '/');
     }
 
+    /**
+     * A fixed navbar covers a button that Selenium scrolls to the top of the window.
+     */
+    protected function clickClearOfNavbar(\Facebook\WebDriver\WebDriver $driver, \Facebook\WebDriver\WebDriverElement $element): void
+    {
+        $driver->executeScript('arguments[0].scrollIntoView({block:"center"});', [$element]);
+        $element->click();
+    }
+
     protected function uri(string $path): string
     {
         $trimmed = ltrim($path, '/');

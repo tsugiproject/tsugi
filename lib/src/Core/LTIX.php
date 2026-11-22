@@ -750,7 +750,7 @@ class LTIX {
             if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
                 $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
                     SET lms_cache_keyset=:KS, updated_at=NOW() WHERE key_id = :ID",
-                array(':ID' => $key_id, ':KS' => $our_keyset) );
+                array(':ID' => $key_id, ':KS' => self::keysetCacheForUrl($our_keyset_url, $our_keyset)) );
                 error_log("Updated lms_cache_keyset $key_id from $our_keyset_url\n");
             } else {
                 self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
@@ -1152,6 +1152,187 @@ class LTIX {
     }
 
     /**
+     * Columns and LEFT JOIN that load a registration beside its key.
+     * Both strings are empty when lti_registration does not exist.
+     * $keyAlias is the lti_key alias already used in the query.
+     *
+     * @param string $prefix
+     * @param string $keyAlias
+     * @return array{select: string, join: string}
+     */
+    public static function inboundRegistrationSql($prefix, $keyAlias) {
+        // TODO: Remove this lti_registration existence gate by February 2027.
+        if ( ! self::ltiRegistrationTableExists($prefix) ) {
+            return array('select' => '', 'join' => '');
+        }
+        return array(
+            'select' => 'reg.issuer AS reg_issuer, reg.client_id AS reg_client_id, '
+                .'reg.oidc_auth_url AS reg_oidc_auth_url, reg.keyset_url AS reg_keyset_url, '
+                .'reg.token_url AS reg_token_url, reg.token_audience AS reg_token_audience',
+            'join' => "LEFT JOIN {$prefix}lti_registration AS reg ON reg.lti_registration_id = {$keyAlias}.lti_registration_id",
+        );
+    }
+
+    /**
+     * True when this install has the inbound registration table.
+     * A missing table means the upgrade has not run, so launch keeps using lti_key.
+     */
+    public static function ltiRegistrationTableExists($prefix) {
+        // TODO: Remove this lti_registration existence gate by February 2027.
+        static $seen = array();
+        if ( array_key_exists($prefix, $seen) ) return $seen[$prefix];
+        $PDOX = self::getConnection();
+        $seen[$prefix] = $PDOX->metadata($prefix.'lti_registration') !== false;
+        return $seen[$prefix];
+    }
+
+    /**
+     * Use the registration's platform fields, or leave the key's fields untouched.
+     *
+     * Both sets are already on $row. This is not a per-field coalesce.
+     * The registration wins only when issuer, client id, OIDC URL, keyset URL,
+     * and token URL are all set. Audience is copied with that set and may be null.
+     * Deployment id stays on the key. The cached key is kept when the key's
+     * own keyset URL matches, or when the cache was fetched from the
+     * registration URL. Any other cache is dropped from this row so the next
+     * fetch uses the registration URL. The key's stored platform fields stay
+     * in the database.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    public static function applyInboundRegistration(array $row) {
+        $required = array('reg_issuer', 'reg_client_id', 'reg_oidc_auth_url', 'reg_keyset_url', 'reg_token_url');
+        foreach ( $required as $field ) {
+            if ( ! U::isNotEmpty(U::get($row, $field)) ) {
+                self::clearInboundRegistrationColumns($row);
+                return $row;
+            }
+        }
+        $keyset = U::get($row, 'lms_keyset_url');
+        $reg_keyset = trim((string) $row['reg_keyset_url']);
+        $keyset_same = is_string($keyset) && trim($keyset) === $reg_keyset;
+        $cache_same = self::cachedKeysetUrl(U::get($row, 'lms_cache_keyset')) === $reg_keyset;
+        if ( ! $keyset_same && ! $cache_same ) {
+            $row['lms_cache_keyset'] = null;
+            $row['lms_cache_pubkey'] = null;
+            $row['lms_cache_kid'] = null;
+        }
+        $row['lms_issuer'] = $row['reg_issuer'];
+        $row['lms_client'] = $row['reg_client_id'];
+        $row['lms_oidc_auth'] = $row['reg_oidc_auth_url'];
+        $row['lms_keyset_url'] = $row['reg_keyset_url'];
+        $row['lms_token_url'] = $row['reg_token_url'];
+        $row['lms_token_audience'] = array_key_exists('reg_token_audience', $row) ? $row['reg_token_audience'] : null;
+        self::logRegistrationConfig($row);
+        self::clearInboundRegistrationColumns($row);
+        return $row;
+    }
+
+    /**
+     * Temporary. Remove this log by February 2027.
+     *
+     * @param array<string, mixed> $row
+     */
+    private static function logRegistrationConfig(array $row) {
+        global $CFG;
+        // TODO: Remove this registration-source log by February 2027.
+        if ( ! isset($CFG) || ! is_object($CFG) || $CFG->getExtension('log_registration_keys', true) !== true ) {
+            return;
+        }
+        $key_id = U::get($row, 'key_id');
+        error_log('LTI config taken from registration'
+            .' key_id='.(is_numeric($key_id) ? (int) $key_id : '')
+            .' issuer='.$row['reg_issuer']
+            .' client_id='.$row['reg_client_id']);
+    }
+
+    /**
+     * Drop a stored platform keyset. The next launch fetches it again.
+     *
+     * Call this when a key or a registration is saved. A launch's login
+     * timestamp and the cache fill itself are not saves.
+     *
+     * @param mixed $key_id
+     */
+    public static function clearKeysetCache($key_id) {
+        global $PDOX, $CFG;
+        $id = (int) $key_id;
+        if ( $id < 1 || ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset = NULL, lms_cache_pubkey = NULL, lms_cache_kid = NULL
+                WHERE key_id = :ID",
+            array(':ID' => $id)
+        );
+    }
+
+    /**
+     * Drop the stored platform keyset on every key that points at a registration.
+     *
+     * @param mixed $registration_id
+     */
+    public static function clearKeysetCacheForRegistration($registration_id) {
+        global $PDOX, $CFG;
+        $id = (int) $registration_id;
+        if ( $id < 1 || ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return;
+        if ( ! $PDOX->columnExists('lti_registration_id', $CFG->dbprefix.'lti_key') ) return;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset = NULL, lms_cache_pubkey = NULL, lms_cache_kid = NULL
+                WHERE lti_registration_id = :ID",
+            array(':ID' => $id)
+        );
+    }
+
+    /**
+     * Remember which URL a cached keyset came from without changing the key's own URL.
+     *
+     * @param mixed $url
+     * @param mixed $keyset
+     * @return mixed
+     */
+    private static function keysetCacheForUrl($url, $keyset) {
+        if ( ! is_string($keyset) || ! is_string($url) || trim($url) === '' ) {
+            return $keyset;
+        }
+        $decoded = json_decode($keyset, true);
+        if ( ! is_array($decoded) || ! isset($decoded['keys']) || ! is_array($decoded['keys']) ) {
+            return $keyset;
+        }
+        $decoded['tsugi_keyset_url'] = trim($url);
+        $encoded = json_encode($decoded, JSON_UNESCAPED_SLASHES);
+        return is_string($encoded) ? $encoded : $keyset;
+    }
+
+    /**
+     * @param mixed $keyset
+     */
+    private static function cachedKeysetUrl($keyset) {
+        if ( ! is_string($keyset) || $keyset === '' ) return null;
+        $decoded = json_decode($keyset, true);
+        if ( ! is_array($decoded) || ! isset($decoded['tsugi_keyset_url']) || ! is_string($decoded['tsugi_keyset_url']) ) {
+            return null;
+        }
+        $url = trim($decoded['tsugi_keyset_url']);
+        return $url === '' ? null : $url;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private static function clearInboundRegistrationColumns(array &$row) {
+        unset(
+            $row['reg_issuer'],
+            $row['reg_client_id'],
+            $row['reg_oidc_auth_url'],
+            $row['reg_keyset_url'],
+            $row['reg_token_url'],
+            $row['reg_token_audience']
+        );
+    }
+
+    /**
      * Load the data from our lti_ tables using one long LEFT JOIN
      *
      * This data may or may not exist - hence the use of the long
@@ -1173,10 +1354,18 @@ class LTIX {
             $sql = "SELECT ";
         }
 
+        $registration_sql = self::inboundRegistrationSql($p, 'k');
+        // TODO: Remove this lti_registration existence gate by February 2027.
+        $have_registration = $registration_sql['join'] !== '';
         $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             k.login_at AS key_login_at, k.settings AS key_settings,
             k.lms_issuer, k.lms_client, k.lms_oidc_auth, k.lms_keyset_url,
-            k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,
+            k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,";
+        if ( $have_registration ) {
+            $sql .= "
+            ".$registration_sql['select'].",";
+        }
+        $sql .= "
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.context_key as context_key,
             c.settings_url AS context_settings_url,
@@ -1226,6 +1415,9 @@ class LTIX {
         }
 
         $sql .="\nFROM {$p}lti_key AS k";
+        if ( $have_registration ) {
+            $sql .= "\n".$registration_sql['join'];
+        }
 
         // TODO: Collapse a few weeks after 05-27-2019
         if ( $LTI13 ) {
@@ -1268,12 +1460,41 @@ class LTIX {
         // Add the WHERE clause
         if ( $LTI13 ) {
             // TODO: Index lms_issuer_sha256
-            // Match tenant by issuer + client_id only; accept any deployment_id from the LMS.
+            // Match by issuer + client_id only; accept any deployment_id from the LMS.
             // The launch JWT's deployment_id is still copied into $row at runtime for LTI 1.3
             // services (e.g. AGS token requests).
+            // A complete registration is found by its own issuer and client.
+            // An incomplete one stays on the key identity, so it cannot answer
+            // for a different platform. A complete registration's old key
+            // identity is not eligible either.
             $sql .= "\nWHERE (
-                    (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
-                    AND k.lms_client = :issuer_client
+                    ";
+            if ( $have_registration ) {
+                $sql .= "(
+                        (
+                            reg.issuer IS NULL OR reg.issuer = ''
+                            OR reg.client_id IS NULL OR reg.client_id = ''
+                            OR reg.oidc_auth_url IS NULL OR reg.oidc_auth_url = ''
+                            OR reg.keyset_url IS NULL OR reg.keyset_url = ''
+                            OR reg.token_url IS NULL OR reg.token_url = ''
+                        )
+                        AND (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                        AND k.lms_client = :issuer_client
+                    )
+                    OR (
+                        reg.issuer IS NOT NULL AND reg.issuer <> ''
+                        AND reg.client_id IS NOT NULL AND reg.client_id <> ''
+                        AND reg.oidc_auth_url IS NOT NULL AND reg.oidc_auth_url <> ''
+                        AND reg.keyset_url IS NOT NULL AND reg.keyset_url <> ''
+                        AND reg.token_url IS NOT NULL AND reg.token_url <> ''
+                        AND SHA2(reg.issuer, 256) = :issuer_sha256
+                        AND reg.client_id = :issuer_client
+                    )";
+            } else {
+                $sql .= "(k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                    AND k.lms_client = :issuer_client";
+            }
+            $sql .= "
                 )
                 AND (k.deleted IS NULL OR k.deleted = 0)
             ";
@@ -1352,6 +1573,7 @@ class LTIX {
         // die(); // Debug
         $row = $PDOX->rowDie($sql, $parms);
         // echo("<pre>\n");var_dump($row);die();  // Debug
+        if ( is_array($row) ) $row = self::applyInboundRegistration($row);
 
         if ( $LTI13 && is_array($row) ) {
             $row['issuer_key'] = $row['lms_issuer'];
