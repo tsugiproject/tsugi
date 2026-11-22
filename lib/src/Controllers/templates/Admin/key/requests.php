@@ -51,7 +51,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Keys</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Tenant Keys</a>
 <?php if ( $CFG->providekeys ) { ?>
   <a href="requests" class="btn btn-default active">Key Requests</a>
 <?php } ?>

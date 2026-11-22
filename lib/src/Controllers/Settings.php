@@ -1348,9 +1348,6 @@ you will need to request a key and have it approved.
             $query_fields, $allow_edit, $allow_delete);
 
         if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
-            if ( $row === CrudForm::CRUD_SUCCESS && isset($_POST['doUpdate']) ) {
-                LTIX::clearKeysetCache(U::get($_REQUEST, 'key_id'));
-            }
             return new RedirectResponse($from_location);
         }
         if ( ! is_array($row) ) {

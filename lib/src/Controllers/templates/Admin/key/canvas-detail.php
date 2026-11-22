@@ -1,10 +1,10 @@
 <h2>Canvas LTI 1.3</h2>
 
 <p>
-To use LTI 1.3 in Canvas, first create a Tsugi key using a temporary
+To use LTI 1.3 in Canvas, first create a Tsugi Tenant using a temporary
 <b>Client ID</b> such as <b>temporary-42-oertufgh</b>. Make sure it is random enough to be
 unique across issuers as Tsugi prohibits duplicate (issuer, client_id) records system wide.
-Save the key in Tsugi and use the
+Save the Tenant in Tsugi and use the
 LTI values like JWKs URL shown by Tsugi to create a
 <b>Developer Key</b> in Canvas.
 </p>
@@ -12,8 +12,8 @@ LTI values like JWKs URL shown by Tsugi to create a
 <p>
 When the Developer Key is created, Canvas will assign a real
 <b>Client ID</b> (for example
-<b>38288000000000436</b>). Edit the Tsugi key and replace the
-temporary Client ID with the value assigned by Canvas and save the key.
+<b>38288000000000436</b>). Edit the Tsugi Tenant and replace the
+temporary Client ID with the value assigned by Canvas and save the Tenant.
 </p>
 
 <p>
@@ -26,7 +26,7 @@ Canvas will create a <b>Deployment ID</b> (for example
 <p>
 The Deployment ID is optional in Tsugi and may be left blank to accept
 launches from any Canvas deployment using that issuer/client pair.
-If you enter a Deployment ID on the key, launches will be restricted
+If you enter a Deployment ID on the Tenant, launches will be restricted
 to that specific Canvas deployment (i.e. it might just be one course).
 </p>
 <?php
@@ -69,6 +69,6 @@ URL.
 <p>
 To use LTI 1.1 in Canvas, create your key with a title, key, and secret and come back here
 to view the XML-based Canvas auto-installation URL.   Auto-installation of LTI 1.1 tools
-in Canvas is on a per-key basis.
+in Canvas is on a per-Tenant basis.
 </p>
 <?php } ?>

@@ -440,10 +440,6 @@ class DynamicRegistration {
 
         $issuer_sha256 = hash('sha256', trim($issuer));
 
-        // TODO: Dynamic registration still writes the new client id onto the key only.
-        // A complete linked registration keeps its own client id, and launch uses that.
-        // Handle the linked registration when dynamic registration is updated.
-
         $sql = "UPDATE {$CFG->dbprefix}lti_key SET
                 lms_issuer = :lms_issuer,
                 lms_issuer_sha256 = :lms_issuer_sha256,
@@ -472,7 +468,6 @@ class DynamicRegistration {
             echo("Unable to store LMS platform configuration on the key\n");
             return '';
         }
-        LTIX::clearKeysetCache($tsugi_key);
 
         error_log("Stored issuer $issuer / $client_id in lti_key table");
 

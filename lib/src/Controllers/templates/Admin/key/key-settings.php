@@ -45,7 +45,6 @@ if ( isset($_POST['settings_json']) ) {
             );
             
             if ( $stmt->success ) {
-                LTIX::clearKeysetCache($key_id);
                 U::flashSuccess("Key settings updated successfully");
             } else {
                 U::flashError("Failed to update settings");
@@ -60,7 +59,6 @@ if ( isset($_POST['settings_json']) ) {
         );
         
         if ( $stmt->success ) {
-            LTIX::clearKeysetCache($key_id);
             U::flashSuccess("Key settings cleared successfully");
         } else {
             U::flashError("Failed to clear settings");
