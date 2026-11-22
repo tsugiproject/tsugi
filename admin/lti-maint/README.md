@@ -61,3 +61,21 @@ php backfill-guid.php --seconds=15
 ```
 
 `--table` is one of `lti_user`, `lti_context`, `lti_key`, or `lti_link`. Omit it to process all four. Each batch is its own transaction and holds locks on the updated rows until it commits. A later run skips rows that already have a guid.
+
+## When to run `undo-registration-migration.php`
+
+A short-lived inbound registration added `lti_registration` and five columns on `lti_key`: `lti_registration_id`, `deployment_status`, `deployment_approved_at`, `platform_guid`, and `dynamic_registration_unlocked_at`. `admin/upgrade.php` does not create them and does not drop them. This script drops the foreign key, then those columns, then the table.
+
+Run it once, from a checkout that no longer contains that registration code. A later `php admin/upgrade.php` on that checkout will not put the table back. Each statement auto-commits. A second run finds nothing left and exits.
+
+The script stops if `lti_registration` still has rows, if a key still points at a registration, or if one of those columns holds a value. Copy the issuer, client id, and URLs back onto `lti_key` and delete the registration rows first. The script does not copy them.
+
+From the site's Tsugi checkout:
+
+```
+cd admin/lti-maint
+php undo-registration-migration.php
+php undo-registration-migration.php apply
+```
+
+The first command is a dry run. `apply` prints a warning and waits ten seconds, then drops.
