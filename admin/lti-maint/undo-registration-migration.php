@@ -82,7 +82,6 @@ function undo_registration_out($line)
 }
 
 /**
- * @param \Tsugi\Util\PDOX $PDOX
  * @param string $sql
  * @param array<string, mixed> $params
  * @return array<string, mixed>|null
@@ -101,7 +100,6 @@ function undo_registration_row($PDOX, $sql, $params = array())
 }
 
 /**
- * @param \Tsugi\Util\PDOX $PDOX
  * @param string $sql
  */
 function undo_registration_exec($PDOX, $sql)
