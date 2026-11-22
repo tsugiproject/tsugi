@@ -750,28 +750,23 @@ class GradeSync {
         $PDOX = LTIX::getConnection();
         global $CFG;
         $p = $CFG->dbprefix;
-        $registration_sql = LTIX::inboundRegistrationSql($p, 'K');
-        // TODO: Remove this lti_registration existence gate by February 2027.
-        $sql = "SELECT R.result_id, R.link_id, R.user_id, R.result_maximum AS result_maximum,
+        $row = $PDOX->rowDie(
+            "SELECT R.result_id, R.link_id, R.user_id, R.result_maximum AS result_maximum,
                     U.subject_key AS subject_key,
                     L.title, L.score_maximum, L.lti13_lineitem, L.grades_released, L.end_datetime,
                     C.context_id, C.plus_course, C.plus_launch_link_id, C.lti13_lineitems,
                     C.lti13_deployment_id, C.timezone,
-                    K.key_id, K.lms_token_url, K.lms_token_audience, K.lms_client";
-        if ( $registration_sql['select'] !== '' ) {
-            $sql .= ', '.$registration_sql['select'];
-        }
-        $sql .= "
+                    K.lms_token_url, K.lms_token_audience, K.lms_client
              FROM {$p}lti_result AS R
              JOIN {$p}lti_link AS L ON L.link_id = R.link_id
              JOIN {$p}lti_user AS U ON U.user_id = R.user_id
              JOIN {$p}lti_context AS C ON C.context_id = L.context_id
              JOIN {$p}lti_key AS K ON K.key_id = C.key_id
-             ".$registration_sql['join']."
              WHERE R.result_id = :RID
-             LIMIT 1";
-        $row = $PDOX->rowDie($sql, array(':RID' => $resultId));
-        return is_array($row) ? LTIX::applyInboundRegistration($row) : null;
+             LIMIT 1",
+            array(':RID' => $resultId)
+        );
+        return is_array($row) ? $row : null;
     }
 
     /**
@@ -786,24 +781,19 @@ class GradeSync {
         $PDOX = LTIX::getConnection();
         global $CFG;
         $p = $CFG->dbprefix;
-        $registration_sql = LTIX::inboundRegistrationSql($p, 'K');
-        // TODO: Remove this lti_registration existence gate by February 2027.
-        $sql = "SELECT L.link_id, L.title, L.score_maximum, L.lti13_lineitem, L.grades_released, L.end_datetime,
+        $row = $PDOX->rowDie(
+            "SELECT L.link_id, L.title, L.score_maximum, L.lti13_lineitem, L.grades_released, L.end_datetime,
                     C.context_id, C.plus_course, C.plus_launch_link_id, C.lti13_lineitems,
                     C.lti13_deployment_id, C.timezone,
-                    K.key_id, K.lms_token_url, K.lms_token_audience, K.lms_client";
-        if ( $registration_sql['select'] !== '' ) {
-            $sql .= ', '.$registration_sql['select'];
-        }
-        $sql .= "
+                    K.lms_token_url, K.lms_token_audience, K.lms_client
              FROM {$p}lti_link AS L
              JOIN {$p}lti_context AS C ON C.context_id = L.context_id
              JOIN {$p}lti_key AS K ON K.key_id = C.key_id
-             ".$registration_sql['join']."
              WHERE L.link_id = :LID
-             LIMIT 1";
-        $row = $PDOX->rowDie($sql, array(':LID' => $linkId));
-        return is_array($row) ? LTIX::applyInboundRegistration($row) : null;
+             LIMIT 1",
+            array(':LID' => $linkId)
+        );
+        return is_array($row) ? $row : null;
     }
 
     /**

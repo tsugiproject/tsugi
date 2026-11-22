@@ -40,8 +40,6 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_issuer",
 "drop table if exists {$CFG->dbprefix}lti_keyset",
 "drop table if exists {$CFG->dbprefix}lti_key",
-// After lti_key. A later foreign key on lti_key will require that order.
-"drop table if exists {$CFG->dbprefix}lti_registration",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
 "drop table if exists {$CFG->dbprefix}lti_domain",
@@ -70,79 +68,6 @@ array( "{$CFG->dbprefix}lti_keyset",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
     CONSTRAINT `{$CFG->dbprefix}lti_keyset_const_pk` PRIMARY KEY (keyset_id)
- ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-// Inbound LTI 1.3 registration. Tsugi is the tool.
-// lti_tool_registration is the other direction, where Tsugi is the platform.
-// One row is one OAuth client (issuer + client_id). Deployments stay on lti_key.
-// Created before lti_key so a later foreign key can live in the lti_key CREATE.
-// Nothing reads this table yet. Launch and dynamic registration still use lti_key.
-array( "{$CFG->dbprefix}lti_registration",
-"create table {$CFG->dbprefix}lti_registration (
-    lti_registration_id   INTEGER NOT NULL AUTO_INCREMENT,
-
-    -- Row guid. An omitted value gets an unswapped MySQL UUID() (version 1).
-    -- Same bytes as UUID_TO_BIN(UUID()). Inserts pass Guid::uuid7().
-    -- UNHEX, REPLACE, and UUID are allowed in a default on MySQL 8.0.13+ and
-    -- MariaDB 10.5. UUID_TO_BIN is not allowed in a MariaDB 10.5 default.
-    -- Explicit NULL stays NULL. The unique key allows more than one NULL.
-    -- This is not tool_platform.guid. That value is platform_guid.
-    guid                  BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
-
-    -- Human label. Not part of the OAuth identity. Copied from key_title
-    -- when a registration is created from a key.
-    title                 TEXT NULL,
-    notes                 TEXT NULL,
-
-    -- Issuer is required. client_id stays NULL until the platform assigns one.
-    issuer                VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    client_id             VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
-
-    -- The first completed (issuer, client_id) owns these four values.
-    -- Later deployments of that client reuse this row. They do not get another copy.
-    -- Canvas cloud shares the issuer and these URLs, so the client id separates schools.
-    -- Blackboard SaaS shares https://blackboard.com. The authorize, token, and
-    -- keyset URLs are on the school host, and the token audience is often a
-    -- different gateway value. The first row to store that client freezes them.
-    -- A hostname change, or another key entered with different URLs, has nowhere
-    -- else to go. Handle this when dynamic registration writes this table.
-    -- Do not copy the first lti_key lms_* values and assume the other keys agree.
-    oidc_auth_url         TEXT NULL,
-    keyset_url            TEXT NULL,
-    token_url             TEXT NULL,
-    -- OpenID authorization_server, stored verbatim. Often not the token URL.
-    token_audience        TEXT NULL,
-
-    -- One-time dynamic registration code. Same column as lti_key.unlock_code.
-    -- Dynamic registration still checks the code on the key.
-    unlock_code           MEDIUMTEXT NULL,
-    -- NULL until a later dynamic registration flow records the unlock. Nothing writes this yet.
-    dynamic_registration_unlocked_at TIMESTAMP NULL,
-
-    product_family_code   VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    -- tool_platform.guid from a launch. Registration usually does not have it yet.
-    platform_guid         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
-
-    -- Future values: manual, dynamic. Nothing reads these yet.
-    registration_method   VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'manual',
-    -- Future values: pending, active, disabled.
-    registration_status   VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'pending',
-    -- Future values: automatic, approval, reject. Default is approval.
-    new_deployment_policy VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'approval',
-
-    -- Provenance only. Not a foreign key and not deployment ownership.
-    created_by_user_id    INTEGER NULL,
-
-    json                  MEDIUMTEXT NULL,
-
-    created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at            TIMESTAMP NULL,
-
-    -- NULLs are distinct, so pending rows can share an issuer while client_id
-    -- is still NULL. A completed (issuer, client_id) pair cannot be repeated.
-    CONSTRAINT `{$CFG->dbprefix}lti_registration_const_1` UNIQUE (issuer, client_id),
-    CONSTRAINT `{$CFG->dbprefix}lti_registration_const_guid` UNIQUE (`guid`),
-    CONSTRAINT `{$CFG->dbprefix}lti_registration_const_pk` PRIMARY KEY (lti_registration_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // https://stackoverflow.com/questions/28418360/jwt-json-web-token-audience-aud-versus-client-id-whats-the-difference
@@ -186,17 +111,6 @@ array( "{$CFG->dbprefix}lti_key",
     lms_token_url       TEXT NULL,
     lms_token_audience  TEXT NULL,
 
-    -- Inbound registration. NULL means this key is not in that model yet.
-    -- ON DELETE SET NULL detaches the key when the registration is removed.
-    -- deployment_status NULL means the approval workflow does not apply.
-    -- Future values: pending, active, blocked.
-    -- platform_guid is tool_platform.guid from a launch, not this row's guid.
-    lti_registration_id INTEGER NULL,
-    deployment_status   VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    -- NULL until a later approval workflow sets it. Existing keys stay NULL.
-    deployment_approved_at TIMESTAMP NULL,
-    platform_guid       VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
-
     -- Default IANA zone copied onto a new Plus context. Existing courses keep their own.
     timezone            VARCHAR(64) NULL,
 
@@ -209,8 +123,6 @@ array( "{$CFG->dbprefix}lti_key",
     lms_cache_kid       TEXT NULL,
 
     unlock_code         MEDIUMTEXT NULL,
-    -- NULL until a later dynamic registration flow records the unlock. Nothing writes this yet.
-    dynamic_registration_unlocked_at TIMESTAMP NULL,
 
     json                MEDIUMTEXT NULL,
     user_json           MEDIUMTEXT NULL,
@@ -236,10 +148,6 @@ array( "{$CFG->dbprefix}lti_key",
     -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
-    CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_1`
-        FOREIGN KEY (`lti_registration_id`)
-        REFERENCES `{$CFG->dbprefix}lti_registration` (`lti_registration_id`)
-        ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -1809,17 +1717,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-10-27 Last Classroom refresh error, and the last successful check.
         array('lti_user', 'gc_status', 'VARCHAR(512) NULL'),
         array('lti_user', 'gc_checked_at', 'TIMESTAMP NULL'),
-
-        // 2026-11-21 Inbound LTI 1.3 registration. Existing keys stay NULL.
-        // The foreign key is added below. platform_guid is tool_platform.guid, not lti_key.guid.
-        // lti_registration itself is created from DATABASE_INSTALL.
-        array('lti_key', 'lti_registration_id', 'INTEGER NULL'),
-        array('lti_key', 'deployment_status', 'VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NULL'),
-        array('lti_key', 'deployment_approved_at', 'TIMESTAMP NULL'),
-        array('lti_key', 'platform_guid', 'VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL'),
-        array('lti_key', 'dynamic_registration_unlocked_at', 'TIMESTAMP NULL'),
-        array('lti_registration', 'title', 'TEXT NULL'),
-        array('lti_registration', 'notes', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1836,9 +1733,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
-        if ( $table === 'lti_key' && $column === 'lti_registration_id' && ! $q->success ) {
-            die("Unable to add lti_key.lti_registration_id: ".$q->errorImplode."<br/>\n");
-        }
     }
 
     // Generally wait a while to drop the fields - there is no rush
@@ -1923,16 +1817,12 @@ $DATABASE_UPGRADE = function($oldversion) {
     // The unique guid key is added later in this upgrade. This pass must not
     // drop it when the table already has it.
     $keep_guid_index = $CFG->dbprefix."lti_key_const_guid";
-    // InnoDB names the registration foreign key's supporting index after the
-    // constraint. Dropping it fails on every upgrade and looks like a problem.
-    $keep_registration_fk = $CFG->dbprefix."lti_key_ibfk_1";
     foreach($indexes as $index) {
         if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
         if ( strcasecmp($index, "ibfk") == 0 ) continue;
         // lti_key_const_2 backs issuer_id until lti_issuer phase 3 (2026-10-01 UTC)
         if ( $keep_issuer_index && $index === $CFG->dbprefix."lti_key_const_2" ) continue;
         if ( $index === $keep_guid_index ) continue;
-        if ( $index === $keep_registration_fk ) continue;
         $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
         if ( is_string($command) ) continue;
         $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
@@ -2554,27 +2444,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         return is_array($row);
     };
 
-    // ON DELETE SET NULL: removing a registration detaches its keys.
-    $key_table = "{$p}lti_key";
-    $inbound_table = "{$p}lti_registration";
-    $key_registration_fk = "{$p}lti_key_ibfk_1";
-    if ( $PDOX->metadata($key_table) !== false
-        && $PDOX->metadata($inbound_table) !== false ) {
-        if ( ! $PDOX->columnExists('lti_registration_id', $key_table) ) {
-            die("lti_registration exists but lti_key.lti_registration_id is missing. The foreign key was not added.<br/>\n");
-        }
-        if ( ! $constraint_exists($key_table, $key_registration_fk) ) {
-            $sql = "ALTER TABLE {$key_table} ADD CONSTRAINT `{$key_registration_fk}`
-                FOREIGN KEY (`lti_registration_id`)
-                REFERENCES `{$inbound_table}` (`lti_registration_id`)
-                ON DELETE SET NULL ON UPDATE CASCADE";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to add {$key_registration_fk}: ".$q->errorImplode."<br/>\n");
-        }
-    }
-
     if ( $PDOX->metadata($org_table) !== false && $PDOX->columnExists('org_id', $context_table) ) {
         $org_index = "{$p}lti_context_indx_1";
         if ( ! $PDOX->indexExists($org_index, $context_table) ) {
@@ -2994,13 +2863,14 @@ $DATABASE_UPGRADE = function($oldversion) {
     // One column at a time. Count values longer than 255 characters and values
     // with a character outside ASCII. Alter only when both counts are zero and
     // the column is not already varchar(255) ascii_bin. A column already in
-    // that form is left alone with no message. A dirty column is reported and
+    // that form is reported and left alone. A dirty column is reported and
     // left alone so a later upgrade can alter it after the data is cleaned.
     $identity_note = function($message) {
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     };
     $identity_ascii_columns = \Tsugi\Services\Admin\AdminService::identityAsciiColumns();
+    $identity_note('Checking identity columns for varchar(255) character set ascii collation ascii_bin.');
     $identity_described = array();
     foreach ( $identity_ascii_columns as $identity_column ) {
         $identity_table = $identity_column[0];
@@ -3085,6 +2955,7 @@ $DATABASE_UPGRADE = function($oldversion) {
             continue;
         }
         if ( $identity_already ) {
+            $identity_note($identity_summary.' Already varchar(255) character set ascii collation ascii_bin.');
             continue;
         }
         $identity_nullable = strtoupper((string) \Tsugi\Util\U::getIgnoreCase($identity_field_meta, 'Null')) === 'YES';

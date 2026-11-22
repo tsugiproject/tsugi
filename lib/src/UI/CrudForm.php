@@ -57,10 +57,9 @@ class CrudForm {
      * @param $titles An array of fields->titles
      * @param $fields_defaults An array of fields>default values
      */
-    public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false, $checkboxes=false, $extraHtml='') {
+    public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false, $checkboxes=false) {
         echo('<form method="post" autocomplete="off">'."\n");
         echo(\Tsugi\Controllers\Tool::csrfField()."\n");
-        if ( is_string($extraHtml) && $extraHtml !== '' ) echo($extraHtml);
 
         for($i=0; $i < count($fields); $i++ ) {
             $field = $fields[$i];
@@ -81,7 +80,6 @@ class CrudForm {
                 echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'"'.(!empty($fields_defaults)?' value="'.htmlent_utf8(self::valueToField($field, $fields_defaults)).'"':'').'>'."\n");
             }
             echo("</label>\n</div>");
-            self::echoHtmlAfterField($extraHtml, $field);
         }
 
         echo('<input type="submit" name="doSave" class="btn btn-normal" value="'._m("Save").'">'."\n");
@@ -212,7 +210,7 @@ class CrudForm {
      * @param $titles An array of fields->titles
      */
     public static function updateForm($row, $fields, $current, $from_location,
-        $allow_edit=false, $allow_delete=false, $extra_buttons=false, $titles=false, $checkboxes=false, $extraHtml='')
+        $allow_edit=false, $allow_delete=false, $extra_buttons=false, $titles=false, $checkboxes=false)
     {
         $key = $fields['0'];
         if ( !isset($_REQUEST[$key]) ) {
@@ -248,7 +246,6 @@ class CrudForm {
         }
 
         echo("<p>\n");
-        if ( is_string($extraHtml) && $extraHtml !== '' ) echo($extraHtml);
 
         for($i=0; $i < count($fields); $i++ ) {
             $field = $fields[$i];
@@ -266,7 +263,6 @@ class CrudForm {
                 } else {
                     echo('<p id="'.$field.'">'.htmlent_utf8($value)."</p>\n");
                 }
-                self::echoHtmlAfterField($extraHtml, $field);
                 continue;
             }
 
@@ -295,7 +291,6 @@ class CrudForm {
                 echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'" value="'.htmlent_utf8($value).'">'."\n");
             }
             echo("</label>\n</div>");
-            self::echoHtmlAfterField($extraHtml, $field);
         }
         echo('</form>'."\n");
         return true;
@@ -499,18 +494,6 @@ class CrudForm {
             echo(' value="'.htmlent_utf8($value).'" placeholder="'._m('Leave blank to keep current value').'"');
         }
         echo(">\n");
-    }
-
-    /**
-     * A string is printed once at the top. An array is printed after the named field.
-     *
-     * @param mixed $extraHtml
-     * @param string $field
-     */
-    private static function echoHtmlAfterField($extraHtml, $field) {
-        if ( ! is_array($extraHtml) ) return;
-        $html = U::get($extraHtml, $field);
-        if ( is_string($html) && $html !== '' ) echo($html);
     }
 
     /**

@@ -41,7 +41,7 @@ return;
 echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
 ?>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Keys</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Tenant Keys</a>
   <a href="client-id-check" class="btn btn-default active">Client Id Check</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>

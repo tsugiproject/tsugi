@@ -18,10 +18,6 @@ class Key extends Admin {
         self::map($app, self::class, 'clientCheck', self::paths('key/client-id-check'));
         self::map($app, self::class, 'add', self::paths('key/key-add'));
         self::map($app, self::class, 'detail', self::paths('key/key-detail'));
-        self::map($app, self::class, 'registrations', self::paths('key/registrations'));
-        self::map($app, self::class, 'registrationAdd', self::paths('key/registration-add'));
-        self::map($app, self::class, 'registrationDetail', self::paths('key/registration-detail'));
-        self::map($app, self::class, 'registrationFromKey', self::paths('key/registration-from-key'));
         self::map($app, self::class, 'settings', self::paths('key/key-settings'));
         self::map($app, self::class, 'requests', self::paths('key/requests'));
         self::map($app, self::class, 'request', self::paths('key/request-detail'));
@@ -48,26 +44,6 @@ class Key extends Admin {
     public function detail() {
         if ( $r = $this->gate('keys.detail') ) return $r;
         $this->view('key/key-detail.php');
-    }
-
-    public function registrations() {
-        if ( $r = $this->gate('keys.view') ) return $r;
-        $this->view('key/registrations.php');
-    }
-
-    public function registrationAdd() {
-        if ( $r = $this->gate('keys.add') ) return $r;
-        $this->view('key/registration-add.php');
-    }
-
-    public function registrationDetail() {
-        if ( $r = $this->gate('keys.detail') ) return $r;
-        $this->view('key/registration-detail.php');
-    }
-
-    public function registrationFromKey() {
-        if ( $r = $this->gate('keys.add') ) return $r;
-        $this->view('key/registration-from-key.php');
     }
 
     public function settings() {

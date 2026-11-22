@@ -57,18 +57,6 @@ class AdminServiceKeyTypeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('LTI 1.3 / Draft', AdminService::keyTypeLabel($no_oidc));
     }
 
-    public function testRegistrationLinkIsNotADraft() {
-        $this->assertSame('Registration', AdminService::keyTypeLabel(array(
-            'lti_registration_id' => 4,
-            'deploy_key' => 'deploy-1',
-        )));
-        $this->assertSame('LTI 1.1 / Registration', AdminService::keyTypeLabel(array(
-            'key_key' => 'school',
-            'secret' => 's3cret',
-            'lti_registration_id' => 4,
-        )));
-    }
-
     public function testDeploymentWithoutIssuerIsDraft() {
         $this->assertSame('Draft', AdminService::keyTypeLabel(array(
             'deploy_key' => 'deploy-1',
