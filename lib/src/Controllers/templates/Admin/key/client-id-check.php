@@ -12,6 +12,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 $check_error = '';
 try {
     $rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
+    $lti11_rows = \Tsugi\Services\Admin\AdminService::duplicateLti11KeyRows();
     $groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
     $deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
     $long_values = \Tsugi\Services\Admin\AdminService::valuesLongerThan255();
@@ -20,6 +21,7 @@ try {
     error_log('Client id check failed: '.$e->getMessage());
     $check_error = 'Client id check failed.';
     $rows = array();
+    $lti11_rows = array();
     $groups = array();
     $deployment_groups = array();
     $long_values = array();
@@ -78,6 +80,39 @@ echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
 </tbody>
 </table>
 <?php } ?>
+<h2>Duplicate LTI 1.1 consumer keys</h2>
+<p>
+An LTI 1.1 launch loads one row for the consumer key. Two live rows with the same key leave that choice to the database. A soft-deleted row still counts, because the unique index includes it. A missing consumer key does not count.
+</p>
+<?php if ( count($lti11_rows) < 1 ) { ?>
+<p>There are no duplicate LTI 1.1 consumer keys.</p>
+<?php } else {
+    echo \Tsugi\Services\Admin\AdminService::duplicateLti11KeyNotice();
+?>
+<table class="table table-striped">
+<thead>
+<tr>
+  <th>Key</th>
+  <th>Consumer key</th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ( $lti11_rows as $lti11_row ) {
+    $key_id = (int) U::get($lti11_row, 'key_id', 0);
+    $title = U::get($lti11_row, 'key_title');
+    $label = (is_string($title) && trim($title) !== '') ? trim($title) : ('key '.$key_id);
+    $label .= ' ('.$key_id.')';
+    if ( (int) U::get($lti11_row, 'deleted', 0) === 1 ) $label .= ' (deleted)';
+    $detail = 'key-detail?key_id='.$key_id;
+?>
+<tr>
+  <td><a href="<?= htmlentities($detail) ?>"><?= htmlentities($label) ?></a></td>
+  <td><?= htmlentities((string) U::get($lti11_row, 'key_key', '')) ?></td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
+<?php } ?>
 <h2>Configuration URLs</h2>
 <p>
 Keys that share an issuer and client id must agree on OIDC auth URL, keyset URL, token URL, and token audience.
@@ -86,10 +121,10 @@ A blank value does not conflict with a filled one.
 <?php if ( count($groups) < 1 ) { ?>
 <p>There are no (client id, issuer) rows with conflicting configuration URLs.</p>
 <?php } else {
-    $pair_word = count($groups) === 1 ? 'pair' : 'pairs';
+    $pair_word = count($groups) === 1 ? 'pair disagrees' : 'pairs disagree';
 ?>
 <div class="alert alert-danger" style="margin: 10px;">
-<p><?= count($groups) ?> issuer and client id <?= $pair_word ?> will collide when collapsed.</p>
+<p><?= count($groups) ?> issuer and client id <?= $pair_word ?> on configuration URLs.</p>
 </div>
 <?php foreach ( $groups as $group ) { ?>
 <h2><?= htmlentities($group['lms_issuer']) ?></h2>

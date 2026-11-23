@@ -4,8 +4,8 @@ Stored 2026-11-17. This is the plan for replacing `TEXT` plus a SHA-256 companio
 with `varchar(255)` on the LTI identity columns. The length checks are shipped.
 No column type has changed.
 
-Related: [lti_client-design.md](lti_client-design.md) is the registration-table
-plan. The 255-character check described there is the gate for this change.
+The length and ASCII results are also listed on Admin → Client ID Check.
+See [client-id-check.md](client-id-check.md).
 
 ## Why the values are `TEXT` with a hash
 
@@ -84,13 +84,17 @@ Already `varchar(255)`, so the check does not read them:
 `lti_tool_registration.lti13_client_id`, `lti_tool_registration.lti11_key`, and
 `lti_tool_deployment.deployment_id`.
 
-A unique index on the real columns replaces the hash unique for that pair.
-`(lms_issuer, lms_client, deploy_key)` is the key unique that was discussed,
-because one client may have many deployments. MySQL treats `NULL` as distinct,
-so two keys with the same issuer and client id and a blank `deploy_key` would
-both be allowed. That index cannot be added while two live keys share the full
-triple. Context deployment id is not unique: many courses share one deployment.
-This document does not add those indexes.
+A unique index on the real columns sits beside the hash unique for that pair.
+`lti_key` has `UNIQUE(lms_issuer, lms_client, deploy_key)`. Launch matches
+issuer and client id and does not use `deploy_key`. The upgrade adds that
+unique only when `lms_issuer`, `lms_client`, and `deploy_key` are already
+`varchar(255)` ascii. A value that is too long or outside ASCII leaves the
+column unchanged and leaves the unique off. A `NULL` in any of those three
+columns stays repeatable, including a NULL deployment id. When the columns
+are already ascii, the unique is added only when every non-NULL triple is
+already unique.
+`lti_context.lti13_deployment_id` is not unique: many courses share one
+deployment.
 
 ## What other LMS systems and libraries store
 

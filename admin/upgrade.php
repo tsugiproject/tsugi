@@ -240,6 +240,15 @@ if ( $maxversion > $CFG->dbversion ) {
     if ( ! $q->success ) die("Unable to update overall version ".$q->errorimplode."<br/>".$entry[1] );
 }
 
+$schema_notes = tsugi_admin_upgrade_schema_notes();
+if ( count($schema_notes) > 0 ) {
+    echo("Skipped. Fix the data and run the upgrade again. A later step waits until the earlier step on that column has landed.<br/>\n");
+    foreach ( $schema_notes as $schema_note ) {
+        error_log($schema_note);
+        echo(htmlentities($schema_note)."<br/>\n");
+    }
+}
+
 tsugi_admin_upgrade_report($maxversion, $maxpath, $db_version, $forceBeacon);
 
 if( ! U::isCli() ) {
@@ -419,9 +428,10 @@ function tsugi_admin_upgrade_manual_comment($entered) {
 /**
  * Facts worth keeping about who ran an upgrade.
  *
- * comment is the client id check as counts, with no row detail, and the
- * identity columns that are not yet varchar(255) ascii, unless $comment is
- * a string. A hand send passes that string in.
+ * comment lists the client id checks that need fixing, with no row detail,
+ * and each schema step that was skipped. A later unique is listed as not
+ * added until its column is already the ascii varchar. A clean check is an
+ * empty string, unless $comment is a string. A hand send passes that string in.
  * $maxversion and $maxpath are unused. The caller still has them from the migration loop.
  */
 function tsugi_admin_upgrade_report_payload($maxversion, $maxpath, $db_server_version, $comment = null) {
@@ -584,11 +594,39 @@ function tsugi_admin_upgrade_user_agent($host) {
 }
 
 /**
- * Counts from the client id check. No key ids, URLs, or value samples.
+ * Skipped column and unique steps, including an alter that failed in this process.
+ * A longer note replaces a shorter one with the same opening.
+ *
+ * @return array<int, string>
+ */
+function tsugi_admin_upgrade_schema_notes() {
+    $notes = \Tsugi\Services\Admin\AdminService::pendingUpgradeNotes();
+    foreach ( \Tsugi\Services\Admin\AdminService::upgradeBeaconNotes() as $upgrade_note ) {
+        if ( ! in_array($upgrade_note, $notes, true) ) $notes[] = $upgrade_note;
+    }
+    $kept = array();
+    foreach ( $notes as $note ) {
+        $covered = false;
+        foreach ( $notes as $other ) {
+            if ( $other !== $note && str_starts_with($other, $note) ) {
+                $covered = true;
+                break;
+            }
+        }
+        if ( ! $covered ) $kept[] = $note;
+    }
+    return $kept;
+}
+
+/**
+ * Client id checks that still need fixing, plus schema steps that were skipped.
+ * No key ids, URLs, or value samples. A zero count is left out. An empty
+ * string means nothing in this check needs fixing and every schema step has landed.
  */
 function tsugi_admin_upgrade_client_id_comment() {
     try {
         $duplicates = count(\Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows());
+        $lti11Keys = \Tsugi\Services\Admin\AdminService::duplicateLti11KeyGroupCount();
         $configRows = 0;
         foreach ( \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups() as $group ) {
             $keys = $group['keys'] ?? null;
@@ -597,20 +635,37 @@ function tsugi_admin_upgrade_client_id_comment() {
         $deployments = count(\Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups());
         $long = count(\Tsugi\Services\Admin\AdminService::valuesLongerThan255());
         $nonAscii = count(\Tsugi\Services\Admin\AdminService::nonAsciiValues());
-        $notYet = \Tsugi\Services\Admin\AdminService::columnsNotYetAscii255();
     } catch (\Throwable $e) {
         return 'client id check failed';
     }
 
-    $columnNote = count($notYet) < 1
-        ? 'none'
-        : implode(', ', $notYet);
-    return 'duplicate (client id, issuer, deployment id) rows: '.$duplicates
-        .', rows with mismatched client configuration urls: '.$configRows
-        .', keys with more than one deployment id: '.$deployments
-        .', fields too long: '.$long
-        .', non-ascii fields: '.$nonAscii
-        .', columns not yet varchar(255) ascii: '.$columnNote;
+    $parts = array();
+    if ( $duplicates > 0 ) {
+        $parts[] = 'duplicate (client id, issuer, deployment id) rows: '.$duplicates;
+    }
+    if ( $lti11Keys > 0 ) {
+        $parts[] = 'duplicate lti 1.1 consumer keys: '.$lti11Keys;
+    }
+    if ( $configRows > 0 ) {
+        $parts[] = 'rows with mismatched client configuration urls: '.$configRows;
+    }
+    if ( $deployments > 0 ) {
+        $parts[] = 'keys with more than one deployment id: '.$deployments;
+    }
+    if ( $long > 0 ) {
+        $parts[] = 'fields too long: '.$long;
+    }
+    if ( $nonAscii > 0 ) {
+        $parts[] = 'non-ascii fields: '.$nonAscii;
+    }
+    try {
+        foreach ( tsugi_admin_upgrade_schema_notes() as $schema_note ) {
+            if ( ! in_array($schema_note, $parts, true) ) $parts[] = $schema_note;
+        }
+    } catch (\Throwable $e) {
+        $parts[] = 'schema progress check failed';
+    }
+    return implode(', ', $parts);
 }
 
 /**
