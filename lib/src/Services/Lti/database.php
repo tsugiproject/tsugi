@@ -3381,6 +3381,10 @@ $DATABASE_UPGRADE = function($oldversion) {
             continue;
         }
         $exact_detail = $PDOX->indexDetail($exact_physical);
+        if ( ! is_array($exact_detail) ) {
+            $identity_note('Exact-byte indexes for '.$exact_table.': index metadata unavailable. Columns left in place.');
+            continue;
+        }
         $exact_indexes = array();
         if ( is_array($exact_detail) ) {
             foreach ( $exact_detail as $exact_index_row ) {
@@ -3463,7 +3467,9 @@ $DATABASE_UPGRADE = function($oldversion) {
             if ( is_array($key_key_detail) ) {
                 foreach ( $key_key_detail as $key_key_index_row ) {
                     if ( (string) \Tsugi\Util\U::get($key_key_index_row, 'Key_name') !== $key_key_index ) continue;
-                    if ( (int) \Tsugi\Util\U::get($key_key_index_row, 'Non_unique') !== 0 ) {
+                    // Sub_part is NULL for the whole column. A number is a prefix, so campus01-A and campus01-B would collide.
+                    if ( (int) \Tsugi\Util\U::get($key_key_index_row, 'Non_unique') !== 0
+                        || \Tsugi\Util\U::get($key_key_index_row, 'Sub_part') !== null ) {
                         $key_key_is_unique = false;
                     }
                 }
