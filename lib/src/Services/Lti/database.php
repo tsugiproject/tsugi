@@ -3574,6 +3574,64 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // LTI 1.1 keys created before 6 October 2026.
+    //
+    // Add Key and the key detail page stored a blank deployment id as an empty
+    // string until 12 May 2026 (b34cae0ee, "Fine tune the deployment_id to make
+    // null explicitly a wildcard"). From that commit on, a blank box, a value
+    // that is only whitespace, or the word "null" is stored as NULL. On
+    // 6 October 2026 (d970d309, #285) that helper moved to
+    // AdminService::normalize_deploy_key_input. The stored value did not change.
+    // Keys saved before 12 May 2026, and any row copied from those keys, can
+    // still have deploy_key = ''.
+    //
+    // Issuer and client were left as empty strings when those boxes were blank,
+    // and a new LTI 1.1 key still stores them that way. The row this form writes
+    // today is lms_issuer = '', lms_client = '', deploy_key = NULL, and
+    // deploy_sha256 = NULL. An LTI 1.1 launch matches key_sha256 and does not
+    // read these three columns. An empty client id does not match an LTI 1.3
+    // launch.
+    //
+    // UNIQUE(lms_issuer, lms_client, deploy_key) treats '' as a real value, so
+    // two rows with all three columns blank cannot both exist. That group also
+    // stops this unique from being added. NULL in deploy_key stays repeatable,
+    // which is why many LTI 1.1 keys can share a blank issuer and a blank
+    // client. This update changes only that deployment id, and its hash, when
+    // all three are blank. Issuer and client stay empty strings.
+    //
+    // ascii_bin is PAD SPACE, so a value that is only spaces compares equal to
+    // '' and is cleared too. Soft-deleted rows are included. This runs on every
+    // upgrade, before the unique below. A second run matches nothing.
+    $blank_deploy_table = $CFG->dbprefix.'lti_key';
+    $blank_deploy_meta = $PDOX->describe($blank_deploy_table);
+    $blank_deploy_fields = array();
+    if ( is_array($blank_deploy_meta) ) {
+        foreach ( $blank_deploy_meta as $blank_deploy_column ) {
+            $blank_deploy_fields[] = (string) \Tsugi\Util\U::get($blank_deploy_column, 'Field');
+        }
+    }
+    $blank_deploy_missing = array();
+    foreach ( array('lms_issuer', 'lms_client', 'deploy_key', 'deploy_sha256') as $blank_deploy_needed ) {
+        if ( ! in_array($blank_deploy_needed, $blank_deploy_fields, true) ) {
+            $blank_deploy_missing[] = $blank_deploy_needed;
+        }
+    }
+    if ( count($blank_deploy_missing) > 0 ) {
+        $identity_note('LTI 1.1 blank deployment ids left unchanged: missing '.implode(', ', $blank_deploy_missing).'.');
+    } else {
+        $blank_deploy_sql = "UPDATE {$blank_deploy_table} SET deploy_key = NULL, deploy_sha256 = NULL"
+            ." WHERE lms_issuer = '' AND lms_client = '' AND deploy_key = ''";
+        $identity_note('Upgrading: '.$blank_deploy_sql);
+        $blank_deploy_update = $PDOX->queryReturnError($blank_deploy_sql, false, false);
+        if ( ! $blank_deploy_update->success ) {
+            $identity_note('LTI 1.1 blank deployment ids were not cleared: '.$blank_deploy_update->errorImplode);
+        } else {
+            $blank_deploy_count = (int) $blank_deploy_update->rowCount();
+            $blank_deploy_word = $blank_deploy_count === 1 ? 'key' : 'keys';
+            $identity_note('LTI 1.1 blank deployment ids: set deploy_key and deploy_sha256 to NULL on '.$blank_deploy_count.' '.$blank_deploy_word.'.');
+        }
+    }
+
     // UNIQUE(lms_issuer, lms_client, deploy_key). This runs after the
     // varchar(255) ascii alter. A column that still has a value longer than
     // 255, or a character outside ASCII, was left unchanged, and this unique
