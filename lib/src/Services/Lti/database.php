@@ -76,7 +76,9 @@ array( "{$CFG->dbprefix}lti_keyset",
 // We need to be able to look this up by either oauth_consumer_key or
 // (issuer, client_id, deployment_id)
 
-// TODO: Decide if the key_key must always be unique.
+// key_key is the LTI 1.1 consumer key. NULL stays repeatable, so an
+// LTI 1.3-only row has no consumer key. Upgrade adds the unique below
+// after a scan finds no repeated key_key. A duplicate leaves it off.
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
@@ -147,6 +149,9 @@ array( "{$CFG->dbprefix}lti_key",
     -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key)
     -- allows multiple rows per key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
+    -- NULL key_key stays repeatable. ascii_bin treats trailing spaces as equal.
+    -- Upgrade adds this unique only after a scan finds no repeated key_key.
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_key_key` UNIQUE(key_key),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -173,13 +178,9 @@ array( "{$CFG->dbprefix}lti_user",
     -- LTI 1.1 user_id, the 1.1 transition id, or googlemail: plus an email.
     -- 512 covers a 254-character address. The hash stays until a later unique index.
     user_key            VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    -- MariaDB 10.5 rejects NULL or NOT NULL after STORED. Nullability follows the expression.
-    user_key_bin        VARBINARY(512) GENERATED ALWAYS AS (CAST(user_key AS BINARY)) STORED,
     subject_sha256      CHAR(64) NULL,
     -- LTI 1.3 sub.
     subject_key         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    subject_key_bin     VARBINARY(255) GENERATED ALWAYS AS (CAST(subject_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -226,10 +227,6 @@ array( "{$CFG->dbprefix}lti_user",
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_1` UNIQUE(key_id, user_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256),
-    -- Parallel to the sha256 uniques, on the exact bytes. NULL user_key and
-    -- NULL subject_key still allow more than one row on a key.
-    CONSTRAINT `{$CFG->dbprefix}lti_user_const_user_key` UNIQUE(key_id, user_key_bin),
-    CONSTRAINT `{$CFG->dbprefix}lti_user_const_subject_key` UNIQUE(key_id, subject_key_bin),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_guid` UNIQUE (`guid`),
     INDEX `{$CFG->dbprefix}lti_user_indx_email` (email(255)),
     INDEX `{$CFG->dbprefix}lti_user_indx_profile` (profile_id),
@@ -296,8 +293,6 @@ array( "{$CFG->dbprefix}lti_context",
     previous_context_id INTEGER NULL,
     context_sha256      CHAR(64) NOT NULL,
     context_key         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    context_key_bin     VARBINARY(255) GENERATED ALWAYS AS (CAST(context_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     secret              VARCHAR(128) NULL,
@@ -383,7 +378,6 @@ array( "{$CFG->dbprefix}lti_context",
         ON DELETE SET NULL ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
-    CONSTRAINT `{$CFG->dbprefix}lti_context_const_context_key` UNIQUE(key_id, context_key_bin),
     -- Deployment scope and registration ownership reference (context_id, key_id)
     -- so a course link cannot leave this tenant key.
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_2` UNIQUE(context_id, key_id),
@@ -507,8 +501,6 @@ array( "{$CFG->dbprefix}lti_link",
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
     link_sha256         CHAR(64) NOT NULL,
     link_key            VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    link_key_bin        VARBINARY(255) GENERATED ALWAYS AS (CAST(link_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     context_id          INTEGER NOT NULL,
@@ -591,7 +583,6 @@ array( "{$CFG->dbprefix}lti_link",
         ON DELETE SET NULL ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
-    CONSTRAINT `{$CFG->dbprefix}lti_link_const_link_key` UNIQUE(link_key_bin, context_id),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -726,8 +717,6 @@ array( "{$CFG->dbprefix}lti_service",
     -- lis_outcome_service_url. 1024 ascii needs a DYNAMIC table: a COMPACT
     -- index holds 767 bytes, and this column plus key_id does not fit.
     service_key         VARCHAR(1024) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    service_key_bin     VARBINARY(1024) GENERATED ALWAYS AS (CAST(service_key AS BINARY)) STORED,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -746,7 +735,6 @@ array( "{$CFG->dbprefix}lti_service",
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_service_const_1` UNIQUE(key_id, service_sha256),
-    CONSTRAINT `{$CFG->dbprefix}lti_service_const_key` UNIQUE(key_id, service_key_bin),
     CONSTRAINT `{$CFG->dbprefix}lti_service_const_pk` PRIMARY KEY (service_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC"),
 
@@ -1211,8 +1199,6 @@ array( "{$CFG->dbprefix}lti_content",
     custom              JSON NULL,
 
     resource_link_id    VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    -- ascii_bin ignores trailing spaces. This is the exact bytes, for the unique index.
-    resource_link_id_bin VARBINARY(255) GENERATED ALWAYS AS (CAST(resource_link_id AS BINARY)) STORED,
     -- lti_sha256(resource_link_id). The same value as lti_link.link_sha256
     -- when the grade column is created.
     resource_link_sha256 CHAR(64) NOT NULL,
@@ -1237,7 +1223,6 @@ array( "{$CFG->dbprefix}lti_content",
 
     CONSTRAINT `{$CFG->dbprefix}lti_content_const_1` UNIQUE (link_id),
     CONSTRAINT `{$CFG->dbprefix}lti_content_const_2` UNIQUE (context_id, resource_link_sha256),
-    CONSTRAINT `{$CFG->dbprefix}lti_content_const_resource_link` UNIQUE (context_id, resource_link_id_bin),
     CONSTRAINT `{$CFG->dbprefix}lti_content_chk_1` CHECK (
         target IN ('window', 'iframe', 'inline')
     ),
@@ -1842,6 +1827,8 @@ $DATABASE_UPGRADE = function($oldversion) {
     // The unique guid key is added later in this upgrade. This pass must not
     // drop it when the table already has it.
     $keep_guid_index = $CFG->dbprefix."lti_key_const_guid";
+    // Added later in this upgrade, after the key_key duplicate scan.
+    $keep_key_key_index = $CFG->dbprefix."lti_key_const_key_key";
     // InnoDB names a foreign key's supporting index after the constraint.
     // DROP INDEX fails while that constraint still exists.
     $foreign_key_indexes = array();
@@ -1867,6 +1854,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         // lti_key_const_2 backs issuer_id until lti_issuer phase 3 (2026-10-01 UTC)
         if ( $keep_issuer_index && $index === $CFG->dbprefix."lti_key_const_2" ) continue;
         if ( $index === $keep_guid_index ) continue;
+        if ( $index === $keep_key_key_index ) continue;
         $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
         if ( is_string($command) ) continue;
         $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
@@ -2898,6 +2886,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     }
+
+    // Notice only. ascii_bin hides a trailing space from a normal comparison.
+    $trailing_rows = \Tsugi\Services\Admin\AdminService::trailingSpaceValues();
+    foreach ( $trailing_rows as $trailing_row ) {
+        $message = 'Trailing space: field='.\Tsugi\Util\U::get($trailing_row, 'label')
+            .' table='.\Tsugi\Util\U::get($trailing_row, 'table')
+            .' column='.\Tsugi\Util\U::get($trailing_row, 'column')
+            .' key_id='.\Tsugi\Util\U::get($trailing_row, 'key_id')
+            .' row_id='.\Tsugi\Util\U::get($trailing_row, 'row_id')
+            .' length='.\Tsugi\Util\U::get($trailing_row, 'length')
+            .' trailing='.\Tsugi\Util\U::get($trailing_row, 'trailing');
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    }
     } catch (\Throwable $e) {
         $message = 'Client id check failed: '.$e->getMessage();
         error_log($message);
@@ -3126,13 +3128,9 @@ $DATABASE_UPGRADE = function($oldversion) {
     // leaves the column. While these columns are rolling out, a table that is
     // already DYNAMIC and a column that is already ascii_bin are reported too.
     // Drop those already-done lines once every database has been converted.
-    // After the column is ascii_bin, a generated VARBINARY column holds the
-    // exact bytes. ascii_bin ignores trailing spaces, so the unique constraint
-    // is on that generated column, parallel to the sha256 unique. An older
-    // unique on the varchar itself is replaced. The sha256 unique stays.
-    // NULL user_key and NULL subject_key still allow more than one row on a
-    // key, same as the hash unique. A column that is already ascii_bin skips
-    // the length and ASCII scan.
+    // The generated exact-byte columns and the uniques on them are dropped
+    // after this loop. The sha256 uniques stay. A column that is already
+    // ascii_bin skips the length and ASCII scan.
     $natural_row_ready = array();
     $natural_format = function($physical) use ($PDOX) {
         $rows = $PDOX->allRows(
@@ -3347,143 +3345,204 @@ $DATABASE_UPGRADE = function($oldversion) {
             }
             $identity_note($natural_label.': altered to varchar('.$natural_width.') character set ascii collation ascii_bin.');
         }
-        $natural_bin = $natural_field.'_bin';
-        if ( preg_match($natural_ident, $natural_bin) !== 1 ) {
-            $identity_note($natural_label.': exact-byte column name is not usable. Unique index not added.');
-            continue;
-        }
-        if ( ! $PDOX->columnExists($natural_bin, $natural_physical) ) {
-            // MariaDB 10.5 rejects NULL or NOT NULL after STORED.
-            $natural_bin_sql = "ALTER TABLE {$natural_physical} ADD COLUMN {$natural_bin} VARBINARY({$natural_width}) GENERATED ALWAYS AS (CAST({$natural_field} AS BINARY)) STORED";
-            $identity_note($natural_label.': adding exact-byte column '.$natural_bin.'.');
-            $identity_note('Upgrading: '.$natural_bin_sql);
-            $natural_bin_alter = $PDOX->queryReturnError($natural_bin_sql, false, false);
-            if ( ! $natural_bin_alter->success ) {
-                $identity_note($natural_label.': exact-byte column alter failed: '.$natural_bin_alter->errorImplode.'. Unique index not added.');
-                continue;
-            }
-            $identity_note($natural_label.': added exact-byte column '.$natural_bin.'.');
-        } else {
-            $natural_bin_meta = $PDOX->describeColumn($natural_bin, $natural_physical);
-            $natural_bin_extra = strtolower((string) \Tsugi\Util\U::getIgnoreCase($natural_bin_meta, 'Extra'));
-            if ( strpos($natural_bin_extra, 'generated') === false ) {
-                $identity_note($natural_label.': '.$natural_bin.' exists and is not a generated column. Unique index not added.');
-                continue;
-            }
-            $identity_note($natural_label.': exact-byte column '.$natural_bin.' is already present.');
-        }
+    }
 
-        $natural_unique_name = isset($natural_column[4]) ? (string) $natural_column[4] : '';
-        $natural_unique_columns = isset($natural_column[5]) && is_array($natural_column[5]) ? $natural_column[5] : array();
-        $natural_unique_ok = preg_match($natural_ident, $natural_unique_name) === 1 && count($natural_unique_columns) > 0;
-        if ( $natural_unique_ok ) {
-            foreach ( $natural_unique_columns as $natural_unique_column ) {
-                if ( preg_match($natural_ident, (string) $natural_unique_column) !== 1 ) {
-                    $natural_unique_ok = false;
-                    break;
+    // Drop the generated exact-byte columns and every index that uses one.
+    // Drop the index first. A composite unique that lost only the generated
+    // column would keep the other columns.
+    $exact_byte_columns = array(
+        'lti_user' => array('user_key_bin', 'subject_key_bin'),
+        'profile' => array('profile_key_bin'),
+        'lti_service' => array('service_key_bin'),
+        'lti_context' => array('context_key_bin'),
+        'lti_link' => array('link_key_bin'),
+        'lti_content' => array('resource_link_id_bin'),
+    );
+    foreach ( $exact_byte_columns as $exact_table => $exact_columns ) {
+        $exact_ident = '/^[A-Za-z0-9_]+$/';
+        $exact_physical = $CFG->dbprefix.$exact_table;
+        if ( preg_match($exact_ident, $exact_table) !== 1 ) {
+            $identity_note('Exact-byte columns on '.$exact_table.': table name is not usable. Left unchanged.');
+            continue;
+        }
+        $exact_wanted = array();
+        foreach ( $exact_columns as $exact_column ) {
+            if ( preg_match($exact_ident, $exact_column) !== 1 ) {
+                $identity_note('Exact-byte column '.$exact_table.'.'.$exact_column.': column name is not usable. Left unchanged.');
+                continue;
+            }
+            $exact_wanted[$exact_column] = true;
+        }
+        if ( count($exact_wanted) < 1 ) continue;
+        // Profile is created by a later service. A fresh install has no table yet.
+        $exact_meta = $PDOX->describe($exact_physical);
+        if ( ! is_array($exact_meta) ) {
+            $identity_note('Exact-byte columns on '.$exact_table.': table is absent. Left unchanged.');
+            continue;
+        }
+        $exact_detail = $PDOX->indexDetail($exact_physical);
+        if ( ! is_array($exact_detail) ) {
+            $identity_note('Exact-byte indexes for '.$exact_table.': index metadata unavailable. Columns left in place.');
+            continue;
+        }
+        $exact_indexes = array();
+        if ( is_array($exact_detail) ) {
+            foreach ( $exact_detail as $exact_index_row ) {
+                $exact_index_column = strtolower((string) \Tsugi\Util\U::get($exact_index_row, 'Column_name'));
+                $exact_index_name = (string) \Tsugi\Util\U::get($exact_index_row, 'Key_name');
+                if ( $exact_index_name === '' || strcasecmp($exact_index_name, 'PRIMARY') === 0 ) continue;
+                if ( ! isset($exact_wanted[$exact_index_column]) ) continue;
+                if ( preg_match($exact_ident, $exact_index_name) !== 1 ) {
+                    $identity_note('Exact-byte column '.$exact_table.'.'.$exact_index_column.': index name is not usable. Column left in place.');
+                    unset($exact_wanted[$exact_index_column]);
+                    continue;
                 }
+                $exact_indexes[$exact_index_name] = true;
             }
         }
-        if ( ! $natural_unique_ok ) {
-            $identity_note($natural_label.': unique description is not usable. Unique index not added.');
-            continue;
+        foreach ( array_keys($exact_indexes) as $exact_index_name ) {
+            $exact_index_sql = "ALTER TABLE {$exact_physical} DROP INDEX `{$exact_index_name}`";
+            $identity_note('Exact-byte index '.$exact_table.'.'.$exact_index_name.': dropping.');
+            $identity_note('Upgrading: '.$exact_index_sql);
+            $exact_index_alter = $PDOX->queryReturnError($exact_index_sql, false, false);
+            if ( ! $exact_index_alter->success ) {
+                $identity_note('Exact-byte index '.$exact_table.'.'.$exact_index_name.': drop failed: '.$exact_index_alter->errorImplode.'. Columns left in place.');
+                $exact_wanted = array();
+                break;
+            }
+            $identity_note('Exact-byte index '.$exact_table.'.'.$exact_index_name.': dropped.');
         }
-        $natural_unique_index = $CFG->dbprefix.$natural_unique_name;
-        $natural_unique_list = implode(', ', $natural_unique_columns);
-        $natural_unique_want = array();
-        foreach ( $natural_unique_columns as $natural_unique_column ) {
-            $natural_unique_want[] = strtolower((string) $natural_unique_column);
+        foreach ( array_keys($exact_wanted) as $exact_column ) {
+            $exact_label = 'Exact-byte column '.$exact_table.'.'.$exact_column;
+            if ( ! $PDOX->columnExists($exact_column, $exact_physical) ) {
+                $identity_note($exact_label.': column is already absent.');
+                continue;
+            }
+            $exact_column_sql = "ALTER TABLE {$exact_physical} DROP COLUMN {$exact_column}";
+            $identity_note($exact_label.': dropping column.');
+            $identity_note('Upgrading: '.$exact_column_sql);
+            $exact_column_alter = $PDOX->queryReturnError($exact_column_sql, false, false);
+            if ( ! $exact_column_alter->success ) {
+                $identity_note($exact_label.': column drop failed: '.$exact_column_alter->errorImplode.'.');
+                continue;
+            }
+            $identity_note($exact_label.': dropped column.');
         }
-        $natural_unique_have = $natural_index_columns($natural_unique_index, $natural_physical);
-        $natural_unique_ready = $natural_unique_have === $natural_unique_want;
-        if ( $natural_unique_ready ) {
-            $identity_note($natural_label.': unique ('.$natural_unique_list.') already present.');
-            continue;
-        }
-        $natural_unique_replace = count($natural_unique_have) > 0;
-        $natural_unique_where = array();
-        foreach ( $natural_unique_columns as $natural_unique_column ) {
-            $natural_unique_where[] = $natural_unique_column.' IS NOT NULL';
-        }
-        $natural_unique_where_sql = implode(' AND ', $natural_unique_where);
-        $natural_group_rows = $PDOX->allRows(
-            "SELECT COUNT(*) AS duplicate_groups FROM (
-                SELECT 1 AS present
-                FROM {$natural_physical}
-                WHERE {$natural_unique_where_sql}
-                GROUP BY {$natural_unique_list}
-                HAVING COUNT(*) > 1
-            ) AS duplicate_rows",
-            false,
+    }
+
+    // key_key is the LTI 1.1 consumer key. NULL stays repeatable. A repeated
+    // non-NULL value skips the unique, and the next upgrade tries again.
+    // ascii_bin treats trailing spaces as the same key, so the scan groups
+    // by key_key and matches UNIQUE(key_key). Soft-deleted rows count.
+    $key_key_physical = $CFG->dbprefix.'lti_key';
+    $key_key_index = $CFG->dbprefix.'lti_key_const_key_key';
+    $key_key_label = 'Identity column lti_key.key_key';
+    if ( ! $PDOX->columnExists('key_key', $key_key_physical) ) {
+        $identity_note($key_key_label.': column is absent. Unique index not added.');
+    } else {
+        $key_key_schema_rows = $PDOX->allRows(
+            "SELECT DATA_TYPE AS data_type,
+                CHARACTER_MAXIMUM_LENGTH AS char_length,
+                CHARACTER_SET_NAME AS charset_name,
+                COLLATION_NAME AS collation_name
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = :table_name
+                AND COLUMN_NAME = 'key_key'",
+            array(':table_name' => $key_key_physical),
             false
         );
-        if ( ! is_array($natural_group_rows) || ! isset($natural_group_rows[0]) ) {
-            $identity_note($natural_label.': could not count duplicate values for unique ('.$natural_unique_list.'). Unique index not added.');
-            continue;
-        }
-        $natural_groups = (int) \Tsugi\Util\U::get($natural_group_rows[0], 'duplicate_groups', 0);
-        $natural_group_word = $natural_groups === 1 ? 'group' : 'groups';
-        if ( $natural_groups > 0 ) {
-            $natural_table_has_key_id = false;
-            foreach ( $natural_described[$natural_physical] as $natural_key_row ) {
-                if ( \Tsugi\Util\U::getIgnoreCase($natural_key_row, 'Field') === 'key_id' ) {
-                    $natural_table_has_key_id = true;
-                    break;
+        $key_key_schema = is_array($key_key_schema_rows) && isset($key_key_schema_rows[0]) ? $key_key_schema_rows[0] : null;
+        $key_key_ascii = is_array($key_key_schema)
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($key_key_schema, 'data_type')) === 'varchar'
+            && (int) \Tsugi\Util\U::getIgnoreCase($key_key_schema, 'char_length') === 255
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($key_key_schema, 'charset_name')) === 'ascii'
+            && strtolower((string) \Tsugi\Util\U::getIgnoreCase($key_key_schema, 'collation_name')) === 'ascii_bin';
+        if ( ! $key_key_ascii ) {
+            $identity_note($key_key_label.': column is not varchar(255) character set ascii collation ascii_bin. Unique index not added.');
+        } else {
+            $key_key_have = $natural_index_columns($key_key_index, $key_key_physical);
+            $key_key_is_unique = true;
+            $key_key_detail = $PDOX->indexDetail($key_key_physical);
+            if ( is_array($key_key_detail) ) {
+                foreach ( $key_key_detail as $key_key_index_row ) {
+                    if ( (string) \Tsugi\Util\U::get($key_key_index_row, 'Key_name') !== $key_key_index ) continue;
+                    // Sub_part is NULL for the whole column. A number is a prefix, so campus01-A and campus01-B would collide.
+                    if ( (int) \Tsugi\Util\U::get($key_key_index_row, 'Non_unique') !== 0
+                        || \Tsugi\Util\U::get($key_key_index_row, 'Sub_part') !== null ) {
+                        $key_key_is_unique = false;
+                    }
                 }
             }
-            $natural_has_key_id = in_array('key_id', $natural_unique_columns, true);
-            $natural_example_select = "MIN({$natural_id}) AS example_id, COUNT(*) AS n";
-            if ( $natural_has_key_id ) {
-                $natural_example_select .= ', key_id';
-            } else if ( $natural_table_has_key_id ) {
-                $natural_example_select .= ', MIN(key_id) AS key_id, MAX(key_id) AS key_id_max';
-            }
-            $natural_dup_examples = $PDOX->allRows(
-                "SELECT {$natural_example_select}
-                    FROM {$natural_physical}
-                    WHERE {$natural_unique_where_sql}
-                    GROUP BY {$natural_unique_list}
-                    HAVING n > 1
-                    ORDER BY n DESC, example_id
-                    LIMIT 5",
-                false,
-                false
-            );
-            $natural_dup_bits = array();
-            if ( is_array($natural_dup_examples) ) {
-                foreach ( $natural_dup_examples as $natural_dup_example ) {
-                    $natural_dup_bit = $natural_id.'='.\Tsugi\Util\U::get($natural_dup_example, 'example_id')
-                        .' count='.\Tsugi\Util\U::get($natural_dup_example, 'n');
-                    $natural_dup_key = \Tsugi\Util\U::get($natural_dup_example, 'key_id');
-                    $natural_dup_key_max = \Tsugi\Util\U::get($natural_dup_example, 'key_id_max');
-                    if ( $natural_dup_key !== null && $natural_dup_key !== false && $natural_dup_key !== '' ) {
-                        $natural_dup_bit .= ' key_id='.$natural_dup_key;
-                        if ( $natural_dup_key_max !== null && $natural_dup_key_max !== false && (string) $natural_dup_key_max !== (string) $natural_dup_key ) {
-                            $natural_dup_bit .= '..'.$natural_dup_key_max;
+            if ( $key_key_have === array('key_key') && $key_key_is_unique ) {
+                $identity_note($key_key_label.': unique (key_key) already present.');
+            } else {
+                $key_key_group_rows = $PDOX->allRows(
+                    "SELECT COUNT(*) AS duplicate_groups FROM (
+                        SELECT 1 AS present
+                        FROM {$key_key_physical}
+                        WHERE key_key IS NOT NULL
+                        GROUP BY key_key
+                        HAVING COUNT(*) > 1
+                    ) AS duplicate_rows",
+                    false,
+                    false
+                );
+                if ( ! is_array($key_key_group_rows) || ! isset($key_key_group_rows[0]) ) {
+                    $identity_note($key_key_label.': could not count duplicate values for unique (key_key). Unique index not added.');
+                } else {
+                    $key_key_groups = (int) \Tsugi\Util\U::get($key_key_group_rows[0], 'duplicate_groups', 0);
+                    $key_key_group_word = $key_key_groups === 1 ? 'group' : 'groups';
+                    if ( $key_key_groups > 0 ) {
+                        $key_key_examples = $PDOX->allRows(
+                            "SELECT MIN(key_id) AS example_id, MAX(key_id) AS key_id_max,
+                                    COUNT(*) AS n, MIN(key_key) AS key_key
+                                FROM {$key_key_physical}
+                                WHERE key_key IS NOT NULL
+                                GROUP BY key_key
+                                HAVING n > 1
+                                ORDER BY n DESC, example_id
+                                LIMIT 5",
+                            false,
+                            false
+                        );
+                        $key_key_bits = array();
+                        if ( is_array($key_key_examples) ) {
+                            foreach ( $key_key_examples as $key_key_example ) {
+                                $key_key_bit = 'key_id='.\Tsugi\Util\U::get($key_key_example, 'example_id')
+                                    .' count='.\Tsugi\Util\U::get($key_key_example, 'n')
+                                    .' key_key='.\Tsugi\Util\U::get($key_key_example, 'key_key');
+                                $key_key_max = \Tsugi\Util\U::get($key_key_example, 'key_id_max');
+                                $key_key_min = \Tsugi\Util\U::get($key_key_example, 'example_id');
+                                if ( $key_key_max !== null && $key_key_max !== false && (string) $key_key_max !== (string) $key_key_min ) {
+                                    $key_key_bit .= ' key_id_max='.$key_key_max;
+                                }
+                                $key_key_bits[] = $key_key_bit;
+                            }
+                        }
+                        $key_key_example_text = count($key_key_bits) > 0 ? ' Examples: '.implode('; ', $key_key_bits).'.' : '';
+                        $identity_note($key_key_label.': '.$key_key_groups.' duplicate '.$key_key_group_word.' for unique (key_key).'.$key_key_example_text.' Unique index not added.');
+                    } else {
+                        $key_key_replace = count($key_key_have) > 0;
+                        if ( $key_key_replace ) {
+                            $key_key_sql = "ALTER TABLE {$key_key_physical} DROP INDEX `{$key_key_index}`, ADD CONSTRAINT `{$key_key_index}` UNIQUE (key_key)";
+                            $identity_note($key_key_label.': unique '.$key_key_index.' is on ('.implode(', ', $key_key_have).'). 0 duplicate groups for unique (key_key). Replacing it.');
+                        } else {
+                            $key_key_sql = "ALTER TABLE {$key_key_physical} ADD CONSTRAINT `{$key_key_index}` UNIQUE (key_key)";
+                            $identity_note($key_key_label.': 0 duplicate groups for unique (key_key). Adding constraint '.$key_key_index.'.');
+                        }
+                        $identity_note('Upgrading: '.$key_key_sql);
+                        $key_key_alter = $PDOX->queryReturnError($key_key_sql, false, false);
+                        if ( ! $key_key_alter->success ) {
+                            $identity_note($key_key_label.': unique (key_key) alter failed: '.$key_key_alter->errorImplode.'. Unique index not added.');
+                        } else {
+                            $key_key_verb = $key_key_replace ? 'replaced' : 'added';
+                            $identity_note($key_key_label.': '.$key_key_verb.' unique (key_key).');
                         }
                     }
-                    $natural_dup_bits[] = $natural_dup_bit;
                 }
             }
-            $natural_dup_text = count($natural_dup_bits) > 0 ? ' Examples: '.implode('; ', $natural_dup_bits).'.' : '';
-            $identity_note($natural_label.': '.$natural_groups.' duplicate '.$natural_group_word.' for unique ('.$natural_unique_list.').'.$natural_dup_text.' Unique index not added.');
-            continue;
         }
-        if ( $natural_unique_replace ) {
-            $natural_unique_sql = "ALTER TABLE {$natural_physical} DROP INDEX `{$natural_unique_index}`, ADD CONSTRAINT `{$natural_unique_index}` UNIQUE ({$natural_unique_list})";
-            $identity_note($natural_label.': unique '.$natural_unique_index.' is on ('.implode(', ', $natural_unique_have).'). 0 duplicate groups for unique ('.$natural_unique_list.'). Replacing it.');
-        } else {
-            $natural_unique_sql = "ALTER TABLE {$natural_physical} ADD CONSTRAINT `{$natural_unique_index}` UNIQUE ({$natural_unique_list})";
-            $identity_note($natural_label.': 0 duplicate groups for unique ('.$natural_unique_list.'). Adding constraint '.$natural_unique_index.'.');
-        }
-        $identity_note('Upgrading: '.$natural_unique_sql);
-        $natural_unique_alter = $PDOX->queryReturnError($natural_unique_sql, false, false);
-        if ( ! $natural_unique_alter->success ) {
-            $identity_note($natural_label.': unique ('.$natural_unique_list.') alter failed: '.$natural_unique_alter->errorImplode.'. Unique index not added.');
-            continue;
-        }
-        $natural_unique_verb = $natural_unique_replace ? 'replaced' : 'added';
-        $identity_note($natural_label.': '.$natural_unique_verb.' unique ('.$natural_unique_list.').');
     }
 
     // When you increase this number in any database.php file,
