@@ -87,10 +87,21 @@ class Table {
 
         $searchtext = '';
         if ( is_array($searchfields) && count($searchfields) > 0 && isset($params['search_text']) ) {
+            $searchraw = $params['search_text'];
+            // ascii_bin columns (user_key and the other natural keys) reject a
+            // LIKE pattern that contains a character outside ASCII. MySQL error
+            // 1267 fails the whole OR, so the utf8 columns never get to match.
+            // Widen those comparisons. An ASCII pattern stays as written so
+            // ascii_bin stays case-sensitive.
+            $widen = is_string($searchraw) && preg_match('/[^\x00-\x7F]/', $searchraw) === 1;
             for($i=0; $i < count($searchfields); $i++ ) {
                 if ( $i > 0 ) $searchtext .= " OR ";
-                $searchtext .= $searchfields[$i]." LIKE :SEARCH".$i;
-                $queryvalues[':SEARCH'.$i] = '%'.$params['search_text'].'%';
+                if ( $widen ) {
+                    $searchtext .= "CONVERT(".$searchfields[$i]." USING utf8mb4) LIKE :SEARCH".$i;
+                } else {
+                    $searchtext .= $searchfields[$i]." LIKE :SEARCH".$i;
+                }
+                $queryvalues[':SEARCH'.$i] = '%'.$searchraw.'%';
             }
         }
 

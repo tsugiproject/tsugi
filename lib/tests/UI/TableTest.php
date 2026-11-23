@@ -49,4 +49,45 @@ class TableTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('href="profile?order_by=premium_at"', $html);
     }
 
+    public function testPagedQueryAsciiSearchStaysOnTheColumn() {
+        $values = array();
+        $sql = Table::pagedQuery(
+            "SELECT user_id FROM lti_user WHERE user_id > :MIN",
+            $values,
+            array('user_key', 'displayname'),
+            array('displayname'),
+            array('search_text' => 'Minh')
+        );
+
+        $this->assertStringContainsString(
+            'WHERE ( user_key LIKE :SEARCH0 OR displayname LIKE :SEARCH1 ) AND',
+            $sql
+        );
+        $this->assertStringNotContainsString('CONVERT(', $sql);
+        $this->assertSame('%Minh%', $values[':SEARCH0']);
+        $this->assertSame('%Minh%', $values[':SEARCH1']);
+    }
+
+    /**
+     * A pattern outside ASCII cannot be coerced into an ascii_bin column.
+     * MySQL 1267 aborts the whole OR, including displayname.
+     */
+    public function testPagedQueryNonAsciiSearchWidensEveryColumn() {
+        $values = array();
+        $sql = Table::pagedQuery(
+            "SELECT user_id FROM lti_user WHERE user_id > :MIN",
+            $values,
+            array('user_key', 'displayname'),
+            array('displayname'),
+            array('search_text' => 'Мина')
+        );
+
+        $this->assertStringContainsString(
+            'WHERE ( CONVERT(user_key USING utf8mb4) LIKE :SEARCH0 OR CONVERT(displayname USING utf8mb4) LIKE :SEARCH1 ) AND',
+            $sql
+        );
+        $this->assertSame('%Мина%', $values[':SEARCH0']);
+        $this->assertSame('%Мина%', $values[':SEARCH1']);
+    }
+
 }
