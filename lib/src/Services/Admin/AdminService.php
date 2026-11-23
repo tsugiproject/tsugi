@@ -16,6 +16,12 @@ class AdminService {
     /** @var array<int, array<string, mixed>>|null */
     private static $issuerClientDuplicateRows = null;
 
+    /** @var array<int, array<string, mixed>>|null */
+    private static $duplicateLti11KeyRows = null;
+
+    /** @var array<int, string> */
+    private static $upgradeBeaconNotes = array();
+
         // admin/admin_util.php
     // TODO: deal with headers sent...
     public static function requireLogin() {
@@ -537,6 +543,574 @@ class AdminService {
     }
 
     /**
+     * How a stored issuer, client id, or deployment id should be read.
+     * An empty string is a value. NULL is a different value.
+     *
+     * @param mixed $value
+     */
+    public static function identityValueLabel($value) {
+        if ( $value === null ) return '(NULL)';
+        if ( ! is_string($value) || $value === '' ) return '(empty string)';
+        if ( trim($value) === '' ) {
+            $spaces = strlen($value);
+            $word = $spaces === 1 ? 'space' : 'spaces';
+            return '('.$spaces.' '.$word.')';
+        }
+        return $value;
+    }
+
+    /**
+     * Keys that block UNIQUE(lms_issuer, lms_client, deploy_key).
+     *
+     * A NULL in any of the three columns is not a member. An empty string is.
+     * Soft-deleted keys count. Each group lists every key id.
+     *
+     * @return array<int, array{group_id:int, keys:array<int, array<string, mixed>>}>
+     */
+    public static function issuerClientDeployUniqueBlockingGroups() {
+        global $PDOX, $CFG;
+
+        $table = "{$CFG->dbprefix}lti_key";
+        if ( ! is_object($PDOX) ) return array();
+        $names = self::ltiKeyColumnNames($table);
+        foreach ( array('key_id', 'lms_issuer', 'lms_client', 'deploy_key') as $need ) {
+            if ( ! in_array($need, $names, true) ) return array();
+        }
+        $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
+        $title_sql = in_array('key_title', $names, true) ? 'k.key_title' : 'NULL';
+        $rows = self::diagnosticRows(
+            "SELECT k.key_id, {$title_sql} AS key_title, {$deleted_sql} AS deleted,
+                    k.lms_issuer, k.lms_client, k.deploy_key, d.group_id
+                FROM {$table} AS k
+                INNER JOIN (
+                    SELECT MIN(key_id) AS group_id, lms_issuer, lms_client, deploy_key
+                        FROM {$table}
+                        WHERE lms_issuer IS NOT NULL
+                            AND lms_client IS NOT NULL
+                            AND deploy_key IS NOT NULL
+                        GROUP BY lms_issuer, lms_client, deploy_key
+                        HAVING COUNT(*) > 1
+                ) AS d
+                    ON k.lms_issuer = d.lms_issuer
+                    AND k.lms_client = d.lms_client
+                    AND k.deploy_key = d.deploy_key
+                ORDER BY d.group_id, k.key_id"
+        );
+        $groups = array();
+        foreach ( $rows as $row ) {
+            $group_id = (int) U::get($row, 'group_id', 0);
+            if ( ! isset($groups[$group_id]) ) {
+                $groups[$group_id] = array(
+                    'group_id' => $group_id,
+                    'keys' => array(),
+                );
+            }
+            $groups[$group_id]['keys'][] = $row;
+        }
+        return array_values($groups);
+    }
+
+    /**
+     * Remember a short upgrade note for the beacon comment.
+     * No key ids or stored values. A later beacon in this process still sees it.
+     */
+    public static function addUpgradeBeaconNote($note) {
+        $note = is_string($note) ? trim($note) : '';
+        if ( $note === '' || in_array($note, self::$upgradeBeaconNotes, true) ) return;
+        self::$upgradeBeaconNotes[] = $note;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function upgradeBeaconNotes() {
+        return self::$upgradeBeaconNotes;
+    }
+
+    /**
+     * Whether UNIQUE(lms_issuer, lms_client, deploy_key) can be added.
+     *
+     * The three columns must already be varchar(255) character set ascii
+     * collation ascii_bin and nullable. A value longer than 255 characters,
+     * or a character outside ASCII, blocks the varchar alter and this unique.
+     * A NULL in any of the three columns stays repeatable, so those rows are
+     * not duplicates. An empty string is a value. Soft-deleted rows count.
+     * ascii_bin is PAD SPACE, so GROUP BY matches the unique index.
+     * A prefix index does not count as present.
+     *
+     * blocked is the beacon phrase when the unique is absent and the ALTER
+     * must not run. It has no key ids and no stored values. An empty blocked
+     * string means the unique is present, or the data is ready for the ALTER.
+     *
+     * @return array{present:bool, can_add:bool, replace:bool, have:array<int, string>, index:string, groups:int, examples:array<int, array<string, mixed>>, blocked:string}
+     */
+    public static function issuerClientDeployUniqueGate() {
+        global $PDOX, $CFG;
+
+        $index = $CFG->dbprefix.'lti_key_const_issuer_client_deploy';
+        $empty = array(
+            'present' => false,
+            'can_add' => false,
+            'replace' => false,
+            'have' => array(),
+            'index' => $index,
+            'groups' => 0,
+            'examples' => array(),
+            'blocked' => 'unique (issuer, client id, deployment id) not added: could not read lti_key',
+        );
+        $table = $CFG->dbprefix.'lti_key';
+        if ( ! is_object($PDOX) ) return $empty;
+        if ( ! is_array($PDOX->describe($table)) ) return $empty;
+
+        $columns = array('lms_issuer', 'lms_client', 'deploy_key');
+        $blocked_columns = array();
+        foreach ( $columns as $column ) {
+            $column_block = self::uniqueColumnBlock($table, $column, 255, true);
+            if ( $column_block !== '' ) $blocked_columns[] = $column_block;
+        }
+        if ( count($blocked_columns) > 0 ) {
+            $empty['blocked'] = 'unique (issuer, client id, deployment id) not added: '
+                .implode('; ', $blocked_columns);
+            return $empty;
+        }
+
+        $detail = $PDOX->indexDetail($table);
+        if ( ! is_array($detail) ) {
+            $empty['blocked'] = 'unique (issuer, client id, deployment id) not added: could not read indexes';
+            return $empty;
+        }
+        $wanted = array('lms_issuer', 'lms_client', 'deploy_key');
+        $by_name = array();
+        foreach ( $detail as $index_row ) {
+            $index_name = (string) U::getIgnoreCase($index_row, 'Key_name');
+            if ( $index_name === '' || strcasecmp($index_name, 'PRIMARY') === 0 ) continue;
+            $seq = (int) U::getIgnoreCase($index_row, 'Seq_in_index');
+            if ( ! isset($by_name[$index_name]) ) {
+                $by_name[$index_name] = array(
+                    'columns' => array(),
+                    'full_unique' => true,
+                );
+            }
+            $by_name[$index_name]['columns'][$seq] = strtolower((string) U::getIgnoreCase($index_row, 'Column_name'));
+            $sub_part = U::getIgnoreCase($index_row, 'Sub_part');
+            if ( (int) U::getIgnoreCase($index_row, 'Non_unique') !== 0 || $sub_part !== null ) {
+                $by_name[$index_name]['full_unique'] = false;
+            }
+        }
+        foreach ( $by_name as $info ) {
+            $ordered = $info['columns'];
+            ksort($ordered);
+            if ( $info['full_unique'] && array_values($ordered) === $wanted ) {
+                return array(
+                    'present' => true,
+                    'can_add' => false,
+                    'replace' => false,
+                    'have' => array(),
+                    'index' => $index,
+                    'groups' => 0,
+                    'examples' => array(),
+                    'blocked' => '',
+                );
+            }
+        }
+        $have = array();
+        if ( isset($by_name[$index]) ) {
+            $have = $by_name[$index]['columns'];
+            ksort($have);
+            $have = array_values($have);
+        }
+        $count_rows = $PDOX->allRows(
+            "SELECT COUNT(*) AS duplicate_groups FROM (
+                SELECT 1 AS present
+                FROM {$table}
+                WHERE lms_issuer IS NOT NULL
+                    AND lms_client IS NOT NULL
+                    AND deploy_key IS NOT NULL
+                GROUP BY lms_issuer, lms_client, deploy_key
+                HAVING COUNT(*) > 1
+            ) AS duplicate_rows",
+            false,
+            false
+        );
+        if ( ! is_array($count_rows) || ! isset($count_rows[0]) ) {
+            $empty['blocked'] = 'unique (issuer, client id, deployment id) not added: could not count duplicate values';
+            return $empty;
+        }
+        $groups = (int) U::get($count_rows[0], 'duplicate_groups', 0);
+        $examples = array();
+        if ( $groups > 0 ) {
+            $example_rows = $PDOX->allRows(
+                "SELECT MIN(key_id) AS example_id, MAX(key_id) AS id_max, COUNT(*) AS n,
+                        MIN(lms_issuer) AS lms_issuer, MIN(lms_client) AS lms_client, MIN(deploy_key) AS deploy_key
+                    FROM {$table}
+                    WHERE lms_issuer IS NOT NULL
+                        AND lms_client IS NOT NULL
+                        AND deploy_key IS NOT NULL
+                    GROUP BY lms_issuer, lms_client, deploy_key
+                    HAVING COUNT(*) > 1
+                    ORDER BY n DESC, example_id
+                    LIMIT 5",
+                false,
+                false
+            );
+            if ( is_array($example_rows) ) $examples = $example_rows;
+            $group_word = $groups === 1 ? 'group' : 'groups';
+            return array(
+                'present' => false,
+                'can_add' => false,
+                'replace' => count($have) > 0,
+                'have' => $have,
+                'index' => $index,
+                'groups' => $groups,
+                'examples' => $examples,
+                'blocked' => 'unique (issuer, client id, deployment id) not added: '.$groups.' duplicate '.$group_word,
+            );
+        }
+        return array(
+            'present' => false,
+            'can_add' => true,
+            'replace' => count($have) > 0,
+            'have' => $have,
+            'index' => $index,
+            'groups' => 0,
+            'examples' => array(),
+            'blocked' => '',
+        );
+    }
+
+    /**
+     * Why a unique cannot be added on this column, or '' when the column is ready.
+     *
+     * Ready means varchar($width) character set ascii collation ascii_bin, and
+     * the requested nullability when $nullable is true or false. A value longer
+     * than $width, or a character outside ASCII, is the reason the varchar
+     * alter cannot run. The unique waits until that alter has already landed.
+     * The phrase has no row ids and no stored values.
+     *
+     * @param string $table Physical table name
+     * @param string $column
+     * @param int $width
+     * @param bool|null $nullable true requires NULL, false requires NOT NULL, null does not check
+     */
+    public static function uniqueColumnBlock($table, $column, $width, $nullable = null) {
+        global $PDOX;
+
+        $width = (int) $width;
+        if ( ! is_object($PDOX)
+            || preg_match('/^[A-Za-z0-9_]+$/', (string) $table) !== 1
+            || preg_match('/^[A-Za-z0-9_]+$/', (string) $column) !== 1
+            || $width < 1 ) {
+            return $column.' could not be read';
+        }
+        $rows = $PDOX->allRows(
+            "SELECT DATA_TYPE AS data_type,
+                CHARACTER_MAXIMUM_LENGTH AS char_length,
+                CHARACTER_SET_NAME AS charset_name,
+                COLLATION_NAME AS collation_name,
+                IS_NULLABLE AS is_nullable
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = :table_name
+                AND COLUMN_NAME = :column_name",
+            array(
+                ':table_name' => $table,
+                ':column_name' => $column,
+            ),
+            false
+        );
+        if ( ! is_array($rows) ) return $column.' could not be read';
+        if ( ! isset($rows[0]) ) return $column.' is absent';
+        $row = $rows[0];
+        $is_nullable = strtoupper((string) U::getIgnoreCase($row, 'is_nullable')) === 'YES';
+        $type_ok = strtolower((string) U::getIgnoreCase($row, 'data_type')) === 'varchar'
+            && (int) U::getIgnoreCase($row, 'char_length') === $width
+            && strtolower((string) U::getIgnoreCase($row, 'charset_name')) === 'ascii'
+            && strtolower((string) U::getIgnoreCase($row, 'collation_name')) === 'ascii_bin';
+        $null_ok = $nullable === null || ($nullable ? $is_nullable : ! $is_nullable);
+        if ( $type_ok && $null_ok ) return '';
+
+        $counts = $PDOX->allRows(
+            "SELECT COALESCE(SUM(CASE WHEN CHAR_LENGTH({$column}) > {$width} THEN 1 ELSE 0 END), 0) AS too_long,
+                COALESCE(SUM(CASE WHEN {$column} IS NOT NULL AND CHAR_LENGTH({$column}) <> LENGTH({$column}) THEN 1 ELSE 0 END), 0) AS non_ascii
+            FROM {$table}",
+            false,
+            false
+        );
+        if ( is_array($counts) && isset($counts[0]) ) {
+            $too_long = (int) U::get($counts[0], 'too_long', 0);
+            $non_ascii = (int) U::get($counts[0], 'non_ascii', 0);
+            $bits = array();
+            if ( $too_long > 0 ) {
+                $bits[] = $too_long.' '.($too_long === 1 ? 'value' : 'values').' longer than '.$width.' characters';
+            }
+            if ( $non_ascii > 0 ) {
+                $bits[] = $non_ascii.' '.($non_ascii === 1 ? 'value' : 'values').' outside ASCII';
+            }
+            if ( count($bits) > 0 ) return $column.' has '.implode(' and ', $bits);
+        }
+        if ( ! $type_ok ) {
+            $null_sql = $nullable === true ? ' NULL' : ($nullable === false ? ' NOT NULL' : '');
+            return $column.' is not varchar('.$width.') character set ascii collation ascii_bin'.$null_sql;
+        }
+        if ( $nullable === true ) return $column.' does not allow NULL';
+        if ( $nullable === false ) return $column.' allows NULL';
+        return $column.' is not varchar('.$width.') character set ascii collation ascii_bin';
+    }
+
+    /**
+     * Schema steps that have not landed. Empty when every step has.
+     *
+     * A unique is listed only as waiting while its column is not yet the
+     * ascii varchar. No row ids and no stored values. The next upgrade tries
+     * the unique after the column step has succeeded.
+     *
+     * @return array<int, string>
+     */
+    public static function pendingUpgradeNotes() {
+        global $CFG, $PDOX;
+
+        if ( ! is_object($PDOX) ) return array('schema progress check failed');
+        $prefix = isset($CFG->dbprefix) ? (string) $CFG->dbprefix : '';
+        try {
+            $notes = array();
+            foreach ( self::asciiColumnMigrations() as $column ) {
+                $table = $column[0];
+                $field = $column[1];
+                $width = (int) $column[2];
+                $needs_dynamic = ! empty($column[3]);
+                $physical = $prefix.$table;
+                $block = self::uniqueColumnBlock($physical, $field, $width, null);
+                if ( $block === '' ) continue;
+                if ( $needs_dynamic && str_starts_with($block, $field.' is not varchar(') ) {
+                    $format = self::tableRowFormat($physical);
+                    if ( $format !== 'dynamic' ) {
+                        $shown = $format === '' ? 'unknown' : $format;
+                        $notes[] = $table.'.'.$field.' left unchanged: row format is '.$shown;
+                        continue;
+                    }
+                }
+                $notes[] = $table.'.'.$field.' left unchanged: '.$block;
+            }
+            foreach ( self::uniqueUpgradeSteps() as $step ) {
+                $note = self::uniqueUpgradeNote($prefix, $step);
+                if ( $note !== '' ) $notes[] = $note;
+            }
+            return $notes;
+        } catch (\Throwable $e) {
+            return array('schema progress check failed');
+        }
+    }
+
+    /**
+     * @return array<int, array{0:string,1:string,2:int,3:bool}>
+     */
+    private static function asciiColumnMigrations() {
+        $columns = array();
+        $seen = array();
+        foreach ( self::identityAsciiColumns() as $column ) {
+            $name = $column[0].'.'.$column[1];
+            $seen[$name] = true;
+            $columns[] = array($column[0], $column[1], 255, false);
+        }
+        foreach ( self::naturalKeyAsciiColumns() as $column ) {
+            $name = $column[0].'.'.$column[1];
+            if ( isset($seen[$name]) ) continue;
+            $columns[] = array($column[0], $column[1], (int) $column[3], true);
+        }
+        return $columns;
+    }
+
+    /**
+     * @return array<int, array{table:string, phrase:string, group:array<int, string>, columns:array<int, array{0:string,1:int,2:bool|null}>, dynamic:bool}>
+     */
+    private static function uniqueUpgradeSteps() {
+        return array(
+            array(
+                'table' => 'lti_key',
+                'phrase' => 'unique (key_key)',
+                'group' => array('key_key'),
+                'columns' => array(array('key_key', 255, null)),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'lti_key',
+                'phrase' => 'unique (issuer, client id, deployment id)',
+                'group' => array('lms_issuer', 'lms_client', 'deploy_key'),
+                'columns' => array(
+                    array('lms_issuer', 255, true),
+                    array('lms_client', 255, true),
+                    array('deploy_key', 255, true),
+                ),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'lti_user',
+                'phrase' => 'unique (key_id, user_key)',
+                'group' => array('key_id', 'user_key'),
+                'columns' => array(array('user_key', 512, true)),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'lti_user',
+                'phrase' => 'unique (key_id, subject_key)',
+                'group' => array('key_id', 'subject_key'),
+                'columns' => array(array('subject_key', 255, true)),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'lti_service',
+                'phrase' => 'unique (key_id, service_key)',
+                'group' => array('key_id', 'service_key'),
+                'columns' => array(array('service_key', 1024, false)),
+                'dynamic' => true,
+            ),
+            array(
+                'table' => 'lti_context',
+                'phrase' => 'unique (key_id, context_key)',
+                'group' => array('key_id', 'context_key'),
+                'columns' => array(array('context_key', 255, false)),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'lti_link',
+                'phrase' => 'unique (link_key, context_id)',
+                'group' => array('link_key', 'context_id'),
+                'columns' => array(array('link_key', 255, false)),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'lti_content',
+                'phrase' => 'unique (context_id, resource_link_id)',
+                'group' => array('context_id', 'resource_link_id'),
+                'columns' => array(array('resource_link_id', 255, false)),
+                'dynamic' => false,
+            ),
+            array(
+                'table' => 'profile',
+                'phrase' => 'unique (profile_key)',
+                'group' => array('profile_key'),
+                'columns' => array(array('profile_key', 512, false)),
+                'dynamic' => false,
+            ),
+        );
+    }
+
+    /**
+     * @param array{table:string, phrase:string, group:array<int, string>, columns:array<int, array{0:string,1:int,2:bool|null}>, dynamic:bool} $step
+     */
+    private static function uniqueUpgradeNote($prefix, $step) {
+        $physical = $prefix.$step['table'];
+        $phrase = $step['phrase'];
+        $present = self::fullUniquePresent($physical, $step['group']);
+        if ( $present === true ) return '';
+        $blocks = array();
+        foreach ( $step['columns'] as $column ) {
+            $block = self::uniqueColumnBlock($physical, $column[0], (int) $column[1], $column[2]);
+            if ( $block !== '' ) $blocks[] = $block;
+        }
+        if ( count($blocks) > 0 ) return $phrase.' not added: '.implode('; ', $blocks);
+        if ( $present === null ) return $phrase.' not added: could not read indexes';
+        $groups = self::duplicateGroupCount($physical, $step['group']);
+        if ( $groups === null ) return $phrase.' not added: could not count duplicate values';
+        if ( $groups > 0 ) {
+            $word = $groups === 1 ? 'group' : 'groups';
+            return $phrase.' not added: '.$groups.' duplicate '.$word;
+        }
+        if ( ! empty($step['dynamic']) ) {
+            $format = self::tableRowFormat($physical);
+            if ( $format !== 'dynamic' ) {
+                $shown = $format === '' ? 'unknown' : $format;
+                return $phrase.' not added: row format is '.$shown;
+            }
+        }
+        return $phrase.' not added';
+    }
+
+    /**
+     * @param array<int, string> $wanted
+     * @return bool|null null when the indexes cannot be read
+     */
+    private static function fullUniquePresent($physical, $wanted) {
+        global $PDOX;
+
+        if ( ! is_object($PDOX) ) return null;
+        $detail = $PDOX->indexDetail($physical);
+        if ( ! is_array($detail) ) return null;
+        $by_name = array();
+        foreach ( $detail as $index_row ) {
+            $index_name = (string) U::getIgnoreCase($index_row, 'Key_name');
+            if ( $index_name === '' || strcasecmp($index_name, 'PRIMARY') === 0 ) continue;
+            $seq = (int) U::getIgnoreCase($index_row, 'Seq_in_index');
+            if ( ! isset($by_name[$index_name]) ) {
+                $by_name[$index_name] = array(
+                    'columns' => array(),
+                    'full_unique' => true,
+                );
+            }
+            $by_name[$index_name]['columns'][$seq] = strtolower((string) U::getIgnoreCase($index_row, 'Column_name'));
+            $sub_part = U::getIgnoreCase($index_row, 'Sub_part');
+            if ( (int) U::getIgnoreCase($index_row, 'Non_unique') !== 0 || $sub_part !== null ) {
+                $by_name[$index_name]['full_unique'] = false;
+            }
+        }
+        $expect = array();
+        foreach ( $wanted as $column ) $expect[] = strtolower((string) $column);
+        foreach ( $by_name as $info ) {
+            $ordered = $info['columns'];
+            ksort($ordered);
+            if ( $info['full_unique'] && array_values($ordered) === $expect ) return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array<int, string> $columns
+     * @return int|null
+     */
+    private static function duplicateGroupCount($physical, $columns) {
+        global $PDOX;
+
+        if ( preg_match('/^[A-Za-z0-9_]+$/', (string) $physical) !== 1 ) return null;
+        $where = array();
+        foreach ( $columns as $column ) {
+            if ( preg_match('/^[A-Za-z0-9_]+$/', (string) $column) !== 1 ) return null;
+            $where[] = $column.' IS NOT NULL';
+        }
+        if ( count($where) < 1 ) return null;
+        $rows = $PDOX->allRows(
+            "SELECT COUNT(*) AS duplicate_groups FROM (
+                SELECT 1 AS present
+                FROM {$physical}
+                WHERE ".implode(' AND ', $where)."
+                GROUP BY ".implode(', ', $columns)."
+                HAVING COUNT(*) > 1
+            ) AS duplicate_rows",
+            false,
+            false
+        );
+        if ( ! is_array($rows) || ! isset($rows[0]) ) return null;
+        return (int) U::get($rows[0], 'duplicate_groups', 0);
+    }
+
+    /**
+     * @return string
+     */
+    private static function tableRowFormat($physical) {
+        global $PDOX;
+
+        $rows = $PDOX->allRows(
+            "SELECT ROW_FORMAT AS row_format
+                FROM information_schema.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = :table_name",
+            array(':table_name' => $physical),
+            false
+        );
+        if ( ! is_array($rows) || ! isset($rows[0]) ) return '';
+        return strtolower(trim((string) U::getIgnoreCase($rows[0], 'row_format')));
+    }
+
+    /**
      * Red warning for the admin console and the key list. Empty when URLs agree.
      *
      * Same lti_key scan shape as the duplicate notice. Not a per-launch query.
@@ -546,9 +1120,9 @@ class AdminService {
         if ( $count < 1 ) {
             return '';
         }
-        $pairs = $count === 1 ? 'pair' : 'pairs';
+        $pairs = $count === 1 ? 'pair disagrees' : 'pairs disagree';
         return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
-            .'<p>'.$count.' issuer and client id '.$pairs.' will collide when collapsed.</p>'."\n"
+            .'<p>'.$count.' issuer and client id '.$pairs.' on configuration URLs.</p>'."\n"
             ."</div>\n";
     }
 
@@ -605,11 +1179,82 @@ class AdminService {
     }
 
     /**
-     * The five client id warnings, or one warning when a check cannot run.
+     * Rows that share an LTI 1.1 consumer key. NULL stays out. ascii_bin
+     * treats a trailing space as the same key, matching UNIQUE(key_key).
+     * A soft-deleted row counts, because that unique includes it.
+     *
+     * The cache is set only after the query returns.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function duplicateLti11KeyRows() {
+        global $PDOX, $CFG;
+
+        if ( is_array(self::$duplicateLti11KeyRows) ) {
+            return self::$duplicateLti11KeyRows;
+        }
+        $table = "{$CFG->dbprefix}lti_key";
+        if ( ! is_object($PDOX) ) {
+            return array();
+        }
+        $names = self::ltiKeyColumnNames($table);
+        if ( ! in_array('key_key', $names, true) ) {
+            return array();
+        }
+        $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
+        $title_sql = in_array('key_title', $names, true) ? 'k.key_title' : 'NULL';
+        $rows = self::diagnosticRows(
+            "SELECT k.key_id, {$title_sql} AS key_title, k.key_key, {$deleted_sql} AS deleted
+                FROM {$table} AS k
+                INNER JOIN (
+                    SELECT key_key
+                        FROM {$table}
+                        WHERE key_key IS NOT NULL
+                        GROUP BY key_key
+                        HAVING COUNT(*) > 1
+                ) AS d ON k.key_key = d.key_key
+                ORDER BY k.key_key, k.key_id"
+        );
+        self::$duplicateLti11KeyRows = $rows;
+        return self::$duplicateLti11KeyRows;
+    }
+
+    /**
+     * How many distinct LTI 1.1 consumer keys are stored on more than one row.
+     * A trailing space does not make a second key.
+     */
+    public static function duplicateLti11KeyGroupCount() {
+        $groups = array();
+        foreach ( self::duplicateLti11KeyRows() as $row ) {
+            $key = (string) U::get($row, 'key_key', '');
+            $key = preg_replace('/ *$/', '', $key);
+            $groups[$key] = true;
+        }
+        return count($groups);
+    }
+
+    /**
+     * Red warning for the admin console and the key list. Empty when each
+     * consumer key is stored once.
+     */
+    public static function duplicateLti11KeyNotice() {
+        $count = self::duplicateLti11KeyGroupCount();
+        if ( $count < 1 ) {
+            return '';
+        }
+        $keys = $count === 1 ? 'key is' : 'keys are';
+        return '<div class="alert alert-danger" style="margin: 10px;">'."\n"
+            .'<p>'.$count.' LTI 1.1 consumer '.$keys.' stored on more than one row.</p>'."\n"
+            ."</div>\n";
+    }
+
+    /**
+     * The client id warnings, or one warning when a check cannot run.
      */
     public static function clientIdCheckNotices() {
         try {
             return self::issuerClientDuplicateNotice()
+                .self::duplicateLti11KeyNotice()
                 .self::clientConfigConflictNotice()
                 .self::keyDeploymentConflictNotice()
                 .self::valuesLongerThan255Notice()
@@ -623,7 +1268,7 @@ class AdminService {
     }
 
     /**
-     * URL columns that would move onto one client row for an issuer and client id.
+     * URL columns compared across keys that share an issuer and client id.
      *
      * @return array<string, string> column => label
      */
@@ -660,8 +1305,7 @@ class AdminService {
      * Keys that share an issuer and client id but disagree on URL configuration.
      *
      * A blank value is ignored. Two different non-blank values for one column
-     * collide when those keys collapse onto one client row. Scheme and host
-     * case does not. Path, query, and fragment case does.
+     * disagree. Scheme and host case does not. Path, query, and fragment case does.
      *
      * @return array<int, array{lms_issuer:string, lms_client:string, fields:array<string, string>, keys:array<int, array<string, mixed>>}>
      */

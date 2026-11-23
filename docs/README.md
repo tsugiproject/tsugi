@@ -12,7 +12,7 @@ their code (for example `tool/`, `admin/`).
 | [badges-assertions.md](badges-assertions.md) | Open Badges 2.0 / 3.0 assertion endpoints and config |
 | [badges-linkedin.md](badges-linkedin.md) | LinkedIn credential sharing (PY4E example) |
 | [issuer_migration.md](issuer_migration.md) | Deprecation of `lti_issuer`; phase 1 migration and planned removal |
-| [lti_client-design.md](lti_client-design.md) | `lti_client` for one registration per issuer and client id; step 1 is the URL conflict check, plus a check that each key has one deployment id |
+| [client-id-check.md](client-id-check.md) | Admin → Client ID Check: duplicate issuer, client id, and deployment id; URL disagreements; one deployment id per key |
 | [identity-varchar.md](identity-varchar.md) | Replacing `TEXT` plus SHA-256 with `varchar(255)` on LTI identity columns, and the length check that gates it |
 | [upgrade-beacon.md](upgrade-beacon.md) | Unauthenticated JSON post at the end of `admin/upgrade.php`, and the receiver contract |
 | [lti_key_self_service.md](lti_key_self_service.md) | Planned self-service LTI 1.1/1.3 keys, dynamic registration, re-registration |

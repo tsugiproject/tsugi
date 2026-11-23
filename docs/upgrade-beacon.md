@@ -121,23 +121,39 @@ different owner email on the same host, is a new id. Group those rows by
 
 ## Comment
 
-`comment` is the client id check as counts. No key ids, URLs, or value
-samples. The five numbers are the same checks as the Client Id Check page
-and the notices at the end of `lib/src/Services/Lti/database.php`.
+`comment` lists the client id checks that need fixing, and each schema step
+that was skipped. No key ids, URLs, or value samples. A count of zero is
+left out, including duplicate LTI 1.1 consumer keys. A column that is already
+the ascii varchar is left out. A unique that is already present is left out.
+An empty string means nothing in this check needs fixing and every schema
+step has landed.
+
+A column that still has a value longer than its limit, or a character outside
+ASCII, stays as it is. The unique on that column is not added, and both skips
+are listed. Fix the data and run the upgrade again. The unique is tried only
+after the column step has landed. The upgrade output prints the same lines.
 
 ```text
-duplicate (client id, issuer, deployment id) rows: 0, rows with mismatched client configuration urls: 0, keys with more than one deployment id: 0, fields too long: 0, non-ascii fields: 0
+duplicate (client id, issuer, deployment id) rows: 2, duplicate lti 1.1 consumer keys: 1
 ```
 
 The mismatched-URL number is how many key rows sit in a conflicting issuer
 and client id pair. The others are the rows or values those checks list.
 
-A failed count query does not stop the upgrade. The comment is then the
-string `client id check failed`.
+When `UNIQUE(lms_issuer, lms_client, deploy_key)` is not added, the comment
+says why and still includes no key ids or stored values. The same is true
+for the other identity uniques. A NULL in any of the three columns is not a
+duplicate for that unique. A successful add leaves the phrase out.
 
-All five at zero means this database is ready for the `varchar(255)`
-identity change described in [identity-varchar.md](identity-varchar.md).
-Any non-zero count means it is not.
+```text
+lti_key.lms_issuer left unchanged: lms_issuer has 1 value outside ASCII
+unique (issuer, client id, deployment id) not added: lms_issuer has 1 value outside ASCII
+unique (key_id, user_key) not added: 2 duplicate groups
+```
+
+A failed count query does not stop the upgrade. The comment is then the
+string `client id check failed`. A failure that is only the schema progress
+read adds `schema progress check failed` and leaves the other counts in place.
 
 ## JSON shape
 
@@ -152,7 +168,7 @@ earlier draft is rejected.
   "report_version": 1,
   "marker": "tsugi-upgrade-beacon",
   "reported_at": "2026-11-18T20:05:33Z",
-  "comment": "duplicate (client id, issuer, deployment id) rows: 0, rows with mismatched client configuration urls: 0, keys with more than one deployment id: 0, fields too long: 0, non-ascii fields: 0",
+  "comment": "",
   "host": "learn.example.edu",
   "servicename": "Example",
   "ownername": "Pat Instructor",
