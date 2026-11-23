@@ -12,6 +12,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 $check_error = '';
 try {
     $rows = \Tsugi\Services\Admin\AdminService::issuerClientDuplicateRows();
+    $blocking_groups = \Tsugi\Services\Admin\AdminService::issuerClientDeployUniqueBlockingGroups();
     $lti11_rows = \Tsugi\Services\Admin\AdminService::duplicateLti11KeyRows();
     $groups = \Tsugi\Services\Admin\AdminService::clientConfigConflictGroups();
     $deployment_groups = \Tsugi\Services\Admin\AdminService::keyDeploymentConflictGroups();
@@ -21,6 +22,7 @@ try {
     error_log('Client id check failed: '.$e->getMessage());
     $check_error = 'Client id check failed.';
     $rows = array();
+    $blocking_groups = array();
     $lti11_rows = array();
     $groups = array();
     $deployment_groups = array();
@@ -47,6 +49,65 @@ echo \Tsugi\Services\Admin\AdminService::issuerClientDuplicateNotice();
   <a href="client-id-check" class="btn btn-default active">Client Id Check</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
+<h2>Blocks the issuer, client id, and deployment id unique</h2>
+<p>
+These keys share a stored issuer, client id, and deployment id, and none of the three is NULL.
+An empty string is a stored value, so it blocks the unique. A NULL does not, and it is not listed here.
+A soft-deleted key still counts. Open each key id and set the empty strings to NULL, or give the rows different values. Then run the upgrade again.
+</p>
+<?php if ( count($blocking_groups) < 1 ) { ?>
+<p>Nothing blocks that unique.</p>
+<?php } else {
+    $blocking_keys = 0;
+    foreach ( $blocking_groups as $blocking_group ) {
+        $blocking_keys += count($blocking_group['keys']);
+    }
+    $blocking_group_word = count($blocking_groups) === 1 ? 'group blocks' : 'groups block';
+?>
+<div class="alert alert-danger" style="margin: 10px;">
+<p><?= count($blocking_groups) ?> <?= $blocking_group_word ?> the unique. <?= $blocking_keys ?> keys.</p>
+</div>
+<?php foreach ( $blocking_groups as $blocking_group ) {
+    $blocking_rows = $blocking_group['keys'];
+    $blocking_n = count($blocking_rows);
+    $blocking_word = $blocking_n === 1 ? 'key' : 'keys';
+    $blocking_ids = array();
+    foreach ( $blocking_rows as $blocking_row ) {
+        $blocking_ids[] = (int) U::get($blocking_row, 'key_id', 0);
+    }
+?>
+<h3><?= $blocking_n ?> <?= $blocking_word ?>: <?= htmlentities(implode(', ', $blocking_ids)) ?></h3>
+<table class="table table-striped">
+<thead>
+<tr>
+  <th>Key id</th>
+  <th>Key</th>
+  <th>Issuer</th>
+  <th>Client id</th>
+  <th>Deployment id</th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ( $blocking_rows as $blocking_row ) {
+    $key_id = (int) U::get($blocking_row, 'key_id', 0);
+    $title = U::get($blocking_row, 'key_title');
+    $label = (is_string($title) && trim($title) !== '') ? trim($title) : ('key '.$key_id);
+    if ( (int) U::get($blocking_row, 'deleted', 0) === 1 ) $label .= ' (deleted)';
+    $detail = 'key-detail?key_id='.$key_id;
+    $show = '\Tsugi\Services\Admin\AdminService';
+?>
+<tr>
+  <td><a href="<?= htmlentities($detail) ?>"><?= $key_id ?></a></td>
+  <td><a href="<?= htmlentities($detail) ?>"><?= htmlentities($label) ?></a></td>
+  <td><?= htmlentities($show::identityValueLabel(U::get($blocking_row, 'lms_issuer'))) ?></td>
+  <td><?= htmlentities($show::identityValueLabel(U::get($blocking_row, 'lms_client'))) ?></td>
+  <td><?= htmlentities($show::identityValueLabel(U::get($blocking_row, 'deploy_key'))) ?></td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
+<?php } ?>
+<?php } ?>
 <h2>Duplicate (client id, issuer, deployment id)</h2>
 <?php if ( count($rows) < 1 ) { ?>
 <p>There are no duplicate (client id, issuer, deployment id) rows.</p>

@@ -543,6 +543,74 @@ class AdminService {
     }
 
     /**
+     * How a stored issuer, client id, or deployment id should be read.
+     * An empty string is a value. NULL is a different value.
+     *
+     * @param mixed $value
+     */
+    public static function identityValueLabel($value) {
+        if ( $value === null ) return '(NULL)';
+        if ( ! is_string($value) || $value === '' ) return '(empty string)';
+        if ( trim($value) === '' ) {
+            $spaces = strlen($value);
+            $word = $spaces === 1 ? 'space' : 'spaces';
+            return '('.$spaces.' '.$word.')';
+        }
+        return $value;
+    }
+
+    /**
+     * Keys that block UNIQUE(lms_issuer, lms_client, deploy_key).
+     *
+     * A NULL in any of the three columns is not a member. An empty string is.
+     * Soft-deleted keys count. Each group lists every key id.
+     *
+     * @return array<int, array{group_id:int, keys:array<int, array<string, mixed>>}>
+     */
+    public static function issuerClientDeployUniqueBlockingGroups() {
+        global $PDOX, $CFG;
+
+        $table = "{$CFG->dbprefix}lti_key";
+        if ( ! is_object($PDOX) ) return array();
+        $names = self::ltiKeyColumnNames($table);
+        foreach ( array('key_id', 'lms_issuer', 'lms_client', 'deploy_key') as $need ) {
+            if ( ! in_array($need, $names, true) ) return array();
+        }
+        $deleted_sql = in_array('deleted', $names, true) ? 'k.deleted' : '0';
+        $title_sql = in_array('key_title', $names, true) ? 'k.key_title' : 'NULL';
+        $rows = self::diagnosticRows(
+            "SELECT k.key_id, {$title_sql} AS key_title, {$deleted_sql} AS deleted,
+                    k.lms_issuer, k.lms_client, k.deploy_key, d.group_id
+                FROM {$table} AS k
+                INNER JOIN (
+                    SELECT MIN(key_id) AS group_id, lms_issuer, lms_client, deploy_key
+                        FROM {$table}
+                        WHERE lms_issuer IS NOT NULL
+                            AND lms_client IS NOT NULL
+                            AND deploy_key IS NOT NULL
+                        GROUP BY lms_issuer, lms_client, deploy_key
+                        HAVING COUNT(*) > 1
+                ) AS d
+                    ON k.lms_issuer = d.lms_issuer
+                    AND k.lms_client = d.lms_client
+                    AND k.deploy_key = d.deploy_key
+                ORDER BY d.group_id, k.key_id"
+        );
+        $groups = array();
+        foreach ( $rows as $row ) {
+            $group_id = (int) U::get($row, 'group_id', 0);
+            if ( ! isset($groups[$group_id]) ) {
+                $groups[$group_id] = array(
+                    'group_id' => $group_id,
+                    'keys' => array(),
+                );
+            }
+            $groups[$group_id]['keys'][] = $row;
+        }
+        return array_values($groups);
+    }
+
+    /**
      * Remember a short upgrade note for the beacon comment.
      * No key ids or stored values. A later beacon in this process still sees it.
      */

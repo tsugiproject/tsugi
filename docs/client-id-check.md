@@ -10,6 +10,19 @@ deployment id. `LTIX::loadAllData()` matches `lms_issuer_sha256` and
 `lms_client`, ignores `deploy_key`, and takes the lowest `key_id`. A blank
 `deploy_key` matches any deployment.
 
+## Rows that block the unique
+
+Client ID Check lists every key in a non-NULL triple that is stored more than
+once. The key id is its own column, and the heading lists the same ids. An
+empty string is labeled `(empty string)`. A value that is only spaces is
+labeled with the space count. `NULL` is left out, because it does not block
+the unique. A soft-deleted key is included.
+
+The duplicate report below skips a blank issuer or a blank client id, so four
+keys with an empty issuer, an empty client id, and an empty deployment id
+appear only in this list. Set those empty strings to `NULL`, or give the rows
+different values, and run the upgrade again.
+
 ## Duplicate (client id, issuer, deployment id)
 
 Keys that share `lms_client`, `lms_issuer`, and `deploy_key`. A blank deployment
