@@ -57,6 +57,21 @@ class AdminServiceKeyTypeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('LTI 1.3 / Draft', AdminService::keyTypeLabel($no_oidc));
     }
 
+    public function testClientIdWithoutIssuerIsWildcardLti13() {
+        $this->assertSame('LTI 1.3', AdminService::keyTypeLabel(array(
+            'lms_client' => 'client-1',
+            'lms_oidc_auth' => 'https://lms.example/oidc',
+            'lms_keyset_url' => 'https://lms.example/keyset',
+            'lms_token_url' => 'https://lms.example/token',
+        )));
+    }
+
+    public function testLinkedClientAddsClient() {
+        $this->assertSame('LTI 1.3 / Client', AdminService::keyTypeLabel(array(
+            'lti_client_id' => 4,
+        )));
+    }
+
     public function testDeploymentWithoutIssuerIsDraft() {
         $this->assertSame('Draft', AdminService::keyTypeLabel(array(
             'deploy_key' => 'deploy-1',

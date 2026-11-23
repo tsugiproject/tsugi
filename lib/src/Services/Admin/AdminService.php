@@ -2180,11 +2180,525 @@ class AdminService {
     }
 
     /**
+     * Hand-entered inbound clients for the key admin screens.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function inboundClientChoices() {
+        global $PDOX, $CFG;
+        if ( ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return array();
+        $rows = $PDOX->allRowsDie(
+            "SELECT lti_client_id, title, issuer, client_id
+                FROM {$CFG->dbprefix}lti_client
+                ORDER BY title, issuer, client_id, lti_client_id"
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * @param mixed $id
+     * @return array<string, mixed>|null
+     */
+    public static function inboundClientById($id) {
+        global $PDOX, $CFG;
+        $id = (int) $id;
+        if ( $id < 1 || ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return null;
+        $row = $PDOX->rowDie(
+            "SELECT lti_client_id, title, user_id, notes, issuer, client_id, oidc_auth_url, keyset_url,
+                    token_url, token_audience, unlock_code
+                FROM {$CFG->dbprefix}lti_client
+                WHERE lti_client_id = :id",
+            array(':id' => $id)
+        );
+        return is_array($row) ? $row : null;
+    }
+
+    /**
+     * Keys that point at one inbound client.
+     *
+     * @param mixed $id
+     * @return array<int, array<string, mixed>>
+     */
+    public static function keysForInboundClient($id) {
+        global $PDOX, $CFG;
+        $id = (int) $id;
+        if ( $id < 1 || ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return array();
+        $rows = $PDOX->allRowsDie(
+            "SELECT key_id, key_title, key_key, secret, lms_issuer, lms_client,
+                    lms_oidc_auth, lms_keyset_url, lms_token_url, deploy_key, lti_client_id
+                FROM {$CFG->dbprefix}lti_key
+                WHERE lti_client_id = :id
+                ORDER BY key_id",
+            array(':id' => $id)
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * Clients with this key's issuer, client id, and platform URLs.
+     *
+     * @param array<string, mixed> $key
+     * @return array<int, array<string, mixed>>
+     */
+    public static function clientsMatchingKeyPlatform(array $key) {
+        global $PDOX, $CFG;
+        if ( ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return array();
+        $issuer = self::trimToNull(U::get($key, 'lms_issuer'));
+        $client = self::trimToNull(U::get($key, 'lms_client'));
+        if ( $issuer === null || $client === null ) return array();
+        $rows = $PDOX->allRowsDie(
+            "SELECT lti_client_id, title, issuer, client_id, oidc_auth_url, keyset_url, token_url
+                FROM {$CFG->dbprefix}lti_client
+                WHERE issuer = :issuer AND client_id = :client
+                    AND oidc_auth_url <=> :oidc
+                    AND keyset_url <=> :keyset
+                    AND token_url <=> :token",
+            array(
+                ':issuer' => $issuer,
+                ':client' => $client,
+                ':oidc' => self::trimToNull(U::get($key, 'lms_oidc_auth')),
+                ':keyset' => self::trimToNull(U::get($key, 'lms_keyset_url')),
+                ':token' => self::trimToNull(U::get($key, 'lms_token_url')),
+            )
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * Note when a saved key already lines up with a client.
+     *
+     * @param array<string, mixed> $key
+     */
+    public static function matchingClientNote(array $key) {
+        $matches = self::clientsMatchingKeyPlatform($key);
+        if ( count($matches) < 1 ) return '';
+        $links = array();
+        foreach ( $matches as $match ) {
+            $id = (int) U::get($match, 'lti_client_id');
+            $href = 'client-detail?lti_client_id='.$id;
+            $label = htmlspecialchars(self::inboundClientLabel($match), ENT_QUOTES, 'UTF-8');
+            $links[] = '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.$label.'</a>';
+        }
+        $linked = (int) U::get($key, 'lti_client_id');
+        $same = count($matches) === 1 && $linked > 0 && (int) U::get($matches[0], 'lti_client_id') === $linked;
+        if ( $same ) {
+            $text = 'This client matches this key\'s issuer, client id, and platform URLs: ';
+        } else if ( count($matches) === 1 ) {
+            $text = 'A client already matches this key\'s issuer, client id, and platform URLs: ';
+        } else {
+            $text = 'These clients match this key\'s issuer, client id, and platform URLs: ';
+        }
+        return '<p>'.$text.implode(', ', $links).'.</p>'."\n";
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function inboundClientLabel(array $row) {
+        $issuer = (string) U::get($row, 'issuer', '');
+        $client = U::get($row, 'client_id');
+        $title = self::trimToNull(U::get($row, 'title'));
+        $client_label = U::isNotEmpty($client) ? (string) $client : '(no client id)';
+        $parts = array();
+        if ( $title !== null ) $parts[] = $title;
+        if ( $issuer !== '' ) $parts[] = $issuer;
+        $parts[] = $client_label;
+        return implode(' / ', $parts);
+    }
+
+    /**
+     * Platform columns copied onto a key. Emptying a client link clears these.
+     *
+     * @return array<int, string>
+     */
+    public static function keyPlatformFields() {
+        return array('lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience');
+    }
+
+    /**
+     * Shown under the client control.
+     *
+     * @param bool $edit
+     * @param int $selectedId
+     */
+    private static function clientPlatformFieldsNote($edit, $selectedId = 0) {
+        $html = '';
+        if ( ! $edit ) {
+            $html .= "<p>The issuer, client id, and platform URLs below stay on this key unless you empty them. A blank issuer matches any issuer.</p>\n";
+        }
+        if ( $edit ) {
+            $shown = ((int) $selectedId) > 0 ? '' : ' style="display:none"';
+            $html .= "<div id=\"empty_key_lti13_fields_wrap\"{$shown}>\n"
+                ."<p>After you have associated this key with a client, you can empty the issuer, client id, and platform URLs on this key.</p>\n"
+                ."<div class=\"checkbox\">\n<label for=\"empty_key_lti13_fields\">\n"
+                ."<input type=\"checkbox\" name=\"empty_key_lti13_fields\" id=\"empty_key_lti13_fields\" value=\"1\">\n"
+                ."Empty the issuer, client id, and platform URLs on this key\n"
+                ."</label>\n"
+                ."<p class=\"help-block\">Checked, these fields are cleared when you save. Unchecked, they stay on the key. A blank issuer on the key matches any issuer.</p>\n"
+                ."</div>\n"
+                ."</div>\n"
+                ."<script>\n"
+                ."document.addEventListener('DOMContentLoaded', function() {\n"
+                ."  var fields = ".json_encode(self::keyPlatformFields()).";\n"
+                ."  var wrap = document.getElementById('empty_key_lti13_fields_wrap');\n"
+                ."  var box = document.getElementById('empty_key_lti13_fields');\n"
+                ."  var select = document.getElementById('lti_client_id');\n"
+                ."  var snapshot = null;\n"
+                ."  function chosen() { return !!(select && select.value !== ''); }\n"
+                ."  function emptyFields() {\n"
+                ."    if (snapshot === null) {\n"
+                ."      snapshot = {};\n"
+                ."      fields.forEach(function(name) {\n"
+                ."        var el = document.getElementById(name);\n"
+                ."        snapshot[name] = el ? el.value : '';\n"
+                ."      });\n"
+                ."    }\n"
+                ."    fields.forEach(function(name) {\n"
+                ."      var el = document.getElementById(name);\n"
+                ."      if (el) el.value = '';\n"
+                ."    });\n"
+                ."  }\n"
+                ."  function restoreFields() {\n"
+                ."    if (!snapshot) return;\n"
+                ."    fields.forEach(function(name) {\n"
+                ."      var el = document.getElementById(name);\n"
+                ."      if (el && Object.prototype.hasOwnProperty.call(snapshot, name)) el.value = snapshot[name];\n"
+                ."    });\n"
+                ."    snapshot = null;\n"
+                ."  }\n"
+                ."  function syncBox() {\n"
+                ."    var on = chosen();\n"
+                ."    if (wrap) wrap.style.display = on ? '' : 'none';\n"
+                ."    if (!box) return;\n"
+                ."    if (!on && box.checked) {\n"
+                ."      box.checked = false;\n"
+                ."      restoreFields();\n"
+                ."    } else if (on && box.checked) {\n"
+                ."      emptyFields();\n"
+                ."    }\n"
+                ."    if (window.tsugiRefreshCreateClient) window.tsugiRefreshCreateClient();\n"
+                ."  }\n"
+                ."  if (box) box.addEventListener('change', function() {\n"
+                ."    if (box.checked) emptyFields();\n"
+                ."    else restoreFields();\n"
+                ."    if (window.tsugiRefreshCreateClient) window.tsugiRefreshCreateClient();\n"
+                ."  });\n"
+                ."  if (select) select.addEventListener('change', syncBox);\n"
+                ."  window.tsugiEmptyKeyPlatformFields = emptyFields;\n"
+                ."  window.tsugiSyncEmptyKeyPlatformFields = syncBox;\n"
+                ."  syncBox();\n"
+                ."});\n"
+                ."</script>\n";
+        }
+        $html .= "<hr>\n";
+        return $html;
+    }
+
+    /**
+     * Select or read-only link for the key form.
+     *
+     * @param int $selectedId
+     * @param bool $edit
+     */
+    public static function inboundClientControl($selectedId, $edit) {
+        global $CFG;
+        if ( ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return '';
+        $selectedId = (int) $selectedId;
+        if ( ! $edit ) {
+            if ( $selectedId < 1 ) {
+                return "<p><strong>LTI 1.3 client</strong></p>\n<p>None</p>\n"
+                    .self::clientPlatformFieldsNote(false);
+            }
+            $row = self::inboundClientById($selectedId);
+            if ( ! is_array($row) ) {
+                return "<p><strong>LTI 1.3 client</strong></p>\n<p>Missing client ".$selectedId."</p>\n"
+                    .self::clientPlatformFieldsNote(false);
+            }
+            $href = 'client-detail?lti_client_id='.$selectedId;
+            $label = htmlspecialchars(self::inboundClientLabel($row), ENT_QUOTES, 'UTF-8');
+            return "<p><strong>LTI 1.3 client</strong></p>\n<p><a href=\"{$href}\">{$label}</a></p>\n"
+                .self::clientPlatformFieldsNote(false);
+        }
+
+        $choices = self::inboundClientChoices();
+        $html = "<div class=\"form-group\">\n<label for=\"lti_client_id\">LTI 1.3 client<br/>\n";
+        $html .= "<select id=\"lti_client_id\" name=\"lti_client_id\">\n";
+        if ( count($choices) < 1 ) {
+            $html .= "<option value=\"\">No Clients Available</option>\n";
+        } else {
+            $placeholder = $selectedId < 1 ? ' selected' : '';
+            $html .= "<option value=\"\"{$placeholder}>Select</option>\n";
+            foreach ( $choices as $choice ) {
+                $id = (int) U::get($choice, 'lti_client_id');
+                $selected = $id === $selectedId ? ' selected' : '';
+                $label = htmlspecialchars(self::inboundClientLabel($choice), ENT_QUOTES, 'UTF-8');
+                $html .= "<option value=\"{$id}\"{$selected}>{$label}</option>\n";
+            }
+        }
+        $html .= "</select>\n</label>\n</div>\n";
+        $html .= self::clientPlatformFieldsNote(true, $selectedId);
+        return $html;
+    }
+
+    /**
+     * Store the chosen client id. Empty the key's platform fields only when asked.
+     *
+     * @return bool False when the posted id is not a client.
+     */
+    public static function applyPostedClientToKey() {
+        global $CFG;
+        if ( ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return true;
+        if ( ! array_key_exists('lti_client_id', $_POST) ) {
+            U::flashError('Choose a client from the list.');
+            return false;
+        }
+        $raw = $_POST['lti_client_id'];
+        if ( $raw === null || $raw === '' || $raw === '0' ) {
+            $_POST['lti_client_id'] = null;
+            return true;
+        }
+        $raw = trim((string) $raw);
+        $client = ctype_digit($raw) && (int) $raw > 0 ? self::inboundClientById((int) $raw) : null;
+        if ( ! is_array($client) ) {
+            U::flashError('Choose a client from the list.');
+            return false;
+        }
+        $_POST['lti_client_id'] = (int) $raw;
+        if ( (string) U::get($_POST, 'empty_key_lti13_fields') === '1' ) {
+            if ( ! self::clientCanReplaceKey($client) ) {
+                U::flashError('This client needs an issuer, client id, and the platform URLs before the key fields can be emptied.');
+                return false;
+            }
+            foreach ( self::keyPlatformFields() as $field ) {
+                $_POST[$field] = null;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * A client can stand in for the key only when the launch would use it.
+     *
+     * @param array<string, mixed> $row
+     */
+    private static function clientCanReplaceKey(array $row) {
+        foreach ( array('issuer', 'client_id', 'oidc_auth_url', 'keyset_url', 'token_url') as $field ) {
+            if ( ! U::isNotEmpty(U::get($row, $field)) ) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Insert or update a hand-entered client. Workflow columns stay at their defaults.
+     *
+     * @param int|null $id Null inserts.
+     * @param array<string, mixed> $post
+     * @return int|false
+     */
+    public static function saveInboundClient($id, array $post, $announce = true) {
+        global $PDOX, $CFG;
+
+        $issuer = self::trimToNull(U::get($post, 'issuer'));
+        $client = self::trimToNull(U::get($post, 'client_id'));
+        $values = array(
+            ':issuer' => $issuer,
+            ':client' => $client,
+            ':oidc' => self::trimToNull(U::get($post, 'oidc_auth_url')),
+            ':keyset' => self::trimToNull(U::get($post, 'keyset_url')),
+            ':token' => self::trimToNull(U::get($post, 'token_url')),
+            ':audience' => self::trimToNull(U::get($post, 'token_audience')),
+            ':unlock' => self::trimToNull(U::get($post, 'unlock_code')),
+            ':title' => self::trimToNull(U::get($post, 'title')),
+            ':notes' => self::trimToNull(U::get($post, 'notes')),
+            ':user' => self::postedClientUserId($post),
+        );
+        if ( $issuer === null ) {
+            if ( $announce ) U::flashError('Issuer is required');
+            return false;
+        }
+        $identity = \Tsugi\Util\LTI::ascii255First(array(
+            'Issuer' => $issuer,
+            'Client id' => $client,
+        ));
+        if ( is_string($identity) ) {
+            if ( $announce ) U::flashError($identity);
+            return false;
+        }
+        if ( $client !== null ) {
+            $dup_sql = "SELECT lti_client_id FROM {$CFG->dbprefix}lti_client
+                WHERE issuer = :issuer AND client_id = :client";
+            $dup_parms = array(':issuer' => $issuer, ':client' => $client);
+            if ( $id ) {
+                $dup_sql .= " AND lti_client_id <> :id";
+                $dup_parms[':id'] = (int) $id;
+            }
+            $existing = $PDOX->rowDie($dup_sql, $dup_parms);
+            if ( is_array($existing) ) {
+                if ( $announce ) U::flashError('A client with this issuer and client id already exists');
+                return false;
+            }
+        }
+
+        $table = "{$CFG->dbprefix}lti_client";
+        if ( $id ) {
+            $values[':id'] = (int) $id;
+            $sql = "UPDATE {$table} SET
+                    title = :title, user_id = :user, notes = :notes,
+                    issuer = :issuer, client_id = :client, oidc_auth_url = :oidc,
+                    keyset_url = :keyset, token_url = :token, token_audience = :audience,
+                    unlock_code = :unlock, updated_at = NOW()
+                WHERE lti_client_id = :id";
+            $q = $PDOX->queryReturnError($sql, $values);
+            if ( ! $q->success ) {
+                if ( $announce ) U::flashError('Could not update client');
+                return false;
+            }
+            \Tsugi\Core\LTIX::clearKeysetCacheForClient((int) $id);
+            if ( $announce ) U::flashSuccess('Client updated');
+            return (int) $id;
+        }
+
+        $created_by = null;
+        if ( \Tsugi\Core\ReqScope::isLoggedInLegacy() ) {
+            $logged_in = (int) \Tsugi\Core\ReqScope::loggedInUserIdLegacy();
+            if ( $logged_in > 0 ) $created_by = $logged_in;
+        }
+        $values[':guid'] = \Tsugi\Core\Guid::uuid7();
+        $values[':created_by'] = $created_by;
+        $sql = "INSERT INTO {$table}
+                (guid, title, user_id, notes, issuer, client_id, oidc_auth_url, keyset_url, token_url, token_audience,
+                    unlock_code, client_method, created_by_user_id, created_at, updated_at)
+            VALUES (UNHEX(:guid), :title, :user, :notes, :issuer, :client, :oidc, :keyset, :token, :audience,
+                    :unlock, 'manual', :created_by, NOW(), NOW())";
+        $q = $PDOX->queryReturnError($sql, $values);
+        if ( ! $q->success ) {
+            if ( $announce ) U::flashError('Could not insert client');
+            return false;
+        }
+        if ( $announce ) U::flashSuccess('Client inserted');
+        return (int) $PDOX->lastInsertId();
+    }
+
+    /**
+     * Check or create a client from the LTI 1.3 fields on a key form.
+     * Does not update the key. Audience and unlock code are copied when present.
+     *
+     * @param array<string, mixed> $source Key form fields (lms_*) or client fields.
+     * @param bool $create
+     * @return array<string, mixed>
+     */
+    public static function clientFromKeyRequest(array $source, $create) {
+        global $PDOX, $CFG;
+
+        $post = array(
+            'issuer' => self::trimToNull(U::get($source, 'lms_issuer', U::get($source, 'issuer'))),
+            'client_id' => self::trimToNull(U::get($source, 'lms_client', U::get($source, 'client_id'))),
+            'oidc_auth_url' => self::trimToNull(U::get($source, 'lms_oidc_auth', U::get($source, 'oidc_auth_url'))),
+            'keyset_url' => self::trimToNull(U::get($source, 'lms_keyset_url', U::get($source, 'keyset_url'))),
+            'token_url' => self::trimToNull(U::get($source, 'lms_token_url', U::get($source, 'token_url'))),
+            'token_audience' => self::trimToNull(U::get($source, 'lms_token_audience', U::get($source, 'token_audience'))),
+            'unlock_code' => self::trimToNull(U::get($source, 'unlock_code')),
+            'title' => self::trimToNull(U::get($source, 'key_title', U::get($source, 'title'))),
+            'notes' => self::trimToNull(U::get($source, 'notes')),
+            'user_id' => U::get($source, 'user_id'),
+        );
+        $required = array(
+            'issuer' => 'Issuer',
+            'client_id' => 'Client id',
+            'oidc_auth_url' => 'OIDC login URL',
+            'keyset_url' => 'Keyset URL',
+            'token_url' => 'Token URL',
+        );
+        $missing = array();
+        foreach ( $required as $key => $label ) {
+            if ( $post[$key] === null ) $missing[] = $label;
+        }
+        $shown = array(
+            'Title' => $post['title'],
+            'User Id' => $post['user_id'],
+            'Issuer' => $post['issuer'],
+            'Client id' => $post['client_id'],
+            'OIDC login URL' => $post['oidc_auth_url'],
+            'Keyset URL' => $post['keyset_url'],
+            'Token URL' => $post['token_url'],
+            'Token audience' => $post['token_audience'],
+            'Unlock code' => $post['unlock_code'],
+        );
+        if ( count($missing) > 0 ) {
+            return array(
+                'ok' => false,
+                'error' => 'Required fields are missing: '.implode(', ', $missing).'.',
+                'fields' => $shown,
+            );
+        }
+        $identity = \Tsugi\Util\LTI::ascii255First(array(
+            'Issuer' => $post['issuer'],
+            'Client id' => $post['client_id'],
+        ));
+        if ( is_string($identity) ) {
+            return array('ok' => false, 'error' => $identity, 'fields' => $shown);
+        }
+        $existing = $PDOX->rowDie(
+            "SELECT lti_client_id FROM {$CFG->dbprefix}lti_client
+                WHERE issuer = :issuer AND client_id = :client",
+            array(':issuer' => $post['issuer'], ':client' => $post['client_id'])
+        );
+        if ( is_array($existing) ) {
+            return array(
+                'ok' => false,
+                'error' => 'A client with this issuer and client id already exists.',
+                'existing_id' => (int) $existing['lti_client_id'],
+                'fields' => $shown,
+            );
+        }
+        if ( ! $create ) {
+            return array('ok' => true, 'fields' => $shown);
+        }
+        $id = self::saveInboundClient(null, $post, false);
+        if ( ! $id ) {
+            return array('ok' => false, 'error' => 'Could not create client.', 'fields' => $shown);
+        }
+        $row = self::inboundClientById($id);
+        $label = is_array($row) ? self::inboundClientLabel($row) : (string) $id;
+        return array('ok' => true, 'id' => (int) $id, 'label' => $label, 'fields' => $shown);
+    }
+
+    /**
+     * Owner id for a client. A blank, on insert or update, is NULL.
+     * Not checked against lti_user. user_id is not a foreign key.
+     *
+     * @param array<string, mixed> $post
+     * @return int|null
+     */
+    private static function postedClientUserId(array $post) {
+        $raw = array_key_exists('user_id', $post) ? $post['user_id'] : null;
+        if ( is_int($raw) || (is_string($raw) && preg_match('/^[0-9]+$/', trim($raw)) === 1) ) {
+            $id = (int) $raw;
+            if ( $id > 0 ) return $id;
+        }
+        return null;
+    }
+
+    /**
+     * @param mixed $value
+     * @return string|null
+     */
+    private static function trimToNull($value) {
+        if ( ! is_string($value) ) {
+            return null;
+        }
+        $value = trim($value);
+        return $value === '' ? null : $value;
+    }
+
+    /**
      * Status label for a tenant key on the admin list and detail page.
      *
      * A consumer key with a secret is LTI 1.1. A consumer key without a secret
-     * is LTI 1.1 and Draft. An issuer makes the key LTI 1.3. It stays Draft
-     * until the client id, OIDC login URL, keyset URL, and token URL are set.
+     * is LTI 1.1 and Draft. An issuer or a client id makes the key LTI 1.3.
+     * A blank issuer with a client id is a wildcard. Without a linked client
+     * it stays Draft until the client id, OIDC login URL, keyset URL, and
+     * token URL are set. A linked client adds the word Client.
      *
      * @param array<string, mixed> $row
      */
@@ -2199,20 +2713,40 @@ class AdminService {
             }
         }
 
-        if ( U::isNotEmpty(U::get($row, 'lms_issuer')) ) {
+        $linked = (int) U::get($row, 'lti_client_id') > 0;
+        $has_issuer = U::isNotEmpty(U::get($row, 'lms_issuer'));
+        $has_client = U::isNotEmpty(U::get($row, 'lms_client'));
+        if ( $has_issuer || $has_client || $linked ) {
             $parts[] = 'LTI 1.3';
-            if ( ! U::isNotEmpty(U::get($row, 'lms_client'))
+            if ( ! $linked && ( ! $has_client
                 || ! U::isNotEmpty(U::get($row, 'lms_oidc_auth'))
                 || ! U::isNotEmpty(U::get($row, 'lms_keyset_url'))
-                || ! U::isNotEmpty(U::get($row, 'lms_token_url')) ) {
+                || ! U::isNotEmpty(U::get($row, 'lms_token_url')) ) ) {
                 $draft = true;
             }
+        }
+        if ( $linked ) {
+            $parts[] = 'Client';
         }
 
         if ( $draft || count($parts) < 1 ) {
             $parts[] = 'Draft';
         }
         return implode(' / ', $parts);
+    }
+
+    /**
+     * keyTypeLabel with the Client word linked to that client.
+     *
+     * @param array<string, mixed> $row
+     */
+    public static function keyTypeHtml(array $row) {
+        $label = htmlspecialchars(self::keyTypeLabel($row), ENT_QUOTES, 'UTF-8');
+        $id = (int) U::get($row, 'lti_client_id');
+        if ( $id < 1 ) return $label;
+        $href = 'client-detail?lti_client_id='.$id;
+        $link = '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">Client</a>';
+        return str_replace('Client', $link, $label);
     }
 
     /**
@@ -2223,9 +2757,11 @@ class AdminService {
      * An OAuth consumer key must be unique. Issuer, client id, and deployment
      * id must be unique together. A blank deployment id collides with another
      * blank deployment id. A specific deployment id collides only with the
-     * same deployment id. $old_deploy_key stays in the signature for existing callers.
+     * same deployment id. A linked client uses the same rule for
+     * (lti_client_id, deployment id), including a blank deployment.
+     * $old_deploy_key stays in the signature for existing callers.
      */
-    public static function validate_key_details($key_key, $deploy_key, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $lms_client=null, $exclude_key_id=null) {
+    public static function validate_key_details($key_key, $deploy_key, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $lms_client=null, $exclude_key_id=null, $lti_client_id=null) {
         global $PDOX, $CFG;
 
         $have_oauth = U::isNotEmpty($key_key);
@@ -2247,6 +2783,62 @@ class AdminService {
             return false;
         }
 
+        if ( (int) $lti_client_id > 0 && ! self::validate_client_deploy_unique($lti_client_id, $deploy_key, $exclude_key_id) ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Two keys cannot share one client and the same deployment id.
+     * A blank deployment id collides with another blank deployment id.
+     * The SQL unique allows multiple NULL deployment ids, so this check
+     * is what keeps that pair singular.
+     *
+     * @param mixed $lti_client_id
+     * @param mixed $deploy_key
+     * @param mixed $exclude_key_id
+     */
+    public static function validate_client_deploy_unique($lti_client_id, $deploy_key, $exclude_key_id=null) {
+        global $PDOX, $CFG;
+
+        $lti_client_id = (int) $lti_client_id;
+        if ( $lti_client_id < 1 ) return true;
+        if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return true;
+
+        $deploy = self::normalize_deploy_key_input($deploy_key);
+        $parms = array(':client' => $lti_client_id);
+        $exclude_sql = '';
+        if ( ! empty($exclude_key_id) && (int) $exclude_key_id > 0 ) {
+            $exclude_sql = ' AND k.key_id <> :exclude_key_id ';
+            $parms[':exclude_key_id'] = (int) $exclude_key_id;
+        }
+        if ( $deploy === null ) {
+            $deploy_sql = "AND (k.deploy_key IS NULL OR TRIM(k.deploy_key) = '' OR LOWER(TRIM(k.deploy_key)) = 'null')";
+        } else {
+            $deploy_sql = 'AND TRIM(k.deploy_key) = :deploy_key';
+            $parms[':deploy_key'] = $deploy;
+        }
+
+        $row = $PDOX->rowDie(
+            "SELECT k.key_id, k.key_title FROM {$CFG->dbprefix}lti_key AS k
+                WHERE (k.deleted IS NULL OR k.deleted = 0)
+                    AND k.lti_client_id = :client
+                    $exclude_sql
+                    $deploy_sql
+                LIMIT 1",
+            $parms
+        );
+        if ( $row ) {
+            $label = U::isNotEmpty($row['key_title']) ? $row['key_title'] : ('key_id '.$row['key_id']);
+            if ( $deploy === null ) {
+                U::flashError('A key with this client and a blank deployment id already exists ('.$label.')');
+            } else {
+                U::flashError('A key with this client and deployment id already exists ('.$label.')');
+            }
+            return false;
+        }
         return true;
     }
 
