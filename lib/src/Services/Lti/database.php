@@ -2886,6 +2886,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log($message);
         echo(htmlentities($message)."<br/>\n");
     }
+
+    // Notice only. ascii_bin hides a trailing space from a normal comparison.
+    $trailing_rows = \Tsugi\Services\Admin\AdminService::trailingSpaceValues();
+    foreach ( $trailing_rows as $trailing_row ) {
+        $message = 'Trailing space: field='.\Tsugi\Util\U::get($trailing_row, 'label')
+            .' table='.\Tsugi\Util\U::get($trailing_row, 'table')
+            .' column='.\Tsugi\Util\U::get($trailing_row, 'column')
+            .' key_id='.\Tsugi\Util\U::get($trailing_row, 'key_id')
+            .' row_id='.\Tsugi\Util\U::get($trailing_row, 'row_id')
+            .' length='.\Tsugi\Util\U::get($trailing_row, 'length')
+            .' trailing='.\Tsugi\Util\U::get($trailing_row, 'trailing');
+        error_log($message);
+        echo(htmlentities($message)."<br/>\n");
+    }
     } catch (\Throwable $e) {
         $message = 'Client id check failed: '.$e->getMessage();
         error_log($message);
@@ -3360,6 +3374,12 @@ $DATABASE_UPGRADE = function($oldversion) {
             $exact_wanted[$exact_column] = true;
         }
         if ( count($exact_wanted) < 1 ) continue;
+        // Profile is created by a later service. A fresh install has no table yet.
+        $exact_meta = $PDOX->describe($exact_physical);
+        if ( ! is_array($exact_meta) ) {
+            $identity_note('Exact-byte columns on '.$exact_table.': table is absent. Left unchanged.');
+            continue;
+        }
         $exact_detail = $PDOX->indexDetail($exact_physical);
         $exact_indexes = array();
         if ( is_array($exact_detail) ) {

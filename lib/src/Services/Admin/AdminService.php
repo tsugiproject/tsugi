@@ -1323,6 +1323,139 @@ class AdminService {
     }
 
     /**
+     * Identity columns checked for a stored trailing space.
+     *
+     * The length and non-ASCII lists, plus the wider natural keys and the
+     * registration columns that are already varchar. A secret is marked redact.
+     *
+     * @return array<int, array{table:string, column:string, label:string, id_column:string, via_context?:bool, redact?:bool}>
+     */
+    private static function identityFieldCopies() {
+        $copies = self::valuesLongerThan255Copies();
+        $extra = array(
+            array(
+                'table' => 'lti_user',
+                'column' => 'user_key',
+                'label' => 'User id',
+                'id_column' => 'user_id',
+            ),
+            array(
+                'table' => 'lti_user',
+                'column' => 'subject_key',
+                'label' => 'Subject',
+                'id_column' => 'user_id',
+            ),
+            array(
+                'table' => 'profile',
+                'column' => 'profile_key',
+                'label' => 'Profile',
+                'id_column' => 'profile_id',
+            ),
+            array(
+                'table' => 'lti_service',
+                'column' => 'service_key',
+                'label' => 'Service',
+                'id_column' => 'service_id',
+            ),
+            array(
+                'table' => 'lti_tool_registration',
+                'column' => 'lti11_key',
+                'label' => 'Consumer key',
+                'id_column' => 'registration_id',
+            ),
+            array(
+                'table' => 'lti_tool_registration',
+                'column' => 'lti13_client_id',
+                'label' => 'Client id',
+                'id_column' => 'registration_id',
+            ),
+            array(
+                'table' => 'lti_tool_deployment',
+                'column' => 'deployment_id',
+                'label' => 'Deployment id',
+                'id_column' => 'tool_deployment_id',
+            ),
+        );
+        foreach ( $extra as $copy ) $copies[] = $copy;
+        return $copies;
+    }
+
+    /**
+     * Identity values with a trailing space stored in the column.
+     *
+     * ascii_bin treats a trailing space as equal, so a comparison with RTRIM
+     * does not see it. CHAR_LENGTH counts the stored characters. Blank values
+     * have no trailing space. Deleted rows are included. A secret is reported
+     * by its lengths only.
+     *
+     * @return array<int, array{label:string, table:string, column:string, row_id:int, key_id:int, length:int, trailing:int, redacted:bool}>
+     */
+    public static function trailingSpaceValues() {
+        global $PDOX, $CFG;
+
+        $empty = array();
+        if ( ! is_object($PDOX) ) {
+            return $empty;
+        }
+        $prefix = $CFG->dbprefix;
+        $found = array();
+        foreach ( self::identityFieldCopies() as $copy ) {
+            $table = "{$prefix}{$copy['table']}";
+            $described = $PDOX->describe($table);
+            if ( ! is_array($described) ) continue;
+            $names = array();
+            foreach ( $described as $column ) {
+                if ( is_array($column) && isset($column['Field']) ) $names[] = $column['Field'];
+            }
+            if ( ! in_array($copy['column'], $names, true) || ! in_array($copy['id_column'], $names, true) ) {
+                continue;
+            }
+            if ( ! empty($copy['via_context']) && ! in_array('context_id', $names, true) ) {
+                continue;
+            }
+
+            $expr = 't.'.$copy['column'];
+            $redact = ! empty($copy['redact']);
+            $key_sql = in_array('key_id', $names, true) ? 't.key_id' : '0';
+            $join = '';
+            if ( ! empty($copy['via_context']) ) {
+                $key_sql = 'ctx.key_id';
+                $join = "INNER JOIN {$prefix}lti_context AS ctx ON ctx.context_id = t.context_id";
+            }
+            $rows = self::diagnosticRows(
+                "SELECT {$key_sql} AS key_id,
+                        t.{$copy['id_column']} AS row_id,
+                        CHAR_LENGTH({$expr}) AS value_length,
+                        CHAR_LENGTH({$expr}) - CHAR_LENGTH(RTRIM({$expr})) AS trailing_spaces
+                    FROM {$table} AS t
+                    {$join}
+                    WHERE {$expr} IS NOT NULL
+                        AND CHAR_LENGTH({$expr}) <> CHAR_LENGTH(RTRIM({$expr}))
+                    ORDER BY trailing_spaces DESC, t.{$copy['id_column']}"
+            );
+            foreach ( $rows as $row ) {
+                $found[] = array(
+                    'label' => $copy['label'],
+                    'table' => $copy['table'],
+                    'column' => $copy['column'],
+                    'row_id' => (int) U::get($row, 'row_id', 0),
+                    'key_id' => (int) U::get($row, 'key_id', 0),
+                    'length' => (int) U::get($row, 'value_length', 0),
+                    'trailing' => (int) U::get($row, 'trailing_spaces', 0),
+                    'redacted' => $redact,
+                );
+            }
+        }
+
+        usort($found, function ($a, $b) {
+            if ( $a['trailing'] !== $b['trailing'] ) return $b['trailing'] - $a['trailing'];
+            if ( $a['key_id'] !== $b['key_id'] ) return $a['key_id'] - $b['key_id'];
+            return $a['row_id'] - $b['row_id'];
+        });
+        return $found;
+    }
+
+    /**
      * A short window of a non-secret value, centered on the first character
      * outside ASCII when that character is in the fetched prefix.
      */
