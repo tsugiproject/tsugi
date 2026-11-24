@@ -619,8 +619,9 @@ document.addEventListener('DOMContentLoaded', function() {
             credentials: 'same-origin'
         }).then(function(response) { return response.json(); });
     }
-    function applyCreated(data, hideModal) {
+    function applyCreated(data, current, selectedAtConfirm) {
         var select = document.getElementById('lti_client_id');
+        var chose = false;
         if (select && data && data.id) {
             var found = false;
             for (var i = 0; i < select.options.length; i++) {
@@ -635,14 +636,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 select.add(option);
             }
-            select.value = String(data.id);
-            if (window.tsugiSyncEmptyKeyPlatformFields) window.tsugiSyncEmptyKeyPlatformFields();
+            if (current && select.value === selectedAtConfirm) {
+                select.value = String(data.id);
+                chose = true;
+                if (window.tsugiSyncEmptyKeyPlatformFields) window.tsugiSyncEmptyKeyPlatformFields();
+            }
         }
-        if (note) {
+        if (chose && note) {
             note.style.display = '';
             note.textContent = 'You must save this key to complete the connection to the newly created client.';
         }
-        if (hideModal && window.jQuery) window.jQuery('#create-client-modal').modal('hide');
+        if (current && window.jQuery) window.jQuery('#create-client-modal').modal('hide');
     }
     if (openButton) openButton.addEventListener('click', function() {
         var seq = ++checkSeq;
@@ -663,9 +667,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmButton) confirmButton.addEventListener('click', function() {
         if (!checkedFields) return;
         var seq = checkSeq;
+        var selectNow = document.getElementById('lti_client_id');
+        var selectedAtConfirm = selectNow ? selectNow.value : null;
         post(paramsFrom(checkedFields, true)).then(function(data) {
             if (data && data.ok === true && data.id) {
-                applyCreated(data, seq === checkSeq);
+                applyCreated(data, seq === checkSeq, selectedAtConfirm);
                 return;
             }
             if (seq !== checkSeq) return;
