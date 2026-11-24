@@ -84,7 +84,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 echo \Tsugi\Services\Admin\AdminService::clientIdCheckNotices();
 ?>
-<h1>Keys / Deployments</h1>
+<h1>LTI Tenants (Keys)</h1>
 <p>
   <a href="clients" class="btn btn-default">Clients</a>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Keys</a>

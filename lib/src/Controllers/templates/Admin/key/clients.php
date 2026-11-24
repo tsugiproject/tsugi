@@ -34,6 +34,7 @@ foreach ( $rows as $row ) {
     $newrows[] = $newrow;
 }
 
+$key_admin = $CFG->wwwroot.'/admin/key/';
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -41,8 +42,8 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI 1.3 Clients</h1>
 <p>
-  <a href="clients" class="btn btn-default active">Clients</a>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Keys</a>
+  <a href="<?= $key_admin ?>clients" class="btn btn-default active">Clients</a>
+  <a href="<?= $key_admin ?>" class="btn btn-default">Keys</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <p>
@@ -54,8 +55,8 @@ Launch uses the client only when that key points at it and the issuer, client id
 <p>You have no clients yet.</p>
 <?php }
 $extra_buttons = array(
-  "Insert Client" => "client-add"
+  "Insert Client" => $key_admin."client-add"
 );
-Table::pagedTable($newrows, $searchfields, false, "client-detail", false, $extra_buttons);
+Table::pagedTable($newrows, $searchfields, false, $key_admin."client-detail", false, $extra_buttons);
 
 $OUTPUT->footer();

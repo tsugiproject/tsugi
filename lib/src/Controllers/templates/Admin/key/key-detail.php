@@ -548,10 +548,18 @@ document.addEventListener('DOMContentLoaded', function() {
     var note = document.getElementById('create-client-from-key-note');
     var confirmButton = document.getElementById('create-client-confirm');
     var body = document.getElementById('create-client-modal-body');
+    var keyAdmin = <?= json_encode($CFG->wwwroot.'/admin/key/', JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     var names = ['key_title', 'user_id', 'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience', 'unlock_code'];
+    var checkSeq = 0;
+    var checkedFields = null;
     function fieldValue(name) {
         var el = document.getElementById(name);
         return el ? el.value.trim() : '';
+    }
+    function valuesNow() {
+        var values = {};
+        names.forEach(function(name) { values[name] = fieldValue(name); });
+        return values;
     }
     function ready() {
         return fieldValue('lms_issuer') !== '' && fieldValue('lms_client') !== ''
@@ -573,10 +581,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var token = document.querySelector('input[name="CSRF_TOKEN"]');
         return token ? token.value : '';
     }
-    function params(create) {
+    function paramsFrom(values, create) {
         var data = new URLSearchParams();
         data.set('CSRF_TOKEN', csrf());
-        names.forEach(function(name) { data.set(name, fieldValue(name)); });
+        names.forEach(function(name) { data.set(name, values[name] == null ? '' : values[name]); });
         if (create) data.set('doCreate', '1');
         return data;
     }
@@ -597,14 +605,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!data || data.ok !== true) {
             html += '<p>'+esc(data && data.error ? data.error : 'Could not check this client.')+'</p>';
             if (data && data.existing_id) {
-                html += '<p><a href="client-detail?lti_client_id='+encodeURIComponent(data.existing_id)+'">Open the existing client</a></p>';
+                html += '<p><a href="'+esc(keyAdmin+'client-detail?lti_client_id='+encodeURIComponent(data.existing_id))+'">Open the existing client</a></p>';
             }
         }
         if (body) body.innerHTML = html;
         if (confirmButton) confirmButton.style.display = data && data.ok === true ? '' : 'none';
     }
     function post(data) {
-        return fetch('client-from-key', {
+        return fetch(keyAdmin+'client-from-key', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
             body: data.toString(),
@@ -622,7 +630,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 var option = document.createElement('option');
                 option.value = String(data.id);
                 option.textContent = data.label || ('Client '+data.id);
-                if (select.options.length === 1 && select.options[0].value === '') select.remove(0);
+                if (select.options.length === 1 && select.options[0].value === '') {
+                    select.options[0].textContent = 'Select';
+                }
                 select.add(option);
             }
             select.value = String(data.id);
@@ -635,16 +645,30 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.jQuery) window.jQuery('#create-client-modal').modal('hide');
     }
     if (openButton) openButton.addEventListener('click', function() {
+        var seq = ++checkSeq;
+        var values = valuesNow();
+        checkedFields = null;
+        if (confirmButton) confirmButton.style.display = 'none';
+        if (body) body.innerHTML = '';
         if (window.jQuery) window.jQuery('#create-client-modal').modal('show');
-        post(params(false)).then(render).catch(function() {
+        post(paramsFrom(values, false)).then(function(data) {
+            if (seq !== checkSeq) return;
+            if (data && data.ok === true) checkedFields = values;
+            render(data);
+        }).catch(function() {
+            if (seq !== checkSeq) return;
             render({ok: false, error: 'Could not check this client.'});
         });
     });
     if (confirmButton) confirmButton.addEventListener('click', function() {
-        post(params(true)).then(function(data) {
+        if (!checkedFields) return;
+        var seq = checkSeq;
+        post(paramsFrom(checkedFields, true)).then(function(data) {
+            if (seq !== checkSeq) return;
             if (data && data.ok === true && data.id) applyCreated(data);
             else render(data || {ok: false, error: 'Could not create client.'});
         }).catch(function() {
+            if (seq !== checkSeq) return;
             render({ok: false, error: 'Could not create client.'});
         });
     });

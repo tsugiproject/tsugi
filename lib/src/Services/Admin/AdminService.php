@@ -2275,7 +2275,7 @@ class AdminService {
         $links = array();
         foreach ( $matches as $match ) {
             $id = (int) U::get($match, 'lti_client_id');
-            $href = 'client-detail?lti_client_id='.$id;
+            $href = self::keyAdminUrl('client-detail?lti_client_id='.$id);
             $label = htmlspecialchars(self::inboundClientLabel($match), ENT_QUOTES, 'UTF-8');
             $links[] = '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.$label.'</a>';
         }
@@ -2414,7 +2414,7 @@ class AdminService {
                 return "<p><strong>LTI 1.3 client</strong></p>\n<p>Missing client ".$selectedId."</p>\n"
                     .self::clientPlatformFieldsNote(false);
             }
-            $href = 'client-detail?lti_client_id='.$selectedId;
+            $href = self::keyAdminUrl('client-detail?lti_client_id='.$selectedId);
             $label = htmlspecialchars(self::inboundClientLabel($row), ENT_QUOTES, 'UTF-8');
             return "<p><strong>LTI 1.3 client</strong></p>\n<p><a href=\"{$href}\">{$label}</a></p>\n"
                 .self::clientPlatformFieldsNote(false);
@@ -2692,6 +2692,16 @@ class AdminService {
     }
 
     /**
+     * Absolute key-admin URL. A relative link 404s from a trailing-slash route.
+     *
+     * @param string $path
+     */
+    private static function keyAdminUrl($path) {
+        global $CFG;
+        return $CFG->wwwroot.'/admin/key/'.ltrim((string) $path, '/');
+    }
+
+    /**
      * Status label for a tenant key on the admin list and detail page.
      *
      * A consumer key with a secret is LTI 1.1. A consumer key without a secret
@@ -2744,7 +2754,7 @@ class AdminService {
         $label = htmlspecialchars(self::keyTypeLabel($row), ENT_QUOTES, 'UTF-8');
         $id = (int) U::get($row, 'lti_client_id');
         if ( $id < 1 ) return $label;
-        $href = 'client-detail?lti_client_id='.$id;
+        $href = self::keyAdminUrl('client-detail?lti_client_id='.$id);
         $link = '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">Client</a>';
         return str_replace('Client', $link, $label);
     }
