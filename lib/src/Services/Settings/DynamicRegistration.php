@@ -440,6 +440,9 @@ class DynamicRegistration {
 
         $issuer_sha256 = hash('sha256', trim($issuer));
 
+        // Dynamic registration still writes the legacy key columns. It does not
+        // create or update an lti_client row. A complete linked client would
+        // hide these values at launch. That handoff comes later.
         $sql = "UPDATE {$CFG->dbprefix}lti_key SET
                 lms_issuer = :lms_issuer,
                 lms_issuer_sha256 = :lms_issuer_sha256,

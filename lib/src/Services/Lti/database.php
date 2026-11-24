@@ -40,6 +40,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_issuer",
 "drop table if exists {$CFG->dbprefix}lti_keyset",
 "drop table if exists {$CFG->dbprefix}lti_key",
+"drop table if exists {$CFG->dbprefix}lti_client",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
 "drop table if exists {$CFG->dbprefix}lti_domain",
@@ -68,6 +69,75 @@ array( "{$CFG->dbprefix}lti_keyset",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
     CONSTRAINT `{$CFG->dbprefix}lti_keyset_const_pk` PRIMARY KEY (keyset_id)
+ ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Inbound LTI 1.3 client. Tsugi is the tool.
+// lti_tool_registration is the other direction, where Tsugi is the platform.
+// One row is one OAuth client (issuer + client_id). Deployments stay on lti_key.
+// A wildcard issuer stays on lti_key (null issuer hash, real client id). This
+// table does not store that shape: issuer is required.
+// Created before lti_key so the foreign key can live in the lti_key CREATE.
+array( "{$CFG->dbprefix}lti_client",
+"create table {$CFG->dbprefix}lti_client (
+    lti_client_id         INTEGER NOT NULL AUTO_INCREMENT,
+
+    -- Row guid. An omitted value gets an unswapped MySQL UUID() (version 1).
+    -- Inserts pass Guid::uuid7(). Explicit NULL stays NULL.
+    guid                  BINARY(16) NULL DEFAULT (UNHEX(REPLACE(UUID(), '-', ''))),
+
+    -- Human label. Not part of the OAuth identity. Copied from key_title
+    -- when a client is created from a key.
+    title                 TEXT NULL,
+
+    -- Owner of this client. Not a foreign key, same as lti_key.user_id.
+    -- created_by_user_id below is who inserted the row.
+    user_id               INTEGER NULL,
+
+    notes                 TEXT NULL,
+
+    -- Issuer is required. client_id stays NULL until the platform assigns one.
+    issuer                VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    client_id             VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+
+    -- The first completed (issuer, client_id) owns these four values.
+    -- Later deployments of that client reuse this row.
+    oidc_auth_url         TEXT NULL,
+    keyset_url            TEXT NULL,
+    token_url             TEXT NULL,
+    -- OpenID authorization_server, stored verbatim. Often not the token URL.
+    -- When a complete client wins, a NULL audience replaces the key's audience.
+    token_audience        TEXT NULL,
+
+    -- One-time dynamic registration code. Dynamic registration still checks
+    -- the code on the key and still writes the key, not this table.
+    unlock_code           MEDIUMTEXT NULL,
+    dynamic_registration_unlocked_at TIMESTAMP NULL,
+
+    product_family_code   VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    -- tool_platform.guid from a launch. Not this row's guid.
+    platform_guid         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+
+    -- Stored for a later dynamic-registration workflow. Nothing reads these yet.
+    -- manual | dynamic
+    client_method         VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'manual',
+    -- pending | active | disabled
+    client_status         VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'pending',
+    -- automatic | approval | reject
+    new_deployment_policy VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'approval',
+
+    -- Provenance only. Not a foreign key.
+    created_by_user_id    INTEGER NULL,
+
+    json                  MEDIUMTEXT NULL,
+
+    created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TIMESTAMP NULL,
+
+    -- NULLs are distinct, so pending rows can share an issuer while client_id
+    -- is still NULL. A completed (issuer, client_id) pair cannot be repeated.
+    CONSTRAINT `{$CFG->dbprefix}lti_client_const_1` UNIQUE (issuer, client_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_client_const_guid` UNIQUE (`guid`),
+    CONSTRAINT `{$CFG->dbprefix}lti_client_const_pk` PRIMARY KEY (lti_client_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // https://stackoverflow.com/questions/28418360/jwt-json-web-token-audience-aud-versus-client-id-whats-the-difference
@@ -113,6 +183,16 @@ array( "{$CFG->dbprefix}lti_key",
     lms_token_url       TEXT NULL,
     lms_token_audience  TEXT NULL,
 
+    -- Inbound client. NULL means this key still stores its own issuer and URLs.
+    -- ON DELETE SET NULL detaches the key when the client is removed.
+    -- A blank issuer on this key stays a wildcard. Linking a complete client
+    -- makes launch use that client's issuer instead.
+    -- deployment_status NULL means the approval workflow does not apply.
+    -- Future values: pending, active, blocked. Nothing reads these yet.
+    lti_client_id       INTEGER NULL,
+    deployment_status   VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    deployment_approved_at TIMESTAMP NULL,
+
     -- Default IANA zone copied onto a new Plus context. Existing courses keep their own.
     timezone            VARCHAR(64) NULL,
 
@@ -156,6 +236,14 @@ array( "{$CFG->dbprefix}lti_key",
     -- ascii_bin treats trailing spaces as equal. Soft-deleted rows count.
     -- Upgrade adds this unique only after a scan finds no repeated non-NULL triple.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_issuer_client_deploy` UNIQUE(lms_issuer, lms_client, deploy_key),
+    -- NULL lti_client_id stays repeatable, so every legacy key fits.
+    -- NULL deploy_key also stays repeatable. The key save check rejects a
+    -- second blank deployment for the same client.
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_client_deploy` UNIQUE(lti_client_id, deploy_key),
+    CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_client`
+        FOREIGN KEY (`lti_client_id`)
+        REFERENCES `{$CFG->dbprefix}lti_client` (`lti_client_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -1750,6 +1838,15 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-10-27 Last Classroom refresh error, and the last successful check.
         array('lti_user', 'gc_status', 'VARCHAR(512) NULL'),
         array('lti_user', 'gc_checked_at', 'TIMESTAMP NULL'),
+
+        // 2026-11-23 Inbound LTI 1.3 client. Existing keys stay NULL.
+        // The foreign key is added below. lti_client itself is created from DATABASE_INSTALL.
+        // deployment_status NULL means the approval workflow does not apply.
+        array('lti_key', 'lti_client_id', 'INTEGER NULL'),
+        array('lti_key', 'deployment_status', 'VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NULL'),
+        array('lti_key', 'deployment_approved_at', 'TIMESTAMP NULL'),
+        // Owner. Not a foreign key. A fresh lti_client CREATE already has it.
+        array('lti_client', 'user_id', 'INTEGER NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1766,6 +1863,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+        if ( $table === 'lti_key' && $column === 'lti_client_id' && ! $q->success ) {
+            die("Unable to add lti_key.lti_client_id: ".$q->errorImplode."<br/>\n");
+        }
     }
 
     // Generally wait a while to drop the fields - there is no rush
@@ -1854,6 +1954,8 @@ $DATABASE_UPGRADE = function($oldversion) {
     $keep_key_key_index = $CFG->dbprefix."lti_key_const_key_key";
     // Added later in this upgrade, after the non-NULL issuer/client/deploy scan.
     $keep_issuer_client_deploy_index = $CFG->dbprefix."lti_key_const_issuer_client_deploy";
+    // Added later in this upgrade. NULL lti_client_id keeps every existing key eligible.
+    $keep_client_deploy_index = $CFG->dbprefix."lti_key_const_client_deploy";
     // InnoDB names a foreign key's supporting index after the constraint.
     // DROP INDEX fails while that constraint still exists.
     $foreign_key_indexes = array();
@@ -1881,6 +1983,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         if ( $index === $keep_guid_index ) continue;
         if ( $index === $keep_key_key_index ) continue;
         if ( $index === $keep_issuer_client_deploy_index ) continue;
+        if ( $index === $keep_client_deploy_index ) continue;
         $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
         if ( is_string($command) ) continue;
         $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
@@ -2502,6 +2605,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         return is_array($row);
     };
 
+    // ON DELETE SET NULL: removing a client detaches its keys.
+    $key_table = "{$p}lti_key";
+    $client_table = "{$p}lti_client";
+    $key_client_fk = "{$p}lti_key_ibfk_client";
+    if ( $PDOX->metadata($key_table) !== false
+        && $PDOX->metadata($client_table) !== false
+        && $PDOX->columnExists('lti_client_id', $key_table)
+        && ! $constraint_exists($key_table, $key_client_fk) ) {
+        $sql = "ALTER TABLE {$key_table} ADD CONSTRAINT `{$key_client_fk}`
+            FOREIGN KEY (`lti_client_id`)
+            REFERENCES `{$client_table}` (`lti_client_id`)
+            ON DELETE SET NULL ON UPDATE CASCADE";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) die("Unable to add {$key_client_fk}: ".$q->errorImplode."<br/>\n");
+    }
+
     if ( $PDOX->metadata($org_table) !== false && $PDOX->columnExists('org_id', $context_table) ) {
         $org_index = "{$p}lti_context_indx_1";
         if ( ! $PDOX->indexExists($org_index, $context_table) ) {
@@ -3060,10 +3181,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Inbound LTI registration (November 2026) was a temporary idea. It was
     // reverted. A site that ran that upgrade still has the lti_registration
     // table, a foreign key from lti_key.lti_registration_id, the index InnoDB
-    // keeps for that key, and five columns on lti_key. Nothing in this tree
+    // keeps for that key, and three columns on lti_key. Nothing in this tree
     // reads them. This block drops that leftover schema. It is not part of
     // the add-field or drop-field lists above. Delete this whole block once
     // every site has upgraded past it.
+    //
+    // deployment_status and deployment_approved_at were on that list. They are
+    // lti_key columns again for the inbound client. Do not drop them here.
     //
     // A missing table, column, foreign key, or index is left alone and not
     // reported. Rows still in lti_registration are dropped with the table.
@@ -3074,8 +3198,6 @@ $DATABASE_UPGRADE = function($oldversion) {
     $revert_index = $revert_prefix.'lti_key_ibfk_1';
     $revert_columns = array(
         'lti_registration_id',
-        'deployment_status',
-        'deployment_approved_at',
         'platform_guid',
         'dynamic_registration_unlocked_at',
     );
@@ -3585,23 +3707,22 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Keys saved before 12 May 2026, and any row copied from those keys, can
     // still have deploy_key = ''.
     //
-    // Issuer and client were left as empty strings when those boxes were blank,
-    // and a new LTI 1.1 key still stores them that way. The row this form writes
-    // today is lms_issuer = '', lms_client = '', deploy_key = NULL, and
-    // deploy_sha256 = NULL. An LTI 1.1 launch matches key_sha256 and does not
-    // read these three columns. An empty client id does not match an LTI 1.3
-    // launch.
+    // Issuer and client were left as empty strings when those boxes were blank.
+    // The key form now stores a blank issuer, client id, or deployment id as
+    // NULL. This update does that for rows where all three are already blank
+    // (NULL, '', spaces, or the word null). A null issuer with a real client
+    // id is a wildcard and is not touched. An LTI 1.1 launch matches key_sha256
+    // and does not read these three columns. A null client id does not match
+    // an LTI 1.3 launch.
     //
-    // UNIQUE(lms_issuer, lms_client, deploy_key) treats '' as a real value, so
-    // two rows with all three columns blank cannot both exist. That group also
-    // stops this unique from being added. NULL in deploy_key stays repeatable,
-    // which is why many LTI 1.1 keys can share a blank issuer and a blank
-    // client. This update changes only that deployment id, and its hash, when
-    // all three are blank. Issuer and client stay empty strings.
+    // UNIQUE(lms_issuer, lms_client, deploy_key) treats '' as a real value and
+    // NULL as repeatable. Clearing all three to NULL lets many LTI 1.1 keys
+    // share that shape. The issuer hash is cleared in the same update so the
+    // key list does not hash an empty issuer into a fake value.
     //
     // ascii_bin is PAD SPACE, so a value that is only spaces compares equal to
-    // '' and is cleared too. Soft-deleted rows are included. This runs on every
-    // upgrade, before the unique below. A second run matches nothing.
+    // ''. Soft-deleted rows are included. This runs on every upgrade, before
+    // the unique below. A second run matches nothing.
     $blank_deploy_table = $CFG->dbprefix.'lti_key';
     $blank_deploy_meta = $PDOX->describe($blank_deploy_table);
     $blank_deploy_fields = array();
@@ -3611,24 +3732,33 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
     $blank_deploy_missing = array();
-    foreach ( array('lms_issuer', 'lms_client', 'deploy_key', 'deploy_sha256') as $blank_deploy_needed ) {
+    foreach ( array('lms_issuer', 'lms_client', 'deploy_key', 'deploy_sha256', 'lms_issuer_sha256') as $blank_deploy_needed ) {
         if ( ! in_array($blank_deploy_needed, $blank_deploy_fields, true) ) {
             $blank_deploy_missing[] = $blank_deploy_needed;
         }
     }
     if ( count($blank_deploy_missing) > 0 ) {
-        $identity_note('LTI 1.1 blank deployment ids left unchanged: missing '.implode(', ', $blank_deploy_missing).'.');
+        $identity_note('LTI 1.1 blank issuer, client, and deployment left unchanged: missing '.implode(', ', $blank_deploy_missing).'.');
     } else {
-        $blank_deploy_sql = "UPDATE {$blank_deploy_table} SET deploy_key = NULL, deploy_sha256 = NULL"
-            ." WHERE lms_issuer = '' AND lms_client = '' AND deploy_key = ''";
+        $blank_one = function($column) {
+            return '('.$column.' IS NULL OR '.$column." = '' OR LOWER(TRIM(".$column.")) = 'null')";
+        };
+        $blank_deploy_sql = "UPDATE {$blank_deploy_table} SET"
+            ." lms_issuer = NULL, lms_issuer_sha256 = NULL, lms_client = NULL,"
+            ." deploy_key = NULL, deploy_sha256 = NULL"
+            ." WHERE ".$blank_one('lms_issuer')
+            ." AND ".$blank_one('lms_client')
+            ." AND ".$blank_one('deploy_key')
+            ." AND (lms_issuer IS NOT NULL OR lms_client IS NOT NULL OR deploy_key IS NOT NULL"
+            ." OR lms_issuer_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)";
         $identity_note('Upgrading: '.$blank_deploy_sql);
         $blank_deploy_update = $PDOX->queryReturnError($blank_deploy_sql, false, false);
         if ( ! $blank_deploy_update->success ) {
-            $identity_note('LTI 1.1 blank deployment ids were not cleared: '.$blank_deploy_update->errorImplode);
+            $identity_note('LTI 1.1 blank issuer, client, and deployment were not cleared: '.$blank_deploy_update->errorImplode);
         } else {
             $blank_deploy_count = (int) $blank_deploy_update->rowCount();
             $blank_deploy_word = $blank_deploy_count === 1 ? 'key' : 'keys';
-            $identity_note('LTI 1.1 blank deployment ids: set deploy_key and deploy_sha256 to NULL on '.$blank_deploy_count.' '.$blank_deploy_word.'.');
+            $identity_note('LTI 1.1 blank issuer, client, and deployment: set all three and both hashes to NULL on '.$blank_deploy_count.' '.$blank_deploy_word.'.');
         }
     }
 
@@ -3689,6 +3819,62 @@ $DATABASE_UPGRADE = function($oldversion) {
     } catch (\Throwable $issuer_unique_error) {
         $identity_note('Identity column lti_key (lms_issuer, lms_client, deploy_key): '.$issuer_unique_error->getMessage().'. Unique index not added.');
         \Tsugi\Services\Admin\AdminService::addUpgradeBeaconNote('unique (issuer, client id, deployment id) not added: could not read lti_key');
+    }
+
+    // UNIQUE(lti_client_id, deploy_key). Every existing key has a NULL client
+    // id until an admin links one, and NULL stays repeatable, so this adds on
+    // a populated lti_key. A NULL deployment id stays repeatable too. The scan
+    // ignores those rows. GROUP BY would put every NULL in one group, and that
+    // group is not a unique-index collision.
+    try {
+        $client_deploy_table = $CFG->dbprefix.'lti_key';
+        $client_deploy_index = $CFG->dbprefix.'lti_key_const_client_deploy';
+        $client_deploy_label = 'Identity column lti_key (lti_client_id, deploy_key)';
+        if ( ! $PDOX->columnExists('lti_client_id', $client_deploy_table)
+            || ! $PDOX->columnExists('deploy_key', $client_deploy_table) ) {
+            $identity_note($client_deploy_label.': column missing. Unique index not added.');
+        } else if ( $PDOX->indexExists($client_deploy_index, $client_deploy_table) ) {
+            $identity_note($client_deploy_label.': unique (lti_client_id, deploy_key) already present.');
+        } else {
+            $client_deploy_dups = $PDOX->allRows(
+                "SELECT lti_client_id, deploy_key, COUNT(*) AS n, MIN(key_id) AS example_id
+                    FROM {$client_deploy_table}
+                    WHERE lti_client_id IS NOT NULL AND deploy_key IS NOT NULL
+                    GROUP BY lti_client_id, deploy_key
+                    HAVING COUNT(*) > 1
+                    LIMIT 5",
+                false,
+                false
+            );
+            if ( ! is_array($client_deploy_dups) ) {
+                $identity_note($client_deploy_label.': duplicate scan failed. Unique index not added.');
+                \Tsugi\Services\Admin\AdminService::addUpgradeBeaconNote('unique (client, deployment id) not added: scan failed');
+            } else if ( count($client_deploy_dups) > 0 ) {
+                $client_deploy_bits = array();
+                foreach ( $client_deploy_dups as $client_deploy_dup ) {
+                    $client_deploy_bits[] = 'key_id='.\Tsugi\Util\U::get($client_deploy_dup, 'example_id')
+                        .' count='.\Tsugi\Util\U::get($client_deploy_dup, 'n')
+                        .' lti_client_id='.\Tsugi\Util\U::get($client_deploy_dup, 'lti_client_id')
+                        .' deploy_key='.\Tsugi\Util\U::get($client_deploy_dup, 'deploy_key');
+                }
+                $identity_note($client_deploy_label.': duplicate groups. Examples: '.implode('; ', $client_deploy_bits).'. Unique index not added.');
+                \Tsugi\Services\Admin\AdminService::addUpgradeBeaconNote('unique (client, deployment id) not added: duplicates');
+            } else {
+                $client_deploy_sql = "ALTER TABLE {$client_deploy_table} ADD CONSTRAINT `{$client_deploy_index}` UNIQUE (lti_client_id, deploy_key)";
+                $identity_note($client_deploy_label.': 0 duplicate groups for unique (lti_client_id, deploy_key). Adding constraint '.$client_deploy_index.'.');
+                $identity_note('Upgrading: '.$client_deploy_sql);
+                $client_deploy_alter = $PDOX->queryReturnError($client_deploy_sql, false, false);
+                if ( ! $client_deploy_alter->success ) {
+                    $identity_note($client_deploy_label.': alter failed: '.$client_deploy_alter->errorImplode.'. Unique index not added.');
+                    \Tsugi\Services\Admin\AdminService::addUpgradeBeaconNote('unique (client, deployment id) not added: alter failed');
+                } else {
+                    $identity_note($client_deploy_label.': added unique (lti_client_id, deploy_key).');
+                }
+            }
+        }
+    } catch (\Throwable $client_deploy_error) {
+        $identity_note('Identity column lti_key (lti_client_id, deploy_key): '.$client_deploy_error->getMessage().'. Unique index not added.');
+        \Tsugi\Services\Admin\AdminService::addUpgradeBeaconNote('unique (client, deployment id) not added: could not read lti_key');
     }
 
     // Natural-column uniques beside the sha256 uniques, same column order.
