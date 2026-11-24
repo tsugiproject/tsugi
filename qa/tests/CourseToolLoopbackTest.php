@@ -81,7 +81,9 @@ final class CourseToolLoopbackTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::linkText('Edit'))->click();
         $this->waitForPageText($client, 'name="unlock_code"');
         $driver->findElement(WebDriverBy::id('unlock_code'))->sendKeys($unlock);
-        $driver->findElement(WebDriverBy::name('doUpdate'))->click();
+        $update = $driver->findElement(WebDriverBy::name('doUpdate'));
+        $driver->executeScript('arguments[0].scrollIntoView({block:"center"});', [$update]);
+        $update->click();
         $this->waitForPageText($client, 'LTI Tenants');
         $this->openKey($client, $title);
         $this->waitForPageText($client, 'LTI Advantage Dynamic Registration URL');

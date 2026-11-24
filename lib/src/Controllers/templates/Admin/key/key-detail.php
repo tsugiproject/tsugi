@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
             credentials: 'same-origin'
         }).then(function(response) { return response.json(); });
     }
-    function applyCreated(data) {
+    function applyCreated(data, hideModal) {
         var select = document.getElementById('lti_client_id');
         if (select && data && data.id) {
             var found = false;
@@ -642,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
             note.style.display = '';
             note.textContent = 'You must save this key to complete the connection to the newly created client.';
         }
-        if (window.jQuery) window.jQuery('#create-client-modal').modal('hide');
+        if (hideModal && window.jQuery) window.jQuery('#create-client-modal').modal('hide');
     }
     if (openButton) openButton.addEventListener('click', function() {
         var seq = ++checkSeq;
@@ -664,9 +664,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!checkedFields) return;
         var seq = checkSeq;
         post(paramsFrom(checkedFields, true)).then(function(data) {
+            if (data && data.ok === true && data.id) {
+                applyCreated(data, seq === checkSeq);
+                return;
+            }
             if (seq !== checkSeq) return;
-            if (data && data.ok === true && data.id) applyCreated(data);
-            else render(data || {ok: false, error: 'Could not create client.'});
+            render(data || {ok: false, error: 'Could not create client.'});
         }).catch(function() {
             if (seq !== checkSeq) return;
             render({ok: false, error: 'Could not create client.'});

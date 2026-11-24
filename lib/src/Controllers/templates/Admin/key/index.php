@@ -101,7 +101,7 @@ You have no Tenant keys for this system.
 <?php }
 $extra_buttons = array(
   "Insert Client" => "client-add",
-  "Insert Key" => "key-add"
+  "Insert Tenant" => "key-add"
 );
 Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
 // echo("<pre>\n");print_r($newrows);echo("</pre>\n");
