@@ -48,7 +48,8 @@ foreach ( $rows as $row ) {
     $newrow['key_id'] = $row['key_id'];
     $newrow['key'] = $row['key_key'];
     if ( !empty($row['key_title']) ) $newrow['key'] = $row['key_title'];
-    $newrow['user_id'] = $row['user_id'];
+    $newrow['owner'] = $row['user_id'];
+    $newrow['_header_owner'] = 'User Id';
     $newrow['key_type'] = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
     $newrow['_html_key_type'] = \Tsugi\Services\Admin\AdminService::keyTypeHtml($row);
     $issuer_key = $row['lms_issuer'];
@@ -86,7 +87,7 @@ echo \Tsugi\Services\Admin\AdminService::clientIdCheckNotices();
 ?>
 <h1>LTI Tenants (Keys)</h1>
 <p>
-  <a href="clients" class="btn btn-default">Clients</a>
+  <a href="<?= $CFG->wwwroot ?>/admin/key/clients" class="btn btn-default">Clients</a>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Keys</a>
 <?php if ( $CFG->providekeys ) { ?>
   <a href="requests" class="btn btn-default">Key Requests</a>

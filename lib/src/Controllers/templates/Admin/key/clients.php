@@ -26,7 +26,8 @@ foreach ( $rows as $row ) {
     $newrow = array();
     $newrow['lti_client_id'] = $row['lti_client_id'];
     $newrow['title'] = $row['title'];
-    $newrow['user_id'] = $row['user_id'];
+    $newrow['owner'] = $row['user_id'];
+    $newrow['_header_owner'] = 'User Id';
     $newrow['issuer'] = $row['issuer'];
     $newrow['client'] = $row['client_id'];
     $newrow['_header_client'] = 'Client ID';
