@@ -2630,12 +2630,13 @@ class AdminService {
      * The caller has already updated the key columns. Registration does not
      * rewrite an existing client. A linked client stays linked when its
      * issuer, client id, platform URLs, and audience match this registration.
-     * A different client config clears lti_client_id and is logged. A missing
-     * client table leaves the key columns as the only copy. An unlinked key
-     * is linked to the client for this issuer and client id only when that
-     * client already matches. A different existing client is left unchanged
-     * and the key stays unlinked. A new client is inserted when none exists.
-     * The key columns are not cleared here.
+     * A different client config clears lti_client_id and the cached platform
+     * keyset, and is logged. A missing client table leaves the key columns as
+     * the only copy. An unlinked key is linked to the client for this issuer
+     * and client id only when that client already matches. A different existing
+     * client is left unchanged and the key stays unlinked. A new client is
+     * inserted when none exists. The link is claimed only while lti_client_id
+     * is still empty. The key columns are not cleared here.
      *
      * @param array<string, mixed> $key
      * @param array<string, mixed> $registration
@@ -2659,21 +2660,9 @@ class AdminService {
         $audience = self::trimToNull(U::get($registration, 'token_audience'));
         $family = self::registrationProductFamily(U::get($registration, 'product_family_code'));
         $key_id = (int) U::get($key, 'key_id', U::get($registration, 'key_id'));
-        $linked_id = (int) U::get($key, 'lti_client_id');
 
-        if ( $linked_id > 0 ) {
-            return self::keepOrSeverRegistrationClient(
-                $key_id,
-                $linked_id,
-                self::inboundClientById($linked_id),
-                $issuer,
-                $client,
-                $oidc,
-                $keyset,
-                $token,
-                $audience
-            );
-        }
+        $settled = self::settleLinkedRegistrationClient($key, $registration);
+        if ( is_array($settled) ) return $settled;
 
         $existing = $PDOX->rowDie(
             "SELECT lti_client_id FROM {$CFG->dbprefix}lti_client
@@ -2723,13 +2712,56 @@ class AdminService {
             );
         }
         $link = $PDOX->queryReturnError(
-            "UPDATE {$CFG->dbprefix}lti_key SET lti_client_id = :client WHERE key_id = :id",
+            "UPDATE {$CFG->dbprefix}lti_key SET lti_client_id = :client
+                WHERE key_id = :id AND lti_client_id IS NULL",
             array(':client' => $id, ':id' => $key_id)
         );
-        if ( ! $link->success ) {
+        if ( ! $link->success || $link->rowCount() < 1 ) {
             return array('id' => $id, 'linked' => false, 'note' => $link_fail_note);
         }
         return array('id' => $id, 'linked' => true, 'note' => $note);
+    }
+
+    /**
+     * Keep or clear a client this key is already linked to.
+     *
+     * Returns null when the key is not linked, or when this registration
+     * cannot be compared to a client. The caller writes a new deployment id
+     * after this returns, so a mismatched link is gone before that unique
+     * check runs.
+     *
+     * @param array<string, mixed> $key
+     * @param array<string, mixed> $registration
+     * @return array{id:int|null, linked:bool, note:string}|null
+     */
+    public static function settleLinkedRegistrationClient(array $key, array $registration) {
+        global $PDOX, $CFG;
+
+        $linked_id = (int) U::get($key, 'lti_client_id');
+        if ( $linked_id < 1 ) return null;
+        if ( ! is_object($PDOX) || ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return null;
+        if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return null;
+
+        $issuer = self::trimToNull(U::get($registration, 'issuer'));
+        $client = self::trimToNull(U::get($registration, 'client_id'));
+        $oidc = self::trimToNull(U::get($registration, 'oidc_auth_url'));
+        $keyset = self::trimToNull(U::get($registration, 'keyset_url'));
+        $token = self::trimToNull(U::get($registration, 'token_url'));
+        if ( $issuer === null || $client === null || $oidc === null || $keyset === null || $token === null ) {
+            return null;
+        }
+        $key_id = (int) U::get($key, 'key_id', U::get($registration, 'key_id'));
+        return self::keepOrSeverRegistrationClient(
+            $key_id,
+            $linked_id,
+            self::inboundClientById($linked_id),
+            $issuer,
+            $client,
+            $oidc,
+            $keyset,
+            $token,
+            self::trimToNull(U::get($registration, 'token_audience'))
+        );
     }
 
     /**
@@ -2788,6 +2820,12 @@ class AdminService {
     }
 
     /**
+     * Drop the client link and the cached platform keyset.
+     *
+     * The cache was filled from the client URL. After the link is gone, launch
+     * uses the key columns, so a cache for the old URL must not stay. The
+     * cache is left alone when this update does not match.
+     *
      * @param int $key_id
      * @param int $linked_id
      */
@@ -2795,11 +2833,15 @@ class AdminService {
         global $PDOX, $CFG;
         if ( $key_id < 1 || $linked_id < 1 ) return false;
         $q = $PDOX->queryReturnError(
-            "UPDATE {$CFG->dbprefix}lti_key SET lti_client_id = NULL
+            "UPDATE {$CFG->dbprefix}lti_key SET
+                lti_client_id = NULL,
+                lms_cache_keyset = NULL,
+                lms_cache_pubkey = NULL,
+                lms_cache_kid = NULL
                 WHERE key_id = :id AND lti_client_id = :client",
             array(':id' => $key_id, ':client' => $linked_id)
         );
-        return $q->success;
+        return $q->success && $q->rowCount() > 0;
     }
 
     /**

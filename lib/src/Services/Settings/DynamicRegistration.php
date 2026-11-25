@@ -413,12 +413,22 @@ class DynamicRegistration {
         // on the registration response itself.
         $deployment_id = self::deploymentIdFromResponse($resp);
 
-        // The LMS has created the client. A second POST with the same unlock
-        // would register the tool again.
-        $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
-            array(":KID" => $tsugi_key)
+        // The LMS has created the client. Claiming the unlock is what lets this
+        // request write the key. A second registration that already read the
+        // same unlock stops here, so it cannot store its own columns or client
+        // after this request has started writing.
+        $claimed = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL
+                WHERE key_id = :KID AND unlock_code = :UNLOCK",
+            array(":KID" => $tsugi_key, ":UNLOCK" => $unlock_code)
         );
+        if ( $claimed->rowCount() < 1 ) {
+            error_log('Dynamic registration: key '.$tsugi_key.' lost the unlock claim. Another registration already stored this key.');
+            echo("<p><b>Another registration already stored this key.</b></p>\n");
+            echo("<p>The LMS already created the client for this request. This request did not change the key. Do not run registration again.</p>\n");
+            $OUTPUT->footer();
+            return '';
+        }
 
         $identity_message = LTI::ascii255First(array(
             'Issuer' => $issuer,
@@ -485,22 +495,12 @@ class DynamicRegistration {
 
         error_log("Stored issuer $issuer / $client_id in lti_key table");
 
-        if ( $deployment_id ) {
-            $deployment_sha256 = hash('sha256', trim($deployment_id));
-            $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
-                    WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
-                array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
-            );
-
-            if ( ! $stmt->success ) {
-                echo("Unable to update key entry to set deployment_id\n");
-                return '';
-            }
-        }
-
+        // A mismatched client link is cleared before deploy_key changes.
+        // UNIQUE(lti_client_id, deploy_key) would reject the new deployment
+        // while the old client id is still on this key, and this request
+        // would stop before the link could be removed.
         $row['key_id'] = $tsugi_key;
-        $stored = \Tsugi\Services\Admin\AdminService::storeDynamicRegistrationClient($row, array(
+        $registration = array(
             'issuer' => $issuer,
             'client_id' => $client_id,
             'oidc_auth_url' => $authorization_endpoint,
@@ -510,7 +510,31 @@ class DynamicRegistration {
             'product_family_code' => self::platformFamily($platform_configuration),
             'deploy_key' => $deployment_id ? $deployment_id : U::get($row, 'deploy_key'),
             'key_id' => $tsugi_key,
-        ));
+        );
+        $settled = \Tsugi\Services\Admin\AdminService::settleLinkedRegistrationClient($row, $registration);
+
+        if ( $deployment_id ) {
+            $deployment_sha256 = hash('sha256', trim($deployment_id));
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
+                    WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
+                array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
+            );
+
+            if ( ! $stmt->success ) {
+                if ( is_array($settled) && $settled['note'] !== '' ) {
+                    echo('<p>'.htmlentities($settled['note'])."</p>\n");
+                }
+                echo("Unable to update key entry to set deployment_id\n");
+                return '';
+            }
+        }
+
+        if ( is_array($settled) ) {
+            $stored = $settled;
+        } else {
+            $stored = \Tsugi\Services\Admin\AdminService::storeDynamicRegistrationClient($row, $registration);
+        }
         if ( $stored['note'] !== '' ) {
             echo('<p>'.htmlentities($stored['note'])."</p>\n");
         }
