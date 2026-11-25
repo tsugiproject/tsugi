@@ -213,7 +213,7 @@ foreach($tools as $tool) {
         $path = tsugi_admin_install_dirroot();
     } else {
         if (! U::conservativeUrl($remote) ) {
-            echo('Badly formatted git URL: '.$remote."\n");
+            echo('Badly formatted git URL: '.htmlentities($remote)."\n");
             continue;
         }
         // The stored path is a note from whichever server last wrote it.
