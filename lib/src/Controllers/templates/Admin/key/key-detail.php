@@ -5,6 +5,7 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Services\Admin\AdminService;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -19,30 +20,33 @@ $inedit = U::get($_REQUEST,'edit');
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = LTIX::curPageUrlNoQuery();
 $from_location = LTIX::curPageUrlFolder();
-$allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_title', 'plus', 'key_key', 'secret',
+$fields = array('key_id', 'key_title', 'user_id', 'plus', 'key_key', 'secret',
      'lms_issuer', 'lms_client',
      'deploy_key', 'unlock_code',
      'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
-     'created_at', 'updated_at', 'user_id',
+     'created_at', 'updated_at',
 );
 
-$realfields = array('key_id', 'key_title', 'plus', 'key_key', 'key_sha256', 'secret',
+$realfields = array('key_id', 'key_title', 'user_id', 'plus', 'key_key', 'key_sha256', 'secret',
      'lms_issuer', 'lms_issuer_sha256', 'lms_client',
      'deploy_key', 'deploy_sha256', 'unlock_code',
      'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
-     'created_at', 'updated_at', 'user_id',
+     'created_at', 'updated_at',
 );
+$have_client_table = LTIX::ltiClientTableExists($CFG->dbprefix);
+if ( $have_client_table ) {
+    $realfields[] = 'lti_client_id';
+}
 
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'plus' => 'Tsugi Plus',
     'deploy_key' => 'LTI 1.3: Deployment ID (If you leave this blank, it will match any value from the LMS)',
-    'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
+    'lms_issuer' => 'LTI 1.3 Platform Issuer URL (If you leave this blank, it will match any issuer from the LMS)',
     'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
     'lms_oidc_auth' => 'LTI 1.3 Platform OIDC Login / Authorization Endpoint URL',
     'lms_keyset_url' => 'LTI 1.3 Platform KeySet URL',
@@ -58,8 +62,10 @@ if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
 $raw_deploy_key = array_key_exists('deploy_key', $_POST) ? $_POST['deploy_key'] : null;
-if ( isset($_POST['deploy_key']) ) {
-    $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
+foreach ( array('lms_issuer', 'lms_client', 'deploy_key') as $blank_field ) {
+    if ( array_key_exists($blank_field, $_POST) ) {
+        $_POST[$blank_field] = AdminService::normalize_deploy_key_input($_POST[$blank_field]);
+    }
 }
 if ( isset($_POST['doUpdate']) ) {
     $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
@@ -72,6 +78,7 @@ $deploy_key = U::get($_POST,'deploy_key');
 
 $old_keyset_url = null;
 $saw_old_keyset = false;
+$old_client_id = 0;
 
 // Check the complex validation
 if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
@@ -91,7 +98,12 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     $old_key_key = $row['key_key'];
     $old_deploy_key = $row['deploy_key'];
     $old_keyset_url = $row['lms_keyset_url'];
+    $old_client_id = (int) U::get($row, 'lti_client_id');
     $saw_old_keyset = true;
+    if ( $have_client_table && ! AdminService::applyPostedClientToKey() ) {
+        header("Location: ".$redir);
+        return;
+    }
     $lms_issuer_val = array_key_exists('lms_issuer', $_POST) ? $_POST['lms_issuer'] : $row['lms_issuer'];
     $lms_client_val = array_key_exists('lms_client', $_POST) ? $_POST['lms_client'] : $row['lms_client'];
     $posted_secret = array_key_exists('secret', $_POST) ? $_POST['secret'] : $row['secret'];
@@ -112,7 +124,8 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
         return;
     }
 
-    $retval = \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer_val, $old_key_key, $old_deploy_key, $lms_client_val, $key_id);
+    $posted_client_id = array_key_exists('lti_client_id', $_POST) ? $_POST['lti_client_id'] : $old_client_id;
+    $retval = AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer_val, $old_key_key, $old_deploy_key, $lms_client_val, $key_id, $posted_client_id);
 
     if ( ! $retval ) {
         header("Location: ".$redir);
@@ -120,17 +133,40 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     }
 }
 
+$delete_confirmed = false;
+if ( isset($_POST['doDelete']) ) {
+    $delete_key_id = (int) U::get($_POST, 'key_id');
+    if ( $delete_key_id < 1 ) {
+        U::flashError('Missing key');
+        header('Location: '.$from_location);
+        return;
+    }
+    $delete_error = AdminService::keyDeleteInputError(
+        $delete_key_id,
+        U::get($_POST, 'delete_server', ''),
+        U::get($_POST, 'delete_courses', ''),
+        U::get($_POST, 'delete_users', '')
+    );
+    if ( $delete_error !== null ) {
+        U::flashError($delete_error);
+        header('Location: '.$current.'?key_id='.$delete_key_id);
+        return;
+    }
+    $delete_confirmed = true;
+}
+
 // Handle the post data
 /** @var array|int $row */
 $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete);
+    $query_fields, $allow_edit, $delete_confirmed);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     if ( $row === CrudForm::CRUD_SUCCESS && isset($_POST['doUpdate']) && $saw_old_keyset
         && array_key_exists('lms_keyset_url', $_POST) ) {
-        $posted_keyset = trim((string) $_POST['lms_keyset_url']);
-        $stored_keyset = trim((string) $old_keyset_url);
-        if ( $posted_keyset !== $stored_keyset ) {
+        $posted_keyset = trim((string) (U::get($_POST, 'lms_keyset_url') ?? ''));
+        $stored_keyset = trim((string) ($old_keyset_url ?? ''));
+        $posted_client_id = array_key_exists('lti_client_id', $_POST) ? (int) $_POST['lti_client_id'] : 0;
+        if ( $posted_keyset !== $stored_keyset || $posted_client_id !== $old_client_id ) {
             LTIX::clearKeysetCache($key_id);
         }
     }
@@ -142,8 +178,15 @@ if ( ! is_array($row) ) {
     header('Location: '.$from_location);
     return;
 }
+if ( $have_client_table ) {
+    $client_link = $PDOX->rowDie(
+        "SELECT lti_client_id FROM {$CFG->dbprefix}lti_key WHERE key_id = :id",
+        array(':id' => $row['key_id'])
+    );
+    $row['lti_client_id'] = is_array($client_link) ? $client_link['lti_client_id'] : null;
+}
 
-$key_type = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
+$key_type = AdminService::keyTypeHtml($row);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -154,11 +197,66 @@ $OUTPUT->flashMessages();
 <h1>Tenant Details
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
   <a class="btn btn-success" href="key-settings.php?key_id=<?= htmlentities($row['key_id']) ?>">View/Edit Key Settings</a>
-  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">All Tenants</a>
+  <a class="btn btn-default" href="<?= $CFG->wwwroot ?>/admin/key/clients">All Clients</a>
+  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">All Keys</a>
 </h1>
 <p>
 <b>Key status: <?= $key_type ?></b>
 </p>
+<?php
+$key_usage = AdminService::keyUsageCounts((int) $row['key_id']);
+if ( ! is_array($key_usage) ) {
+    $delete_box = array(
+        'blocked' => 'The courses and users on this key could not be counted. Delete stays off.',
+    );
+} else {
+    $delete_site_name = \Tsugi\Controllers\Settings::importSiteDomain();
+    $delete_site_label = $delete_site_name !== '' ? $delete_site_name : 'this site';
+    $delete_course_n = (int) $key_usage['courses'];
+    $delete_user_n = (int) $key_usage['users'];
+    $delete_course_sentence = $delete_course_n === 1
+        ? 'This key has 1 course.'
+        : 'This key has '.number_format($delete_course_n).' courses.';
+    $delete_user_sentence = $delete_user_n === 1
+        ? 'This key has 1 user.'
+        : 'This key has '.number_format($delete_user_n).' users.';
+    $delete_box = array(
+        'title' => 'Warning: deleting this key removes its courses and users',
+        'paragraphs' => array(
+            'Deleting this key permanently removes the tenant. Its courses, users, memberships, resource links, and results are deleted with it. This cannot be undone.',
+            'The counts include hidden and deleted rows. Those rows are removed with the key.',
+        ),
+        'lines' => array($delete_course_sentence, $delete_user_sentence),
+        'fields' => array(
+            array(
+                'name' => 'delete_server',
+                'label' => 'Type the server name of this site ('.$delete_site_label.').',
+                'kind' => 'domain',
+                'expected' => $delete_site_name,
+            ),
+            array(
+                'name' => 'delete_courses',
+                'label' => 'Type the number of courses on this key ('.number_format($delete_course_n).').',
+                'kind' => 'count',
+                'expected' => $delete_course_n,
+            ),
+            array(
+                'name' => 'delete_users',
+                'label' => 'Type the number of users on this key ('.number_format($delete_user_n).').',
+                'kind' => 'count',
+                'expected' => $delete_user_n,
+            ),
+        ),
+        'help' => 'Actually Delete stays disabled until the server name, course count, and user count all match.',
+        'mismatch' => 'Type the server name, the number of courses, and the number of users to delete this key.',
+        'confirm' => 'WARNING: This permanently deletes this key on '.$delete_site_label
+            .' and its '.number_format($delete_course_n).' courses and '.number_format($delete_user_n)
+            .' users. This cannot be undone. Continue?',
+        'button' => 'Delete key',
+        'hidden' => array('key_id' => (int) $row['key_id']),
+    );
+}
+?>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
@@ -175,9 +273,25 @@ $OUTPUT->flashMessages();
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset';
 $from_location = null;
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons, $titles, array('plus'));
+$editing = U::get($_REQUEST, 'edit') == 'yes';
+$client_html = AdminService::matchingClientNote($row);
+$client_html .= AdminService::inboundClientControl((int) U::get($row, 'lti_client_id'), $editing);
+$after_fields = array('secret' => $client_html);
+if ( $editing ) {
+    $after_fields['lms_token_audience'] = '<p id="create-client-from-key" style="display:none">'
+        .'<button type="button" class="btn btn-primary" id="create-client-from-key-button">Create Client From This Data</button>'
+        .'</p>'
+        .'<p id="create-client-from-key-note" style="display:none"></p>';
+}
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, false, $extra_buttons, $titles, array('plus'), $after_fields);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+$delete_box['section'] = 'button';
+require __DIR__ . '/delete-confirm.inc.php';
+$delete_box['section'] = 'panel';
+require __DIR__ . '/delete-confirm.inc.php';
+$delete_box['section'] = 'form';
+require __DIR__ . '/delete-confirm.inc.php';
 $dynamicConfigUrl = null;
 if ( is_string(U::get($row, 'unlock_code', null)) ) {
     $dynamicConfigUrl = $CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'] . "&unlock_code=" . $row['unlock_code'];
@@ -491,5 +605,166 @@ Each tool listing provides its direct launch endpoints.
 </div>
 </div>
 <?php
+if ( $editing && $have_client_table ) {
+?>
+<div id="create-client-modal" class="modal fade" role="dialog" aria-modal="true" aria-labelledby="create-client-modal-title">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="create-client-modal-title">Create Client</h4>
+      </div>
+      <div class="modal-body" id="create-client-modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="create-client-confirm" style="display:none">Create Client</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var buttonWrap = document.getElementById('create-client-from-key');
+    var openButton = document.getElementById('create-client-from-key-button');
+    var note = document.getElementById('create-client-from-key-note');
+    var confirmButton = document.getElementById('create-client-confirm');
+    var body = document.getElementById('create-client-modal-body');
+    var keyAdmin = <?= json_encode($CFG->wwwroot.'/admin/key/', JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    var names = ['key_title', 'user_id', 'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience', 'unlock_code'];
+    var checkSeq = 0;
+    var checkedFields = null;
+    function fieldValue(name) {
+        var el = document.getElementById(name);
+        return el ? el.value.trim() : '';
+    }
+    function valuesNow() {
+        var values = {};
+        names.forEach(function(name) { values[name] = fieldValue(name); });
+        return values;
+    }
+    function ready() {
+        return fieldValue('lms_issuer') !== '' && fieldValue('lms_client') !== ''
+            && fieldValue('lms_oidc_auth') !== '' && fieldValue('lms_keyset_url') !== ''
+            && fieldValue('lms_token_url') !== '';
+    }
+    function refreshButton() {
+        if (!buttonWrap) return;
+        var show = ready();
+        buttonWrap.style.display = show ? '' : 'none';
+    }
+    window.tsugiRefreshCreateClient = refreshButton;
+    names.forEach(function(name) {
+        var el = document.getElementById(name);
+        if (el) el.addEventListener('input', refreshButton);
+    });
+    refreshButton();
+    function csrf() {
+        var token = document.querySelector('input[name="CSRF_TOKEN"]');
+        return token ? token.value : '';
+    }
+    function paramsFrom(values, create) {
+        var data = new URLSearchParams();
+        data.set('CSRF_TOKEN', csrf());
+        names.forEach(function(name) { data.set(name, values[name] == null ? '' : values[name]); });
+        if (create) data.set('doCreate', '1');
+        return data;
+    }
+    function esc(text) {
+        var div = document.createElement('div');
+        div.textContent = text == null ? '' : String(text);
+        return div.innerHTML;
+    }
+    function render(data) {
+        var html = '';
+        if (data && data.fields) {
+            html += '<dl>';
+            Object.keys(data.fields).forEach(function(label) {
+                html += '<dt>'+esc(label)+'</dt><dd>'+esc(data.fields[label] == null ? '' : data.fields[label])+'</dd>';
+            });
+            html += '</dl>';
+        }
+        if (!data || data.ok !== true) {
+            html += '<p>'+esc(data && data.error ? data.error : 'Could not check this client.')+'</p>';
+            if (data && data.existing_id) {
+                html += '<p><a href="'+esc(keyAdmin+'client-detail?lti_client_id='+encodeURIComponent(data.existing_id))+'">Open the existing client</a></p>';
+            }
+        }
+        if (body) body.innerHTML = html;
+        if (confirmButton) confirmButton.style.display = data && data.ok === true ? '' : 'none';
+    }
+    function post(data) {
+        return fetch(keyAdmin+'client-from-key', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+            body: data.toString(),
+            credentials: 'same-origin'
+        }).then(function(response) { return response.json(); });
+    }
+    function applyCreated(data, current, selectedAtConfirm) {
+        var select = document.getElementById('lti_client_id');
+        var chose = false;
+        if (select && data && data.id) {
+            var found = false;
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === String(data.id)) found = true;
+            }
+            if (!found) {
+                var option = document.createElement('option');
+                option.value = String(data.id);
+                option.textContent = data.label || ('Client '+data.id);
+                if (select.options.length === 1 && select.options[0].value === '') {
+                    select.options[0].textContent = 'Select';
+                }
+                select.add(option);
+            }
+            if (current && select.value === selectedAtConfirm) {
+                select.value = String(data.id);
+                chose = true;
+                if (window.tsugiSyncEmptyKeyPlatformFields) window.tsugiSyncEmptyKeyPlatformFields();
+            }
+        }
+        if (chose && note) {
+            note.style.display = '';
+            note.textContent = 'You must save this key to complete the connection to the newly created client.';
+        }
+        if (current && window.jQuery) window.jQuery('#create-client-modal').modal('hide');
+    }
+    if (openButton) openButton.addEventListener('click', function() {
+        var seq = ++checkSeq;
+        var values = valuesNow();
+        checkedFields = null;
+        if (confirmButton) confirmButton.style.display = 'none';
+        if (body) body.innerHTML = '';
+        if (window.jQuery) window.jQuery('#create-client-modal').modal('show');
+        post(paramsFrom(values, false)).then(function(data) {
+            if (seq !== checkSeq) return;
+            if (data && data.ok === true) checkedFields = values;
+            render(data);
+        }).catch(function() {
+            if (seq !== checkSeq) return;
+            render({ok: false, error: 'Could not check this client.'});
+        });
+    });
+    if (confirmButton) confirmButton.addEventListener('click', function() {
+        if (!checkedFields) return;
+        var seq = checkSeq;
+        var selectNow = document.getElementById('lti_client_id');
+        var selectedAtConfirm = selectNow ? selectNow.value : null;
+        post(paramsFrom(checkedFields, true)).then(function(data) {
+            if (data && data.ok === true && data.id) {
+                applyCreated(data, seq === checkSeq, selectedAtConfirm);
+                return;
+            }
+            if (seq !== checkSeq) return;
+            render(data || {ok: false, error: 'Could not create client.'});
+        }).catch(function() {
+            if (seq !== checkSeq) return;
+            render({ok: false, error: 'Could not create client.'});
+        });
+    });
+});
+</script>
+<?php
+}
 $OUTPUT->footerStart();
 $OUTPUT->footerEnd();

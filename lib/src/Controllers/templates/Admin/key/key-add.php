@@ -6,6 +6,7 @@ use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ReqScope;
+use \Tsugi\Services\Admin\AdminService;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -17,13 +18,12 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
 
 $from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array('key_title', 'plus', 'key_key', 'key_sha256', 'secret',
+$fields = array('key_title', 'user_id', 'plus', 'key_key', 'key_sha256', 'secret',
     'lms_issuer', 'lms_issuer_sha256',
     'lms_client',
     'deploy_key', 'deploy_sha256',
     'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
     'created_at', 'updated_at',
-    'user_id',
 );
 
 $titles = array(
@@ -31,7 +31,7 @@ $titles = array(
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
 
     'plus' => 'Tsugi Plus',
-    'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
+    'lms_issuer' => 'LTI 1.3 Platform Issuer URL (If you leave this blank, it will match any issuer from the LMS)',
     'deploy_key' => 'LTI 1.3: Deployment ID (If you leave this blank, it will match any value from the LMS)',
     'unlock_code' => 'LTI 1.3: Single-use unlock code to LTI Dynamic Registration',
 	'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
@@ -62,6 +62,16 @@ if ( count($_POST) > 0 ) {
 
 if ( isset($_POST['doSave']) ) {
     $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
+    foreach ( array('lms_issuer', 'lms_client', 'deploy_key') as $blank_field ) {
+        if ( array_key_exists($blank_field, $_POST) ) {
+            $_POST[$blank_field] = AdminService::normalize_deploy_key_input($_POST[$blank_field]);
+        }
+    }
+    $deploy_key = U::get($_POST, 'deploy_key');
+    if ( LTIX::ltiClientTableExists($CFG->dbprefix) && ! AdminService::applyPostedClientToKey() ) {
+        header("Location: key-add");
+        return;
+    }
 }
 
 if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
@@ -81,15 +91,11 @@ if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
     }
 }
 
-if ( isset($_POST['doSave']) && isset($_POST['deploy_key']) ) {
-    $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
-    $deploy_key = $_POST['deploy_key'];
-}
-
 if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
     $lms_issuer = U::get($_POST, 'lms_issuer');
     $lms_client = U::get($_POST, 'lms_client');
-    if ( ! \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer, null, null, $lms_client) ) {
+    $posted_client_id = U::get($_POST, 'lti_client_id');
+    if ( ! AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer, null, null, $lms_client, null, $posted_client_id) ) {
         header("Location: key-add");
         return;
     }
@@ -99,7 +105,11 @@ $binaryHex = array();
 if ( isset($_POST['doSave']) ) {
     $binaryHex['guid'] = \Tsugi\Core\Guid::uuid7();
 }
-$retval = CrudForm::handleInsert($tablename, $fields, $binaryHex);
+$save_fields = $fields;
+if ( LTIX::ltiClientTableExists($CFG->dbprefix) ) {
+    $save_fields[] = 'lti_client_id';
+}
+$retval = CrudForm::handleInsert($tablename, $save_fields, $binaryHex);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
     return;
@@ -137,7 +147,8 @@ See "About Keys" tab for detail on how to create a <b>draft</b> key.
 </p>
 <?php
 
-CrudForm::insertForm($fields, $from_location, $titles, false, array('plus'));
+$client_html = AdminService::inboundClientControl(0, true);
+CrudForm::insertForm($fields, $from_location, $titles, false, array('plus'), array('secret' => $client_html));
 
 ?>
 </p>

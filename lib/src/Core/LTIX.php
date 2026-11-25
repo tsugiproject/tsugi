@@ -734,6 +734,9 @@ class LTIX {
         // Make sure we have or update to the latest keyset if we have a keyset_url
         // and the kid is new to us.  Use Net::doGet so Canvas (and similar) get a
         // User-Agent — bare file_get_contents sends none and receives HTTP 403.
+        // The fetched keyset is kept in memory until the public key is extracted,
+        // so both are stored in the same UPDATE.
+        $fetched_keyset = null;
         if ( U::isNotEmpty($our_keyset_url) ) {
             try {
                 $our_keyset = Net::doGet($our_keyset_url);
@@ -749,35 +752,50 @@ class LTIX {
 
             $decoded = json_decode($our_keyset);
             if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
-                $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                    SET lms_cache_keyset=:KS, updated_at=NOW() WHERE key_id = :ID",
-                array(':ID' => $key_id, ':KS' => $our_keyset) );
-                error_log("Updated lms_cache_keyset $key_id from $our_keyset_url\n");
+                $our_keyset = self::keysetCacheForUrl($our_keyset_url, $our_keyset);
+                $fetched_keyset = $our_keyset;
             } else {
                 self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
                             substr($our_keyset,0,1000));
             }
         }
 
-        // If we have a keyset, lets look for the new key
+        // If we have a keyset, lets look for the new key. The keyset and the
+        // public key extracted from it are one write. A second update can
+        // store the previous URL's public key beside the new URL's keyset.
         if ( U::isNotEmpty($our_keyset) ) {
             $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
 
             if ( $new_public_key ) {
                 $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                    SET lms_cache_pubkey=:PK, lms_cache_kid=:KID, updated_at=NOW() WHERE key_id = :ID",
-                    array(':ID' => $key_id, ':PK' => $new_public_key,
+                    SET lms_cache_keyset=:KS, lms_cache_pubkey=:PK, lms_cache_kid=:KID, updated_at=NOW()
+                    WHERE key_id = :ID",
+                    array(':ID' => $key_id, ':KS' => $our_keyset, ':PK' => $new_public_key,
                         ':KID' => $request_kid )
                 );
-                error_log("New lms_cache_pubkey $key_id\n$new_public_key");
+                error_log("New lms_cache_pubkey $key_id from $our_keyset_url\n$new_public_key");
                 return $new_public_key;
             }
         }
 
-        // Despite our best efforts, we could not get a key - clear things out to enable reset
-        $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-            SET lms_cache_pubkey=NULL, updated_at=NOW() WHERE key_id = :ID",
-        array(':ID' => $key_id) );
+        // Despite our best efforts, we could not get a key - clear things out to enable reset.
+        // A fetched keyset is stored with an empty public key. The clear matches
+        // the keyset this request searched, so it does not wipe a newer cache.
+        if ( is_string($fetched_keyset) ) {
+            $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset=:KS, lms_cache_pubkey=NULL, lms_cache_kid=NULL, updated_at=NOW()
+                WHERE key_id = :ID",
+                array(':ID' => $key_id, ':KS' => $fetched_keyset) );
+        } else if ( is_string($our_keyset) && $our_keyset !== '' ) {
+            $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_pubkey=NULL, lms_cache_kid=NULL, updated_at=NOW()
+                WHERE key_id = :ID AND lms_cache_keyset = :KS",
+                array(':ID' => $key_id, ':KS' => $our_keyset) );
+        } else {
+            $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_pubkey=NULL, updated_at=NOW() WHERE key_id = :ID",
+            array(':ID' => $key_id) );
+        }
         if ( U::isNotEmpty($public_key) ) {
             error_log("Cleared lms_cache_pubkey key $key_id invalid kid");
             self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
@@ -1173,6 +1191,149 @@ class LTIX {
     }
 
     /**
+     * Columns and LEFT JOIN that load a client beside its key.
+     * Both strings are empty when lti_client does not exist.
+     * $keyAlias is the lti_key alias already used in the query.
+     *
+     * @param string $prefix
+     * @param string $keyAlias
+     * @return array{select: string, join: string}
+     */
+    public static function inboundClientSql($prefix, $keyAlias) {
+        if ( ! self::ltiClientTableExists($prefix) ) {
+            return array('select' => '', 'join' => '');
+        }
+        return array(
+            'select' => 'cli.issuer AS cli_issuer, cli.client_id AS cli_client_id, '
+                .'cli.oidc_auth_url AS cli_oidc_auth_url, cli.keyset_url AS cli_keyset_url, '
+                .'cli.token_url AS cli_token_url, cli.token_audience AS cli_token_audience',
+            'join' => "LEFT JOIN {$prefix}lti_client AS cli ON cli.lti_client_id = {$keyAlias}.lti_client_id",
+        );
+    }
+
+    /**
+     * True when this install has the inbound client table.
+     * A missing table means the upgrade has not run, so launch keeps using lti_key.
+     */
+    public static function ltiClientTableExists($prefix) {
+        static $seen = array();
+        if ( array_key_exists($prefix, $seen) ) return $seen[$prefix];
+        $PDOX = self::getConnection();
+        $seen[$prefix] = $PDOX->metadata($prefix.'lti_client') !== false;
+        return $seen[$prefix];
+    }
+
+    /**
+     * Use the client's platform fields, or leave the key's fields untouched.
+     *
+     * The client wins only when this key points at it and issuer, client id,
+     * OIDC URL, keyset URL, and token URL are all set. Audience is copied with
+     * that set and may be null. An unlinked client does not affect the key.
+     * Deployment id stays on the key. A cache that records a different URL is
+     * dropped. A cache with no recorded URL is kept only when the key's own
+     * keyset URL is the client URL. The key's stored platform fields stay
+     * in the database.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    public static function applyInboundClient(array $row) {
+        $required = array('cli_issuer', 'cli_client_id', 'cli_oidc_auth_url', 'cli_keyset_url', 'cli_token_url');
+        foreach ( $required as $field ) {
+            if ( ! U::isNotEmpty(U::get($row, $field)) ) {
+                self::clearInboundClientColumns($row);
+                return $row;
+            }
+        }
+        $keyset = U::get($row, 'lms_keyset_url');
+        $cli_keyset = trim((string) $row['cli_keyset_url']);
+        $recorded = self::cachedKeysetUrl(U::get($row, 'lms_cache_keyset'));
+        if ( is_string($recorded) ) {
+            $keep_cache = trim($recorded) === $cli_keyset;
+        } else {
+            $keep_cache = is_string($keyset) && trim($keyset) === $cli_keyset;
+        }
+        if ( ! $keep_cache ) {
+            $row['lms_cache_keyset'] = null;
+            $row['lms_cache_pubkey'] = null;
+            $row['lms_cache_kid'] = null;
+        }
+        $row['lms_issuer'] = $row['cli_issuer'];
+        $row['lms_client'] = $row['cli_client_id'];
+        $row['lms_oidc_auth'] = $row['cli_oidc_auth_url'];
+        $row['lms_keyset_url'] = $row['cli_keyset_url'];
+        $row['lms_token_url'] = $row['cli_token_url'];
+        $row['lms_token_audience'] = array_key_exists('cli_token_audience', $row) ? $row['cli_token_audience'] : null;
+        self::clearInboundClientColumns($row);
+        return $row;
+    }
+
+    /**
+     * Drop the stored platform keyset on every key that points at a client.
+     *
+     * @param mixed $client_id
+     */
+    public static function clearKeysetCacheForClient($client_id) {
+        global $PDOX, $CFG;
+        $id = (int) $client_id;
+        if ( $id < 1 || ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return;
+        if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_keyset = NULL, lms_cache_pubkey = NULL, lms_cache_kid = NULL
+                WHERE lti_client_id = :ID",
+            array(':ID' => $id)
+        );
+    }
+
+    /**
+     * Remember which URL a cached keyset came from without changing the key's own URL.
+     *
+     * @param mixed $url
+     * @param mixed $keyset
+     * @return mixed
+     */
+    private static function keysetCacheForUrl($url, $keyset) {
+        if ( ! is_string($keyset) || ! is_string($url) || trim($url) === '' ) {
+            return $keyset;
+        }
+        $decoded = json_decode($keyset, true);
+        if ( ! is_array($decoded) || ! isset($decoded['keys']) || ! is_array($decoded['keys']) ) {
+            return $keyset;
+        }
+        $decoded['tsugi_keyset_url'] = trim($url);
+        $encoded = json_encode($decoded, JSON_UNESCAPED_SLASHES);
+        return is_string($encoded) ? $encoded : $keyset;
+    }
+
+    /**
+     * @param mixed $keyset
+     */
+    private static function cachedKeysetUrl($keyset) {
+        if ( ! is_string($keyset) || $keyset === '' ) return null;
+        $decoded = json_decode($keyset, true);
+        if ( ! is_array($decoded) || ! isset($decoded['tsugi_keyset_url']) || ! is_string($decoded['tsugi_keyset_url']) ) {
+            return null;
+        }
+        $url = trim($decoded['tsugi_keyset_url']);
+        return $url === '' ? null : $url;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private static function clearInboundClientColumns(array &$row) {
+        unset(
+            $row['cli_issuer'],
+            $row['cli_client_id'],
+            $row['cli_oidc_auth_url'],
+            $row['cli_keyset_url'],
+            $row['cli_token_url'],
+            $row['cli_token_audience']
+        );
+    }
+
+    /**
      * Load the data from our lti_ tables using one long LEFT JOIN
      *
      * This data may or may not exist - hence the use of the long
@@ -1194,10 +1355,17 @@ class LTIX {
             $sql = "SELECT ";
         }
 
+        $client_sql = self::inboundClientSql($p, 'k');
+        $have_client = $client_sql['join'] !== '';
         $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             k.login_at AS key_login_at, k.settings AS key_settings,
             k.lms_issuer, k.lms_client, k.lms_oidc_auth, k.lms_keyset_url,
-            k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,
+            k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,";
+        if ( $have_client ) {
+            $sql .= "
+            ".$client_sql['select'].",";
+        }
+        $sql .= "
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.context_key as context_key,
             c.settings_url AS context_settings_url,
@@ -1247,6 +1415,9 @@ class LTIX {
         }
 
         $sql .="\nFROM {$p}lti_key AS k";
+        if ( $have_client ) {
+            $sql .= "\n".$client_sql['join'];
+        }
 
         // TODO: Collapse a few weeks after 05-27-2019
         if ( $LTI13 ) {
@@ -1292,9 +1463,37 @@ class LTIX {
             // Match tenant by issuer + client_id only; accept any deployment_id from the LMS.
             // The launch JWT's deployment_id is still copied into $row at runtime for LTI 1.3
             // services (e.g. AGS token requests).
+            // A null issuer hash is a wildcard and stays that way. A complete client
+            // linked from this key is found by its own issuer and client. An
+            // incomplete one stays on the key identity.
             $sql .= "\nWHERE (
-                    (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
-                    AND k.lms_client = :issuer_client
+                    ";
+            if ( $have_client ) {
+                $sql .= "(
+                        (
+                            cli.issuer IS NULL OR cli.issuer = ''
+                            OR cli.client_id IS NULL OR cli.client_id = ''
+                            OR cli.oidc_auth_url IS NULL OR cli.oidc_auth_url = ''
+                            OR cli.keyset_url IS NULL OR cli.keyset_url = ''
+                            OR cli.token_url IS NULL OR cli.token_url = ''
+                        )
+                        AND (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                        AND k.lms_client = :issuer_client
+                    )
+                    OR (
+                        cli.issuer IS NOT NULL AND cli.issuer <> ''
+                        AND cli.client_id IS NOT NULL AND cli.client_id <> ''
+                        AND cli.oidc_auth_url IS NOT NULL AND cli.oidc_auth_url <> ''
+                        AND cli.keyset_url IS NOT NULL AND cli.keyset_url <> ''
+                        AND cli.token_url IS NOT NULL AND cli.token_url <> ''
+                        AND SHA2(cli.issuer, 256) = :issuer_sha256
+                        AND cli.client_id = :issuer_client
+                    )";
+            } else {
+                $sql .= "(k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                    AND k.lms_client = :issuer_client";
+            }
+            $sql .= "
                 )
                 AND (k.deleted IS NULL OR k.deleted = 0)
             ";
@@ -1373,6 +1572,7 @@ class LTIX {
         // die(); // Debug
         $row = $PDOX->rowDie($sql, $parms);
         // echo("<pre>\n");var_dump($row);die();  // Debug
+        if ( is_array($row) ) $row = self::applyInboundClient($row);
 
         if ( $LTI13 && is_array($row) ) {
             $row['issuer_key'] = $row['lms_issuer'];

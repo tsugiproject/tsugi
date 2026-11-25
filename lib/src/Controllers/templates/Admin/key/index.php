@@ -10,19 +10,34 @@ header('Content-Type: text/html; charset=utf-8');
 
 if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) die('Must be admin');
 
-// Patch lms_issuer_sha256 in case it ended up null
+// Fill a missing issuer hash. A blank issuer is a wildcard and stays NULL.
 $patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = sha2(lms_issuer, 256)
-    WHERE lms_issuer_sha256 IS NULL AND lms_issuer IS NOT NULL";
+    WHERE lms_issuer_sha256 IS NULL AND lms_issuer IS NOT NULL AND lms_issuer <> ''
+        AND LOWER(TRIM(lms_issuer)) <> 'null'";
 $rows = $PDOX->queryDie($patch_sql);
 
 $query_parms = array();
+$have_client_table = LTIX::ltiClientTableExists($CFG->dbprefix);
 $searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "K.lms_client");
+if ( $have_client_table ) {
+    $searchfields[] = "C.issuer";
+    $searchfields[] = "C.client_id";
+}
 $sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, K.lms_client AS lms_client,
     lms_oidc_auth, lms_keyset_url, lms_token_url,
     deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
-    K.user_id AS user_id
+    K.user_id AS user_id";
+if ( $have_client_table ) {
+    $sql .= ", K.lti_client_id AS lti_client_id, C.issuer AS client_issuer, C.client_id AS client_client_id";
+}
+$sql .= "
         FROM {$CFG->dbprefix}lti_key AS K
 ";
+if ( $have_client_table ) {
+    $sql .= "        LEFT JOIN {$CFG->dbprefix}lti_client AS C
+            ON C.lti_client_id = K.lti_client_id
+";
+}
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
@@ -33,9 +48,16 @@ foreach ( $rows as $row ) {
     $newrow['key_id'] = $row['key_id'];
     $newrow['key'] = $row['key_key'];
     if ( !empty($row['key_title']) ) $newrow['key'] = $row['key_title'];
+    $newrow['owner'] = $row['user_id'];
+    $newrow['_header_owner'] = 'User Id';
     $newrow['key_type'] = \Tsugi\Services\Admin\AdminService::keyTypeLabel($row);
+    $newrow['_html_key_type'] = \Tsugi\Services\Admin\AdminService::keyTypeHtml($row);
     $issuer_key = $row['lms_issuer'];
     $client_id = $row['lms_client'];
+    if ( empty($issuer_key) && empty($client_id) && ! empty($row['client_issuer']) ) {
+        $issuer_key = $row['client_issuer'];
+        $client_id = $row['client_client_id'];
+    }
     $issuer_display = '';
     if ( !empty($issuer_key) || !empty($client_id) ) {
         if ( !empty($issuer_key) ) {
@@ -54,7 +76,6 @@ foreach ( $rows as $row ) {
     $newrow['issuer_|_deployment'] = $issuer_display;
     $newrow['login_at'] = $row['login_at'];
     $newrow['updated_at'] = $row['updated_at'];
-    $newrow['user_id'] = $row['user_id'];
     $newrows[] = $newrow;
 }
 
@@ -66,7 +87,8 @@ echo \Tsugi\Services\Admin\AdminService::clientIdCheckNotices();
 ?>
 <h1>LTI Tenants (Keys)</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Tenant Keys</a>
+  <a href="<?= $CFG->wwwroot ?>/admin/key/clients" class="btn btn-default">Clients</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Keys</a>
 <?php if ( $CFG->providekeys ) { ?>
   <a href="requests" class="btn btn-default">Key Requests</a>
 <?php } ?>
@@ -79,6 +101,7 @@ You have no Tenant keys for this system.
 </p>
 <?php }
 $extra_buttons = array(
+  "Insert Client" => "client-add",
   "Insert Tenant" => "key-add"
 );
 Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);

@@ -15,6 +15,10 @@ class Key extends Admin {
 
     public static function routes(Application $app) {
         self::map($app, self::class, 'index', self::paths('key', true));
+        self::map($app, self::class, 'clients', self::paths('key/clients'));
+        self::map($app, self::class, 'clientAdd', self::paths('key/client-add'));
+        self::map($app, self::class, 'clientDetail', self::paths('key/client-detail'));
+        self::map($app, self::class, 'clientFromKey', self::paths('key/client-from-key'));
         self::map($app, self::class, 'clientCheck', self::paths('key/client-id-check'));
         self::map($app, self::class, 'add', self::paths('key/key-add'));
         self::map($app, self::class, 'detail', self::paths('key/key-detail'));
@@ -29,6 +33,26 @@ class Key extends Admin {
     public function index() {
         if ( $r = $this->gate('keys.view') ) return $r;
         $this->view('key/index.php');
+    }
+
+    public function clients() {
+        if ( $r = $this->gate('keys.view') ) return $r;
+        $this->view('key/clients.php');
+    }
+
+    public function clientAdd() {
+        if ( $r = $this->gate('keys.add') ) return $r;
+        $this->view('key/client-add.php');
+    }
+
+    public function clientDetail() {
+        if ( $r = $this->gate('keys.detail') ) return $r;
+        $this->view('key/client-detail.php');
+    }
+
+    public function clientFromKey() {
+        if ( $r = $this->gate('keys.add') ) return $r;
+        $this->view('key/client-from-key.php');
     }
 
     public function clientCheck() {

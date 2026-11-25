@@ -57,15 +57,27 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("key_id=$key_id iss=".$iss." sha256=".$key_sha256);
 
+$client_sql = LTIX::inboundClientSql($CFG->dbprefix, 'K');
 $sql = "SELECT key_id,
     lms_issuer, lms_client, lms_oidc_auth, lms_keyset_url,
-    lms_token_url, lms_token_audience, lms_cache_keyset, lms_cache_pubkey, lms_cache_kid
-    FROM {$CFG->dbprefix}lti_key AS K
+    lms_token_url, lms_token_audience, lms_cache_keyset, lms_cache_pubkey, lms_cache_kid";
+if ( $client_sql['select'] !== '' ) {
+    $sql .= ",
+    ".$client_sql['select'];
+}
+$sql .= "
+    FROM {$CFG->dbprefix}lti_key AS K";
+if ( $client_sql['join'] !== '' ) {
+    $sql .= "
+    ".$client_sql['join'];
+}
+$sql .= "
     WHERE K.key_id = :KID AND (K.deleted IS NULL OR K.deleted = 0)";
 $row = $PDOX->rowDie($sql, array(":KID" => $key_id));
 if ( ! is_array($row) || count($row) < 1 ) {
     LTIX::abort_with_error_log('Login could not find key '.htmlentities($key_id)." for iss=".htmlentities($iss));
 }
+$row = LTIX::applyInboundClient($row);
 
 $row['issuer_client'] = $row['lms_client'];
 $row['lti13_oidc_auth'] = $row['lms_oidc_auth'];

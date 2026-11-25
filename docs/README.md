@@ -16,6 +16,7 @@ their code (for example `tool/`, `admin/`).
 | [identity-varchar.md](identity-varchar.md) | Replacing `TEXT` plus SHA-256 with `varchar(255)` on LTI identity columns, and the length check that gates it |
 | [upgrade-beacon.md](upgrade-beacon.md) | Unauthenticated JSON post at the end of `admin/upgrade.php`, and the receiver contract |
 | [lti_key_self_service.md](lti_key_self_service.md) | Planned self-service LTI 1.1/1.3 keys, dynamic registration, re-registration |
+| [tenancy.md](tenancy.md) | `lti_key` is today's tenant unit; `lti_org` is inside a key; a later tenant may group keys and orgs |
 | [lti-privacy-launch.md](lti-privacy-launch.md) | LTI 1.3 privacy launch on the course-tools test page |
 | [lessons-json-v2.md](lessons-json-v2.md) | Lessons foundational types, subtypes, and JSON v2 export |
 | [quiz1.md](quiz1.md) | Native Quiz1 editor, semantic model, and CC QTI 1.2.1 export |
