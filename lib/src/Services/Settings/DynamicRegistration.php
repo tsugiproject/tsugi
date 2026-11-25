@@ -42,10 +42,16 @@ class DynamicRegistration {
 
         LTIX::getConnection();
 
+        $client_column = '';
+        if ( $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) {
+            $client_column = ', lti_client_id';
+        }
+
         if ( $user_id == 0 ) {
             $row = $PDOX->rowDie(
                 "SELECT key_title, key_key, unlock_code, user_id, plus, deploy_key,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
+                    {$client_column}
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND unlock_code = :UNLOCK",
                 array(":KID" => $tsugi_key, ":UNLOCK" => $unlock_code)
@@ -55,6 +61,7 @@ class DynamicRegistration {
             $row = $PDOX->rowDie(
                 "SELECT key_title, key_key, unlock_code, user_id, plus, deploy_key,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
+                    {$client_column}
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND user_id = :UID AND unlock_code = :UNLOCK",
                 array(":KID" => $tsugi_key, ":UID" => $user_id, ":UNLOCK" => $unlock_code)
@@ -440,9 +447,8 @@ class DynamicRegistration {
 
         $issuer_sha256 = hash('sha256', trim($issuer));
 
-        // Dynamic registration still writes the legacy key columns. It does not
-        // create or update an lti_client row. A complete linked client would
-        // hide these values at launch. That handoff comes later.
+        // The key columns are always updated, so unlinking the client restores
+        // this registration. A linked client stays only when it already matches.
         $sql = "UPDATE {$CFG->dbprefix}lti_key SET
                 lms_issuer = :lms_issuer,
                 lms_issuer_sha256 = :lms_issuer_sha256,
@@ -491,6 +497,22 @@ class DynamicRegistration {
                 echo("Unable to update key entry to set deployment_id\n");
                 return '';
             }
+        }
+
+        $row['key_id'] = $tsugi_key;
+        $stored = \Tsugi\Services\Admin\AdminService::storeDynamicRegistrationClient($row, array(
+            'issuer' => $issuer,
+            'client_id' => $client_id,
+            'oidc_auth_url' => $authorization_endpoint,
+            'keyset_url' => $jwks_uri,
+            'token_url' => $token_endpoint,
+            'token_audience' => $authorization_server,
+            'product_family_code' => self::platformFamily($platform_configuration),
+            'deploy_key' => $deployment_id ? $deployment_id : U::get($row, 'deploy_key'),
+            'key_id' => $tsugi_key,
+        ));
+        if ( $stored['note'] !== '' ) {
+            echo('<p>'.htmlentities($stored['note'])."</p>\n");
         }
 
         echo('<button onclick="(window.opener || window.parent).postMessage({subject:\'org.imsglobal.lti.close\'}, \'*\')">Continue Registration in the LMS</button>'."\n");

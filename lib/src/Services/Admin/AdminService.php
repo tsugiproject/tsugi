@@ -2625,6 +2625,257 @@ class AdminService {
     }
 
     /**
+     * Store a dynamic registration on lti_client and link the key when it is free.
+     *
+     * The caller has already updated the key columns. A linked client stays
+     * linked when its issuer, client id, platform URLs, and audience match
+     * this registration. A different client config clears lti_client_id and
+     * is logged. A missing client table leaves the key columns as the only
+     * copy. An unlinked key is linked to the client for this issuer and
+     * client id, and that client's URLs are updated when the row already
+     * exists. The key columns are not cleared here.
+     *
+     * @param array<string, mixed> $key
+     * @param array<string, mixed> $registration
+     * @return array{id:int|null, linked:bool, note:string}
+     */
+    public static function storeDynamicRegistrationClient(array $key, array $registration) {
+        global $PDOX, $CFG;
+
+        $empty = array('id' => null, 'linked' => false, 'note' => '');
+        if ( ! is_object($PDOX) || ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return $empty;
+        if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return $empty;
+
+        $issuer = self::trimToNull(U::get($registration, 'issuer'));
+        $client = self::trimToNull(U::get($registration, 'client_id'));
+        $oidc = self::trimToNull(U::get($registration, 'oidc_auth_url'));
+        $keyset = self::trimToNull(U::get($registration, 'keyset_url'));
+        $token = self::trimToNull(U::get($registration, 'token_url'));
+        if ( $issuer === null || $client === null || $oidc === null || $keyset === null || $token === null ) {
+            return $empty;
+        }
+        $audience = self::trimToNull(U::get($registration, 'token_audience'));
+        $family = self::registrationProductFamily(U::get($registration, 'product_family_code'));
+        $key_id = (int) U::get($key, 'key_id', U::get($registration, 'key_id'));
+        $linked_id = (int) U::get($key, 'lti_client_id');
+
+        if ( $linked_id > 0 ) {
+            return self::keepOrSeverRegistrationClient(
+                $key_id,
+                $linked_id,
+                self::inboundClientById($linked_id),
+                $issuer,
+                $client,
+                $oidc,
+                $keyset,
+                $token,
+                $audience
+            );
+        }
+
+        $existing = $PDOX->rowDie(
+            "SELECT lti_client_id, keyset_url FROM {$CFG->dbprefix}lti_client
+                WHERE issuer = :issuer AND client_id = :client",
+            array(':issuer' => $issuer, ':client' => $client)
+        );
+        if ( is_array($existing) ) {
+            $id = (int) $existing['lti_client_id'];
+            $full = self::inboundClientById($id);
+            if ( ! is_array($full) || ! self::updateDynamicRegistrationClient($id, $full, $oidc, $keyset, $token, $audience, $client, $family) ) {
+                return array('id' => null, 'linked' => false, 'note' => 'Could not update the existing client. The registration was stored on the key.');
+            }
+            $note = 'Updated the existing client and linked this key to it.';
+        } else {
+            $id = self::insertDynamicRegistrationClient($key, $issuer, $client, $oidc, $keyset, $token, $audience, $family);
+            if ( $id < 1 ) {
+                return array('id' => null, 'linked' => false, 'note' => 'Could not store the client. The registration was stored on the key.');
+            }
+            $note = 'Stored a client for this registration and linked this key to it.';
+        }
+
+        $deploy = array_key_exists('deploy_key', $registration) ? $registration['deploy_key'] : U::get($key, 'deploy_key');
+        if ( $key_id < 1 || ! self::validate_client_deploy_unique($id, $deploy, $key_id) ) {
+            if ( isset($_SESSION[U::FLASH_ERROR]) ) unset($_SESSION[U::FLASH_ERROR]);
+            return array(
+                'id' => $id,
+                'linked' => false,
+                'note' => 'The client is stored, but this key was not linked because another key already has that client and deployment id.',
+            );
+        }
+        $link = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_key SET lti_client_id = :client WHERE key_id = :id",
+            array(':client' => $id, ':id' => $key_id)
+        );
+        if ( ! $link->success ) {
+            return array('id' => $id, 'linked' => false, 'note' => 'The client is stored, but this key could not be linked. Launch keeps using the key columns.');
+        }
+        return array('id' => $id, 'linked' => true, 'note' => $note);
+    }
+
+    /**
+     * Keep a linked client when this registration matches it. Otherwise clear the link.
+     *
+     * @param array<string, mixed>|null $current
+     * @return array{id:int|null, linked:bool, note:string}
+     */
+    private static function keepOrSeverRegistrationClient($key_id, $linked_id, $current, $issuer, $client, $oidc, $keyset, $token, $audience) {
+        if ( ! is_array($current) ) {
+            $cleared = self::clearKeyClientLink($key_id, $linked_id);
+            error_log('Dynamic registration: key '.$key_id.' points at missing client '.$linked_id.'. '.($cleared ? 'Cleared lti_client_id.' : 'Could not clear lti_client_id.'));
+            return array(
+                'id' => null,
+                'linked' => false,
+                'note' => $cleared
+                    ? 'Stored this registration on the key. The linked client is missing, so the link was removed.'
+                    : 'Stored this registration on the key. The linked client is missing, and the link could not be removed.',
+            );
+        }
+        $differ = self::registrationClientDifferences($current, $issuer, $client, $oidc, $keyset, $token, $audience);
+        if ( count($differ) === 0 ) {
+            return array('id' => $linked_id, 'linked' => true, 'note' => 'Stored this registration on the key. The linked client matches, so the link stayed.');
+        }
+        $cleared = self::clearKeyClientLink($key_id, $linked_id);
+        error_log('Dynamic registration: key '.$key_id.' registration does not match linked client '.$linked_id.' ('.implode(', ', $differ).'). '.($cleared ? 'Cleared lti_client_id.' : 'Could not clear lti_client_id.'));
+        return array(
+            'id' => $cleared ? null : $linked_id,
+            'linked' => ! $cleared,
+            'note' => $cleared
+                ? 'Stored this registration on the key. The linked client did not match this registration, so the link was removed.'
+                : 'Stored this registration on the key. The linked client did not match this registration, and the link could not be removed.',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $client
+     * @return list<string>
+     */
+    private static function registrationClientDifferences(array $client, $issuer, $client_id, $oidc, $keyset, $token, $audience) {
+        $wanted = array(
+            'issuer' => $issuer,
+            'client_id' => $client_id,
+            'oidc_auth_url' => $oidc,
+            'keyset_url' => $keyset,
+            'token_url' => $token,
+            'token_audience' => $audience,
+        );
+        $differ = array();
+        foreach ( $wanted as $field => $value ) {
+            if ( self::trimToNull(U::get($client, $field)) !== $value ) {
+                $differ[] = $field;
+            }
+        }
+        return $differ;
+    }
+
+    /**
+     * @param int $key_id
+     * @param int $linked_id
+     */
+    private static function clearKeyClientLink($key_id, $linked_id) {
+        global $PDOX, $CFG;
+        if ( $key_id < 1 || $linked_id < 1 ) return false;
+        $q = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_key SET lti_client_id = NULL
+                WHERE key_id = :id AND lti_client_id = :client",
+            array(':id' => $key_id, ':client' => $linked_id)
+        );
+        return $q->success;
+    }
+
+    /**
+     * @param mixed $family
+     * @return string|null
+     */
+    private static function registrationProductFamily($family) {
+        if ( ! is_string($family) ) return null;
+        $family = trim($family);
+        if ( $family === '' || strlen($family) > 64 ) return null;
+        if ( preg_match('/[^\x20-\x7E]/', $family) === 1 ) return null;
+        return $family;
+    }
+
+    /**
+     * @param array<string, mixed> $key
+     * @param string $issuer
+     * @param string $client
+     * @param string $oidc
+     * @param string $keyset
+     * @param string $token
+     * @param string|null $audience
+     * @param string|null $family
+     */
+    private static function insertDynamicRegistrationClient(array $key, $issuer, $client, $oidc, $keyset, $token, $audience, $family) {
+        global $PDOX, $CFG;
+
+        $owner = (int) U::get($key, 'user_id');
+        $created_by = null;
+        if ( \Tsugi\Core\ReqScope::isLoggedInLegacy() ) {
+            $logged_in = (int) \Tsugi\Core\ReqScope::loggedInUserIdLegacy();
+            if ( $logged_in > 0 ) $created_by = $logged_in;
+        }
+        if ( $created_by === null && $owner > 0 ) $created_by = $owner;
+        $q = $PDOX->queryReturnError(
+            "INSERT INTO {$CFG->dbprefix}lti_client
+                (guid, title, user_id, issuer, client_id, oidc_auth_url, keyset_url, token_url, token_audience,
+                    product_family_code, client_method, client_status, created_by_user_id, created_at, updated_at)
+            VALUES (UNHEX(:guid), :title, :user, :issuer, :client, :oidc, :keyset, :token, :audience,
+                    :family, 'dynamic', 'active', :created_by, NOW(), NOW())",
+            array(
+                ':guid' => \Tsugi\Core\Guid::uuid7(),
+                ':title' => self::trimToNull(U::get($key, 'key_title')),
+                ':user' => $owner > 0 ? $owner : null,
+                ':issuer' => $issuer,
+                ':client' => $client,
+                ':oidc' => $oidc,
+                ':keyset' => $keyset,
+                ':token' => $token,
+                ':audience' => $audience,
+                ':family' => $family,
+                ':created_by' => $created_by,
+            )
+        );
+        if ( ! $q->success ) return 0;
+        return (int) $PDOX->lastInsertId();
+    }
+
+    /**
+     * @param int $id
+     * @param array<string, mixed> $current
+     * @param string $oidc
+     * @param string $keyset
+     * @param string $token
+     * @param string|null $audience
+     * @param string $client
+     * @param string|null $family
+     */
+    private static function updateDynamicRegistrationClient($id, array $current, $oidc, $keyset, $token, $audience, $client, $family) {
+        global $PDOX, $CFG;
+
+        $old_keyset = self::trimToNull(U::get($current, 'keyset_url'));
+        $q = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_client SET
+                client_id = :client, oidc_auth_url = :oidc, keyset_url = :keyset, token_url = :token,
+                token_audience = :audience, product_family_code = COALESCE(:family, product_family_code),
+                updated_at = NOW()
+            WHERE lti_client_id = :id",
+            array(
+                ':client' => $client,
+                ':oidc' => $oidc,
+                ':keyset' => $keyset,
+                ':token' => $token,
+                ':audience' => $audience,
+                ':family' => $family,
+                ':id' => (int) $id,
+            )
+        );
+        if ( ! $q->success ) return false;
+        if ( $old_keyset !== $keyset ) {
+            \Tsugi\Core\LTIX::clearKeysetCacheForClient((int) $id);
+        }
+        return true;
+    }
+
+    /**
      * A client can stand in for the key only when the launch would use it.
      *
      * @param array<string, mixed> $row
