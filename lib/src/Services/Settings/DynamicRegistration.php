@@ -408,6 +408,12 @@ class DynamicRegistration {
         }
 
         $client_id = $resp->client_id;
+        // json_decode leaves a numeric client id as an int or float. The ASCII
+        // check stringifies a copy, and the client compare ignores a non-string,
+        // so the stored id and the link check must see the same string.
+        if ( is_int($client_id) || is_float($client_id) ) {
+            $client_id = (string) $client_id;
+        }
 
         // Sakai puts deployment_id inside the tool configuration. Canvas puts it
         // on the registration response itself.
