@@ -2732,7 +2732,7 @@ class AdminService {
      *
      * @param array<string, mixed> $key
      * @param array<string, mixed> $registration
-     * @return array{id:int|null, linked:bool, note:string}|null
+     * @return array{id:int|null, linked:bool, note:string, blocked:bool}|null
      */
     public static function settleLinkedRegistrationClient(array $key, array $registration) {
         global $PDOX, $CFG;
@@ -2767,33 +2767,69 @@ class AdminService {
     /**
      * Keep a linked client when this registration matches it. Otherwise clear the link.
      *
+     * A database error leaves the old link in place and sets blocked. Zero rows
+     * means that link is already gone, which is not a failure.
+     *
      * @param array<string, mixed>|null $current
-     * @return array{id:int|null, linked:bool, note:string}
+     * @return array{id:int|null, linked:bool, note:string, blocked:bool}
      */
     private static function keepOrSeverRegistrationClient($key_id, $linked_id, $current, $issuer, $client, $oidc, $keyset, $token, $audience) {
         if ( ! is_array($current) ) {
-            $cleared = self::clearKeyClientLink($key_id, $linked_id);
-            error_log('Dynamic registration: key '.$key_id.' points at missing client '.$linked_id.'. '.($cleared ? 'Cleared lti_client_id.' : 'Could not clear lti_client_id.'));
-            return array(
-                'id' => null,
-                'linked' => false,
-                'note' => $cleared
-                    ? 'Stored this registration on the key. The linked client is missing, so the link was removed.'
-                    : 'Stored this registration on the key. The linked client is missing, and the link could not be removed.',
+            return self::finishLinkClear(
+                $key_id,
+                $linked_id,
+                'points at missing client '.$linked_id.'.',
+                'Stored this registration on the key. The linked client is missing, so the link was removed.',
+                'Stored this registration on the key. The linked client is missing. The link was already gone.',
+                'Stored this registration on the key. The linked client is missing, and the database rejected removing that link. The old link is still in place, so launch keeps using that client. Registration was not finished.'
             );
         }
         $differ = self::registrationClientDifferences($current, $issuer, $client, $oidc, $keyset, $token, $audience);
         if ( count($differ) === 0 ) {
-            return array('id' => $linked_id, 'linked' => true, 'note' => 'Stored this registration on the key. The linked client matches, so the link stayed.');
+            return array(
+                'id' => $linked_id,
+                'linked' => true,
+                'blocked' => false,
+                'note' => 'Stored this registration on the key. The linked client matches, so the link stayed.',
+            );
         }
-        $cleared = self::clearKeyClientLink($key_id, $linked_id);
-        error_log('Dynamic registration: key '.$key_id.' registration does not match linked client '.$linked_id.' ('.implode(', ', $differ).'). '.($cleared ? 'Cleared lti_client_id.' : 'Could not clear lti_client_id.'));
+        return self::finishLinkClear(
+            $key_id,
+            $linked_id,
+            'registration does not match linked client '.$linked_id.' ('.implode(', ', $differ).').',
+            'Stored this registration on the key. The linked client did not match this registration, so the link was removed.',
+            'Stored this registration on the key. The linked client did not match this registration. The link was already gone.',
+            'Stored this registration on the key. The linked client did not match this registration, and the database rejected removing that link. The old link is still in place, so launch keeps using that client. Registration was not finished.'
+        );
+    }
+
+    /**
+     * @param int $key_id
+     * @param int $linked_id
+     * @param string $why
+     * @param string $cleared_note
+     * @param string $absent_note
+     * @param string $failed_note
+     * @return array{id:int|null, linked:bool, note:string, blocked:bool}
+     */
+    private static function finishLinkClear($key_id, $linked_id, $why, $cleared_note, $absent_note, $failed_note) {
+        $state = self::clearKeyClientLink($key_id, $linked_id);
+        if ( $state === 'failed' ) {
+            error_log('Dynamic registration: key '.$key_id.' '.$why.' Could not clear lti_client_id.');
+            return array(
+                'id' => $linked_id,
+                'linked' => true,
+                'blocked' => true,
+                'note' => $failed_note,
+            );
+        }
+        $verb = $state === 'absent' ? 'The link was already gone.' : 'Cleared lti_client_id.';
+        error_log('Dynamic registration: key '.$key_id.' '.$why.' '.$verb);
         return array(
-            'id' => $cleared ? null : $linked_id,
-            'linked' => ! $cleared,
-            'note' => $cleared
-                ? 'Stored this registration on the key. The linked client did not match this registration, so the link was removed.'
-                : 'Stored this registration on the key. The linked client did not match this registration, and the link could not be removed.',
+            'id' => null,
+            'linked' => false,
+            'blocked' => false,
+            'note' => $state === 'absent' ? $absent_note : $cleared_note,
         );
     }
 
@@ -2826,12 +2862,16 @@ class AdminService {
      * uses the key columns, so a cache for the old URL must not stay. The
      * cache is left alone when this update does not match.
      *
+     * failed means the database rejected the update. absent means the link
+     * this call aimed at was already gone. cleared means this call removed it.
+     *
      * @param int $key_id
      * @param int $linked_id
+     * @return string
      */
     private static function clearKeyClientLink($key_id, $linked_id) {
         global $PDOX, $CFG;
-        if ( $key_id < 1 || $linked_id < 1 ) return false;
+        if ( $key_id < 1 || $linked_id < 1 ) return 'failed';
         $q = $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}lti_key SET
                 lti_client_id = NULL,
@@ -2841,7 +2881,9 @@ class AdminService {
                 WHERE key_id = :id AND lti_client_id = :client",
             array(':id' => $key_id, ':client' => $linked_id)
         );
-        return $q->success && $q->rowCount() > 0;
+        if ( ! $q->success ) return 'failed';
+        if ( $q->rowCount() < 1 ) return 'absent';
+        return 'cleared';
     }
 
     /**

@@ -504,7 +504,8 @@ class DynamicRegistration {
         // A mismatched client link is cleared before deploy_key changes.
         // UNIQUE(lti_client_id, deploy_key) would reject the new deployment
         // while the old client id is still on this key, and this request
-        // would stop before the link could be removed.
+        // would stop before the link could be removed. A rejected unlink
+        // stops here, before the deployment id is written.
         $row['key_id'] = $tsugi_key;
         $registration = array(
             'issuer' => $issuer,
@@ -518,6 +519,13 @@ class DynamicRegistration {
             'key_id' => $tsugi_key,
         );
         $settled = \Tsugi\Services\Admin\AdminService::settleLinkedRegistrationClient($row, $registration);
+        if ( is_array($settled) && ! empty($settled['blocked']) ) {
+            if ( $settled['note'] !== '' ) {
+                echo('<p>'.htmlentities($settled['note'])."</p>\n");
+            }
+            $OUTPUT->footer();
+            return '';
+        }
 
         if ( $deployment_id ) {
             $deployment_sha256 = hash('sha256', trim($deployment_id));
@@ -543,6 +551,10 @@ class DynamicRegistration {
         }
         if ( $stored['note'] !== '' ) {
             echo('<p>'.htmlentities($stored['note'])."</p>\n");
+        }
+        if ( ! empty($stored['blocked']) ) {
+            $OUTPUT->footer();
+            return '';
         }
 
         echo('<button onclick="(window.opener || window.parent).postMessage({subject:\'org.imsglobal.lti.close\'}, \'*\')">Continue Registration in the LMS</button>'."\n");
