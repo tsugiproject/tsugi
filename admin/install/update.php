@@ -32,7 +32,7 @@ function tsugi_admin_install_retarget_tool($tool, $old_path, $new_path, $remote)
     }
 
     $existing = $PDOX->rowDie(
-        "SELECT tool_id, clone_url FROM {$CFG->dbprefix}lms_tools WHERE toolpath = :toolpath",
+        "SELECT tool_id, clone_url, deleted FROM {$CFG->dbprefix}lms_tools WHERE toolpath = :toolpath",
         array(':toolpath' => $new_path)
     );
     if ( $existing && (int) $existing['tool_id'] !== (int) $tool['tool_id'] ) {
@@ -40,17 +40,26 @@ function tsugi_admin_install_retarget_tool($tool, $old_path, $new_path, $remote)
             echo('Fallback path belongs to a different tool: '.htmlentities($new_path)."\n");
             return false;
         }
+        // Keep the row that is still installed. A deleted row at the
+        // computed folder must not block the live record from moving there.
+        $drop_id = $tool['tool_id'];
+        if ( (int) $existing['deleted'] === 1 && (int) $tool['deleted'] !== 1 ) {
+            $drop_id = $existing['tool_id'];
+        }
         $q = $PDOX->queryReturnError(
             "DELETE FROM {$CFG->dbprefix}lms_tools WHERE tool_id = :tool_id",
-            array(':tool_id' => $tool['tool_id'])
+            array(':tool_id' => $drop_id)
         );
         if ( ! $q->success ) {
             echo('Could not drop stale tool path: '.htmlentities($q->errorImplode)."\n");
             return false;
         }
-        echo('Dropped stale tool path '.htmlentities($old_path)."\n");
-        echo('Checkout is already recorded at '.htmlentities($new_path)."\n");
-        return false;
+        if ( (int) $drop_id === (int) $tool['tool_id'] ) {
+            echo('Dropped stale tool path '.htmlentities($old_path)."\n");
+            echo('Checkout is already recorded at '.htmlentities($new_path)."\n");
+            return false;
+        }
+        echo('Dropped deleted tool already recorded at '.htmlentities($new_path)."\n");
     }
 
     $q = $PDOX->queryReturnError(
@@ -66,8 +75,62 @@ function tsugi_admin_install_retarget_tool($tool, $old_path, $new_path, $remote)
         echo('Could not update tool path: '.htmlentities($q->errorImplode)."\n");
         return false;
     }
-    echo('Updated tool path to '.htmlentities($new_path)."\n");
+    echo('Tool path '.htmlentities($old_path).' -> '.htmlentities($new_path)."\n");
     return true;
+}
+
+/**
+ * The checkout this process is running from.
+ */
+function tsugi_admin_install_dirroot() {
+    global $CFG;
+
+    $dirroot = isset($CFG->dirroot) ? (string) $CFG->dirroot : '';
+    if ( $dirroot === '' ) return '';
+    $resolved = realpath($dirroot);
+    if ( is_string($resolved) && $resolved !== '' ) $dirroot = $resolved;
+    return rtrim(str_replace('\\', '/', $dirroot), '/');
+}
+
+/**
+ * True when this row is the checkout this process is running from.
+ */
+function tsugi_admin_install_is_runtime($path) {
+    $dirroot = tsugi_admin_install_dirroot();
+    if ( $dirroot === '' ) return false;
+
+    $path = rtrim(str_replace('\\', '/', (string) $path), '/');
+    if ( $path === $dirroot ) return true;
+
+    $path_real = realpath($path);
+    if ( is_string($path_real) && $path_real !== '' ) {
+        $path_real = rtrim(str_replace('\\', '/', $path_real), '/');
+        if ( $path_real === $dirroot ) return true;
+    }
+    return false;
+}
+
+/**
+ * Repo name from a clone URL, without a trailing .git.
+ */
+function tsugi_admin_install_repo_name($remote) {
+    $name = basename(rtrim(str_replace('\\', '/', (string) $remote), '/'), '.git');
+    if ( $name === '' || $name === '.' || $name === '..' ) return '';
+    return $name;
+}
+
+/**
+ * Where a module is checked out: install_folder plus the repo name.
+ */
+function tsugi_admin_install_repo_folder($remote) {
+    global $CFG;
+
+    $install = isset($CFG->install_folder) ? $CFG->install_folder : '';
+    if ( ! is_string($install) || $install === '' ) return '';
+    $name = tsugi_admin_install_repo_name($remote);
+    if ( $name === '' ) return '';
+    $folder = rtrim(str_replace('\\', '/', $install), '/').'/'.$name;
+    return U::remove_relative_path($folder);
 }
 
 /**
@@ -88,7 +151,6 @@ function tsugi_admin_install_update_run() {
 
     LTIX::getConnection();
 
-
 if ( ! U::isCli() ) {
 ?>
 <html>
@@ -103,21 +165,79 @@ if ( count($tools) < 1 ) {
     echo("<p>No installed tools found in lms_tools.</p>\n");
     return;
 }
+$runtime_remote = '';
+try {
+    $runtime_repo = new \Tsugi\Util\GitRepo($CFG->dirroot);
+    $runtime_origin = \Tsugi\Services\Admin\AdminService::getRepoOrigin($runtime_repo);
+    if ( is_string($runtime_origin) ) $runtime_remote = $runtime_origin;
+} catch (Exception $e) {
+    echo('Could not read this checkout origin: '.htmlentities($e->getMessage())."\n");
+}
 foreach($tools as $tool) {
     echo("\n======\n");
     echo("Name: ".htmlentities($tool['name'])."\n");
     echo("Description: ".htmlentities($tool['description'])."\n");
-    $path = $tool['toolpath'];
-    $path = \Tsugi\Util\U::remove_relative_path($path);
-    $stored_path = $path;
-    echo("Path: ".htmlentities($path)."\n");
+    $stored_path = \Tsugi\Util\U::remove_relative_path($tool['toolpath']);
+    $stored_path = rtrim(str_replace('\\', '/', $stored_path), '/');
     $remote = $tool['clone_url'];
     echo("URL: ".htmlentities($remote)."\n");
+    if ( $tool['name'] === 'name' ) {
+        $repo_name = tsugi_admin_install_repo_name($remote);
+        if ( $repo_name !== '' && $repo_name !== 'name' ) {
+            $named = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}lms_tools
+                 SET name = :name, updated_at = NOW()
+                 WHERE tool_id = :tool_id AND name = 'name'",
+                array(
+                    ':name' => $repo_name,
+                    ':tool_id' => $tool['tool_id'],
+                )
+            );
+            if ( $named->success ) {
+                echo('Name '.htmlentities($tool['name']).' -> '.htmlentities($repo_name)."\n");
+                $tool['name'] = $repo_name;
+            } else {
+                echo('Could not update tool name: '.htmlentities($named->errorImplode)."\n");
+            }
+        }
+    }
     $configured_version = $tool['gitversion'];
     if ( isset($CFG->branch_override) && is_array($CFG->branch_override) && U::get($CFG->branch_override, $remote) ) {
         $configured_version = U::get($CFG->branch_override, $remote);
     }
     echo("Version: ".htmlentities(U::strlen($configured_version) ? $configured_version : '(default)')."\n");
+    $runtime = ( $tool['name'] === 'Tsugi Admin'
+        || tsugi_admin_install_is_runtime($stored_path)
+        || tsugi_admin_install_same_repo($remote, $runtime_remote) );
+    if ( $runtime ) {
+        $path = tsugi_admin_install_dirroot();
+    } else {
+        if (! U::conservativeUrl($remote) ) {
+            echo('Badly formatted git URL: '.htmlentities($remote)."\n");
+            continue;
+        }
+        // The stored path is a note from whichever server last wrote it.
+        // This server checks the repo out under its own install folder.
+        $path = tsugi_admin_install_repo_folder($remote);
+        if ( $path === '' ) {
+            echo("Install folder is not configured.\n");
+            continue;
+        }
+    }
+    if ( $path === '' ) {
+        echo("Skipping this checkout. The site update already pulls it.\n");
+        continue;
+    }
+    echo("Path: ".htmlentities($path)."\n");
+    if ( $stored_path !== $path ) {
+        if ( ! tsugi_admin_install_retarget_tool($tool, $stored_path, $path, $remote) ) {
+            continue;
+        }
+    }
+    if ( $runtime ) {
+        echo("Skipping this checkout. The site update already pulls it.\n");
+        continue;
+    }
     if ( $tool['deleted'] == 1 ) {
         echo(" Tool is deleted...\n");
         continue;
@@ -126,40 +246,21 @@ foreach($tools as $tool) {
     // Check to see if we need to clone
     if ( ! file_exists($path) ) {
         echo("\nNeed to Checkout ".htmlentities($remote)." to ".htmlentities($path)."\n");
-        if (! U::conservativeUrl($remote) ) {
-            echo('Badly formatted git URL: '.$remote."\n");
-            continue;
-        }
         $parent = dirname($path);
-        if ( U::strlen($parent) < 1 || ! file_exists($parent) ) {
-            echo('Bad parent path: '.$parent."\n");
-            // Perhaps this is checked out to a new location in the /var area
-            $parent = U::remove_relative_path($CFG->install_folder);
-            $path = $parent . '/' . basename($path);
-            echo('Attempting path of '.$path."\n");
-            if ( U::strlen($parent) < 1 || ! file_exists($parent) ) {
-                echo('Bad parent path: '.$parent."\n");
-                continue;
-            }
-            // Remember the path that worked so the next run does not reprint this.
-            if ( ! tsugi_admin_install_retarget_tool($tool, $stored_path, $path, $remote) ) {
-                continue;
-            }
-        }
-
-        if ( ! file_exists($path) ) {
-            if ( ! is_writeable($parent) ) {
-                echo('Parent path is not writeable: '.$parent."\n");
-                continue;
-            }
-
-            echo("doClone: $remote $parent\n");
-            // This row came from lms_tools and already points at $path.
-            // doClone must not upsert it, or it replaces name, description,
-            // and gitversion with placeholders.
-            \Tsugi\Services\Admin\AdminService::doClone($remote, $path, false);
+        if ( ! is_dir($parent) ) {
+            echo('Bad parent path: '.htmlentities($parent)."\n");
             continue;
         }
+        if ( ! is_writeable($parent) ) {
+            echo('Parent path is not writeable: '.htmlentities($parent)."\n");
+            continue;
+        }
+
+        echo("doClone: $remote $parent\n");
+        // The row already records this tool. doClone must not upsert it,
+        // or it replaces name, description, and gitversion with placeholders.
+        \Tsugi\Services\Admin\AdminService::doClone($remote, $path, false);
+        continue;
     }
 
     try {
@@ -199,10 +300,10 @@ foreach($tools as $tool) {
     if ( $gitversion !== $tool['gitversion'] ) {
         $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}lms_tools SET gitversion=:gitversion, updated_at=NOW()
-             WHERE toolpath=:toolpath",
+             WHERE tool_id=:tool_id",
             array(
                 ":gitversion" => $gitversion,
-                ":toolpath" => $path
+                ":tool_id" => $tool['tool_id']
             )
         );
     }
