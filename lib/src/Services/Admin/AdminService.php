@@ -2625,6 +2625,324 @@ class AdminService {
     }
 
     /**
+     * Store a dynamic registration on lti_client and link the key when it is free.
+     *
+     * The caller has already updated the key columns. Registration does not
+     * rewrite an existing client. A linked client stays linked when its
+     * issuer, client id, platform URLs, and audience match this registration.
+     * A different client config clears lti_client_id and the cached platform
+     * keyset, and is logged. A missing client table leaves the key columns as
+     * the only copy. An unlinked key is linked to the client for this issuer
+     * and client id only when that client already matches. A different existing
+     * client is left unchanged and the key stays unlinked. A new client is
+     * inserted when none exists. The link is claimed only while lti_client_id
+     * is still empty. The key columns are not cleared here.
+     *
+     * @param array<string, mixed> $key
+     * @param array<string, mixed> $registration
+     * @return array{id:int|null, linked:bool, note:string}
+     */
+    public static function storeDynamicRegistrationClient(array $key, array $registration) {
+        global $PDOX, $CFG;
+
+        $empty = array('id' => null, 'linked' => false, 'note' => '');
+        if ( ! is_object($PDOX) || ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return $empty;
+        if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return $empty;
+
+        $issuer = self::trimToNull(U::get($registration, 'issuer'));
+        $client = self::trimToNull(U::get($registration, 'client_id'));
+        $oidc = self::trimToNull(U::get($registration, 'oidc_auth_url'));
+        $keyset = self::trimToNull(U::get($registration, 'keyset_url'));
+        $token = self::trimToNull(U::get($registration, 'token_url'));
+        if ( $issuer === null || $client === null || $oidc === null || $keyset === null || $token === null ) {
+            return $empty;
+        }
+        $audience = self::trimToNull(U::get($registration, 'token_audience'));
+        $family = self::registrationProductFamily(U::get($registration, 'product_family_code'));
+        $key_id = (int) U::get($key, 'key_id', U::get($registration, 'key_id'));
+
+        $settled = self::settleLinkedRegistrationClient($key, $registration);
+        if ( is_array($settled) ) return $settled;
+
+        $existing = $PDOX->rowDie(
+            "SELECT lti_client_id FROM {$CFG->dbprefix}lti_client
+                WHERE issuer = :issuer AND client_id = :client",
+            array(':issuer' => $issuer, ':client' => $client)
+        );
+        if ( is_array($existing) ) {
+            $id = (int) $existing['lti_client_id'];
+            $full = self::inboundClientById($id);
+            if ( ! is_array($full) ) {
+                error_log('Dynamic registration: key '.$key_id.' found client '.$id.' by issuer and client id, but the row could not be read. The key was not linked.');
+                return array(
+                    'id' => $id,
+                    'linked' => false,
+                    'note' => 'Stored this registration on the key. The existing client could not be read, so this key was not linked.',
+                );
+            }
+            $differ = self::registrationClientDifferences($full, $issuer, $client, $oidc, $keyset, $token, $audience);
+            if ( count($differ) > 0 ) {
+                error_log('Dynamic registration: key '.$key_id.' registration does not match existing client '.$id.' ('.implode(', ', $differ).'). The client was left unchanged and the key was not linked.');
+                return array(
+                    'id' => $id,
+                    'linked' => false,
+                    'note' => 'Stored this registration on the key. The existing client does not match this registration, so this key was not linked.',
+                );
+            }
+            $note = 'Linked this key to the existing client. The client was not changed.';
+            $blocked_note = 'The existing client was left unchanged. This key was not linked because another key already has that client and deployment id.';
+            $link_fail_note = 'The existing client was left unchanged, and this key could not be linked. Launch keeps using the key columns.';
+        } else {
+            $id = self::insertDynamicRegistrationClient($key, $issuer, $client, $oidc, $keyset, $token, $audience, $family);
+            if ( $id < 1 ) {
+                return array('id' => null, 'linked' => false, 'note' => 'Could not store the client. The registration was stored on the key.');
+            }
+            $note = 'Stored a client for this registration and linked this key to it.';
+            $blocked_note = 'The client is stored, but this key was not linked because another key already has that client and deployment id.';
+            $link_fail_note = 'The client is stored, but this key could not be linked. Launch keeps using the key columns.';
+        }
+
+        $deploy = array_key_exists('deploy_key', $registration) ? $registration['deploy_key'] : U::get($key, 'deploy_key');
+        if ( $key_id < 1 || ! self::validate_client_deploy_unique($id, $deploy, $key_id) ) {
+            if ( isset($_SESSION[U::FLASH_ERROR]) ) unset($_SESSION[U::FLASH_ERROR]);
+            return array(
+                'id' => $id,
+                'linked' => false,
+                'note' => $blocked_note,
+            );
+        }
+        $link = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_key SET lti_client_id = :client
+                WHERE key_id = :id AND lti_client_id IS NULL",
+            array(':client' => $id, ':id' => $key_id)
+        );
+        if ( ! $link->success || $link->rowCount() < 1 ) {
+            return array('id' => $id, 'linked' => false, 'note' => $link_fail_note);
+        }
+        return array('id' => $id, 'linked' => true, 'note' => $note);
+    }
+
+    /**
+     * Keep or clear a client this key is already linked to.
+     *
+     * Returns null when the key is not linked, or when this registration
+     * cannot be compared to a client. The caller writes a new deployment id
+     * after this returns, so a mismatched link is gone before that unique
+     * check runs.
+     *
+     * @param array<string, mixed> $key
+     * @param array<string, mixed> $registration
+     * @return array{id:int|null, linked:bool, note:string, blocked:bool}|null
+     */
+    public static function settleLinkedRegistrationClient(array $key, array $registration) {
+        global $PDOX, $CFG;
+
+        $linked_id = (int) U::get($key, 'lti_client_id');
+        if ( $linked_id < 1 ) return null;
+        if ( ! is_object($PDOX) || ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return null;
+        if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return null;
+
+        $issuer = self::trimToNull(U::get($registration, 'issuer'));
+        $client = self::trimToNull(U::get($registration, 'client_id'));
+        $oidc = self::trimToNull(U::get($registration, 'oidc_auth_url'));
+        $keyset = self::trimToNull(U::get($registration, 'keyset_url'));
+        $token = self::trimToNull(U::get($registration, 'token_url'));
+        if ( $issuer === null || $client === null || $oidc === null || $keyset === null || $token === null ) {
+            return null;
+        }
+        $key_id = (int) U::get($key, 'key_id', U::get($registration, 'key_id'));
+        return self::keepOrSeverRegistrationClient(
+            $key_id,
+            $linked_id,
+            self::inboundClientById($linked_id),
+            $issuer,
+            $client,
+            $oidc,
+            $keyset,
+            $token,
+            self::trimToNull(U::get($registration, 'token_audience'))
+        );
+    }
+
+    /**
+     * Keep a linked client when this registration matches it. Otherwise clear the link.
+     *
+     * A database error leaves the old link in place and sets blocked. Zero rows
+     * means that link is already gone, which is not a failure.
+     *
+     * @param array<string, mixed>|null $current
+     * @return array{id:int|null, linked:bool, note:string, blocked:bool}
+     */
+    private static function keepOrSeverRegistrationClient($key_id, $linked_id, $current, $issuer, $client, $oidc, $keyset, $token, $audience) {
+        if ( ! is_array($current) ) {
+            return self::finishLinkClear(
+                $key_id,
+                $linked_id,
+                'points at missing client '.$linked_id.'.',
+                'Stored this registration on the key. The linked client is missing, so the link was removed.',
+                'Stored this registration on the key. The linked client is missing. The link was already gone.',
+                'Stored this registration on the key. The linked client is missing, and the database rejected removing that link. The old link is still in place, so launch keeps using that client. Registration was not finished.'
+            );
+        }
+        $differ = self::registrationClientDifferences($current, $issuer, $client, $oidc, $keyset, $token, $audience);
+        if ( count($differ) === 0 ) {
+            return array(
+                'id' => $linked_id,
+                'linked' => true,
+                'blocked' => false,
+                'note' => 'Stored this registration on the key. The linked client matches, so the link stayed.',
+            );
+        }
+        return self::finishLinkClear(
+            $key_id,
+            $linked_id,
+            'registration does not match linked client '.$linked_id.' ('.implode(', ', $differ).').',
+            'Stored this registration on the key. The linked client did not match this registration, so the link was removed.',
+            'Stored this registration on the key. The linked client did not match this registration. The link was already gone.',
+            'Stored this registration on the key. The linked client did not match this registration, and the database rejected removing that link. The old link is still in place, so launch keeps using that client. Registration was not finished.'
+        );
+    }
+
+    /**
+     * @param int $key_id
+     * @param int $linked_id
+     * @param string $why
+     * @param string $cleared_note
+     * @param string $absent_note
+     * @param string $failed_note
+     * @return array{id:int|null, linked:bool, note:string, blocked:bool}
+     */
+    private static function finishLinkClear($key_id, $linked_id, $why, $cleared_note, $absent_note, $failed_note) {
+        $state = self::clearKeyClientLink($key_id, $linked_id);
+        if ( $state === 'failed' ) {
+            error_log('Dynamic registration: key '.$key_id.' '.$why.' Could not clear lti_client_id.');
+            return array(
+                'id' => $linked_id,
+                'linked' => true,
+                'blocked' => true,
+                'note' => $failed_note,
+            );
+        }
+        $verb = $state === 'absent' ? 'The link was already gone.' : 'Cleared lti_client_id.';
+        error_log('Dynamic registration: key '.$key_id.' '.$why.' '.$verb);
+        return array(
+            'id' => null,
+            'linked' => false,
+            'blocked' => false,
+            'note' => $state === 'absent' ? $absent_note : $cleared_note,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $client
+     * @return list<string>
+     */
+    private static function registrationClientDifferences(array $client, $issuer, $client_id, $oidc, $keyset, $token, $audience) {
+        $wanted = array(
+            'issuer' => $issuer,
+            'client_id' => $client_id,
+            'oidc_auth_url' => $oidc,
+            'keyset_url' => $keyset,
+            'token_url' => $token,
+            'token_audience' => $audience,
+        );
+        $differ = array();
+        foreach ( $wanted as $field => $value ) {
+            if ( self::trimToNull(U::get($client, $field)) !== $value ) {
+                $differ[] = $field;
+            }
+        }
+        return $differ;
+    }
+
+    /**
+     * Drop the client link and the cached platform keyset.
+     *
+     * The cache was filled from the client URL. After the link is gone, launch
+     * uses the key columns, so a cache for the old URL must not stay. The
+     * cache is left alone when this update does not match.
+     *
+     * failed means the database rejected the update. absent means the link
+     * this call aimed at was already gone. cleared means this call removed it.
+     *
+     * @param int $key_id
+     * @param int $linked_id
+     * @return string
+     */
+    private static function clearKeyClientLink($key_id, $linked_id) {
+        global $PDOX, $CFG;
+        if ( $key_id < 1 || $linked_id < 1 ) return 'failed';
+        $q = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_key SET
+                lti_client_id = NULL,
+                lms_cache_keyset = NULL,
+                lms_cache_pubkey = NULL,
+                lms_cache_kid = NULL
+                WHERE key_id = :id AND lti_client_id = :client",
+            array(':id' => $key_id, ':client' => $linked_id)
+        );
+        if ( ! $q->success ) return 'failed';
+        if ( $q->rowCount() < 1 ) return 'absent';
+        return 'cleared';
+    }
+
+    /**
+     * @param mixed $family
+     * @return string|null
+     */
+    private static function registrationProductFamily($family) {
+        if ( ! is_string($family) ) return null;
+        $family = trim($family);
+        if ( $family === '' || strlen($family) > 64 ) return null;
+        if ( preg_match('/[^\x20-\x7E]/', $family) === 1 ) return null;
+        return $family;
+    }
+
+    /**
+     * @param array<string, mixed> $key
+     * @param string $issuer
+     * @param string $client
+     * @param string $oidc
+     * @param string $keyset
+     * @param string $token
+     * @param string|null $audience
+     * @param string|null $family
+     */
+    private static function insertDynamicRegistrationClient(array $key, $issuer, $client, $oidc, $keyset, $token, $audience, $family) {
+        global $PDOX, $CFG;
+
+        $owner = (int) U::get($key, 'user_id');
+        $created_by = null;
+        if ( \Tsugi\Core\ReqScope::isLoggedInLegacy() ) {
+            $logged_in = (int) \Tsugi\Core\ReqScope::loggedInUserIdLegacy();
+            if ( $logged_in > 0 ) $created_by = $logged_in;
+        }
+        if ( $created_by === null && $owner > 0 ) $created_by = $owner;
+        $q = $PDOX->queryReturnError(
+            "INSERT INTO {$CFG->dbprefix}lti_client
+                (guid, title, user_id, issuer, client_id, oidc_auth_url, keyset_url, token_url, token_audience,
+                    product_family_code, client_method, client_status, created_by_user_id, created_at, updated_at)
+            VALUES (UNHEX(:guid), :title, :user, :issuer, :client, :oidc, :keyset, :token, :audience,
+                    :family, 'dynamic', 'active', :created_by, NOW(), NOW())",
+            array(
+                ':guid' => \Tsugi\Core\Guid::uuid7(),
+                ':title' => self::trimToNull(U::get($key, 'key_title')),
+                ':user' => $owner > 0 ? $owner : null,
+                ':issuer' => $issuer,
+                ':client' => $client,
+                ':oidc' => $oidc,
+                ':keyset' => $keyset,
+                ':token' => $token,
+                ':audience' => $audience,
+                ':family' => $family,
+                ':created_by' => $created_by,
+            )
+        );
+        if ( ! $q->success ) return 0;
+        return (int) $PDOX->lastInsertId();
+    }
+
+    /**
      * A client can stand in for the key only when the launch would use it.
      *
      * @param array<string, mixed> $row

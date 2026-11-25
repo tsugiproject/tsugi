@@ -42,10 +42,16 @@ class DynamicRegistration {
 
         LTIX::getConnection();
 
+        $client_column = '';
+        if ( $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) {
+            $client_column = ', lti_client_id';
+        }
+
         if ( $user_id == 0 ) {
             $row = $PDOX->rowDie(
                 "SELECT key_title, key_key, unlock_code, user_id, plus, deploy_key,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
+                    {$client_column}
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND unlock_code = :UNLOCK",
                 array(":KID" => $tsugi_key, ":UNLOCK" => $unlock_code)
@@ -55,6 +61,7 @@ class DynamicRegistration {
             $row = $PDOX->rowDie(
                 "SELECT key_title, key_key, unlock_code, user_id, plus, deploy_key,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
+                    {$client_column}
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND user_id = :UID AND unlock_code = :UNLOCK",
                 array(":KID" => $tsugi_key, ":UID" => $user_id, ":UNLOCK" => $unlock_code)
@@ -401,17 +408,33 @@ class DynamicRegistration {
         }
 
         $client_id = $resp->client_id;
+        // json_decode leaves a numeric client id as an int or float. The ASCII
+        // check stringifies a copy, and the client compare ignores a non-string,
+        // so the stored id and the link check must see the same string.
+        if ( is_int($client_id) || is_float($client_id) ) {
+            $client_id = (string) $client_id;
+        }
 
         // Sakai puts deployment_id inside the tool configuration. Canvas puts it
         // on the registration response itself.
         $deployment_id = self::deploymentIdFromResponse($resp);
 
-        // The LMS has created the client. A second POST with the same unlock
-        // would register the tool again.
-        $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
-            array(":KID" => $tsugi_key)
+        // The LMS has created the client. Claiming the unlock is what lets this
+        // request write the key. A second registration that already read the
+        // same unlock stops here, so it cannot store its own columns or client
+        // after this request has started writing.
+        $claimed = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL
+                WHERE key_id = :KID AND unlock_code = :UNLOCK",
+            array(":KID" => $tsugi_key, ":UNLOCK" => $unlock_code)
         );
+        if ( $claimed->rowCount() < 1 ) {
+            error_log('Dynamic registration: key '.$tsugi_key.' lost the unlock claim. Another registration already stored this key.');
+            echo("<p><b>Another registration already stored this key.</b></p>\n");
+            echo("<p>The LMS already created the client for this request. This request did not change the key. Do not run registration again.</p>\n");
+            $OUTPUT->footer();
+            return '';
+        }
 
         $identity_message = LTI::ascii255First(array(
             'Issuer' => $issuer,
@@ -440,9 +463,8 @@ class DynamicRegistration {
 
         $issuer_sha256 = hash('sha256', trim($issuer));
 
-        // Dynamic registration still writes the legacy key columns. It does not
-        // create or update an lti_client row. A complete linked client would
-        // hide these values at launch. That handoff comes later.
+        // The key columns are always updated, so unlinking the client restores
+        // this registration. A linked client stays only when it already matches.
         $sql = "UPDATE {$CFG->dbprefix}lti_key SET
                 lms_issuer = :lms_issuer,
                 lms_issuer_sha256 = :lms_issuer_sha256,
@@ -479,18 +501,60 @@ class DynamicRegistration {
 
         error_log("Stored issuer $issuer / $client_id in lti_key table");
 
+        // A mismatched client link is cleared before deploy_key changes.
+        // UNIQUE(lti_client_id, deploy_key) would reject the new deployment
+        // while the old client id is still on this key, and this request
+        // would stop before the link could be removed. A rejected unlink
+        // stops here, before the deployment id is written.
+        $row['key_id'] = $tsugi_key;
+        $registration = array(
+            'issuer' => $issuer,
+            'client_id' => $client_id,
+            'oidc_auth_url' => $authorization_endpoint,
+            'keyset_url' => $jwks_uri,
+            'token_url' => $token_endpoint,
+            'token_audience' => $authorization_server,
+            'product_family_code' => self::platformFamily($platform_configuration),
+            'deploy_key' => $deployment_id ? $deployment_id : U::get($row, 'deploy_key'),
+            'key_id' => $tsugi_key,
+        );
+        $settled = \Tsugi\Services\Admin\AdminService::settleLinkedRegistrationClient($row, $registration);
+        if ( is_array($settled) && ! empty($settled['blocked']) ) {
+            if ( $settled['note'] !== '' ) {
+                echo('<p>'.htmlentities($settled['note'])."</p>\n");
+            }
+            $OUTPUT->footer();
+            return '';
+        }
+
         if ( $deployment_id ) {
             $deployment_sha256 = hash('sha256', trim($deployment_id));
-            $stmt = $PDOX->queryDie(
+            $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
                     WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
                 array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
             );
 
             if ( ! $stmt->success ) {
+                if ( is_array($settled) && $settled['note'] !== '' ) {
+                    echo('<p>'.htmlentities($settled['note'])."</p>\n");
+                }
                 echo("Unable to update key entry to set deployment_id\n");
                 return '';
             }
+        }
+
+        if ( is_array($settled) ) {
+            $stored = $settled;
+        } else {
+            $stored = \Tsugi\Services\Admin\AdminService::storeDynamicRegistrationClient($row, $registration);
+        }
+        if ( $stored['note'] !== '' ) {
+            echo('<p>'.htmlentities($stored['note'])."</p>\n");
+        }
+        if ( ! empty($stored['blocked']) ) {
+            $OUTPUT->footer();
+            return '';
         }
 
         echo('<button onclick="(window.opener || window.parent).postMessage({subject:\'org.imsglobal.lti.close\'}, \'*\')">Continue Registration in the LMS</button>'."\n");
