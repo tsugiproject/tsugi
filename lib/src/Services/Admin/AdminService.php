@@ -2627,13 +2627,15 @@ class AdminService {
     /**
      * Store a dynamic registration on lti_client and link the key when it is free.
      *
-     * The caller has already updated the key columns. A linked client stays
-     * linked when its issuer, client id, platform URLs, and audience match
-     * this registration. A different client config clears lti_client_id and
-     * is logged. A missing client table leaves the key columns as the only
-     * copy. An unlinked key is linked to the client for this issuer and
-     * client id, and that client's URLs are updated when the row already
-     * exists. The key columns are not cleared here.
+     * The caller has already updated the key columns. Registration does not
+     * rewrite an existing client. A linked client stays linked when its
+     * issuer, client id, platform URLs, and audience match this registration.
+     * A different client config clears lti_client_id and is logged. A missing
+     * client table leaves the key columns as the only copy. An unlinked key
+     * is linked to the client for this issuer and client id only when that
+     * client already matches. A different existing client is left unchanged
+     * and the key stays unlinked. A new client is inserted when none exists.
+     * The key columns are not cleared here.
      *
      * @param array<string, mixed> $key
      * @param array<string, mixed> $registration
@@ -2674,23 +2676,41 @@ class AdminService {
         }
 
         $existing = $PDOX->rowDie(
-            "SELECT lti_client_id, keyset_url FROM {$CFG->dbprefix}lti_client
+            "SELECT lti_client_id FROM {$CFG->dbprefix}lti_client
                 WHERE issuer = :issuer AND client_id = :client",
             array(':issuer' => $issuer, ':client' => $client)
         );
         if ( is_array($existing) ) {
             $id = (int) $existing['lti_client_id'];
             $full = self::inboundClientById($id);
-            if ( ! is_array($full) || ! self::updateDynamicRegistrationClient($id, $full, $oidc, $keyset, $token, $audience, $client, $family) ) {
-                return array('id' => null, 'linked' => false, 'note' => 'Could not update the existing client. The registration was stored on the key.');
+            if ( ! is_array($full) ) {
+                error_log('Dynamic registration: key '.$key_id.' found client '.$id.' by issuer and client id, but the row could not be read. The key was not linked.');
+                return array(
+                    'id' => $id,
+                    'linked' => false,
+                    'note' => 'Stored this registration on the key. The existing client could not be read, so this key was not linked.',
+                );
             }
-            $note = 'Updated the existing client and linked this key to it.';
+            $differ = self::registrationClientDifferences($full, $issuer, $client, $oidc, $keyset, $token, $audience);
+            if ( count($differ) > 0 ) {
+                error_log('Dynamic registration: key '.$key_id.' registration does not match existing client '.$id.' ('.implode(', ', $differ).'). The client was left unchanged and the key was not linked.');
+                return array(
+                    'id' => $id,
+                    'linked' => false,
+                    'note' => 'Stored this registration on the key. The existing client does not match this registration, so this key was not linked.',
+                );
+            }
+            $note = 'Linked this key to the existing client. The client was not changed.';
+            $blocked_note = 'The existing client was left unchanged. This key was not linked because another key already has that client and deployment id.';
+            $link_fail_note = 'The existing client was left unchanged, and this key could not be linked. Launch keeps using the key columns.';
         } else {
             $id = self::insertDynamicRegistrationClient($key, $issuer, $client, $oidc, $keyset, $token, $audience, $family);
             if ( $id < 1 ) {
                 return array('id' => null, 'linked' => false, 'note' => 'Could not store the client. The registration was stored on the key.');
             }
             $note = 'Stored a client for this registration and linked this key to it.';
+            $blocked_note = 'The client is stored, but this key was not linked because another key already has that client and deployment id.';
+            $link_fail_note = 'The client is stored, but this key could not be linked. Launch keeps using the key columns.';
         }
 
         $deploy = array_key_exists('deploy_key', $registration) ? $registration['deploy_key'] : U::get($key, 'deploy_key');
@@ -2699,7 +2719,7 @@ class AdminService {
             return array(
                 'id' => $id,
                 'linked' => false,
-                'note' => 'The client is stored, but this key was not linked because another key already has that client and deployment id.',
+                'note' => $blocked_note,
             );
         }
         $link = $PDOX->queryReturnError(
@@ -2707,7 +2727,7 @@ class AdminService {
             array(':client' => $id, ':id' => $key_id)
         );
         if ( ! $link->success ) {
-            return array('id' => $id, 'linked' => false, 'note' => 'The client is stored, but this key could not be linked. Launch keeps using the key columns.');
+            return array('id' => $id, 'linked' => false, 'note' => $link_fail_note);
         }
         return array('id' => $id, 'linked' => true, 'note' => $note);
     }
@@ -2836,43 +2856,6 @@ class AdminService {
         );
         if ( ! $q->success ) return 0;
         return (int) $PDOX->lastInsertId();
-    }
-
-    /**
-     * @param int $id
-     * @param array<string, mixed> $current
-     * @param string $oidc
-     * @param string $keyset
-     * @param string $token
-     * @param string|null $audience
-     * @param string $client
-     * @param string|null $family
-     */
-    private static function updateDynamicRegistrationClient($id, array $current, $oidc, $keyset, $token, $audience, $client, $family) {
-        global $PDOX, $CFG;
-
-        $old_keyset = self::trimToNull(U::get($current, 'keyset_url'));
-        $q = $PDOX->queryReturnError(
-            "UPDATE {$CFG->dbprefix}lti_client SET
-                client_id = :client, oidc_auth_url = :oidc, keyset_url = :keyset, token_url = :token,
-                token_audience = :audience, product_family_code = COALESCE(:family, product_family_code),
-                updated_at = NOW()
-            WHERE lti_client_id = :id",
-            array(
-                ':client' => $client,
-                ':oidc' => $oidc,
-                ':keyset' => $keyset,
-                ':token' => $token,
-                ':audience' => $audience,
-                ':family' => $family,
-                ':id' => (int) $id,
-            )
-        );
-        if ( ! $q->success ) return false;
-        if ( $old_keyset !== $keyset ) {
-            \Tsugi\Core\LTIX::clearKeysetCacheForClient((int) $id);
-        }
-        return true;
     }
 
     /**
