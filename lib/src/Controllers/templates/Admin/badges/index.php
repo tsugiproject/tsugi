@@ -35,6 +35,14 @@ $orderfields = array("issued_at", "badge_guid", "user_displayname", "badge_title
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
+$count_parms = array();
+$count_sql = "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}badges";
+$search_clause = Table::searchClause($searchfields, $count_parms);
+if ( $search_clause !== '' ) {
+    $count_sql .= " WHERE ( ".$search_clause." )";
+}
+$count_row = $PDOX->rowDie($count_sql, $count_parms);
+$badge_count = ($count_row && isset($count_row['count'])) ? (int) $count_row['count'] : 0;
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
@@ -48,6 +56,8 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 echo("<h2>Badges Awarded</h2>\n");
+$badge_label = $badge_count === 1 ? 'badge' : 'badges';
+echo('<p>'.number_format($badge_count).' '.$badge_label."</p>\n");
 $view_url = false;
 $params = false;
 $extra_buttons = array("Admin" => $CFG->wwwroot."/admin");
