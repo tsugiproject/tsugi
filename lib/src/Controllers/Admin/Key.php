@@ -16,6 +16,8 @@ class Key extends Admin {
     public static function routes(Application $app) {
         self::map($app, self::class, 'index', self::paths('key', true));
         self::map($app, self::class, 'clients', self::paths('key/clients'));
+        self::map($app, self::class, 'platforms', self::paths('key/platforms'));
+        self::map($app, self::class, 'platformDetail', self::paths('key/platform-detail'));
         self::map($app, self::class, 'clientAdd', self::paths('key/client-add'));
         self::map($app, self::class, 'clientDetail', self::paths('key/client-detail'));
         self::map($app, self::class, 'clientFromKey', self::paths('key/client-from-key'));
@@ -38,6 +40,16 @@ class Key extends Admin {
     public function clients() {
         if ( $r = $this->gate('keys.view') ) return $r;
         $this->view('key/clients.php');
+    }
+
+    public function platforms() {
+        if ( $r = $this->gate('keys.view') ) return $r;
+        $this->view('key/platforms.php');
+    }
+
+    public function platformDetail() {
+        if ( $r = $this->gate('keys.detail') ) return $r;
+        $this->view('key/platform-detail.php');
     }
 
     public function clientAdd() {

@@ -78,6 +78,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Client Details
   <a class="btn btn-default" href="<?= $key_admin ?>clients">All Clients</a>
+  <a class="btn btn-default" href="<?= $key_admin ?>platforms">Platforms</a>
   <a class="btn btn-default" href="<?= $key_admin ?>">All Keys</a>
 </h1>
 <p>
@@ -200,6 +201,9 @@ $client_keys = AdminService::keysForInboundClient($client_id);
 </ul>
 <?php } ?>
 <?php
+$platform_for = 'client';
+$platform_for_id = $client_id;
+require __DIR__ . '/platform-links.inc.php';
 $delete_box['section'] = 'button';
 require __DIR__ . '/delete-confirm.inc.php';
 $delete_box['section'] = 'panel';

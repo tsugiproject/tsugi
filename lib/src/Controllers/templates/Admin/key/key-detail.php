@@ -205,6 +205,7 @@ $OUTPUT->flashMessages();
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
   <a class="btn btn-success" href="key-settings.php?key_id=<?= htmlentities($row['key_id']) ?>">View/Edit Key Settings</a>
   <a class="btn btn-default" href="<?= $CFG->wwwroot ?>/admin/key/clients">All Clients</a>
+  <a class="btn btn-default" href="<?= $CFG->wwwroot ?>/admin/key/platforms">Platforms</a>
   <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">All Keys</a>
 </h1>
 <p>
@@ -293,6 +294,9 @@ if ( $editing ) {
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, false, $extra_buttons, $titles, array('plus'), $after_fields);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+$platform_for = 'key';
+$platform_for_id = (int) $row['key_id'];
+require __DIR__ . '/platform-links.inc.php';
 if ( $editing ) {
     $cancel_href = htmlspecialchars($current.'?key_id='.(int) $row['key_id'], ENT_QUOTES, 'UTF-8');
     $delete_box['lead'] = '<input type="submit" name="doUpdate" class="btn btn-normal" value="'.htmlspecialchars(_m('Update'), ENT_QUOTES, 'UTF-8').'" form="tsugi-crud-update">'

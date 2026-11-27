@@ -113,6 +113,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
 <li><a href="catalog/">Course Catalog</a></li>
 <li><a href="org/">Manage Organizations</a></li>
 <li><a href="key/">Manage Access Keys</a></li>
+<li><a href="key/platforms">View Platform Snapshots</a></li>
 <li><a href="expire/">Manage Data Expiry</a></li>
 <li><a href="context/">View Contexts</a></li>
 <li><a href="activity/">View Activity</a></li>

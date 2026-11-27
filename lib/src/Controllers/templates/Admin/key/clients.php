@@ -44,6 +44,7 @@ $OUTPUT->flashMessages();
 <h1>LTI 1.3 Clients</h1>
 <p>
   <a href="<?= $key_admin ?>clients" class="btn btn-default active">Clients</a>
+  <a href="<?= $key_admin ?>platforms" class="btn btn-default">Platforms</a>
   <a href="<?= $key_admin ?>" class="btn btn-default">Keys</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>

@@ -88,6 +88,7 @@ echo \Tsugi\Services\Admin\AdminService::clientIdCheckNotices();
 <h1>LTI Tenants (Keys)</h1>
 <p>
   <a href="<?= $CFG->wwwroot ?>/admin/key/clients" class="btn btn-default">Clients</a>
+  <a href="<?= $CFG->wwwroot ?>/admin/key/platforms" class="btn btn-default">Platforms</a>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Keys</a>
 <?php if ( $CFG->providekeys ) { ?>
   <a href="requests" class="btn btn-default">Key Requests</a>
