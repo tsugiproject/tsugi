@@ -2640,12 +2640,12 @@ class AdminService {
      *
      * @param array<string, mixed> $key
      * @param array<string, mixed> $registration
-     * @return array{id:int|null, linked:bool, note:string}
+     * @return array{id:int|null, linked:bool, note:string, created?:bool}
      */
     public static function storeDynamicRegistrationClient(array $key, array $registration) {
         global $PDOX, $CFG;
 
-        $empty = array('id' => null, 'linked' => false, 'note' => '');
+        $empty = array('id' => null, 'linked' => false, 'note' => '', 'created' => false);
         if ( ! is_object($PDOX) || ! \Tsugi\Core\LTIX::ltiClientTableExists($CFG->dbprefix) ) return $empty;
         if ( ! $PDOX->columnExists('lti_client_id', $CFG->dbprefix.'lti_key') ) return $empty;
 
@@ -2677,6 +2677,7 @@ class AdminService {
                 return array(
                     'id' => $id,
                     'linked' => false,
+                    'created' => false,
                     'note' => 'Stored this registration on the key. The existing client could not be read, so this key was not linked.',
                 );
             }
@@ -2686,17 +2687,20 @@ class AdminService {
                 return array(
                     'id' => $id,
                     'linked' => false,
+                    'created' => false,
                     'note' => 'Stored this registration on the key. The existing client does not match this registration, so this key was not linked.',
                 );
             }
+            $created = false;
             $note = 'Linked this key to the existing client. The client was not changed.';
             $blocked_note = 'The existing client was left unchanged. This key was not linked because another key already has that client and deployment id.';
             $link_fail_note = 'The existing client was left unchanged, and this key could not be linked. Launch keeps using the key columns.';
         } else {
             $id = self::insertDynamicRegistrationClient($key, $issuer, $client, $oidc, $keyset, $token, $audience, $family);
             if ( $id < 1 ) {
-                return array('id' => null, 'linked' => false, 'note' => 'Could not store the client. The registration was stored on the key.');
+                return array('id' => null, 'linked' => false, 'created' => false, 'note' => 'Could not store the client. The registration was stored on the key.');
             }
+            $created = true;
             $note = 'Stored a client for this registration and linked this key to it.';
             $blocked_note = 'The client is stored, but this key was not linked because another key already has that client and deployment id.';
             $link_fail_note = 'The client is stored, but this key could not be linked. Launch keeps using the key columns.';
@@ -2708,6 +2712,7 @@ class AdminService {
             return array(
                 'id' => $id,
                 'linked' => false,
+                'created' => $created,
                 'note' => $blocked_note,
             );
         }
@@ -2717,9 +2722,9 @@ class AdminService {
             array(':client' => $id, ':id' => $key_id)
         );
         if ( ! $link->success || $link->rowCount() < 1 ) {
-            return array('id' => $id, 'linked' => false, 'note' => $link_fail_note);
+            return array('id' => $id, 'linked' => false, 'created' => $created, 'note' => $link_fail_note);
         }
-        return array('id' => $id, 'linked' => true, 'note' => $note);
+        return array('id' => $id, 'linked' => true, 'created' => $created, 'note' => $note);
     }
 
     /**
@@ -2891,11 +2896,7 @@ class AdminService {
      * @return string|null
      */
     private static function registrationProductFamily($family) {
-        if ( ! is_string($family) ) return null;
-        $family = trim($family);
-        if ( $family === '' || strlen($family) > 64 ) return null;
-        if ( preg_match('/[^\x20-\x7E]/', $family) === 1 ) return null;
-        return $family;
+        return \Tsugi\Services\Lti\PlatformObservation::toPrintableAscii($family, 64);
     }
 
     /**

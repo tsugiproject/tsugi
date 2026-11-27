@@ -5,7 +5,8 @@
  * $delete_box keys:
  *   title, paragraphs (list of strings), lines (list of strings),
  *   fields (name, label, kind=domain|url|count, expected),
- *   help, mismatch, confirm, button, hidden (name => value)
+ *   help, mismatch, confirm, button, hidden (name => value),
+ *   lead (HTML shown in front of the Delete button)
  */
 if ( ! isset($delete_box) || ! is_array($delete_box) ) return;
 
@@ -29,8 +30,11 @@ foreach ( $delete_fields as $delete_field ) {
 }
 $delete_form_id = 'tsugi-delete-'.substr(sha1($delete_title.'|'.$delete_blocked), 0, 8);
 $delete_section = (string) ($delete_box['section'] ?? 'all');
-if ( $delete_section === 'button' ) { ?>
+if ( $delete_section === 'button' ) {
+    $delete_lead = $delete_box['lead'] ?? '';
+?>
 <p style="margin-top:16px;">
+<?php if ( is_string($delete_lead) && $delete_lead !== '' ) echo $delete_lead; ?>
 <button type="button" class="btn btn-danger" id="<?= htmlspecialchars($delete_form_id, ENT_QUOTES, 'UTF-8') ?>-open">Delete</button>
 </p>
 <?php return; }

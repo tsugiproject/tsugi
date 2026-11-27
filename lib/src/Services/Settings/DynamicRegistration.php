@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Settings;
 
+use Tsugi\Services\Lti\PlatformObservation;
 use Tsugi\Services\Outbound\ToolRegistrationDocument;
 use Tsugi\Util\SakaiCustom;
 use Tsugi\Util\LTI;
@@ -501,6 +502,12 @@ class DynamicRegistration {
 
         error_log("Stored issuer $issuer / $client_id in lti_key table");
 
+        $platform_record = PlatformObservation::recordKeyRegistration(
+            (int) $tsugi_key,
+            $platform_configuration,
+            $resp
+        );
+
         // A mismatched client link is cleared before deploy_key changes.
         // UNIQUE(lti_client_id, deploy_key) would reject the new deployment
         // while the old client id is still on this key, and this request
@@ -549,6 +556,8 @@ class DynamicRegistration {
         } else {
             $stored = \Tsugi\Services\Admin\AdminService::storeDynamicRegistrationClient($row, $registration);
         }
+        PlatformObservation::finishRegistrationLink((int) $tsugi_key, $stored, $platform_record);
+
         if ( $stored['note'] !== '' ) {
             echo('<p>'.htmlentities($stored['note'])."</p>\n");
         }

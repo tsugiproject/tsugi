@@ -33,7 +33,7 @@ So two keys that share an issuer and client id are not two launch targets. The o
 
 A blank deployment id is stored as `NULL`. In the unique indexes, `NULL` does not collide with another `NULL`. The key form rejects a second blank deployment for the same linked client in PHP, because the unique index will not.
 
-Dynamic registration still writes the legacy columns on `lti_key`. It does not create an `lti_client` row. A complete linked client would hide those columns at launch. That handoff is later.
+Dynamic registration still writes the legacy columns on `lti_key`. It can also insert and link an `lti_client`, or link an existing client when the issuer, client id, platform URLs, and audience already match. A different existing client is left unchanged and the key stays unlinked. A complete linked client hides the key columns at launch.
 
 ## Containment and connection
 
@@ -92,6 +92,8 @@ Paid use, same key, same courses
 
 Launch claims, email domains, and registration metadata can suggest a grouping. They do not create the association. An activation code, someone who already administers the grouping, or a site admin are ways to create it. Those are different bootstraps into the same link.
 
+`lti_platform` is that evidence. One row is a snapshot from a dynamic registration or a validated LTI 1.3 launch. `platform_id` on a key is the latest snapshot for that key. `registration_platform_id` on a key or client is the original registration and does not move. The snapshot's `key_id` and `lti_client_id` name who produced it, and they stay when a forward pointer moves. Deleting that key or client clears the matching link and leaves the snapshot. A referenced row stays while the key or client does. These rows do not choose a launch, a deployment, or a tenant.
+
 Entitlement, if we add it, is checked after the launch is valid and the key is chosen. It also has to cover APIs and jobs, or a limit only on the launch URL does not hold. A suspended key keeps its id and its courses. The next allowed launch should work without a new registration.
 
 What to count (learners, courses, time) is not decided. A learner count is kinder than counting every launch. Messages students see should not be an invoice.
@@ -108,7 +110,7 @@ A renewal button for free keys would be new. It should not count as course activ
 - Whether a later tenant groups keys, orgs, or both, what it is called, and the rule when two groupings both point at one key.
 - Which grants are inherited, and which identity is allowed to delete a key.
 - Free-tier numbers, grace periods, and where a suspended launch lands.
-- What evidence of affiliation is stored, and for how long.
+- How many unreferenced platform observations to keep. A referenced row stays while its key or client does.
 
 ## Summary
 

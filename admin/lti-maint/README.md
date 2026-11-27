@@ -64,7 +64,7 @@ php backfill-guid.php --seconds=15
 
 ## When to run `undo-registration-migration.php`
 
-A short-lived inbound registration added `lti_registration` and five columns on `lti_key`: `lti_registration_id`, `deployment_status`, `deployment_approved_at`, `platform_guid`, and `dynamic_registration_unlocked_at`. `admin/upgrade.php` does not create them and does not drop them. This script drops the foreign key, then those columns, then the table.
+A short-lived inbound registration added `lti_registration` and columns on `lti_key`. This script drops the foreign key, then `lti_registration_id` and `dynamic_registration_unlocked_at`, then the table. It does not drop `deployment_status`, `deployment_approved_at`, or `platform_guid`.
 
 Run it once, from a checkout that no longer contains that registration code. A later `php admin/upgrade.php` on that checkout will not put the table back. Each statement auto-commits. A second run finds nothing left and exits.
 

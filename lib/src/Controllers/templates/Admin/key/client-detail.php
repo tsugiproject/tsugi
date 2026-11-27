@@ -78,6 +78,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Client Details
   <a class="btn btn-default" href="<?= $key_admin ?>clients">All Clients</a>
+  <a class="btn btn-default" href="<?= $key_admin ?>platforms">Platforms</a>
   <a class="btn btn-default" href="<?= $key_admin ?>">All Keys</a>
 </h1>
 <p>
@@ -157,10 +158,10 @@ if ( ! $editing ) { ?>
 <p><?= htmlspecialchars((string) ($row['user_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>Issuer</strong></p>
 <p><?= htmlspecialchars((string) $row['issuer'], ENT_QUOTES, 'UTF-8') ?></p>
-<p><strong>LTI 1.3: Dynamic Registration Unlock Code (one time use)</strong></p>
-<p><?= htmlspecialchars((string) $row['unlock_code'], ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>Client id</strong></p>
 <p><?= htmlspecialchars((string) $row['client_id'], ENT_QUOTES, 'UTF-8') ?></p>
+<p><strong>LTI 1.3: Dynamic Registration Unlock Code (one time use)</strong></p>
+<p><?= htmlspecialchars((string) $row['unlock_code'], ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>OIDC login / authorization URL</strong></p>
 <p><?= htmlspecialchars((string) $row['oidc_auth_url'], ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>Keyset URL</strong></p>
@@ -200,6 +201,9 @@ $client_keys = AdminService::keysForInboundClient($client_id);
 </ul>
 <?php } ?>
 <?php
+$platform_for = 'client';
+$platform_for_id = $client_id;
+require __DIR__ . '/platform-links.inc.php';
 $delete_box['section'] = 'button';
 require __DIR__ . '/delete-confirm.inc.php';
 $delete_box['section'] = 'panel';

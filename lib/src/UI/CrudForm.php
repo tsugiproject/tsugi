@@ -221,7 +221,7 @@ class CrudForm {
         $key_value = $_REQUEST[$key] + 0;
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
-        echo('<form method="post" autocomplete="off">'."\n");
+        echo('<form id="tsugi-crud-update" method="post" autocomplete="off">'."\n");
         echo(\Tsugi\Controllers\Tool::csrfField()."\n");
         if ( is_string($from_location) ) echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
         if ( $allow_edit ) {
