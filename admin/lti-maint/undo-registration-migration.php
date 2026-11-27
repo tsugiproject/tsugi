@@ -13,7 +13,8 @@
  * Copy those values back onto lti_key and delete the registration rows first.
  *
  * deployment_status and deployment_approved_at are inbound-client columns on
- * lti_key now. This script does not drop them.
+ * lti_key now. platform_guid is the observational platform guid. This script
+ * does not drop them.
  *
  *   php admin/lti-maint/undo-registration-migration.php
  *   php admin/lti-maint/undo-registration-migration.php apply
@@ -69,7 +70,6 @@ $regTable = $p.'lti_registration';
 $fkName = $p.'lti_key_ibfk_1';
 $columns = array(
     'lti_registration_id',
-    'platform_guid',
     'dynamic_registration_unlocked_at',
 );
 

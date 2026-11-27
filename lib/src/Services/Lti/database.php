@@ -41,6 +41,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_keyset",
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}lti_client",
+"drop table if exists {$CFG->dbprefix}lti_platform",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
 "drop table if exists {$CFG->dbprefix}lti_domain",
@@ -69,6 +70,36 @@ array( "{$CFG->dbprefix}lti_keyset",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
     CONSTRAINT `{$CFG->dbprefix}lti_keyset_const_pk` PRIMARY KEY (keyset_id)
+ ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One observation of a platform. Not a tenant, and not used to choose a key.
+// lti_key.platform_id moves when a later registration or launch changes the
+// compared scalars. lti_client.platform_id is set when that client is created.
+// registration_platform_id stays on the original dynamic registration.
+// Rows are inserted, not updated.
+array( "{$CFG->dbprefix}lti_platform",
+"create table {$CFG->dbprefix}lti_platform (
+    platform_id              INTEGER NOT NULL AUTO_INCREMENT,
+
+    -- Guid, family, version, and contact email are printable ASCII.
+    -- Unicode is folded before insert. Name, description, and URL stay Unicode.
+    platform_guid            VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    platform_name            TEXT NULL,
+    platform_description     TEXT NULL,
+    platform_url             TEXT NULL,
+    platform_family          VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    platform_version         VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    platform_contact_email   VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+
+    platform_json            MEDIUMTEXT NULL,
+    registration_json        MEDIUMTEXT NULL,
+
+    -- registration | launch
+    source                   VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+
+    created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_platform_const_pk` PRIMARY KEY (platform_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Inbound LTI 1.3 client. Tsugi is the tool.
@@ -114,8 +145,14 @@ array( "{$CFG->dbprefix}lti_client",
     dynamic_registration_unlocked_at TIMESTAMP NULL,
 
     product_family_code   VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    -- tool_platform.guid from a launch. Not this row's guid.
+    -- Platform guid from dynamic registration. Not this row's guid.
+    -- A launch does not write this column.
     platform_guid         VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+
+    -- Latest registration snapshot for this client. Launches do not move it.
+    -- registration_platform_id is the original registration and stays put.
+    platform_id              INTEGER NULL,
+    registration_platform_id INTEGER NULL,
 
     -- Stored for a later dynamic-registration workflow. Nothing reads these yet.
     -- manual | dynamic
@@ -137,6 +174,14 @@ array( "{$CFG->dbprefix}lti_client",
     -- is still NULL. A completed (issuer, client_id) pair cannot be repeated.
     CONSTRAINT `{$CFG->dbprefix}lti_client_const_1` UNIQUE (issuer, client_id),
     CONSTRAINT `{$CFG->dbprefix}lti_client_const_guid` UNIQUE (`guid`),
+    CONSTRAINT `{$CFG->dbprefix}lti_client_ibfk_platform`
+        FOREIGN KEY (`platform_id`)
+        REFERENCES `{$CFG->dbprefix}lti_platform` (`platform_id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `{$CFG->dbprefix}lti_client_ibfk_registration_platform`
+        FOREIGN KEY (`registration_platform_id`)
+        REFERENCES `{$CFG->dbprefix}lti_platform` (`platform_id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT `{$CFG->dbprefix}lti_client_const_pk` PRIMARY KEY (lti_client_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -190,6 +235,11 @@ array( "{$CFG->dbprefix}lti_key",
     -- deployment_status NULL means the approval workflow does not apply.
     -- Future values: pending, active, blocked. Nothing reads these yet.
     lti_client_id       INTEGER NULL,
+    -- Platform guid from registration or a validated launch. Not this row's guid.
+    -- Linking a client copies the client's guid only while this value is null.
+    platform_guid       VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    platform_id         INTEGER NULL,
+    registration_platform_id INTEGER NULL,
     deployment_status   VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NULL,
     deployment_approved_at TIMESTAMP NULL,
 
@@ -244,6 +294,14 @@ array( "{$CFG->dbprefix}lti_key",
         FOREIGN KEY (`lti_client_id`)
         REFERENCES `{$CFG->dbprefix}lti_client` (`lti_client_id`)
         ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_platform`
+        FOREIGN KEY (`platform_id`)
+        REFERENCES `{$CFG->dbprefix}lti_platform` (`platform_id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_registration_platform`
+        FOREIGN KEY (`registration_platform_id`)
+        REFERENCES `{$CFG->dbprefix}lti_platform` (`platform_id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_guid` UNIQUE (`guid`),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -3181,10 +3239,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Inbound LTI registration (November 2026) was a temporary idea. It was
     // reverted. A site that ran that upgrade still has the lti_registration
     // table, a foreign key from lti_key.lti_registration_id, the index InnoDB
-    // keeps for that key, and three columns on lti_key. Nothing in this tree
+    // keeps for that key, and leftover columns on lti_key. Nothing in this tree
     // reads them. This block drops that leftover schema. It is not part of
     // the add-field or drop-field lists above. Delete this whole block once
     // every site has upgraded past it.
+    //
+    // platform_guid is not dropped here. The observational column is added
+    // below, and a later upgrade must not drop it.
     //
     // deployment_status and deployment_approved_at were on that list. They are
     // lti_key columns again for the inbound client. Do not drop them here.
@@ -3198,7 +3259,6 @@ $DATABASE_UPGRADE = function($oldversion) {
     $revert_index = $revert_prefix.'lti_key_ibfk_1';
     $revert_columns = array(
         'lti_registration_id',
-        'platform_guid',
         'dynamic_registration_unlocked_at',
     );
     $revert_exec = function($sql) use ($PDOX) {
@@ -3282,6 +3342,71 @@ $DATABASE_UPGRADE = function($oldversion) {
         $revert_exec("DROP TABLE `{$revert_table}`");
     }
     // End of the November 2026 inbound registration detour.
+
+    // A leftover lti_key.platform_guid belongs to that reverted registration.
+    // Drop it only before platform_id exists, then add the observational
+    // columns. Once platform_id is present, platform_guid stays.
+    $platform_key = $CFG->dbprefix.'lti_key';
+    $platform_client = $CFG->dbprefix.'lti_client';
+    $platform_table = $CFG->dbprefix.'lti_platform';
+    if ( $PDOX->metadata($platform_key) !== false
+        && ! $PDOX->columnExists('platform_id', $platform_key)
+        && $PDOX->columnExists('platform_guid', $platform_key) ) {
+        $platform_drop = "ALTER TABLE `{$platform_key}` DROP COLUMN `platform_guid`";
+        echo("Upgrading: ".$platform_drop."<br/>\n");
+        error_log("Upgrading: ".$platform_drop);
+        $platform_drop_q = $PDOX->queryReturnError($platform_drop);
+        if ( ! $platform_drop_q->success ) {
+            $platform_drop_message = "Non-Fatal: ".$platform_drop_q->errorImplode;
+            error_log($platform_drop_message);
+            echo($platform_drop_message."<br/>\n");
+        }
+    }
+    $platform_add = array(
+        array($platform_key, 'platform_guid', 'VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL'),
+        array($platform_key, 'platform_id', 'INTEGER NULL'),
+        array($platform_key, 'registration_platform_id', 'INTEGER NULL'),
+        array($platform_client, 'platform_id', 'INTEGER NULL'),
+        array($platform_client, 'registration_platform_id', 'INTEGER NULL'),
+    );
+    foreach ( $platform_add as $platform_field ) {
+        if ( $PDOX->metadata($platform_field[0]) === false ) continue;
+        if ( $PDOX->columnExists($platform_field[1], $platform_field[0]) ) continue;
+        $platform_sql = "ALTER TABLE {$platform_field[0]} ADD {$platform_field[1]} {$platform_field[2]}";
+        echo("Upgrading: ".$platform_sql."<br/>\n");
+        error_log("Upgrading: ".$platform_sql);
+        $platform_add_q = $PDOX->queryReturnError($platform_sql);
+        if ( ! $platform_add_q->success ) {
+            $platform_add_message = "Non-Fatal: ".$platform_add_q->errorImplode;
+            error_log($platform_add_message);
+            echo($platform_add_message."<br/>\n");
+        }
+    }
+    if ( $PDOX->metadata($platform_table) !== false ) {
+        $platform_fks = array(
+            array($platform_key, $CFG->dbprefix.'lti_key_ibfk_platform', 'platform_id'),
+            array($platform_key, $CFG->dbprefix.'lti_key_ibfk_registration_platform', 'registration_platform_id'),
+            array($platform_client, $CFG->dbprefix.'lti_client_ibfk_platform', 'platform_id'),
+            array($platform_client, $CFG->dbprefix.'lti_client_ibfk_registration_platform', 'registration_platform_id'),
+        );
+        foreach ( $platform_fks as $platform_fk ) {
+            if ( $PDOX->metadata($platform_fk[0]) === false ) continue;
+            if ( ! $PDOX->columnExists($platform_fk[2], $platform_fk[0]) ) continue;
+            if ( $constraint_exists($platform_fk[0], $platform_fk[1]) ) continue;
+            $platform_fk_sql = "ALTER TABLE {$platform_fk[0]} ADD CONSTRAINT `{$platform_fk[1]}`
+                FOREIGN KEY (`{$platform_fk[2]}`)
+                REFERENCES `{$platform_table}` (`platform_id`)
+                ON DELETE RESTRICT ON UPDATE CASCADE";
+            echo("Upgrading: ".$platform_fk_sql."<br/>\n");
+            error_log("Upgrading: ".$platform_fk_sql);
+            $platform_fk_q = $PDOX->queryReturnError($platform_fk_sql);
+            if ( ! $platform_fk_q->success ) {
+                $platform_fk_message = "Non-Fatal: ".$platform_fk_q->errorImplode;
+                error_log($platform_fk_message);
+                echo($platform_fk_message."<br/>\n");
+            }
+        }
+    }
 
     // user_key, subject_key, profile_key, service_key, context_key, link_key,
     // and resource_link_id. Widths are per column.

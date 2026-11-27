@@ -21,6 +21,7 @@ use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Services\Plus\GradeSync;
 use \Tsugi\Services\Plus\PlusShell;
 use \Tsugi\Services\Admin\AdminService;
+use \Tsugi\Services\Lti\PlatformObservation;
 
 use \Firebase\JWT\JWT;
 
@@ -542,6 +543,7 @@ class LTIX {
             if ( U::get($post,'lti13_deeplink') ) $row['lti13_deeplink'] = $post['lti13_deeplink'];
 
             $_SESSION['tsugi_jwt'] = $jwt;
+            PlatformObservation::observeLaunch($row, isset($jwt->body) ? $jwt->body : null);
         }
 
         // Store the launch path
@@ -1357,6 +1359,14 @@ class LTIX {
 
         $client_sql = self::inboundClientSql($p, 'k');
         $have_client = $client_sql['join'] !== '';
+        // If we can, add the platform metadata fields to this big join.
+        $platform_sql = array('select' => '', 'join' => '');
+        if ( PlatformObservation::ready($p) ) {
+            $platform_sql = array(
+                'select' => PlatformObservation::launchSelectSql($p, 'k'),
+                'join' => PlatformObservation::launchJoinSql($p, 'k'),
+            );
+        }
         $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             k.login_at AS key_login_at, k.settings AS key_settings,
             k.lms_issuer, k.lms_client, k.lms_oidc_auth, k.lms_keyset_url,
@@ -1364,6 +1374,10 @@ class LTIX {
         if ( $have_client ) {
             $sql .= "
             ".$client_sql['select'].",";
+        }
+        if ( $platform_sql['select'] !== '' ) {
+            $sql .= "
+            ".$platform_sql['select'].",";
         }
         $sql .= "
             n.nonce,
@@ -1417,6 +1431,9 @@ class LTIX {
         $sql .="\nFROM {$p}lti_key AS k";
         if ( $have_client ) {
             $sql .= "\n".$client_sql['join'];
+        }
+        if ( $platform_sql['join'] !== '' ) {
+            $sql .= "\n".$platform_sql['join'];
         }
 
         // TODO: Collapse a few weeks after 05-27-2019

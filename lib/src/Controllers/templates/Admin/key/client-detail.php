@@ -157,10 +157,10 @@ if ( ! $editing ) { ?>
 <p><?= htmlspecialchars((string) ($row['user_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>Issuer</strong></p>
 <p><?= htmlspecialchars((string) $row['issuer'], ENT_QUOTES, 'UTF-8') ?></p>
-<p><strong>LTI 1.3: Dynamic Registration Unlock Code (one time use)</strong></p>
-<p><?= htmlspecialchars((string) $row['unlock_code'], ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>Client id</strong></p>
 <p><?= htmlspecialchars((string) $row['client_id'], ENT_QUOTES, 'UTF-8') ?></p>
+<p><strong>LTI 1.3: Dynamic Registration Unlock Code (one time use)</strong></p>
+<p><?= htmlspecialchars((string) $row['unlock_code'], ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>OIDC login / authorization URL</strong></p>
 <p><?= htmlspecialchars((string) $row['oidc_auth_url'], ENT_QUOTES, 'UTF-8') ?></p>
 <p><strong>Keyset URL</strong></p>

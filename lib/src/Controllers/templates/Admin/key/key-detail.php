@@ -6,6 +6,7 @@ use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Services\Admin\AdminService;
+use \Tsugi\Services\Lti\PlatformObservation;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -24,15 +25,15 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array('key_id', 'key_title', 'user_id', 'plus', 'key_key', 'secret',
-     'lms_issuer', 'lms_client',
-     'deploy_key', 'unlock_code',
+     'lms_issuer', 'lms_client', 'unlock_code',
+     'deploy_key',
      'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'created_at', 'updated_at',
 );
 
 $realfields = array('key_id', 'key_title', 'user_id', 'plus', 'key_key', 'key_sha256', 'secret',
-     'lms_issuer', 'lms_issuer_sha256', 'lms_client',
-     'deploy_key', 'deploy_sha256', 'unlock_code',
+     'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'unlock_code',
+     'deploy_key', 'deploy_sha256',
      'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'created_at', 'updated_at',
 );
@@ -170,6 +171,12 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
             LTIX::clearKeysetCache($key_id);
         }
     }
+    if ( $row === CrudForm::CRUD_SUCCESS && isset($_POST['doUpdate']) ) {
+        $copy_client = array_key_exists('lti_client_id', $_POST) ? (int) $_POST['lti_client_id'] : 0;
+        if ( $copy_client > 0 ) {
+            PlatformObservation::copyGuidFromClient((int) $key_id, $copy_client);
+        }
+    }
     header('Location: '.$from_location);
     return;
 }
@@ -286,6 +293,11 @@ if ( $editing ) {
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, false, $extra_buttons, $titles, array('plus'), $after_fields);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+if ( $editing ) {
+    $cancel_href = htmlspecialchars($current.'?key_id='.(int) $row['key_id'], ENT_QUOTES, 'UTF-8');
+    $delete_box['lead'] = '<input type="submit" name="doUpdate" class="btn btn-normal" value="'.htmlspecialchars(_m('Update'), ENT_QUOTES, 'UTF-8').'" form="tsugi-crud-update">'
+        .' <a href="'.$cancel_href.'" class="btn btn-success">'.htmlspecialchars(_m('Cancel Edit'), ENT_QUOTES, 'UTF-8').'</a> ';
+}
 $delete_box['section'] = 'button';
 require __DIR__ . '/delete-confirm.inc.php';
 $delete_box['section'] = 'panel';

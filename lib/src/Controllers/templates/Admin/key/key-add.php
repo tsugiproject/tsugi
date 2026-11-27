@@ -7,6 +7,7 @@ use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ReqScope;
 use \Tsugi\Services\Admin\AdminService;
+use \Tsugi\Services\Lti\PlatformObservation;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -20,7 +21,7 @@ $from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
 $fields = array('key_title', 'user_id', 'plus', 'key_key', 'key_sha256', 'secret',
     'lms_issuer', 'lms_issuer_sha256',
-    'lms_client',
+    'lms_client', 'unlock_code',
     'deploy_key', 'deploy_sha256',
     'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
     'created_at', 'updated_at',
@@ -67,6 +68,10 @@ if ( isset($_POST['doSave']) ) {
             $_POST[$blank_field] = AdminService::normalize_deploy_key_input($_POST[$blank_field]);
         }
     }
+    if ( array_key_exists('unlock_code', $_POST) ) {
+        $posted_unlock = $_POST['unlock_code'];
+        $_POST['unlock_code'] = is_string($posted_unlock) && trim($posted_unlock) !== '' ? trim($posted_unlock) : null;
+    }
     $deploy_key = U::get($_POST, 'deploy_key');
     if ( LTIX::ltiClientTableExists($CFG->dbprefix) && ! AdminService::applyPostedClientToKey() ) {
         header("Location: key-add");
@@ -110,6 +115,13 @@ if ( LTIX::ltiClientTableExists($CFG->dbprefix) ) {
     $save_fields[] = 'lti_client_id';
 }
 $retval = CrudForm::handleInsert($tablename, $save_fields, $binaryHex);
+if ( $retval == CrudForm::CRUD_SUCCESS ) {
+    $new_key_id = (int) LTIX::getConnection()->lastInsertId();
+    $posted_client = (int) U::get($_POST, 'lti_client_id');
+    if ( $new_key_id > 0 && $posted_client > 0 ) {
+        PlatformObservation::copyGuidFromClient($new_key_id, $posted_client);
+    }
+}
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
     return;

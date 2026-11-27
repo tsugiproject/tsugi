@@ -92,6 +92,8 @@ Paid use, same key, same courses
 
 Launch claims, email domains, and registration metadata can suggest a grouping. They do not create the association. An activation code, someone who already administers the grouping, or a site admin are ways to create it. Those are different bootstraps into the same link.
 
+`lti_platform` is that evidence. One row is a snapshot from a dynamic registration or a validated LTI 1.3 launch. `platform_id` on a key is the latest snapshot for that key. `registration_platform_id` on a key or client is the original registration and does not move. A referenced row stays while the key or client does. These rows do not choose a launch, a deployment, or a tenant.
+
 Entitlement, if we add it, is checked after the launch is valid and the key is chosen. It also has to cover APIs and jobs, or a limit only on the launch URL does not hold. A suspended key keeps its id and its courses. The next allowed launch should work without a new registration.
 
 What to count (learners, courses, time) is not decided. A learner count is kinder than counting every launch. Messages students see should not be an invoice.
@@ -108,7 +110,7 @@ A renewal button for free keys would be new. It should not count as course activ
 - Whether a later tenant groups keys, orgs, or both, what it is called, and the rule when two groupings both point at one key.
 - Which grants are inherited, and which identity is allowed to delete a key.
 - Free-tier numbers, grace periods, and where a suspended launch lands.
-- What evidence of affiliation is stored, and for how long.
+- How many unreferenced platform observations to keep. A referenced row stays while its key or client does.
 
 ## Summary
 
