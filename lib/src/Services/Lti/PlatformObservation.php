@@ -182,6 +182,7 @@ class PlatformObservation {
     public static function launchSelectSql($prefix, $keyAlias) {
         if ( ! self::safePrefix($prefix) || ! self::safeAlias($keyAlias) ) return '';
         return $keyAlias.'.platform_id AS key_platform_id, '
+            .$keyAlias.'.lti_client_id AS key_lti_client_id, '
             .'plat.platform_guid AS plat_platform_guid, '
             .'plat.platform_name AS plat_platform_name, '
             .'plat.platform_description AS plat_platform_description, '
@@ -210,7 +211,9 @@ class PlatformObservation {
         try {
             $PDOX = LTIX::getConnection();
             $key = $prefix.'lti_key';
-            $seen[$prefix] = $PDOX->metadata($prefix.'lti_platform') !== false
+            $platform = $PDOX->metadata($prefix.'lti_platform');
+            $seen[$prefix] = self::metadataHas($platform, 'key_id')
+                && self::metadataHas($platform, 'lti_client_id')
                 && $PDOX->columnExists('platform_id', $key)
                 && $PDOX->columnExists('registration_platform_id', $key)
                 && $PDOX->columnExists('platform_guid', $key);
@@ -248,7 +251,14 @@ class PlatformObservation {
             if ( self::same($current, $observed) ) return;
             $merged = self::merge($current, $observed);
             $issuer = is_object($body) ? ($body->iss ?? null) : (is_array($body) ? ($body['iss'] ?? null) : null);
-            $id = self::insert('launch', $merged, self::launchJson($claim, $issuer), null);
+            $id = self::insert(
+                'launch',
+                $merged,
+                self::launchJson($claim, $issuer),
+                null,
+                $key_id,
+                self::idOrNull($row['key_lti_client_id'] ?? null)
+            );
             if ( $id < 1 ) return;
             self::advanceKey($key_id, $id, self::idOrNull($row['key_platform_id']), $merged['platform_guid']);
         } catch ( \Throwable $e ) {
@@ -279,7 +289,14 @@ class PlatformObservation {
             $inserted = null;
             if ( $provenance === null || ! self::same($current, $observed) ) {
                 $merged = self::merge($current, $observed);
-                $inserted = self::insert('registration', $merged, null, self::registrationJson($openid, $response));
+                $inserted = self::insert(
+                    'registration',
+                    $merged,
+                    null,
+                    self::registrationJson($openid, $response),
+                    $key_id,
+                    self::idOrNull($existing['key_lti_client_id'] ?? null)
+                );
                 if ( $inserted < 1 ) $inserted = null;
                 if ( $inserted !== null ) {
                     if ( $provenance === null ) self::keepProvenance($key_id, $inserted);
@@ -291,7 +308,11 @@ class PlatformObservation {
                     );
                 }
             }
-            $share = $inserted !== null ? $inserted : $provenance;
+            $share = self::clientShareId(
+                $inserted,
+                self::idOrNull($existing['key_platform_id'] ?? null),
+                self::same($current, $observed)
+            );
             return array(
                 'inserted_id' => $inserted,
                 'share_id' => $share,
@@ -301,6 +322,25 @@ class PlatformObservation {
             error_log('Platform observation: '.$e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * The snapshot a new client from this registration should share.
+     *
+     * The new row wins. When this registration matches the current snapshot,
+     * the client shares that current row. A failed insert does not fall
+     * back to the original registration.
+     *
+     * @param int|null $inserted
+     * @param int|null $currentId
+     * @param bool $matchesCurrent
+     * @return int|null
+     */
+    public static function clientShareId($inserted, $currentId, $matchesCurrent) {
+        $inserted_id = self::idOrNull($inserted);
+        if ( $inserted_id !== null ) return $inserted_id;
+        if ( $matchesCurrent ) return self::idOrNull($currentId);
+        return null;
     }
 
     /**
@@ -381,6 +421,8 @@ class PlatformObservation {
         if ( $client_id < 1 ) return;
         if ( ! empty($stored['created']) ) self::attachNewClient($client_id, $record);
         if ( ! empty($stored['linked']) ) self::copyGuidFromClient($keyId, $client_id);
+        $inserted = is_array($record) ? self::idOrNull($record['inserted_id'] ?? null) : null;
+        if ( $inserted !== null ) self::fillClientBacklink($inserted, $client_id);
     }
 
     /**
@@ -500,6 +542,46 @@ class PlatformObservation {
     }
 
     /**
+     * @param mixed $metadata SHOW COLUMNS rows, or false
+     */
+    private static function metadataHas($metadata, $column) {
+        if ( ! is_array($metadata) ) return false;
+        foreach ( $metadata as $row ) {
+            if ( is_array($row) && ($row['Field'] ?? null) === $column ) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fill the client that this flow learned after the snapshot was inserted.
+     * A backlink that is already set stays.
+     *
+     * @param int $platformId
+     * @param int $clientId
+     */
+    private static function fillClientBacklink($platformId, $clientId) {
+        try {
+            global $CFG, $PDOX;
+            $platform_id = (int) $platformId;
+            $client_id = self::idOrNull($clientId);
+            if ( $platform_id < 1 || $client_id === null || ! isset($CFG) || ! isset($PDOX) || ! $PDOX ) return;
+            if ( ! self::ready($CFG->dbprefix) ) return;
+            $q = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}lti_platform
+                    SET lti_client_id = :client
+                    WHERE platform_id = :id
+                      AND lti_client_id IS NULL",
+                array(':client' => $client_id, ':id' => $platform_id)
+            );
+            if ( ! $q->success ) {
+                error_log('Platform observation: could not fill client backlink on '.$platform_id.'. '.$q->errorImplode);
+            }
+        } catch ( \Throwable $e ) {
+            error_log('Platform observation: '.$e->getMessage());
+        }
+    }
+
+    /**
      * @param mixed $id
      */
     private static function idOrNull($id) {
@@ -549,6 +631,7 @@ class PlatformObservation {
         $q = $PDOX->queryReturnError(
             "SELECT k.platform_id AS key_platform_id,
                     k.registration_platform_id AS key_registration_platform_id,
+                    k.lti_client_id AS key_lti_client_id,
                     p.platform_guid AS plat_platform_guid,
                     p.platform_name AS plat_platform_name,
                     p.platform_description AS plat_platform_description,
@@ -569,7 +652,7 @@ class PlatformObservation {
     /**
      * @param array<string, string|null> $scalars
      */
-    private static function insert($source, array $scalars, $platformJson, $registrationJson) {
+    private static function insert($source, array $scalars, $platformJson, $registrationJson, $keyId, $clientId) {
         global $CFG, $PDOX;
         if ( $source !== 'launch' && $source !== 'registration' ) return 0;
         if ( ! isset($PDOX) || ! $PDOX || ! isset($CFG) ) return 0;
@@ -577,10 +660,10 @@ class PlatformObservation {
             "INSERT INTO {$CFG->dbprefix}lti_platform
                 (platform_guid, platform_name, platform_description, platform_url,
                     platform_family, platform_version, platform_contact_email,
-                    platform_json, registration_json, source, created_at)
+                    platform_json, registration_json, source, key_id, lti_client_id, created_at)
             VALUES
                 (:guid, :name, :description, :url, :family, :version, :contact,
-                    :platform_json, :registration_json, :source, NOW())",
+                    :platform_json, :registration_json, :source, :key_id, :client_id, NOW())",
             array(
                 ':guid' => $scalars['platform_guid'],
                 ':name' => $scalars['platform_name'],
@@ -592,6 +675,8 @@ class PlatformObservation {
                 ':platform_json' => $platformJson,
                 ':registration_json' => $registrationJson,
                 ':source' => $source,
+                ':key_id' => self::idOrNull($keyId),
+                ':client_id' => self::idOrNull($clientId),
             )
         );
         if ( ! $q->success ) {

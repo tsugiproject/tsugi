@@ -133,6 +133,9 @@ class PlatformObservationTest extends \PHPUnit\Framework\TestCase
 
     public function testUnicodeInAsciiColumnsIsFolded(): void
     {
+        if ( ! class_exists(\Transliterator::class) ) {
+            $this->markTestSkipped('Transliterator is not available');
+        }
         $row = PlatformObservation::scalarsFromToolPlatform(array(
             'guid' => "school-\u{00E9}",
             'name' => 'École',
@@ -152,6 +155,14 @@ class PlatformObservationTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(PlatformObservation::toPrintableAscii('😀', 64));
     }
 
+    public function testNewClientSharesTheCurrentSnapshotNotTheOriginalRegistration(): void
+    {
+        $this->assertSame(85, PlatformObservation::clientShareId(85, 42, false));
+        $this->assertSame(85, PlatformObservation::clientShareId(null, 85, true));
+        $this->assertNull(PlatformObservation::clientShareId(null, 85, false));
+        $this->assertNull(PlatformObservation::clientShareId(null, null, true));
+    }
+
     public function testLaunchSqlIsALeftJoinOfScalarColumns(): void
     {
         $select = PlatformObservation::launchSelectSql('t_', 'k');
@@ -159,6 +170,7 @@ class PlatformObservationTest extends \PHPUnit\Framework\TestCase
 
         $this->assertStringStartsWith('LEFT JOIN t_lti_platform AS plat ON plat.platform_id = k.platform_id', $join);
         $this->assertStringContainsString('k.platform_id AS key_platform_id', $select);
+        $this->assertStringContainsString('k.lti_client_id AS key_lti_client_id', $select);
         $this->assertStringContainsString('plat.platform_name AS plat_platform_name', $select);
         $this->assertStringNotContainsString('platform_json', $select);
         $this->assertStringNotContainsString('registration_json', $select);

@@ -39,6 +39,12 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_issuer",
 "drop table if exists {$CFG->dbprefix}lti_keyset",
+// lti_platform.key_id and lti_platform.lti_client_id point back at these
+// tables, and lti_key and lti_client point at lti_platform. Drop the two
+// backlink foreign keys first. Dropping either table while they remain fails.
+// These two statements error when the constraints are not there.
+"alter table {$CFG->dbprefix}lti_platform drop foreign key `{$CFG->dbprefix}lti_platform_ibfk_key`",
+"alter table {$CFG->dbprefix}lti_platform drop foreign key `{$CFG->dbprefix}lti_platform_ibfk_client`",
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}lti_client",
 "drop table if exists {$CFG->dbprefix}lti_platform",
@@ -76,10 +82,18 @@ array( "{$CFG->dbprefix}lti_keyset",
 // lti_key.platform_id moves when a later registration or launch changes the
 // compared scalars. lti_client.platform_id is set when that client is created.
 // registration_platform_id stays on the original dynamic registration.
-// Rows are inserted, not updated.
+// Compared scalars are inserted, not updated. key_id and lti_client_id name
+// who produced the row. They stay when a forward pointer moves. A null
+// backlink may be filled once during the flow that inserted the row.
+// The foreign keys are added after lti_key and lti_client exist.
 array( "{$CFG->dbprefix}lti_platform",
 "create table {$CFG->dbprefix}lti_platform (
     platform_id              INTEGER NOT NULL AUTO_INCREMENT,
+
+    -- Provenance of this observation, not ownership. ON DELETE SET NULL.
+    -- Another key or client pointing here does not change these.
+    key_id                   INTEGER NULL,
+    lti_client_id            INTEGER NULL,
 
     -- Guid, family, version, and contact email are printable ASCII.
     -- Unicode is folded before insert. Name, description, and URL stay Unicode.
@@ -99,6 +113,8 @@ array( "{$CFG->dbprefix}lti_platform",
 
     created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    KEY `{$CFG->dbprefix}lti_platform_indx_key` (`key_id`),
+    KEY `{$CFG->dbprefix}lti_platform_indx_client` (`lti_client_id`),
     CONSTRAINT `{$CFG->dbprefix}lti_platform_const_pk` PRIMARY KEY (platform_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -3368,6 +3384,8 @@ $DATABASE_UPGRADE = function($oldversion) {
         array($platform_key, 'registration_platform_id', 'INTEGER NULL'),
         array($platform_client, 'platform_id', 'INTEGER NULL'),
         array($platform_client, 'registration_platform_id', 'INTEGER NULL'),
+        array($platform_table, 'key_id', 'INTEGER NULL'),
+        array($platform_table, 'lti_client_id', 'INTEGER NULL'),
     );
     foreach ( $platform_add as $platform_field ) {
         if ( $PDOX->metadata($platform_field[0]) === false ) continue;
@@ -3404,6 +3422,46 @@ $DATABASE_UPGRADE = function($oldversion) {
                 $platform_fk_message = "Non-Fatal: ".$platform_fk_q->errorImplode;
                 error_log($platform_fk_message);
                 echo($platform_fk_message."<br/>\n");
+            }
+        }
+        $platform_indexes = array(
+            array($CFG->dbprefix.'lti_platform_indx_key', 'key_id'),
+            array($CFG->dbprefix.'lti_platform_indx_client', 'lti_client_id'),
+        );
+        foreach ( $platform_indexes as $platform_index ) {
+            if ( ! $PDOX->columnExists($platform_index[1], $platform_table) ) continue;
+            if ( $PDOX->indexExists($platform_index[0], $platform_table) ) continue;
+            $platform_index_sql = "ALTER TABLE {$platform_table} ADD INDEX `{$platform_index[0]}` (`{$platform_index[1]}`)";
+            echo("Upgrading: ".$platform_index_sql."<br/>\n");
+            error_log("Upgrading: ".$platform_index_sql);
+            $platform_index_q = $PDOX->queryReturnError($platform_index_sql);
+            if ( ! $platform_index_q->success ) {
+                $platform_index_message = "Non-Fatal: ".$platform_index_q->errorImplode;
+                error_log($platform_index_message);
+                echo($platform_index_message."<br/>\n");
+            }
+        }
+        if ( $PDOX->metadata($platform_key) !== false && $PDOX->metadata($platform_client) !== false ) {
+            $platform_back_fks = array(
+                array($CFG->dbprefix.'lti_platform_ibfk_key', 'key_id', $platform_key, 'key_id'),
+                array($CFG->dbprefix.'lti_platform_ibfk_client', 'lti_client_id', $platform_client, 'lti_client_id'),
+            );
+            foreach ( $platform_back_fks as $platform_back_fk ) {
+                if ( ! $PDOX->columnExists($platform_back_fk[1], $platform_table) ) continue;
+                if ( ! $PDOX->columnExists($platform_back_fk[3], $platform_back_fk[2]) ) continue;
+                if ( $constraint_exists($platform_table, $platform_back_fk[0]) ) continue;
+                $platform_back_sql = "ALTER TABLE {$platform_table} ADD CONSTRAINT `{$platform_back_fk[0]}`
+                FOREIGN KEY (`{$platform_back_fk[1]}`)
+                REFERENCES `{$platform_back_fk[2]}` (`{$platform_back_fk[3]}`)
+                ON DELETE SET NULL ON UPDATE CASCADE";
+                echo("Upgrading: ".$platform_back_sql."<br/>\n");
+                error_log("Upgrading: ".$platform_back_sql);
+                $platform_back_q = $PDOX->queryReturnError($platform_back_sql);
+                if ( ! $platform_back_q->success ) {
+                    $platform_back_message = "Non-Fatal: ".$platform_back_q->errorImplode;
+                    error_log($platform_back_message);
+                    echo($platform_back_message."<br/>\n");
+                }
             }
         }
     }
