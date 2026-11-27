@@ -28,6 +28,7 @@ class PlatformObservationProvenanceTest extends \PHPUnit\Framework\TestCase
         require_once $config;
         try {
             global $PDOX;
+            if ( ! defined('PDO_WILL_CATCH') ) define('PDO_WILL_CATCH', true);
             $PDOX = LTIX::getConnection();
         } catch ( \Throwable $e ) {
             $this->markTestSkipped($e->getMessage());
@@ -123,6 +124,38 @@ class PlatformObservationProvenanceTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($client_id, (int) $still['lti_client_id']);
     }
 
+    public function testRegistrationSnapshotWaitsForTheSettledClient(): void
+    {
+        $client_id = $this->makeClient();
+        $key_id = $this->makeKey($client_id);
+        $record = PlatformObservation::recordKeyRegistration($key_id, array(
+            'https://purl.imsglobal.org/spec/lti-platform-configuration' => array(
+                'product_family_code' => 'sakai',
+                'version' => '27',
+            ),
+        ), array());
+        $this->assertIsArray($record);
+        $this->rememberForKey($key_id);
+        $platform_id = (int) $record['inserted_id'];
+        $row = $this->platformRow($platform_id);
+        $this->assertSame($key_id, (int) $row['key_id']);
+        $this->assertNull($row['lti_client_id']);
+
+        PlatformObservation::finishRegistrationLink($key_id, array(
+            'id' => $client_id,
+            'created' => false,
+            'linked' => false,
+        ), $record);
+        $this->assertNull($this->platformRow($platform_id)['lti_client_id']);
+
+        PlatformObservation::finishRegistrationLink($key_id, array(
+            'id' => $client_id,
+            'created' => false,
+            'linked' => true,
+        ), $record);
+        $this->assertSame($client_id, (int) $this->platformRow($platform_id)['lti_client_id']);
+    }
+
     public function testDeleteClearsTheBacklinkAndLeavesTheSnapshot(): void
     {
         $key_id = $this->makeKey(null);
@@ -139,7 +172,7 @@ class PlatformObservationProvenanceTest extends \PHPUnit\Framework\TestCase
         PlatformObservation::finishRegistrationLink($key_id, array(
             'id' => $client_id,
             'created' => false,
-            'linked' => false,
+            'linked' => true,
         ), array('inserted_id' => $platform_id));
         $filled = $this->platformRow($platform_id);
         $this->assertSame($client_id, (int) $filled['lti_client_id']);

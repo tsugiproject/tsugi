@@ -289,13 +289,15 @@ class PlatformObservation {
             $inserted = null;
             if ( $provenance === null || ! self::same($current, $observed) ) {
                 $merged = self::merge($current, $observed);
+                // The client is filled after registration settles. Copying the
+                // key's client here would keep a link that this registration removed.
                 $inserted = self::insert(
                     'registration',
                     $merged,
                     null,
                     self::registrationJson($openid, $response),
                     $key_id,
-                    self::idOrNull($existing['key_lti_client_id'] ?? null)
+                    null
                 );
                 if ( $inserted < 1 ) $inserted = null;
                 if ( $inserted !== null ) {
@@ -422,7 +424,9 @@ class PlatformObservation {
         if ( ! empty($stored['created']) ) self::attachNewClient($client_id, $record);
         if ( ! empty($stored['linked']) ) self::copyGuidFromClient($keyId, $client_id);
         $inserted = is_array($record) ? self::idOrNull($record['inserted_id'] ?? null) : null;
-        if ( $inserted !== null ) self::fillClientBacklink($inserted, $client_id);
+        if ( $inserted === null ) return;
+        if ( empty($stored['created']) && empty($stored['linked']) ) return;
+        self::fillClientBacklink($inserted, $client_id);
     }
 
     /**
