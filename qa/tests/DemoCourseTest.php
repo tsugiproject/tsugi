@@ -22,6 +22,15 @@ final class DemoCourseTest extends TsugiPantherTestCase
         $this->captureScreenshot($client, 'demo-page-from-lessons');
     }
 
+    private function clickInView(\Facebook\WebDriver\Remote\RemoteWebDriver $driver, \Facebook\WebDriver\Remote\RemoteWebElement $element): void
+    {
+        $driver->executeScript(
+            'arguments[0].scrollIntoView({block:"center", inline:"nearest"});',
+            array($element)
+        );
+        $element->click();
+    }
+
     private function saveCourseNavigation(\Symfony\Component\Panther\Client $client, string $courseHome): void
     {
         $driver = $client->getWebDriver();
@@ -31,10 +40,11 @@ final class DemoCourseTest extends TsugiPantherTestCase
         foreach (array('assignments', 'discussions') as $tool) {
             $box = $driver->findElement(WebDriverBy::cssSelector('input[name="nav['.$tool.'][left]"]'));
             if (!$box->isSelected()) {
-                $box->click();
+                $this->clickInView($driver, $box);
             }
         }
-        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Save navigation')]"))->click();
+        $save = $driver->findElement(WebDriverBy::xpath("//button[@type='submit' and contains(., 'Save navigation')]"));
+        $this->clickInView($driver, $save);
         $this->waitForPageText($client, 'Navigation saved.');
         $this->assertTrue(
             $driver->findElement(WebDriverBy::cssSelector('input[name="nav[assignments][left]"]'))->isSelected()
