@@ -1,0 +1,18 @@
+---
+description: Never merge to master; the user merges master by hand
+alwaysApply: true
+---
+
+# Never merge to master
+
+Never merge into `master` or `main`. The user lands every change there by hand.
+
+The word "merge" never means merge to `master` or `main`. "Merge", "push and merge", "merge it", and "merge the PR" approve work on the feature branch only.
+
+Do not run any of these:
+
+- `gh pr merge` (squash, merge, or rebase)
+- `git merge` into `master` or `main`
+- `git push` of `master` or `main`, including a revert, fixup, or "undo" of a merge
+
+Push the feature branch and stop. Leave the pull request open. Say that it is ready for the user to merge.

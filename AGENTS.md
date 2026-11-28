@@ -59,6 +59,7 @@ File-based lessons (`$CFG->lessons`, no `manifest_id`) must keep working.
 
 ## Commit & Pull Request Guidelines
 - Do not commit, push, or open a pull request when a task is finished, unless this conversation already approved it. Stop and ask when that approval is absent. Approval sounds like "commit this", "push it", or "open the PR". "Commit and push" and "open the PR" are approval for that request. Do not wait for a second confirmation. See `.cursor/rules/ask-before-commit.mdc`.
+- Never merge into `master` or `main`, and never push those branches. The user merges to `master` by hand. The word "merge" never means merge to `master`. Leave the pull request open. See `.cursor/rules/no-merge-to-master.mdc`.
 - Recent commits are short, sentence-style summaries (e.g., “Add item to headers.”). Keep messages concise and action-oriented.
 - PRs go through GitHub and require a CLA before acceptance (see `CONTRIBUTING.md`).
 - If you touch vendored libraries in `vendor/`, include clear notes in the PR so maintainers can propagate changes across related repos.
