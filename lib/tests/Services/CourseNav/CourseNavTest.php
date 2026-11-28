@@ -23,6 +23,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     private $originalCFG;
     private $originalSession;
     private $originalServer;
+    private $lessonFiles = array();
 
     protected function setUp(): void
     {
@@ -40,10 +41,27 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     protected function tearDown(): void
     {
         global $CFG;
+        foreach ( $this->lessonFiles as $path ) {
+            @unlink($path);
+        }
+        $this->lessonFiles = array();
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
         $_SERVER = $this->originalServer;
         \Tsugi\Core\ReqScope::resetIdentity();
+    }
+
+    private function lessonFile(array $doc)
+    {
+        global $CFG;
+        $path = tempnam(sys_get_temp_dir(), 'navlesson');
+        file_put_contents($path, json_encode($doc));
+        $CFG->lessons = $path;
+        if ( ! isset($CFG->dbprefix) || ! is_string($CFG->dbprefix) || $CFG->dbprefix === '' ) {
+            $CFG->dbprefix = 'test_';
+        }
+        $this->lessonFiles[] = $path;
+        return $path;
     }
 
     public function testDefaultHasCoursesWidgetOnRightThenLogout()
@@ -286,6 +304,23 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             return null;
         }
         foreach ( $last->href as $entry ) {
+            if ( $entry->link === $label ) {
+                return $entry->href;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param \Tsugi\UI\MenuSet $set
+     * @return string|null
+     */
+    private function leftHref($set, $label)
+    {
+        if ( $set->left === false ) {
+            return null;
+        }
+        foreach ( $set->left->menu as $entry ) {
             if ( $entry->link === $label ) {
                 return $entry->href;
             }
@@ -1252,6 +1287,72 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('http://localhost/courses/42/lessons/week%201', $set->left->menu[0]->href);
     }
 
+    public function testModuleNavLinkUsesTheCourseView()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 3;
+        $_SESSION['displayname'] = 'Jane';
+        $user = new \stdClass();
+        $user->id = 3;
+        $scope = new \stdClass();
+        $scope->user = $user;
+        $current = new \ReflectionProperty(ReqScope::class, 'current');
+        $current->setValue(null, $scope);
+        $settingsCache = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
+        $settingsCache->setValue(null, array());
+        \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+            'user_id' => 3,
+            'note' => '',
+            'settings' => array(),
+        ));
+
+        $doc = array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true, 'available' => true),
+                array('id' => 'outline', 'left' => true, 'default' => true, 'available' => true),
+                array(
+                    'id' => 'navlink:aaaa1111',
+                    'label' => 'Week',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'week-1'),
+                ),
+            ),
+        );
+        $set = CourseNav::compile($doc, 42);
+        $this->assertSame('http://localhost/courses/42/outline/week-1', $this->leftHref($set, 'Week'));
+
+        \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+            'user_id' => 3,
+            'note' => '',
+            'settings' => array('view' => 'content'),
+        ));
+        $doc['items'][0]['available'] = true;
+        $doc['items'][] = array('id' => 'content', 'left' => true, 'available' => true);
+        $settingsCache->setValue(null, array());
+        $set = CourseNav::compile($doc, 42);
+        $this->assertSame('http://localhost/courses/42/content/week-1', $this->leftHref($set, 'Week'));
+
+        \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
+            'user_id' => 3,
+            'note' => '',
+            'settings' => array('view' => 'outline'),
+        ));
+        $settingsCache->setValue(null, array());
+        $unavailable = array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true, 'default' => true, 'available' => true),
+                array(
+                    'id' => 'navlink:aaaa1111',
+                    'label' => 'Week',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'week-1'),
+                ),
+            ),
+        );
+        $set = CourseNav::compile($unavailable, 42);
+        $this->assertSame('http://localhost/courses/42/lessons/week-1', $this->leftHref($set, 'Week'));
+    }
+
     public function testNavLinkDropsUnsafeDestinationsButKeepsTheRow()
     {
         $doc = CourseNav::normalize(array(
@@ -1345,7 +1446,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertNotFalse($at);
         $this->assertLessThan(array_search('files', $ids, true), $at);
         $this->assertSame('navlink', $rows[$at]['kind']);
-        $this->assertSame('Intro', $rows[$at]['target_summary']);
+        $this->assertSame('Module · week-1', $rows[$at]['target_summary']);
         $this->assertArrayNotHasKey('pin', $rows[$at]);
     }
 
@@ -1354,6 +1455,16 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $_SESSION['id'] = 7;
         $_SESSION['displayname'] = 'Pat';
+        $this->lessonFile(array(
+            'modules' => array(array(
+                'title' => 'Week',
+                'anchor' => 'week-1',
+                'items' => array(
+                    array('type' => 'discussion', 'title' => 'Forum', 'resource_link_id' => 'discussion_week'),
+                    array('type' => 'lti', 'title' => 'Tool', 'resource_link_id' => 'tool_1'),
+                ),
+            )),
+        ));
         $doc = array(
             'items' => array(
                 array(
@@ -1416,5 +1527,363 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $left[$entry->link] = $entry->href;
         }
         $this->assertSame('http://localhost/courses/42/files/notes/a.pdf', $left['Notes']);
+    }
+
+    public function testNavLinkUrlAndOpenMode()
+    {
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('navlink:abcd1234', 'navlink:abcd1235', 'navlink:abcd1236'),
+            'nav' => array(
+                'navlink:abcd1234' => array('left' => '1'),
+                'navlink:abcd1235' => array('dropdown' => '1'),
+                'navlink:abcd1236' => array('right' => '1'),
+            ),
+            'nav_label' => array(
+                'navlink:abcd1234' => 'Handout',
+                'navlink:abcd1235' => 'Tool',
+                'navlink:abcd1236' => 'Week',
+            ),
+            'nav_target' => array(
+                'navlink:abcd1234' => json_encode(array('kind' => 'module', 'anchor' => 'week-1', 'title' => 'Week')),
+                'navlink:abcd1235' => json_encode(array('kind' => 'lti', 'resource_link_id' => 'tool_1', 'open' => 'modal')),
+                'navlink:abcd1236' => json_encode(array('kind' => 'module', 'anchor' => 'week-1')),
+            ),
+            'nav_url' => array(
+                'navlink:abcd1234' => 'https://example.com/handout',
+                'navlink:abcd1236' => 'javascript:alert(1)',
+            ),
+            'nav_open' => array(
+                'navlink:abcd1234' => 'modal',
+                'navlink:abcd1235' => 'blank',
+            ),
+        ));
+        $byId = array();
+        foreach ( $doc['items'] as $item ) {
+            $byId[$item['id']] = $item;
+        }
+        $this->assertSame('href', $byId['navlink:abcd1234']['target']['kind']);
+        $this->assertSame('https://example.com/handout', $byId['navlink:abcd1234']['target']['href']);
+        $this->assertSame('modal', $byId['navlink:abcd1234']['target']['open']);
+        $this->assertSame('lti', $byId['navlink:abcd1235']['target']['kind']);
+        $this->assertSame('blank', $byId['navlink:abcd1235']['target']['open']);
+        $this->assertSame('module', $byId['navlink:abcd1236']['target']['kind']);
+        $this->assertArrayNotHasKey('open', $byId['navlink:abcd1236']['target']);
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $this->lessonFile(array(
+            'modules' => array(array(
+                'title' => 'Week',
+                'anchor' => 'week-1',
+                'items' => array(
+                    array('type' => 'lti', 'title' => 'Tool', 'resource_link_id' => 'tool_1'),
+                ),
+            )),
+        ));
+        $set = CourseNav::compile($doc, 42);
+        $handout = $set->left->menu[0];
+        $this->assertSame('https://example.com/handout', $handout->href);
+        $this->assertStringContainsString('data-tsugi-nav-modal="1"', $handout->attr);
+        $this->assertStringContainsString('target="_self"', $handout->attr);
+        $tool = null;
+        $last = $set->right->menu[count($set->right->menu) - 1];
+        foreach ( $last->href as $entry ) {
+            if ( $entry->link === 'Tool' ) {
+                $tool = $entry;
+            }
+        }
+        $this->assertNotNull($tool);
+        $this->assertStringContainsString('target="_blank"', $tool->attr);
+        $this->assertStringNotContainsString('data-tsugi-nav-modal', $tool->attr);
+        $week = null;
+        foreach ( $set->right->menu as $entry ) {
+            if ( $entry->link === 'Week' ) {
+                $week = $entry;
+            }
+        }
+        $this->assertNotNull($week);
+        $this->assertFalse($week->attr);
+    }
+
+    public function testOwnedNavToolIsStoredAndNotLaunched()
+    {
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('navlink:abcd1234', 'files'),
+            'nav' => array(
+                'navlink:abcd1234' => array('left' => '1'),
+                'files' => array('left' => '1'),
+            ),
+            'nav_label' => array(
+                'navlink:abcd1234' => 'Trophy',
+            ),
+            'nav_target' => array(
+                'navlink:abcd1234' => json_encode(array(
+                    'kind' => 'lti',
+                    'resource_link_id' => 'lti_trophy',
+                    'launch_url' => 'https://example.com/tool',
+                    'title' => 'Trophy',
+                    'open' => 'modal',
+                    'owned' => true,
+                )),
+            ),
+        ));
+        $target = $doc['items'][0]['target'];
+        $this->assertSame('lti', $target['kind']);
+        $this->assertSame('lti_trophy', $target['resource_link_id']);
+        $this->assertSame('https://example.com/tool', $target['launch_url']);
+        $this->assertSame('modal', $target['open']);
+        $this->assertTrue($target['owned']);
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[$entry->link] = $entry->href;
+        }
+        $this->assertArrayHasKey('Files', $left);
+        $this->assertArrayNotHasKey('Trophy', $left);
+    }
+
+    public function testQuizNavLinkFollowsAPublishedLessonQuiz()
+    {
+        global $CFG, $PDOX;
+        $savedPdo = isset($PDOX) ? $PDOX : null;
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('navlink:abcd1234', 'files'),
+            'nav' => array(
+                'navlink:abcd1234' => array('left' => '1'),
+                'files' => array('left' => '1'),
+            ),
+            'nav_label' => array(
+                'navlink:abcd1234' => 'Week quiz',
+            ),
+            'nav_target' => array(
+                'navlink:abcd1234' => json_encode(array(
+                    'kind' => 'quiz',
+                    'quiz_id' => 12,
+                    'title' => 'Week quiz',
+                )),
+            ),
+        ));
+        $this->assertSame(array('kind' => 'quiz', 'quiz_id' => 12, 'title' => 'Week quiz'), $doc['items'][0]['target']);
+
+        $blank = CourseNav::fromPost(array(
+            'nav_order' => array('navlink:abcd1234'),
+            'nav' => array('navlink:abcd1234' => array('left' => '1')),
+            'nav_label' => array('navlink:abcd1234' => 'Missing'),
+            'nav_target' => array(
+                'navlink:abcd1234' => json_encode(array('kind' => 'quiz', 'quiz_id' => 0)),
+            ),
+        ));
+        $this->assertArrayNotHasKey('target', $blank['items'][0]);
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $hidden = $this->leftHrefs(CourseNav::compile($doc, 42));
+        $this->assertArrayHasKey('Files', $hidden);
+        $this->assertArrayNotHasKey('Week quiz', $hidden);
+
+        $lesson = tempnam(sys_get_temp_dir(), 'navquiz');
+        file_put_contents($lesson, json_encode(array(
+            'modules' => array(array(
+                'title' => 'Week 1',
+                'anchor' => 'week-1',
+                'items' => array(array(
+                    'type' => 'quiz',
+                    'title' => 'Week quiz',
+                    'quiz_id' => 12,
+                )),
+            )),
+        )));
+        $CFG->lessons = $lesson;
+        $CFG->dbprefix = 'test_';
+        $PDOX = new class {
+            public $published = 1;
+            public function rowDie($sql, $params) {
+                if ( strpos($sql, 'lti_context') !== false ) {
+                    return array('manifest_id' => 0);
+                }
+                return array('link_id' => 77, 'published' => $this->published);
+            }
+        };
+        try {
+            $shown = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertSame('http://localhost/courses/42/quiz1/link/77', $shown['Week quiz']);
+
+            $PDOX->published = 0;
+            $unpublished = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertArrayNotHasKey('Week quiz', $unpublished);
+
+            $_SESSION['isinstructor'] = true;
+            $instructor = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertSame('http://localhost/courses/42/quiz1/12/view', $instructor['Week quiz']);
+            unset($_SESSION['isinstructor']);
+
+            file_put_contents($lesson, json_encode(array('modules' => array())));
+            $PDOX->published = 1;
+            $removed = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertArrayNotHasKey('Week quiz', $removed);
+        } finally {
+            $PDOX = $savedPdo;
+            @unlink($lesson);
+        }
+    }
+
+    private function leftHrefs($set)
+    {
+        $left = array();
+        if ( ! $set->left || ! is_array($set->left->menu) ) {
+            return $left;
+        }
+        foreach ( $set->left->menu as $entry ) {
+            $left[$entry->link] = $entry->href;
+        }
+        return $left;
+    }
+
+    public function testUnpublishedLessonToolDropsUnlessTheViewerIsAnInstructor()
+    {
+        global $CFG, $PDOX;
+        $savedPdo = isset($PDOX) ? $PDOX : null;
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $this->lessonFile(array(
+            'modules' => array(array(
+                'title' => 'Week',
+                'anchor' => 'week-1',
+                'items' => array(
+                    array('type' => 'lti', 'title' => 'Tool', 'resource_link_id' => 'tool_1'),
+                    array('type' => 'discussion', 'title' => 'Forum', 'resource_link_id' => 'discussion_week'),
+                ),
+            )),
+        ));
+        $doc = array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:aaaa1111',
+                    'label' => 'Tool',
+                    'left' => true,
+                    'target' => array('kind' => 'lti', 'resource_link_id' => 'tool_1'),
+                ),
+                array(
+                    'id' => 'navlink:bbbb2222',
+                    'label' => 'Forum',
+                    'left' => true,
+                    'target' => array('kind' => 'discussion', 'resource_link_id' => 'discussion_week'),
+                ),
+                array('id' => 'files', 'left' => true),
+            ),
+        );
+        $CFG->dbprefix = 'test_';
+        $PDOX = new class {
+            public $published = 0;
+            public function rowDie($sql, $params) {
+                if ( strpos($sql, 'link_key') !== false ) {
+                    $key = $params[':KEY'] ?? '';
+                    if ( $key === 'tool_1' ) {
+                        return array('published' => $this->published);
+                    }
+                    return false;
+                }
+                return false;
+            }
+        };
+        try {
+            $student = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertArrayNotHasKey('Tool', $student);
+            $this->assertSame('http://localhost/courses/42/discussions/discussion_week', $student['Forum']);
+
+            $_SESSION['isinstructor'] = true;
+            $instructor = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertSame('http://localhost/courses/42/lessons_launch/tool_1', $instructor['Tool']);
+
+            $this->lessonFile(array('modules' => array()));
+            $gone = $this->leftHrefs(CourseNav::compile($doc, 42));
+            $this->assertArrayNotHasKey('Tool', $gone);
+            $this->assertArrayNotHasKey('Forum', $gone);
+        } finally {
+            $PDOX = $savedPdo;
+        }
+    }
+
+    public function testSettingsNotesWhenTheLessonWouldNotShowTheItem()
+    {
+        global $CFG, $PDOX;
+        $savedPdo = isset($PDOX) ? $PDOX : null;
+        $missing = 'Not in the lesson, so it is hidden from navigation.';
+        $hidden = 'Students do not see this in lessons, so it is not in their navigation.';
+        $doc = array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:aaaa1111',
+                    'label' => 'Week quiz',
+                    'left' => true,
+                    'target' => array('kind' => 'quiz', 'quiz_id' => 12),
+                ),
+                array(
+                    'id' => 'navlink:bbbb2222',
+                    'label' => 'Tool',
+                    'left' => true,
+                    'target' => array('kind' => 'lti', 'resource_link_id' => 'tool_1'),
+                ),
+                array(
+                    'id' => 'navlink:cccc3333',
+                    'label' => 'Forum',
+                    'left' => true,
+                    'target' => array('kind' => 'discussion', 'resource_link_id' => 'discussion_week'),
+                ),
+            ),
+        );
+        $notes = $this->lessonNotes(CourseNav::editorRows($doc));
+        $this->assertSame($missing, $notes['Week quiz']);
+        $this->assertSame($missing, $notes['Tool']);
+        $this->assertSame($missing, $notes['Forum']);
+
+        $this->lessonFile(array(
+            'modules' => array(array(
+                'title' => 'Week',
+                'anchor' => 'week-1',
+                'items' => array(
+                    array('type' => 'quiz', 'title' => 'Week quiz', 'quiz_id' => 12),
+                    array('type' => 'lti', 'title' => 'Tool', 'resource_link_id' => 'tool_1'),
+                    array('type' => 'discussion', 'title' => 'Forum', 'resource_link_id' => 'discussion_week'),
+                ),
+            )),
+        ));
+        $_SESSION['id'] = 3;
+        $_SESSION['context_id'] = 42;
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $CFG->dbprefix = 'test_';
+        $PDOX = new class {
+            public function rowDie($sql, $params) {
+                if ( strpos($sql, 'quiz1_quiz') !== false ) {
+                    return array('link_id' => 77, 'published' => 0);
+                }
+                if ( strpos($sql, 'link_key') !== false ) {
+                    return array('published' => 0);
+                }
+                if ( strpos($sql, 'lti_context') !== false ) {
+                    return array('manifest_id' => 0);
+                }
+                return false;
+            }
+        };
+        try {
+            $notes = $this->lessonNotes(CourseNav::editorRows($doc));
+            $this->assertSame($hidden, $notes['Week quiz']);
+            $this->assertSame($hidden, $notes['Tool']);
+            $this->assertSame('', $notes['Forum']);
+        } finally {
+            $PDOX = $savedPdo;
+        }
+    }
+
+    private function lessonNotes($rows)
+    {
+        $notes = array();
+        foreach ( $rows as $row ) {
+            if ( ($row['kind'] ?? '') !== 'navlink' ) {
+                continue;
+            }
+            $notes[$row['label']] = $row['lesson_note'] ?? '';
+        }
+        return $notes;
     }
 }

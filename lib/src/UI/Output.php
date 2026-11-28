@@ -1211,6 +1211,9 @@ EOF;
         $retval .= "    </div> <!--/.nav-collapse -->\n";
         $retval .= "  </div> <!--container -->\n";
         $retval .= "</nav>\n";
+        if ( strpos($retval, 'data-tsugi-nav-modal') !== false ) {
+            $retval .= \Tsugi\Services\CourseNav\CourseNav::modalChrome();
+        }
 
         return $retval;
     }

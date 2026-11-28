@@ -28,8 +28,9 @@ use Tsugi\Core\ReqScope;
  *
  * A nav link is an extra item, id `navlink:` plus hex. It stores a label and
  * a destination: a lessons module, an LTI launch, a discussion, a page, a
- * file, or an http(s) URL. It can sit on the left, the right, or in the
- * avatar menu, in the same order as the other links.
+ * file, or an http(s) URL. An LTI tool or a web address opens in a new
+ * window or in a modal iframe. It can sit on the left, the right, or in
+ * the avatar menu, in the same order as the other links.
  */
 class CourseNav {
 
@@ -714,6 +715,14 @@ class CourseNav {
         if ( ! is_array($targets) ) {
             $targets = array();
         }
+        $opens = $post['nav_open'] ?? array();
+        if ( ! is_array($opens) ) {
+            $opens = array();
+        }
+        $urls = $post['nav_url'] ?? array();
+        if ( ! is_array($urls) ) {
+            $urls = array();
+        }
         $items = array();
         $seen = array();
         $hasViews = false;
@@ -759,6 +768,12 @@ class CourseNav {
                     if ( is_array($decoded) ) {
                         $target = $decoded;
                     }
+                }
+                if ( isset($urls[$id]) && is_string($urls[$id]) && trim($urls[$id]) !== '' ) {
+                    $target = self::applyPostedUrl($target, trim($urls[$id]));
+                }
+                if ( is_array($target) && isset($opens[$id]) && is_string($opens[$id]) && $opens[$id] !== '' ) {
+                    $target['open'] = $opens[$id];
                 }
                 $items[] = array(
                     'id' => $id,
@@ -905,9 +920,14 @@ class CourseNav {
     public static function compile(array $doc, $context_id) {
         $cid = (int) $context_id;
         $doc = self::normalize($doc);
+        $preferred = self::studentContentView($cid);
+        $moduleView = self::navContentView($doc, $preferred);
+        if ( ! in_array($moduleView, self::contentViewIds(), true) ) {
+            $moduleView = 'lessons';
+        }
         $testViews = array();
         if ( ! self::isCourseInstructor() ) {
-            $doc = self::applyContentView($doc, self::studentContentView($cid));
+            $doc = self::applyContentView($doc, $preferred);
         } else {
             list($doc, $testViews) = self::instructorContentViews($doc);
         }
@@ -926,13 +946,13 @@ class CourseNav {
             if ( empty($item['left']) ) {
                 continue;
             }
-            self::addPlacement($set, $known, $item, 'left', $prefix);
+            self::addPlacement($set, $known, $item, 'left', $prefix, $moduleView, $cid);
         }
         foreach ( $doc['items'] as $item ) {
             if ( empty($item['right']) ) {
                 continue;
             }
-            self::addPlacement($set, $known, $item, 'right', $prefix);
+            self::addPlacement($set, $known, $item, 'right', $prefix, $moduleView, $cid);
         }
 
         $submenu = new Menu();
@@ -943,7 +963,7 @@ class CourseNav {
             if ( empty($item['dropdown']) ) {
                 continue;
             }
-            $built = self::linkEntry($known, $item, $prefix);
+            $built = self::linkEntry($known, $item, $prefix, $moduleView, $cid);
             if ( $built === null ) {
                 continue;
             }
@@ -1059,17 +1079,18 @@ class CourseNav {
      * @param array<string, array<string, mixed>> $known
      * @param array<string, mixed> $item
      */
-    private static function addPlacement(MenuSet $set, array $known, array $item, $placement, $prefix) {
+    private static function addPlacement(MenuSet $set, array $known, array $item, $placement, $prefix, $moduleView = 'lessons', $contextId = 0) {
         $id = $item['id'];
         if ( self::isNavLinkId($id) ) {
-            $built = self::navLinkEntry($item, $prefix);
+            $built = self::navLinkEntry($item, $prefix, $moduleView, $contextId);
             if ( $built === null ) {
                 return;
             }
+            $attr = $built['attr'] ?? false;
             if ( $placement === 'left' ) {
-                $set->addLeft($built['label'], $built['href'], false, false);
+                $set->addLeft($built['label'], $built['href'], false, $attr);
             } else {
-                $set->addRight($built['label'], $built['href'], false, false);
+                $set->addRight($built['label'], $built['href'], false, $attr);
             }
             return;
         }
@@ -1095,7 +1116,7 @@ class CourseNav {
             }
             return;
         }
-        $built = self::linkEntry($known, $item, $prefix);
+        $built = self::linkEntry($known, $item, $prefix, $moduleView, $contextId);
         if ( $built === null ) {
             return;
         }
@@ -1112,10 +1133,10 @@ class CourseNav {
      * @param array<string, mixed> $item
      * @return array{label: string, href: string, attr?: string}|null
      */
-    private static function linkEntry(array $known, array $item, $prefix) {
+    private static function linkEntry(array $known, array $item, $prefix, $moduleView = 'lessons', $contextId = 0) {
         $id = $item['id'] ?? '';
         if ( self::isNavLinkId($id) ) {
-            return self::navLinkEntry($item, $prefix);
+            return self::navLinkEntry($item, $prefix, $moduleView, $contextId);
         }
         if ( self::skipSiteAccountNav($id) ) {
             return null;
@@ -1204,6 +1225,7 @@ class CourseNav {
             'label' => self::navLinkLabel($item['label'] ?? ''),
             'target' => $target,
             'target_summary' => self::navLinkSummary($target),
+            'lesson_note' => self::navLinkLessonNote($target),
             'left' => ! empty($item['left']),
             'right' => ! empty($item['right']),
             'dropdown' => ! empty($item['dropdown']),
@@ -1214,28 +1236,256 @@ class CourseNav {
     /**
      * @param array<string, mixed> $item
      * @param string $prefix
-     * @return array{label: string, href: string}|null
+     * @return array{label: string, href: string, attr?: string}|null
      */
-    private static function navLinkEntry(array $item, $prefix) {
+    private static function navLinkEntry(array $item, $prefix, $moduleView = 'lessons', $contextId = 0) {
         if ( ! empty($item['instructor']) && ! self::isCourseInstructor() ) {
             return null;
         }
         $target = (isset($item['target']) && is_array($item['target'])) ? $item['target'] : null;
-        $href = self::navLinkHref($target, $prefix);
+        $href = self::navLinkHref($target, $prefix, $moduleView, $contextId);
         if ( $href === '' ) {
             return null;
         }
-        return array(
+        $built = array(
             'label' => htmlspecialchars(self::navLinkLabel($item['label'] ?? ''), ENT_QUOTES, 'UTF-8'),
             'href' => $href,
         );
+        $attr = self::navLinkAttr($target);
+        if ( $attr !== '' ) {
+            $built['attr'] = $attr;
+        }
+        return $built;
     }
 
     /**
+     * New window or modal for an LTI tool or a web address. Other destinations
+     * stay in this window.
+     *
      * @param array<string, mixed>|null $target
-     * @param string $prefix
      */
-    private static function navLinkHref($target, $prefix) {
+    private static function navLinkAttr($target) {
+        if ( ! is_array($target) ) {
+            return '';
+        }
+        $kind = isset($target['kind']) ? (string) $target['kind'] : '';
+        if ( $kind !== 'lti' && $kind !== 'href' ) {
+            return '';
+        }
+        if ( isset($target['open']) && $target['open'] === 'modal' ) {
+            return 'target="_self" data-tsugi-nav-modal="1" onclick="return tsugiNavOpenModal(this);"';
+        }
+        return 'target="_blank" rel="noopener noreferrer"';
+    }
+
+    /**
+     * One shared modal for course-nav LTI tools and web addresses.
+     *
+     * The overlay shell comes from tsugi2.css. This adds the iframe layout
+     * and the open/close script. Output appends it when a nav link asks for it.
+     */
+    public static function modalChrome() {
+        $title = htmlspecialchars(__('Link'), ENT_QUOTES, 'UTF-8');
+        $open = htmlspecialchars(__('Open in a new window'), ENT_QUOTES, 'UTF-8');
+        $close = htmlspecialchars(__('Close'), ENT_QUOTES, 'UTF-8');
+        return '<style>
+#tsugi-nav-link-modal .tsugi-link-modal-content { background-color: #fff; width: 90%; max-width: 1100px; height: calc(100vh - 80px); display: flex; flex-direction: column; text-align: left; }
+#tsugi-nav-link-modal .tsugi-link-modal-titlebar { display: flex; align-items: center; gap: 0.75em; padding: 0.5em 2.75em 0.5em 0.75em; border-bottom: 1px solid #ddd; background: #f5f5f5; position: relative; }
+#tsugi-nav-link-modal .tsugi-link-modal-title { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tsugi-nav-link-modal .tsugi-link-modal-open-new { flex: 0 0 auto; font-size: 0.85em; white-space: nowrap; }
+#tsugi-nav-link-modal .tsugi-link-modal-close { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(0, 0, 0, 0.08); border: 1px solid rgba(0, 0, 0, 0.2); color: #333; }
+#tsugi-nav-link-modal .tsugi-link-modal-frame { flex: 1 1 auto; width: 100%; border: 0; background: #fff; }
+</style>
+<div id="tsugi-nav-link-modal" class="w3schools-overlay tsugi-link-modal" role="dialog" aria-modal="true" aria-label="'.$title.'">
+  <div class="w3schools-overlay-content tsugi-link-modal-content">
+    <div class="tsugi-link-modal-titlebar">
+      <span class="tsugi-link-modal-title">'.$title.'</span>
+      <a class="tsugi-link-modal-open-new" href="#" target="_blank" rel="noopener noreferrer">'.$open.'</a>
+      <button type="button" class="tsugi-overlay-close tsugi-link-modal-close" aria-label="'.$close.'">×</button>
+    </div>
+    <iframe class="tsugi-link-modal-frame" title="'.$title.'" src="about:blank" allow="fullscreen *" allowfullscreen></iframe>
+  </div>
+</div>
+<script>
+function tsugiNavOpenModal(anchor) {
+    var overlay = document.getElementById("tsugi-nav-link-modal");
+    if (!overlay || !anchor) return true;
+    var url = anchor.getAttribute("href") || "";
+    if (!url || url.charAt(0) === "#") return true;
+    var title = (anchor.textContent || "").replace(/^\s+|\s+$/g, "");
+    var frame = overlay.querySelector("iframe");
+    var titleEl = overlay.querySelector(".tsugi-link-modal-title");
+    var openNew = overlay.querySelector(".tsugi-link-modal-open-new");
+    if (titleEl) titleEl.textContent = title;
+    if (openNew) openNew.href = url;
+    overlay.setAttribute("aria-label", title || overlay.getAttribute("aria-label"));
+    if (frame) {
+        frame.title = title;
+        frame.src = url;
+    }
+    overlay._tsugiNavReturn = anchor;
+    overlay.style.display = "block";
+    var closeBtn = overlay.querySelector(".tsugi-link-modal-close");
+    if (closeBtn) closeBtn.focus();
+    return false;
+}
+function tsugiNavCloseModal() {
+    var overlay = document.getElementById("tsugi-nav-link-modal");
+    if (!overlay) return;
+    var frame = overlay.querySelector("iframe");
+    if (frame) frame.src = "about:blank";
+    overlay.style.display = "none";
+    if (overlay._tsugiNavReturn && overlay._tsugiNavReturn.focus) overlay._tsugiNavReturn.focus();
+}
+(function () {
+    var overlay = document.getElementById("tsugi-nav-link-modal");
+    if (!overlay || overlay.getAttribute("data-bound") === "1") return;
+    overlay.setAttribute("data-bound", "1");
+    overlay.addEventListener("click", function (e) {
+        if (e.target === overlay) tsugiNavCloseModal();
+    });
+    var closeBtn = overlay.querySelector(".tsugi-link-modal-close");
+    if (closeBtn) closeBtn.addEventListener("click", function () { tsugiNavCloseModal(); });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && overlay.style.display === "block") {
+            e.preventDefault();
+            tsugiNavCloseModal();
+        }
+    });
+})();
+</script>';
+    }
+
+    /**
+     * A native quiz item in the current lesson document.
+     *
+     * @param int $quizId
+     */
+    private static function lessonDocumentHasQuiz($quizId) {
+        $quizId = (int) $quizId;
+        if ( $quizId < 1 ) {
+            return false;
+        }
+        try {
+            $doc = \Tsugi\Core\Manifest::currentDocument();
+        } catch ( \Throwable $e ) {
+            return false;
+        }
+        if ( ! is_array($doc) || ! isset($doc['json']) || ! is_string($doc['json']) ) {
+            return false;
+        }
+        $data = json_decode($doc['json'], true);
+        if ( ! is_array($data) || ! isset($data['modules']) || ! is_array($data['modules']) ) {
+            return false;
+        }
+        foreach ( $data['modules'] as $module ) {
+            if ( ! is_array($module) || ! isset($module['items']) || ! is_array($module['items']) ) {
+                continue;
+            }
+            foreach ( $module['items'] as $item ) {
+                if ( ! is_array($item) ) {
+                    continue;
+                }
+                $norm = \Tsugi\Services\Lessons\LessonsNormalize::normalizeItem($item);
+                if ( \Tsugi\Services\Lessons\LessonsNormalize::isNativeQuiz($norm)
+                    && \Tsugi\Services\Lessons\LessonsNormalize::quizIdOf($norm) === $quizId ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * An LTI tool or discussion with this resource link id is still in the lesson.
+     *
+     * @param string $resourceLinkId
+     * @param bool $discussion
+     */
+    private static function lessonDocumentHasResource($resourceLinkId, $discussion) {
+        $resourceLinkId = trim((string) $resourceLinkId);
+        if ( $resourceLinkId === '' ) {
+            return false;
+        }
+        try {
+            $lessons = \Tsugi\Core\Manifest::currentLessons();
+        } catch ( \Throwable $e ) {
+            return false;
+        }
+        if ( ! $lessons ) {
+            return false;
+        }
+        $item = $lessons->getLtiByRlid($resourceLinkId);
+        if ( ! $item ) {
+            return false;
+        }
+        $isDiscussion = \Tsugi\Services\Lessons\LessonsNormalize::isDiscussion($item);
+        return $discussion ? $isDiscussion : ! $isDiscussion;
+    }
+
+    /**
+     * True, false, or null when this course has no link row.
+     * Null matches lessons: an older item with no row stays visible.
+     *
+     * @param int $contextId
+     * @param string $resourceLinkId
+     * @return bool|null
+     */
+    private static function resourceLinkPublishedFlag($contextId, $resourceLinkId) {
+        global $CFG, $PDOX;
+        $contextId = (int) $contextId;
+        $resourceLinkId = trim((string) $resourceLinkId);
+        if ( $contextId < 1 || $resourceLinkId === '' ) {
+            return null;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) || ! isset($CFG) || ! method_exists($PDOX, 'rowDie') ) {
+            return null;
+        }
+        try {
+            $row = $PDOX->rowDie(
+                "SELECT published FROM {$CFG->dbprefix}lti_link
+                 WHERE context_id = :CID AND link_key = :KEY",
+                array(':CID' => $contextId, ':KEY' => $resourceLinkId)
+            );
+        } catch ( \Throwable $e ) {
+            return null;
+        }
+        if ( ! is_array($row) || ! array_key_exists('published', $row) ) {
+            return null;
+        }
+        return ((int) $row['published']) === 1;
+    }
+
+    /**
+     * Instructors still see an unpublished lesson tool. Students do not.
+     *
+     * @param int $contextId
+     */
+    private static function lessonViewerIsInstructor($contextId) {
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
+        if ( ! empty($_SESSION['isinstructor']) || ! empty($_SESSION['instructor']) ) {
+            return true;
+        }
+        global $PDOX;
+        $contextId = (int) $contextId;
+        $userId = \Tsugi\Core\ReqScope::loggedInUserIdLegacy();
+        if ( $contextId < 1 || $userId < 1 || ! isset($PDOX) || ! is_object($PDOX) || ! method_exists($PDOX, 'rowDie') ) {
+            return self::maySeeSettings();
+        }
+        try {
+            $member = \Tsugi\Core\Membership::ensureInSession($contextId, $userId);
+            if ( $member && $member->isInstructor() ) {
+                return true;
+            }
+        } catch ( \Throwable $e ) {
+            return self::maySeeSettings();
+        }
+        return self::maySeeSettings();
+    }
+
+    private static function navLinkHref($target, $prefix, $moduleView = 'lessons', $contextId = 0) {
         if ( ! is_array($target) ) {
             return '';
         }
@@ -1243,19 +1493,49 @@ class CourseNav {
         $prefix = rtrim((string) $prefix, '/');
         if ( $kind === 'module' ) {
             $anchor = self::navAnchor($target['anchor'] ?? '');
-            return $anchor === '' ? '' : $prefix.'/lessons/'.rawurlencode($anchor);
+            if ( $anchor === '' ) {
+                return '';
+            }
+            if ( ! in_array($moduleView, self::contentViewIds(), true) ) {
+                $moduleView = 'lessons';
+            }
+            return $prefix.'/'.$moduleView.'/'.rawurlencode($anchor);
+        }
+        if ( $kind === 'quiz' ) {
+            $quizId = isset($target['quiz_id']) ? (int) $target['quiz_id'] : 0;
+            if ( $quizId < 1 || ! self::lessonDocumentHasQuiz($quizId) ) {
+                return '';
+            }
+            $linkId = \Tsugi\Services\Quiz1\Quiz1Repository::publishedTakeLinkId($quizId, $contextId);
+            if ( $linkId > 0 ) {
+                return $prefix.'/quiz1/link/'.$linkId;
+            }
+            if ( self::lessonViewerIsInstructor($contextId) ) {
+                return $prefix.'/quiz1/'.$quizId.'/view';
+            }
+            return '';
         }
         if ( $kind === 'discussion' ) {
+            if ( ! empty($target['owned']) ) {
+                return '';
+            }
             $id = self::navResourceId($target['resource_link_id'] ?? '');
-            if ( $id === '' ) {
+            if ( $id === '' || ! self::lessonDocumentHasResource($id, true) ) {
                 return '';
             }
             $route = self::discussionUsesLaunch() ? '/lessons_launch/' : '/discussions/';
             return $prefix.$route.rawurlencode($id);
         }
         if ( $kind === 'lti' ) {
+            if ( ! empty($target['owned']) ) {
+                return '';
+            }
             $id = self::navResourceId($target['resource_link_id'] ?? '');
-            if ( $id === '' ) {
+            if ( $id === '' || ! self::lessonDocumentHasResource($id, false) ) {
+                return '';
+            }
+            $published = self::resourceLinkPublishedFlag($contextId, $id);
+            if ( $published === false && ! self::lessonViewerIsInstructor($contextId) ) {
                 return '';
             }
             $route = (isset($target['launch']) && $target['launch'] === 'top') ? '/launch/' : '/lessons_launch/';
@@ -1301,6 +1581,12 @@ class CourseNav {
             if ( $kind === 'lti' && isset($raw['launch']) && $raw['launch'] === 'top' ) {
                 $out['launch'] = 'top';
             }
+        } else if ( $kind === 'quiz' ) {
+            $quizId = isset($raw['quiz_id']) ? (int) $raw['quiz_id'] : 0;
+            if ( $quizId < 1 ) {
+                return null;
+            }
+            $out = array('kind' => 'quiz', 'quiz_id' => $quizId);
         } else if ( $kind === 'page' ) {
             $key = self::navToken($raw['logical_key'] ?? '', 99);
             if ( $key === '' ) {
@@ -1325,37 +1611,197 @@ class CourseNav {
         if ( $title !== '' ) {
             $out['title'] = $title;
         }
+        $open = self::storedNavLinkOpen($raw, $kind);
+        if ( $open !== null ) {
+            $out['open'] = $open;
+        }
+        if ( ($kind === 'lti' || $kind === 'discussion') && ! empty($raw['owned']) ) {
+            $out['owned'] = true;
+        }
+        if ( $kind === 'lti' ) {
+            $launchUrl = self::navHref($raw['launch_url'] ?? '');
+            if ( $launchUrl !== '' ) {
+                $out['launch_url'] = $launchUrl;
+            }
+        }
+        if ( $kind === 'discussion' ) {
+            $description = self::cleanNavText($raw['description'] ?? '', 400);
+            if ( $description !== '' ) {
+                $out['description'] = $description;
+            }
+        }
         return $out;
+    }
+
+    /**
+     * A typed web address replaces the picked destination. An unchanged
+     * address leaves the stored title and open mode alone.
+     *
+     * @param array<string, mixed>|null $target
+     * @param string $url
+     * @return array<string, mixed>|null
+     */
+    private static function applyPostedUrl($target, $url) {
+        $safe = self::navHref($url);
+        if ( $safe === '' ) {
+            return $target;
+        }
+        if ( is_array($target) && ($target['kind'] ?? '') === 'href' && ($target['href'] ?? '') === $safe ) {
+            return $target;
+        }
+        $title = $safe;
+        if ( is_array($target) && ($target['kind'] ?? '') === 'href' ) {
+            $oldTitle = isset($target['title']) && is_string($target['title']) ? $target['title'] : '';
+            $oldHref = isset($target['href']) && is_string($target['href']) ? $target['href'] : '';
+            if ( $oldTitle !== '' && $oldTitle !== $oldHref ) {
+                $title = $oldTitle;
+            }
+        }
+        $next = array(
+            'kind' => 'href',
+            'href' => $safe,
+            'title' => $title,
+        );
+        if ( is_array($target) && isset($target['open']) ) {
+            $next['open'] = $target['open'];
+        }
+        return $next;
+    }
+
+    /**
+     * @param mixed $raw
+     * @param string $kind
+     * @return 'blank'|'modal'|null
+     */
+    private static function storedNavLinkOpen($raw, $kind) {
+        if ( $kind !== 'lti' && $kind !== 'href' ) {
+            return null;
+        }
+        $open = '';
+        if ( is_array($raw) && isset($raw['open']) ) {
+            $open = (string) $raw['open'];
+        }
+        return $open === 'modal' ? 'modal' : 'blank';
     }
 
     /**
      * @param array<string, mixed>|null $target
      */
+    private static function navLinkKindLabel($kind) {
+        if ( $kind === 'module' ) {
+            return __('Module');
+        }
+        if ( $kind === 'href' ) {
+            return __('Web link');
+        }
+        if ( $kind === 'discussion' ) {
+            return __('Discussion');
+        }
+        if ( $kind === 'lti' ) {
+            return __('LTI link');
+        }
+        if ( $kind === 'page' ) {
+            return __('Page');
+        }
+        if ( $kind === 'file' ) {
+            return __('File');
+        }
+        if ( $kind === 'quiz' ) {
+            return __('Quiz');
+        }
+        return '';
+    }
+
     private static function navLinkSummary($target) {
         if ( ! is_array($target) ) {
             return '';
         }
-        $title = isset($target['title']) && is_string($target['title']) ? $target['title'] : '';
-        if ( $title !== '' ) {
-            return $title;
+        $kind = isset($target['kind']) ? (string) $target['kind'] : '';
+        $name = self::navLinkKindLabel($kind);
+        if ( ! empty($target['owned']) ) {
+            return $name;
+        }
+        $detail = '';
+        if ( $kind === 'module' ) {
+            $detail = isset($target['anchor']) ? (string) $target['anchor'] : '';
+        } else if ( $kind === 'page' ) {
+            $detail = isset($target['logical_key']) ? (string) $target['logical_key'] : '';
+        } else if ( $kind === 'file' ) {
+            $detail = isset($target['path']) ? (string) $target['path'] : '';
+        } else if ( $kind === 'href' ) {
+            $detail = isset($target['href']) ? (string) $target['href'] : '';
+        } else if ( $kind === 'discussion' || $kind === 'lti' ) {
+            $detail = isset($target['resource_link_id']) ? (string) $target['resource_link_id'] : '';
+        } else if ( $kind === 'quiz' ) {
+            $detail = isset($target['quiz_id']) ? (string) (int) $target['quiz_id'] : '';
+        }
+        if ( $name === '' ) {
+            return $detail;
+        }
+        return $detail === '' ? $name : $name.' · '.$detail;
+    }
+
+    /**
+     * Why this nav link is hidden when the lesson would not show it.
+     *
+     * @param array<string, mixed>|null $target
+     */
+    private static function navLinkLessonNote($target) {
+        if ( ! is_array($target) ) {
+            return '';
         }
         $kind = isset($target['kind']) ? (string) $target['kind'] : '';
-        if ( $kind === 'module' ) {
-            return isset($target['anchor']) ? (string) $target['anchor'] : '';
+        if ( $kind !== 'quiz' && $kind !== 'lti' && $kind !== 'discussion' ) {
+            return '';
         }
-        if ( $kind === 'page' ) {
-            return isset($target['logical_key']) ? (string) $target['logical_key'] : '';
+        $missing = __('Not in the lesson, so it is hidden from navigation.');
+        $hidden = __('Students do not see this in lessons, so it is not in their navigation.');
+        if ( $kind === 'quiz' ) {
+            $quizId = isset($target['quiz_id']) ? (int) $target['quiz_id'] : 0;
+            if ( $quizId < 1 || ! self::lessonDocumentHasQuiz($quizId) ) {
+                return $missing;
+            }
+            $contextId = self::lessonNoteContextId();
+            if ( $contextId < 1 || ! self::canReadPublication() ) {
+                return '';
+            }
+            if ( \Tsugi\Services\Quiz1\Quiz1Repository::publishedTakeLinkId($quizId, $contextId) < 1 ) {
+                return $hidden;
+            }
+            return '';
         }
-        if ( $kind === 'file' ) {
-            return isset($target['path']) ? (string) $target['path'] : '';
+        if ( ! empty($target['owned']) ) {
+            return $missing;
         }
-        if ( $kind === 'href' ) {
-            return isset($target['href']) ? (string) $target['href'] : '';
+        $id = self::navResourceId($target['resource_link_id'] ?? '');
+        $discussion = $kind === 'discussion';
+        if ( $id === '' || ! self::lessonDocumentHasResource($id, $discussion) ) {
+            return $missing;
         }
-        if ( $kind === 'discussion' || $kind === 'lti' ) {
-            return isset($target['resource_link_id']) ? (string) $target['resource_link_id'] : '';
+        if ( $discussion ) {
+            return '';
+        }
+        $contextId = self::lessonNoteContextId();
+        if ( $contextId < 1 || ! self::canReadPublication() ) {
+            return '';
+        }
+        if ( self::resourceLinkPublishedFlag($contextId, $id) === false ) {
+            return $hidden;
         }
         return '';
+    }
+
+    private static function lessonNoteContextId() {
+        $contextId = \Tsugi\Core\ReqScope::currentContextIdLegacy();
+        if ( $contextId > 0 ) {
+            return $contextId;
+        }
+        return \Tsugi\Core\ReqScope::currentContextId();
+    }
+
+    private static function canReadPublication() {
+        global $PDOX;
+        return isset($PDOX) && is_object($PDOX) && method_exists($PDOX, 'rowDie');
     }
 
     /**
