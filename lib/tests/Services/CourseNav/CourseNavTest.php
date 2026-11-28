@@ -1297,9 +1297,12 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $scope = new \stdClass();
         $scope->user = $user;
         $current = new \ReflectionProperty(ReqScope::class, 'current');
+        $priorCurrent = $current->getValue(null);
         $current->setValue(null, $scope);
         $settingsCache = new \ReflectionProperty(\Tsugi\Services\ContextUser\ContextUserSettings::class, 'cache');
+        $priorCache = $settingsCache->getValue(null);
         $settingsCache->setValue(null, array());
+        try {
         \Tsugi\Core\Cache::setContext('context_user_settings', 42, array(
             'user_id' => 3,
             'note' => '',
@@ -1351,6 +1354,11 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $set = CourseNav::compile($unavailable, 42);
         $this->assertSame('http://localhost/courses/42/lessons/week-1', $this->leftHref($set, 'Week'));
+        } finally {
+            $current->setValue(null, $priorCurrent);
+            $settingsCache->setValue(null, $priorCache);
+            \Tsugi\Core\ReqScope::resetIdentity();
+        }
     }
 
     public function testNavLinkDropsUnsafeDestinationsButKeepsTheRow()
@@ -1801,6 +1809,35 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         } finally {
             $PDOX = $savedPdo;
         }
+    }
+
+    public function testMultibyteNavLabelStaysInsideTheCharacterLimit()
+    {
+        $label = str_repeat('a', 39).'é';
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:abcd1234',
+                    'label' => $label,
+                    'left' => true,
+                    'target' => array('kind' => 'href', 'href' => 'https://example.com/handout'),
+                ),
+            ),
+        ));
+        $this->assertSame($label, $doc['items'][0]['label']);
+        $stored = json_decode(CourseNav::encode($doc), true);
+        $this->assertSame($label, $stored['items'][0]['label']);
+        $this->assertSame('navlink:abcd1234', $stored['items'][0]['id']);
+    }
+
+    public function testGuardNavLinkLimitRejectsATwentyFifthLink()
+    {
+        $order = array();
+        for ( $i = 0; $i < 25; $i++ ) {
+            $order[] = 'navlink:'.str_pad((string) $i, 8, '0', STR_PAD_LEFT);
+        }
+        $this->expectException(\InvalidArgumentException::class);
+        CourseNav::guardNavLinkLimit(array('nav_order' => $order));
     }
 
     public function testSettingsNotesWhenTheLessonWouldNotShowTheItem()

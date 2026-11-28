@@ -2900,14 +2900,15 @@ re-check your login status.
         }
 
         $context_id = ReqScope::currentContextId();
-        $nav = CourseNav::fromPost($_POST);
-        if ( ! Courses::isGoogleLoginSession() ) {
-            $nav = CourseNav::retainSiteAccountItems(
-                Manifest::navigationDocumentForContext($context_id),
-                $nav
-            );
-        }
         try {
+            CourseNav::guardNavLinkLimit($_POST);
+            $nav = CourseNav::fromPost($_POST);
+            if ( ! Courses::isGoogleLoginSession() ) {
+                $nav = CourseNav::retainSiteAccountItems(
+                    Manifest::navigationDocumentForContext($context_id),
+                    $nav
+                );
+            }
             Manifest::saveNewVersion(
                 $context_id,
                 $decoded,

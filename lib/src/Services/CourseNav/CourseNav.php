@@ -168,8 +168,36 @@ class CourseNav {
      * @param array<string, mixed> $doc
      */
     public static function encode(array $doc) {
-        $json = json_encode(self::normalize($doc), JSON_UNESCAPED_SLASHES);
-        return is_string($json) ? $json : '{"items":[]}';
+        $flags = JSON_UNESCAPED_SLASHES;
+        if ( defined('JSON_INVALID_UTF8_SUBSTITUTE') ) {
+            $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+        $json = json_encode(self::normalize($doc), $flags);
+        if ( ! is_string($json) ) {
+            throw new \InvalidArgumentException('Navigation could not be stored.');
+        }
+        return $json;
+    }
+
+    /**
+     * Reject a save that would drop a navigation link past the stored limit.
+     *
+     * @param array<string, mixed> $post
+     */
+    public static function guardNavLinkLimit(array $post) {
+        $order = (isset($post['nav_order']) && is_array($post['nav_order'])) ? $post['nav_order'] : array();
+        $seen = array();
+        $count = 0;
+        foreach ( $order as $id ) {
+            if ( ! self::isNavLinkId($id) || isset($seen[$id]) ) {
+                continue;
+            }
+            $seen[$id] = true;
+            $count++;
+        }
+        if ( $count > self::NAV_LINK_MAX ) {
+            throw new \InvalidArgumentException(__('A course can have at most 24 navigation links.'));
+        }
     }
 
     /**
@@ -1325,6 +1353,7 @@ function tsugiNavOpenModal(anchor) {
     }
     overlay._tsugiNavReturn = anchor;
     overlay.style.display = "block";
+    if (window.tsugiNavSetInert) window.tsugiNavSetInert(overlay, true);
     var closeBtn = overlay.querySelector(".tsugi-link-modal-close");
     if (closeBtn) closeBtn.focus();
     return false;
@@ -1335,7 +1364,45 @@ function tsugiNavCloseModal() {
     var frame = overlay.querySelector("iframe");
     if (frame) frame.src = "about:blank";
     overlay.style.display = "none";
+    if (window.tsugiNavSetInert) window.tsugiNavSetInert(overlay, false);
     if (overlay._tsugiNavReturn && overlay._tsugiNavReturn.focus) overlay._tsugiNavReturn.focus();
+}
+function tsugiNavSetInert(overlay, on) {
+    var node = overlay;
+    while (node && node.parentElement && node.parentElement !== document.documentElement) {
+        var parent = node.parentElement;
+        var kids = parent.children;
+        for (var i = 0; i < kids.length; i++) {
+            if (kids[i] === node) continue;
+            if (on) {
+                if (kids[i].getAttribute("data-tsugi-nav-inert") === "1") continue;
+                kids[i].setAttribute("data-tsugi-nav-inert", "1");
+                kids[i].setAttribute("inert", "");
+            } else if (kids[i].getAttribute("data-tsugi-nav-inert") === "1") {
+                kids[i].removeAttribute("inert");
+                kids[i].removeAttribute("data-tsugi-nav-inert");
+            }
+        }
+        if (parent === document.body) break;
+        node = parent;
+    }
+}
+function tsugiNavTrapTab(container, event) {
+    if (!container || event.key !== "Tab") return;
+    var nodes = container.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])");
+    var list = [];
+    for (var i = 0; i < nodes.length; i++) list.push(nodes[i]);
+    if (!list.length) return;
+    var first = list[0];
+    var last = list[list.length - 1];
+    var active = document.activeElement;
+    if (event.shiftKey && (active === first || !container.contains(active))) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && (active === last || !container.contains(active))) {
+        event.preventDefault();
+        first.focus();
+    }
 }
 (function () {
     var overlay = document.getElementById("tsugi-nav-link-modal");
@@ -1347,7 +1414,12 @@ function tsugiNavCloseModal() {
     var closeBtn = overlay.querySelector(".tsugi-link-modal-close");
     if (closeBtn) closeBtn.addEventListener("click", function () { tsugiNavCloseModal(); });
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && overlay.style.display === "block") {
+        if (overlay.style.display !== "block") return;
+        if (e.key === "Tab") {
+            tsugiNavTrapTab(overlay, e);
+            return;
+        }
+        if (e.key === "Escape") {
             e.preventDefault();
             tsugiNavCloseModal();
         }
@@ -1833,8 +1905,10 @@ function tsugiNavCloseModal() {
         }
         $value = trim(preg_replace('/\s+/', ' ', $value));
         $max = (int) $max;
-        if ( function_exists('mb_strlen') && mb_strlen($value) > $max ) {
-            $value = mb_substr($value, 0, $max);
+        if ( function_exists('mb_strlen') ) {
+            if ( mb_strlen($value) > $max ) {
+                $value = mb_substr($value, 0, $max);
+            }
         } elseif ( strlen($value) > $max ) {
             $value = substr($value, 0, $max);
         }

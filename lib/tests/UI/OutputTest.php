@@ -43,6 +43,11 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('id="tsugi-nav-link-modal"', $html);
         $this->assertStringContainsString('tsugi-link-modal-frame', $html);
         $this->assertStringContainsString('function tsugiNavOpenModal', $html);
+
+        $set->addLeft('Copy', 'https://example.com/a?q=&copy;', false, false);
+        $escaped = (new Output())->menuNav($set);
+        $this->assertStringContainsString('href="https://example.com/a?q=&amp;copy;"', $escaped);
+        $this->assertStringNotContainsString('href="https://example.com/a?q=&copy;"', $escaped);
         $CFG = $original;
     }
 

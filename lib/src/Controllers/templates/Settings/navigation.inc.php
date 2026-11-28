@@ -2,7 +2,9 @@
 /**
  * Course navigation editor.
  *
- * Expected: $nav_rows (CourseNav::editorRows), $save_url
+ * Expected: $nav_rows (CourseNav::editorRows), $save_url,
+ * $nav_pages_json_url, $nav_lessons_json_url, $nav_files_json_url.
+ * A missing picker URL is an empty string, and that destination list stays empty.
  */
 ?>
 <p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Student View is always in the avatar menu before Settings, and Settings is always before Logout. Both are instructors only.') ?></p>
@@ -122,6 +124,12 @@
 .save-bar .message { flex: 1; }
 .save-bar .actions { display: flex; gap: 10px; }
 body.tsugi-nav-dirty { padding-bottom: 72px; }
+html:has(body.tsugi-nav-dirty) { scroll-padding-bottom: 96px; }
+body.tsugi-nav-dirty input,
+body.tsugi-nav-dirty button,
+body.tsugi-nav-dirty a,
+body.tsugi-nav-dirty select,
+body.tsugi-nav-dirty textarea { scroll-margin-bottom: 96px; }
 </style>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
@@ -453,6 +461,8 @@ $navPicker = array(
     'quiz' => __('Quiz'),
     'save' => __('Save'),
     'mustSave' => __('Navigation must be saved.'),
+    'missingDestination' => __('Not in the lesson'),
+    'tooMany' => __('A course can have at most 24 navigation links.'),
     'cancel' => __('Cancel'),
     'loading' => __('Loading…'),
     'kinds' => array(
@@ -992,7 +1002,13 @@ $navPicker = array(
             + '<div class="form-actions"><button type="button" class="btn btn-primary" id="tsugi-nav-item-save">' + esc(cfg.save) + '</button><button type="button" class="btn btn-default" id="tsugi-nav-item-cancel">' + esc(cfg.cancel) + '</button></div>';
         field('tsugi-nav-item-type').addEventListener('change', function () {
             var titleNow = field('tsugi-nav-item-title-input');
-            renderForm({ kind: kindFromType(field('tsugi-nav-item-type').value), title: titleNow ? titleNow.value : '' });
+            var typeNow = field('tsugi-nav-item-type').value;
+            renderForm({ kind: kindFromType(typeNow), title: titleNow ? titleNow.value : '' });
+            var typeField = field('tsugi-nav-item-type');
+            if (typeField) {
+                typeField.value = typeNow;
+                typeField.focus();
+            }
         });
         field('tsugi-nav-item-save').addEventListener('click', saveEditor);
         field('tsugi-nav-item-cancel').addEventListener('click', function () { closeEditor(true); });
@@ -1008,29 +1024,52 @@ $navPicker = array(
     function fillSelect(select, rows, selected, labelOf, valueOf) {
         if (!select) return;
         select.innerHTML = '';
+        var found = false;
+        rows.forEach(function (row) {
+            var option = document.createElement('option');
+            option.value = valueOf(row);
+            option.textContent = labelOf(row);
+            if (selected && option.value === selected) {
+                option.selected = true;
+                found = true;
+            }
+            select.appendChild(option);
+        });
+        if (selected && !found) {
+            var missing = document.createElement('option');
+            missing.value = selected;
+            missing.textContent = selected + ' — ' + cfg.missingDestination;
+            missing.selected = true;
+            select.insertBefore(missing, select.firstChild);
+            return;
+        }
         if (!rows.length) {
             var empty = document.createElement('option');
             empty.value = '';
             empty.textContent = cfg.needChoice;
             select.appendChild(empty);
-            return;
         }
-        rows.forEach(function (row) {
-            var option = document.createElement('option');
-            option.value = valueOf(row);
-            option.textContent = labelOf(row);
-            if (option.value === selected) option.selected = true;
-            select.appendChild(option);
-        });
     }
 
     function fillSelects(type, target) {
         if (type !== 'module' && type !== 'discussion' && type !== 'lti' && type !== 'quiz' && type !== 'file' && type !== 'html_page') return;
+        var typeField = field('tsugi-nav-item-type');
         ensureData().then(function (data) {
             if (!modal.classList.contains('open')) return;
+            if (field('tsugi-nav-item-type') !== typeField) return;
             if (!data) {
                 var error = field('tsugi-nav-item-error');
                 if (error) error.textContent = cfg.failed;
+                return;
+            }
+            var endpointFailed = data.failed && (
+                ((type === 'module' || type === 'discussion' || type === 'lti' || type === 'quiz') && data.failed.lessons)
+                || (type === 'html_page' && data.failed.pages)
+                || (type === 'file' && data.failed.files)
+            );
+            if (endpointFailed) {
+                var failed = field('tsugi-nav-item-error');
+                if (failed) failed.textContent = cfg.failed;
                 return;
             }
             if (type === 'module') {
@@ -1098,6 +1137,12 @@ $navPicker = array(
     function httpUrl(value) {
         var url = String(value || '').trim();
         if (!/^https?:\/\//i.test(url) || /[\s<>"']/.test(url)) return '';
+        try {
+            var parsed = new URL(url);
+            if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname) return '';
+        } catch (e) {
+            return '';
+        }
         return url;
     }
 
@@ -1173,6 +1218,10 @@ $navPicker = array(
             return;
         }
         var row = editingRow;
+        if (!row && navLinkCount() >= 24) {
+            showError(cfg.tooMany);
+            return;
+        }
         if (!row) {
             row = makeRow();
             if (!row) return;
@@ -1190,7 +1239,59 @@ $navPicker = array(
         try { return JSON.parse(hidden.value) || {}; } catch (e) { return {}; }
     }
 
+    function navLinkCount() {
+        return tbody.querySelectorAll('tr[data-nav-id^="navlink:"]').length;
+    }
+
+    function setBackgroundInert(dialog, on) {
+        var node = dialog;
+        while (node && node.parentElement && node.parentElement !== document.documentElement) {
+            var parent = node.parentElement;
+            var kids = parent.children;
+            var i;
+            for (i = 0; i < kids.length; i++) {
+                if (kids[i] === node) continue;
+                if (on) {
+                    if (kids[i].getAttribute('data-tsugi-nav-inert') === '1') continue;
+                    kids[i].setAttribute('data-tsugi-nav-inert', '1');
+                    kids[i].setAttribute('inert', '');
+                } else if (kids[i].getAttribute('data-tsugi-nav-inert') === '1') {
+                    kids[i].removeAttribute('inert');
+                    kids[i].removeAttribute('data-tsugi-nav-inert');
+                }
+            }
+            if (parent === document.body) break;
+            node = parent;
+        }
+    }
+
+    function trapTab(container, event) {
+        if (event.key !== 'Tab' || !container) return;
+        var nodes = container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+        var list = [];
+        var i;
+        for (i = 0; i < nodes.length; i++) {
+            if (nodes[i].closest('[hidden]')) continue;
+            list.push(nodes[i]);
+        }
+        if (!list.length) return;
+        var first = list[0];
+        var last = list[list.length - 1];
+        var active = document.activeElement;
+        if (event.shiftKey && (active === first || !container.contains(active))) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (active === last || !container.contains(active))) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
     function openEditor(row) {
+        if (!row && navLinkCount() >= 24) {
+            window.alert(cfg.tooMany);
+            return;
+        }
         editingRow = row || null;
         var target = row ? rowTarget(row) : { kind: 'href' };
         if (row) {
@@ -1200,12 +1301,14 @@ $navPicker = array(
         modalTitle.textContent = row ? cfg.editTitle : cfg.addTitle;
         renderForm(target);
         modal.classList.add('open');
+        setBackgroundInert(modal, true);
         var first = modal.querySelector('select, input');
         if (first) first.focus();
     }
 
     function closeEditor(focusReturn) {
         modal.classList.remove('open');
+        setBackgroundInert(modal, false);
         var focus = editingRow ? editingRow.querySelector('.tsugi-nav-link-edit') : addButton;
         editingRow = null;
         if (focusReturn && focus) focus.focus();
@@ -1246,24 +1349,38 @@ $navPicker = array(
         });
     }
 
+    function settleJson(url) {
+        return fetchJson(url).then(function (value) {
+            return { ok: true, value: value };
+        }, function () {
+            return { ok: false, value: null };
+        });
+    }
+
     function ensureData() {
         if (loaded) return loaded;
         loaded = Promise.all([
-            fetchJson(cfg.pages),
-            fetchJson(cfg.lessons),
-            fetchJson(cfg.files)
+            settleJson(cfg.pages),
+            settleJson(cfg.lessons),
+            settleJson(cfg.files)
         ]).then(function (results) {
-            var lessons = results[1] || {};
+            if (!results[0].ok && !results[1].ok && !results[2].ok) {
+                loaded = null;
+                return null;
+            }
+            var lessons = results[1].ok && results[1].value ? results[1].value : {};
             return {
-                pages: Array.isArray(results[0]) ? results[0] : [],
+                pages: results[0].ok && Array.isArray(results[0].value) ? results[0].value : [],
                 items: lessons.items || [],
                 modules: lessons.modules || [],
                 launches: lessons.launches || [],
-                files: Array.isArray(results[2]) ? results[2] : []
+                files: results[2].ok && Array.isArray(results[2].value) ? results[2].value : [],
+                failed: {
+                    pages: !results[0].ok,
+                    lessons: !results[1].ok,
+                    files: !results[2].ok
+                }
             };
-        }).catch(function () {
-            loaded = null;
-            return null;
         });
         return loaded;
     }
@@ -1344,7 +1461,12 @@ $navPicker = array(
         if (e.target === modal) closeEditor(true);
     });
     document.addEventListener('keydown', function (e) {
-        if (!modal.classList.contains('open') || e.key !== 'Escape') return;
+        if (!modal.classList.contains('open')) return;
+        if (e.key === 'Tab') {
+            trapTab(modal, e);
+            return;
+        }
+        if (e.key !== 'Escape') return;
         e.preventDefault();
         closeEditor(true);
     });
