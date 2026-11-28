@@ -1193,4 +1193,228 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(CourseNav::homeLabelFromShortTitle(null));
         $this->assertNull(CourseNav::homeLabelFromShortTitle('Home'));
     }
+
+    public function testNavLinkKeepsDestinationAndPlace()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:abcd1234',
+                    'label' => '  Week 1  ',
+                    'left' => true,
+                    'target' => array(
+                        'kind' => 'module',
+                        'anchor' => 'week-1',
+                        'title' => 'Week 1',
+                    ),
+                ),
+                array(
+                    'id' => 'navlink:abcd1234',
+                    'label' => 'Duplicate',
+                    'right' => true,
+                    'target' => array('kind' => 'page', 'logical_key' => 'other'),
+                ),
+                array(
+                    'id' => 'navlink:NOPE',
+                    'label' => 'Bad',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'nope'),
+                ),
+            ),
+        ));
+        $this->assertCount(1, $doc['items']);
+        $this->assertSame('navlink:abcd1234', $doc['items'][0]['id']);
+        $this->assertSame('Week 1', $doc['items'][0]['label']);
+        $this->assertTrue($doc['items'][0]['left']);
+        $this->assertSame('module', $doc['items'][0]['target']['kind']);
+        $this->assertSame('week-1', $doc['items'][0]['target']['anchor']);
+
+        $spaced = CourseNav::normalize(array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:abcd1235',
+                    'label' => 'Week',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'week 1'),
+                ),
+                array(
+                    'id' => 'navlink:abcd1236',
+                    'label' => 'Bad',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'week/1'),
+                ),
+            ),
+        ));
+        $this->assertSame('week 1', $spaced['items'][0]['target']['anchor']);
+        $this->assertArrayNotHasKey('target', $spaced['items'][1]);
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $set = CourseNav::compile($spaced, 42);
+        $this->assertSame('http://localhost/courses/42/lessons/week%201', $set->left->menu[0]->href);
+    }
+
+    public function testNavLinkDropsUnsafeDestinationsButKeepsTheRow()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:abcd1234',
+                    'label' => '<img src=x onerror=alert(1)>',
+                    'dropdown' => true,
+                    'target' => array('kind' => 'href', 'href' => 'javascript:alert(1)'),
+                ),
+                array(
+                    'id' => 'navlink:abcd1235',
+                    'label' => 'Notes',
+                    'left' => true,
+                    'target' => array('kind' => 'file', 'path' => '../secret'),
+                ),
+            ),
+        ));
+        $this->assertSame('Nav link', $doc['items'][0]['label']);
+        $this->assertArrayNotHasKey('target', $doc['items'][0]);
+        $this->assertTrue($doc['items'][0]['dropdown']);
+        $this->assertSame('Notes', $doc['items'][1]['label']);
+        $this->assertArrayNotHasKey('target', $doc['items'][1]);
+    }
+
+    public function testNavLinkStaysWhenItIsNotPlaced()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:abcd1234',
+                    'label' => 'Later',
+                    'target' => array('kind' => 'discussion', 'resource_link_id' => 'discussion_week', 'title' => 'Week'),
+                ),
+            ),
+        ));
+        $this->assertArrayNotHasKey('left', $doc['items'][0]);
+        $this->assertArrayNotHasKey('right', $doc['items'][0]);
+        $this->assertArrayNotHasKey('dropdown', $doc['items'][0]);
+        $this->assertSame('discussion_week', $doc['items'][0]['target']['resource_link_id']);
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $set = CourseNav::compile($doc, 42);
+        $this->assertFalse($set->left);
+    }
+
+    public function testFromPostReadsNavLinkInOrder()
+    {
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('files', 'navlink:abcd1234', 'logout'),
+            'nav' => array(
+                'files' => array('left' => '1'),
+                'navlink:abcd1234' => array('right' => '1', 'dropdown' => '1'),
+                'logout' => array('dropdown' => '1'),
+            ),
+            'nav_label' => array(
+                'navlink:abcd1234' => 'Syllabus',
+            ),
+            'nav_target' => array(
+                'navlink:abcd1234' => json_encode(array(
+                    'kind' => 'page',
+                    'logical_key' => 'syllabus',
+                    'title' => 'Syllabus',
+                )),
+            ),
+        ));
+        $this->assertSame(array('files', 'navlink:abcd1234', 'logout'), array_column($doc['items'], 'id'));
+        $this->assertSame('Syllabus', $doc['items'][1]['label']);
+        $this->assertTrue($doc['items'][1]['right']);
+        $this->assertTrue($doc['items'][1]['dropdown']);
+        $this->assertSame('page', $doc['items'][1]['target']['kind']);
+        $this->assertSame('syllabus', $doc['items'][1]['target']['logical_key']);
+    }
+
+    public function testEditorRowsIncludeNavLinkWithTheTools()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:abcd1234',
+                    'label' => 'Week 1',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'week-1', 'title' => 'Intro'),
+                ),
+                array('id' => 'files', 'left' => true),
+            ),
+        ));
+        $rows = CourseNav::editorRows($doc);
+        $ids = array_column($rows, 'id');
+        $at = array_search('navlink:abcd1234', $ids, true);
+        $this->assertNotFalse($at);
+        $this->assertLessThan(array_search('files', $ids, true), $at);
+        $this->assertSame('navlink', $rows[$at]['kind']);
+        $this->assertSame('Intro', $rows[$at]['target_summary']);
+        $this->assertArrayNotHasKey('pin', $rows[$at]);
+    }
+
+    public function testCompileNavLinkPlacements()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 7;
+        $_SESSION['displayname'] = 'Pat';
+        $doc = array(
+            'items' => array(
+                array(
+                    'id' => 'navlink:aaaa1111',
+                    'label' => 'A & B',
+                    'left' => true,
+                    'target' => array('kind' => 'module', 'anchor' => 'week-1', 'title' => 'Intro'),
+                ),
+                array(
+                    'id' => 'navlink:bbbb2222',
+                    'label' => 'Forum',
+                    'right' => true,
+                    'target' => array('kind' => 'discussion', 'resource_link_id' => 'discussion_week'),
+                ),
+                array(
+                    'id' => 'navlink:cccc3333',
+                    'label' => 'Tool',
+                    'dropdown' => true,
+                    'target' => array('kind' => 'lti', 'resource_link_id' => 'tool_1', 'launch' => 'top'),
+                ),
+                array(
+                    'id' => 'navlink:dddd4444',
+                    'label' => 'Notes',
+                    'left' => true,
+                    'instructor' => true,
+                    'target' => array('kind' => 'file', 'path' => 'notes/a.pdf'),
+                ),
+                array(
+                    'id' => 'navlink:eeee5555',
+                    'label' => 'Video',
+                    'dropdown' => true,
+                    'target' => array('kind' => 'href', 'href' => 'https://www.youtube.com/watch?v=abc'),
+                ),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[$entry->link] = $entry->href;
+        }
+        $this->assertSame('http://localhost/courses/42/lessons/week-1', $left['A &amp; B']);
+        $this->assertArrayNotHasKey('Notes', $left);
+
+        $right = array();
+        foreach ( $set->right->menu as $entry ) {
+            if ( is_string($entry->href) ) {
+                $right[$entry->link] = $entry->href;
+            }
+        }
+        $this->assertSame('http://localhost/courses/42/discussions/discussion_week', $right['Forum']);
+
+        $this->assertSame('http://localhost/courses/42/launch/tool_1', $this->dropdownHref($set, 'Tool'));
+        $this->assertSame('https://www.youtube.com/watch?v=abc', $this->dropdownHref($set, 'Video'));
+
+        $_SESSION['isinstructor'] = true;
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[$entry->link] = $entry->href;
+        }
+        $this->assertSame('http://localhost/courses/42/files/notes/a.pdf', $left['Notes']);
+    }
 }

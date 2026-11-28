@@ -8,6 +8,7 @@
 <p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Student View is always in the avatar menu before Settings, and Settings is always before Logout. Both are instructors only.') ?></p>
 <p><?= __('Check where each tool should appear. Instructor only hides that item from students. Widgets can only sit in the top left or top right, not under the avatar.') ?></p>
 <p><?= __('Lessons stays under Home. Students see one link: the default view, or an available view they pick on Home. Only one view can be the default. If none is marked default, Card View is the default. Check Instructor test on a view to add a test link in your avatar menu. Students do not see test links.') ?></p>
+<p><?= __('Add nav link creates a course link. Choose a destination: a lessons module, an LTI tool, a discussion, a page, a file, or anything else lessons can link to. Then put it on the left, the right, or in the avatar menu, and reorder it with the other links.') ?></p>
 <style>
 .tsugi-nav-editor { width: 100%; max-width: 56em; border-collapse: separate; border-spacing: 0; }
 .tsugi-nav-editor th, .tsugi-nav-editor td { padding: 0.4em 0.6em; vertical-align: middle; }
@@ -24,6 +25,19 @@
 .tsugi-nav-editor tr.tsugi-nav-pinned .tsugi-nav-handle { visibility: hidden; cursor: default; }
 .tsugi-nav-hint { color: #666; font-size: 0.9em; margin: 0.2em 0 0; }
 .tsugi-nav-home-label { display: inline-block; width: 14em; max-width: 100%; }
+.tsugi-nav-link-label { display: inline-block; width: 14em; max-width: 100%; }
+.tsugi-nav-link-actions { margin-top: 0.35em; }
+.tsugi-nav-link-actions .btn { margin-right: 0.35em; }
+#tsugi-nav-picker { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+#tsugi-nav-picker.open { display: block; }
+#tsugi-nav-picker-content { position: fixed; right: 0; top: 0; height: 100%; width: 360px; max-width: 90%; background: #fefefe; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); overflow-y: auto; }
+#tsugi-nav-picker-list { margin-top: 10px; }
+.tsugi-nav-picker-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
+.tsugi-nav-picker-item:hover, .tsugi-nav-picker-item:focus { background: #f0f0f0; outline: none; }
+.tsugi-nav-picker-expando { margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+.tsugi-nav-picker-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; background: #f8f8f8; }
+.tsugi-nav-picker-expando.collapsed .tsugi-nav-picker-body { display: none; }
+.tsugi-nav-picker-nested { padding-left: 0; }
 .tsugi-nav-steps-label {
     display: inline-flex;
     align-items: center;
@@ -85,6 +99,9 @@
 </style>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
+    <p>
+        <button type="button" class="btn btn-default" id="tsugi-nav-add"><?= __('Add nav link') ?></button>
+    </p>
     <table class="table table-condensed tsugi-nav-editor" id="tsugi-nav-editor">
         <thead>
             <tr>
@@ -165,7 +182,49 @@
                 .htmlspecialchars($visible, ENT_QUOTES, 'UTF-8')
                 .'</label>';
         };
+        $renderNavLinkRow = static function (array $row) use ($navCheck, $placeLeft, $placeRight, $placeDrop, $placeInst) {
+            $id = htmlspecialchars((string) ($row['id'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $label = isset($row['label']) && is_string($row['label']) ? $row['label'] : '';
+            $summary = isset($row['target_summary']) && is_string($row['target_summary']) ? $row['target_summary'] : '';
+            $target = (isset($row['target']) && is_array($row['target'])) ? $row['target'] : null;
+            $targetJson = $target === null ? '' : json_encode($target, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if ( ! is_string($targetJson) ) {
+                $targetJson = '';
+            }
+            $toolLabel = $label !== '' ? $label : __('Nav link');
+            $moveId = 'tsugi-nav-move-'.$id;
+            $moveBtnId = 'tsugi-nav-move-btn-'.$id;
+            ?>
+            <tr draggable="true" data-nav-id="<?= $id ?>">
+                <td class="tsugi-nav-handle" title="<?= htmlspecialchars(__('Drag to reorder')) ?>">&#8942;</td>
+                <td>
+                    <input type="hidden" name="nav_order[]" value="<?= $id ?>">
+                    <input type="text" name="nav_label[<?= $id ?>]" value="<?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>" maxlength="40" placeholder="<?= htmlspecialchars(__('Nav link'), ENT_QUOTES, 'UTF-8') ?>" class="form-control input-sm tsugi-nav-link-label" aria-label="<?= htmlspecialchars(__('Nav link label'), ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="nav_target[<?= $id ?>]" value="<?= htmlspecialchars($targetJson, ENT_QUOTES, 'UTF-8') ?>" class="tsugi-nav-link-target-input">
+                    <p class="tsugi-nav-hint tsugi-nav-link-target"><?= $summary !== '' ? htmlspecialchars($summary) : htmlspecialchars(__('No destination yet.')) ?></p>
+                    <div class="tsugi-nav-link-actions">
+                        <button type="button" class="btn btn-default btn-xs tsugi-nav-link-choose" aria-label="<?= htmlspecialchars(__('Choose destination').' '.$toolLabel, ENT_QUOTES, 'UTF-8') ?>"><?= __('Choose') ?></button>
+                        <button type="button" class="btn btn-link btn-xs tsugi-nav-link-remove"><?= __('Remove link') ?></button>
+                    </div>
+                </td>
+                <td><?= $navCheck('nav['.$id.'][left]', ! empty($row['left']), $toolLabel.', '.$placeLeft) ?></td>
+                <td><?= $navCheck('nav['.$id.'][right]', ! empty($row['right']), $toolLabel.', '.$placeRight) ?></td>
+                <td><?= $navCheck('nav['.$id.'][dropdown]', ! empty($row['dropdown']), $toolLabel.', '.$placeDrop) ?></td>
+                <td><?= $navCheck('nav['.$id.'][instructor]', ! empty($row['instructor']), $toolLabel.', '.$placeInst) ?></td>
+                <td class="tsugi-nav-move-cell">
+                    <div class="tsugi-nav-move">
+                        <button type="button" id="<?= $moveBtnId ?>" class="btn btn-default btn-xs tsugi-nav-move-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="<?= $moveId ?>" aria-label="<?= htmlspecialchars(__('Reorder').' '.$toolLabel, ENT_QUOTES, 'UTF-8') ?>" data-nav-label="<?= htmlspecialchars($toolLabel, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(__('Reorder')) ?> <span class="caret" aria-hidden="true"></span></button>
+                        <ul id="<?= $moveId ?>" class="tsugi-nav-move-menu" role="menu" hidden aria-labelledby="<?= $moveBtnId ?>"></ul>
+                    </div>
+                </td>
+            </tr>
+            <?php
+        };
         foreach ( $nav_rows as $row ) {
+            if ( ($row['kind'] ?? '') === 'navlink' ) {
+                $renderNavLinkRow($row);
+                continue;
+            }
             unset($toolLabel);
             $row_id = $row['id'] ?? '';
             if ( $row_id === 'lessons' || $row_id === 'content' || $row_id === 'outline' ) {
@@ -300,8 +359,56 @@
         <a href="<?= htmlspecialchars($save_url) ?>" class="btn btn-default"><?= __('Cancel') ?></a>
     </p>
 </form>
+<template id="tsugi-nav-link-template">
+<?php
+$renderNavLinkRow(array(
+    'id' => 'navlink:TEMPLATE',
+    'kind' => 'navlink',
+    'label' => '',
+    'target' => null,
+    'target_summary' => '',
+    'left' => false,
+    'right' => false,
+    'dropdown' => false,
+    'instructor' => false,
+));
+?>
+</template>
+<div id="tsugi-nav-picker" role="dialog" aria-modal="true" aria-labelledby="tsugi-nav-picker-title">
+    <div id="tsugi-nav-picker-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h2 id="tsugi-nav-picker-title" style="margin:0;font-size:1.25em;"><?= __('Choose destination') ?></h2>
+            <button type="button" class="btn btn-default" id="tsugi-nav-picker-cancel"><?= __('Cancel') ?></button>
+        </div>
+        <div id="tsugi-nav-picker-list"></div>
+    </div>
+</div>
 <?php
 // TODO: Keyboard reorder for Lessons authoring and Discussions reorder.
+$navPicker = array(
+    'pages' => isset($nav_pages_json_url) ? (string) $nav_pages_json_url : '',
+    'lessons' => isset($nav_lessons_json_url) ? (string) $nav_lessons_json_url : '',
+    'files' => isset($nav_files_json_url) ? (string) $nav_files_json_url : '',
+    'empty' => __('No destination yet.'),
+    'none' => __('Nothing to link to yet.'),
+    'failed' => __('Could not load destinations.'),
+        'addLabel' => __('Nav link'),
+        'reorder' => __('Reorder'),
+        'choose' => __('Choose destination'),
+    'groups' => array(
+        'modules' => __('Modules'),
+        'pages' => __('Pages'),
+        'files' => __('Files'),
+        'videos' => __('Videos'),
+        'discussions' => __('Discussions'),
+        'lti' => __('LTI & Tools'),
+        'assignments' => __('Assignments'),
+        'solutions' => __('Solutions'),
+        'references' => __('References'),
+        'slides' => __('Slides'),
+        'courseFiles' => __('Course files'),
+    ),
+);
 ?>
 <script>
 (function () {
@@ -322,7 +429,7 @@
 
     var dragging = null;
     tbody.addEventListener('dragstart', function (e) {
-        if (e.target.closest && e.target.closest('.tsugi-nav-move')) {
+        if (e.target.closest && e.target.closest('.tsugi-nav-move, input, button, a, label')) {
             e.preventDefault();
             return;
         }
@@ -591,5 +698,412 @@
     });
 
     syncMoveButtons();
+})();
+</script>
+<script>
+(function () {
+    var cfg = <?= json_encode($navPicker, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+    var tbody = document.querySelector('#tsugi-nav-editor tbody');
+    var addButton = document.getElementById('tsugi-nav-add');
+    var template = document.getElementById('tsugi-nav-link-template');
+    var picker = document.getElementById('tsugi-nav-picker');
+    var pickerList = document.getElementById('tsugi-nav-picker-list');
+    var pickerCancel = document.getElementById('tsugi-nav-picker-cancel');
+    if (!tbody || !addButton || !template || !picker || !pickerList) return;
+
+    var pickerRow = null;
+    var pickerFocus = null;
+    var loaded = null;
+
+    var tailIds = {
+        courses_widget: true,
+        roster: true,
+        student: true,
+        settings: true,
+        login: true,
+        exit_course: true,
+        leave_course: true,
+        logout: true
+    };
+
+    function movableRows() {
+        return Array.prototype.filter.call(tbody.querySelectorAll('tr'), function (tr) {
+            return !tr.classList.contains('tsugi-nav-pinned');
+        });
+    }
+
+    function syncMoves() {
+        var rows = movableRows();
+        rows.forEach(function (row) {
+            var wrap = row.querySelector('.tsugi-nav-move');
+            if (wrap) wrap.hidden = rows.length < 2;
+        });
+    }
+
+    function newId() {
+        var bytes = new Uint8Array(4);
+        if (window.crypto && window.crypto.getRandomValues) {
+            window.crypto.getRandomValues(bytes);
+        } else {
+            for (var i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+        }
+        var hex = Array.prototype.map.call(bytes, function (b) {
+            return ('0' + b.toString(16)).slice(-2);
+        }).join('');
+        var id = 'navlink:' + hex;
+        if (tbody.querySelector('tr[data-nav-id="' + id + '"]')) return newId();
+        return id;
+    }
+
+    function insertRow(row) {
+        var rows = tbody.querySelectorAll('tr');
+        var anchor = null;
+        for (var i = 0; i < rows.length; i++) {
+            var id = rows[i].getAttribute('data-nav-id');
+            if (id && tailIds[id]) {
+                anchor = rows[i];
+                break;
+            }
+        }
+        if (anchor) tbody.insertBefore(row, anchor);
+        else tbody.appendChild(row);
+    }
+
+    function syncLabel(row) {
+        var input = row.querySelector('.tsugi-nav-link-label');
+        var button = row.querySelector('.tsugi-nav-move-btn');
+        if (!input || !button) return;
+        var label = input.value.trim() || cfg.addLabel;
+        button.setAttribute('data-nav-label', label);
+        button.setAttribute('aria-label', cfg.reorder + ' ' + label);
+        var choose = row.querySelector('.tsugi-nav-link-choose');
+        if (choose) choose.setAttribute('aria-label', cfg.choose + ' ' + label);
+    }
+
+    function summaryText(target) {
+        if (!target) return cfg.empty;
+        return target.title || target.anchor || target.logical_key || target.path || target.href || target.resource_link_id || cfg.empty;
+    }
+
+    function applyTarget(row, target) {
+        var input = row.querySelector('.tsugi-nav-link-label');
+        var hidden = row.querySelector('.tsugi-nav-link-target-input');
+        var summary = row.querySelector('.tsugi-nav-link-target');
+        if (hidden) hidden.value = JSON.stringify(target);
+        if (summary) summary.textContent = summaryText(target);
+        if (input && (input.getAttribute('data-label-auto') === '1' || input.value.trim() === '')) {
+            var title = (target.title || '').trim();
+            if (title) input.value = title.slice(0, 40);
+        }
+        syncLabel(row);
+    }
+
+    addButton.addEventListener('click', function () {
+        var id = newId();
+        var holder = document.createElement('tbody');
+        holder.innerHTML = template.innerHTML.split('navlink:TEMPLATE').join(id);
+        var row = holder.querySelector('tr');
+        if (!row) return;
+        var input = row.querySelector('.tsugi-nav-link-label');
+        if (input) {
+            input.value = cfg.addLabel;
+            input.setAttribute('data-label-auto', '1');
+        }
+        insertRow(row);
+        syncMoves();
+        syncLabel(row);
+        if (input) input.focus();
+    });
+
+    tbody.addEventListener('input', function (e) {
+        var input = e.target.closest ? e.target.closest('.tsugi-nav-link-label') : null;
+        if (!input) return;
+        input.removeAttribute('data-label-auto');
+        var row = input.closest('tr');
+        if (row) syncLabel(row);
+    });
+
+    tbody.addEventListener('click', function (e) {
+        var remove = e.target.closest ? e.target.closest('.tsugi-nav-link-remove') : null;
+        if (remove) {
+            var row = remove.closest('tr');
+            if (row) row.remove();
+            syncMoves();
+            addButton.focus();
+            return;
+        }
+        var choose = e.target.closest ? e.target.closest('.tsugi-nav-link-choose') : null;
+        if (!choose) return;
+        pickerRow = choose.closest('tr');
+        pickerFocus = choose;
+        openPicker();
+    });
+
+    function fetchJson(url) {
+        if (!url) return Promise.resolve(null);
+        return fetch(url, { credentials: 'same-origin' }).then(function (r) {
+            if (!r.ok) throw new Error('load');
+            return r.json();
+        });
+    }
+
+    function ensureData() {
+        if (loaded) return loaded;
+        loaded = Promise.all([
+            fetchJson(cfg.pages),
+            fetchJson(cfg.lessons),
+            fetchJson(cfg.files)
+        ]).then(function (results) {
+            var lessons = results[1] || {};
+            return {
+                pages: Array.isArray(results[0]) ? results[0] : [],
+                items: lessons.items || [],
+                modules: lessons.modules || [],
+                launches: lessons.launches || [],
+                files: Array.isArray(results[2]) ? results[2] : []
+            };
+        }).catch(function () {
+            loaded = null;
+            return null;
+        });
+        return loaded;
+    }
+
+    function segmentAfter(url, marker) {
+        var path = String(url || '').split('?')[0].split('#')[0];
+        var at = path.indexOf(marker);
+        if (at < 0) return '';
+        var rest = path.slice(at + marker.length).replace(/^\/+/, '');
+        var seg = rest.split('/')[0];
+        if (!seg) return '';
+        try { return decodeURIComponent(seg); } catch (e) { return ''; }
+    }
+
+    function pathAfter(url, marker) {
+        var path = String(url || '').split('?')[0].split('#')[0];
+        var at = path.indexOf(marker);
+        if (at < 0) return '';
+        var rest = path.slice(at + marker.length).replace(/^\/+/, '');
+        if (!rest || rest.indexOf('..') !== -1) return '';
+        var parts = rest.split('/');
+        try {
+            parts = parts.map(function (part) { return decodeURIComponent(part); });
+        } catch (e) {
+            return '';
+        }
+        for (var i = 0; i < parts.length; i++) {
+            if (parts[i] === '' || parts[i] === '.' || parts[i] === '..') return '';
+        }
+        return parts.join('/');
+    }
+
+    function hrefTarget(item) {
+        var url = String(item.url || '');
+        if (!/^https?:\/\//i.test(url)) return null;
+        return { kind: 'href', href: url, title: item.title || '' };
+    }
+
+    function ltiTarget(item) {
+        var url = item.url || '';
+        var fromLessons = segmentAfter(url, '/lessons_launch/');
+        if (fromLessons) return { kind: 'lti', resource_link_id: fromLessons, title: item.title || '' };
+        var fromTop = segmentAfter(url, '/launch/');
+        if (fromTop) return { kind: 'lti', resource_link_id: fromTop, launch: 'top', title: item.title || '' };
+        if (item.resource_link_id) {
+            return { kind: 'lti', resource_link_id: String(item.resource_link_id), launch: 'top', title: item.title || '' };
+        }
+        return hrefTarget(item);
+    }
+
+    function targetFromLesson(item) {
+        var type = item.type || '';
+        if (type === 'not-lti') type = 'lti';
+        if (type === 'discussion') {
+            var id = segmentAfter(item.url, '/discussions/') || segmentAfter(item.url, '/lessons_launch/');
+            if (!id) return hrefTarget(item);
+            return { kind: 'discussion', resource_link_id: id, title: item.title || '' };
+        }
+        if (type === 'lti' || type === 'quiz' || type === 'autograder' || type === 'peer_grade') {
+            return ltiTarget(item);
+        }
+        var pageKey = segmentAfter(item.url, '/pages/');
+        if (pageKey) return { kind: 'page', logical_key: pageKey, title: item.title || '' };
+        var filePath = pathAfter(item.url, '/files/');
+        if (filePath && filePath.indexOf('download/') !== 0) {
+            return { kind: 'file', path: filePath, title: item.title || '' };
+        }
+        return hrefTarget(item);
+    }
+
+    function addChoice(container, label, title, target) {
+        if (!target) return;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'tsugi-nav-picker-item';
+        button.textContent = label;
+        if (title) button.title = title;
+        button.addEventListener('click', function () {
+            if (pickerRow) applyTarget(pickerRow, target);
+            closePicker(true);
+        });
+        container.appendChild(button);
+    }
+
+    function section(title, count, body) {
+        var wrap = document.createElement('div');
+        wrap.className = 'tsugi-nav-picker-expando collapsed';
+        var head = document.createElement('div');
+        head.className = 'tsugi-nav-picker-head';
+        head.setAttribute('role', 'button');
+        head.tabIndex = 0;
+        head.setAttribute('aria-expanded', 'false');
+        head.innerHTML = '<span></span><span aria-hidden="true">&#9660;</span>';
+        head.firstChild.textContent = title + ' (' + count + ')';
+        function toggle() {
+            var closed = wrap.classList.toggle('collapsed');
+            head.setAttribute('aria-expanded', closed ? 'false' : 'true');
+        }
+        head.addEventListener('click', toggle);
+        head.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle();
+            }
+        });
+        body.classList.add('tsugi-nav-picker-body');
+        wrap.appendChild(head);
+        wrap.appendChild(body);
+        return wrap;
+    }
+
+    function groupItems(items) {
+        var groups = {
+            video: [],
+            discussion: [],
+            lti: [],
+            assignment: [],
+            solution: [],
+            reference: [],
+            slide: []
+        };
+        items.forEach(function (item) {
+            var type = item.type || 'reference';
+            if (type === 'not-lti' || type === 'quiz' || type === 'autograder' || type === 'peer_grade') type = 'lti';
+            if (type === 'web_link' || type === 'html_page' || type === 'file') type = 'reference';
+            if (type === 'slides' || type === 'lecture') type = 'slide';
+            if (!groups[type]) groups.reference.push(item);
+            else groups[type].push(item);
+        });
+        return groups;
+    }
+
+    function fillPicker(data) {
+        pickerList.innerHTML = '';
+        var any = false;
+        function addGroup(title, rows, fill) {
+            if (!rows || !rows.length) return;
+            var body = document.createElement('div');
+            body.className = 'tsugi-nav-picker-body';
+            fill(body, rows);
+            if (!body.childNodes.length) return;
+            pickerList.appendChild(section(title, rows.length, body));
+            any = true;
+        }
+        addGroup(cfg.groups.modules, data.modules, function (body, rows) {
+            rows.forEach(function (mod) {
+                if (!mod.anchor) return;
+                addChoice(body, mod.title || mod.anchor, mod.url || '', {
+                    kind: 'module',
+                    anchor: mod.anchor,
+                    title: mod.title || mod.anchor
+                });
+            });
+        });
+        var grouped = groupItems(data.items || []);
+        (data.launches || []).forEach(function (launch) {
+            grouped.lti.push(launch);
+        });
+        [
+            ['videos', 'video'],
+            ['discussions', 'discussion'],
+            ['lti', 'lti'],
+            ['assignments', 'assignment'],
+            ['solutions', 'solution'],
+            ['references', 'reference'],
+            ['slides', 'slide']
+        ].forEach(function (pair) {
+            addGroup(cfg.groups[pair[0]], grouped[pair[1]], function (body, rows) {
+                rows.forEach(function (item) {
+                    var label = item.title || '';
+                    if (item.module) label += ' (' + item.module + ')';
+                    addChoice(body, label, item.url || '', targetFromLesson(item));
+                });
+            });
+        });
+        addGroup(cfg.groups.pages, data.pages, function (body, rows) {
+            rows.forEach(function (page) {
+                if (!page.logical_key) return;
+                addChoice(body, page.title || page.logical_key, page.url || '', {
+                    kind: 'page',
+                    logical_key: page.logical_key,
+                    title: page.title || page.logical_key
+                });
+            });
+        });
+        addGroup(cfg.groups.files, data.files, function (body, rows) {
+            var byFolder = {};
+            rows.forEach(function (file) {
+                if (!file.path) return;
+                var folder = file.folder || '';
+                if (!byFolder[folder]) byFolder[folder] = [];
+                byFolder[folder].push(file);
+            });
+            Object.keys(byFolder).sort().forEach(function (folder) {
+                var files = byFolder[folder];
+                var inner = document.createElement('div');
+                files.forEach(function (file) {
+                    addChoice(inner, file.title || file.path, file.path, {
+                        kind: 'file',
+                        path: file.path,
+                        title: file.title || file.path
+                    });
+                });
+                body.appendChild(section(folder === '' ? cfg.groups.courseFiles : folder, files.length, inner));
+            });
+        });
+        if (!any) pickerList.textContent = cfg.none;
+    }
+
+    function openPicker() {
+        pickerList.textContent = '';
+        picker.classList.add('open');
+        ensureData().then(function (data) {
+            if (!picker.classList.contains('open')) return;
+            if (!data) {
+                pickerList.textContent = cfg.failed;
+                return;
+            }
+            fillPicker(data);
+            var first = picker.querySelector('.tsugi-nav-picker-head, .tsugi-nav-picker-item, button');
+            if (first) first.focus();
+        });
+    }
+
+    function closePicker(focusReturn) {
+        picker.classList.remove('open');
+        pickerRow = null;
+        if (focusReturn && pickerFocus) pickerFocus.focus();
+        pickerFocus = null;
+    }
+
+    pickerCancel.addEventListener('click', function () { closePicker(true); });
+    picker.addEventListener('click', function (e) {
+        if (e.target === picker) closePicker(true);
+    });
+    document.addEventListener('keydown', function (e) {
+        if (!picker.classList.contains('open') || e.key !== 'Escape') return;
+        e.preventDefault();
+        closePicker(true);
+    });
 })();
 </script>
