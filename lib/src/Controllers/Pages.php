@@ -315,6 +315,21 @@ class Pages extends Tool {
                     continue;
                 }
 
+                if ( LessonsNormalize::isNativeQuiz($norm) ) {
+                    $quizId = LessonsNormalize::quizIdOf($norm);
+                    if ( $quizId > 0 && $title !== '' ) {
+                        $items[] = array(
+                            'title' => $title,
+                            'url' => '',
+                            'module' => $module_title,
+                            'module_anchor' => $module_anchor,
+                            'type' => 'quiz1',
+                            'quiz_id' => $quizId,
+                        );
+                    }
+                    continue;
+                }
+
                 if ( LessonsNormalize::isDiscussion($norm) ) {
                     $resource_link_id = U::get($norm, 'resource_link_id', '');
                     if ( $resource_link_id !== '' ) {
