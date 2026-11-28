@@ -28,11 +28,6 @@ class PagesLinkPickerTest extends \PHPUnit\Framework\TestCase
                             'href' => '{apphome}/lectures/a.pptx',
                         ),
                         array(
-                            'type' => 'quiz',
-                            'title' => 'Week quiz',
-                            'quiz_id' => 12,
-                        ),
-                        array(
                             'type' => 'file',
                             'title' => 'Handout',
                             'href' => '/files/download/8c2f4d0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
@@ -60,15 +55,6 @@ class PagesLinkPickerTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertSame('/discussions/discussion_welcome', $urls['Welcome']);
         $this->assertSame('discussion', $types['Welcome']);
-        $this->assertSame('quiz1', $types['Week quiz']);
-        $quiz = null;
-        foreach ( $out['items'] as $item ) {
-            if ( $item['title'] === 'Week quiz' ) {
-                $quiz = $item;
-            }
-        }
-        $this->assertNotNull($quiz);
-        $this->assertSame(12, $quiz['quiz_id']);
         $this->assertSame('http://localhost/app/lectures/a.pptx', $urls['Deck']);
         $this->assertSame('slide', $types['Deck']);
         $this->assertSame(

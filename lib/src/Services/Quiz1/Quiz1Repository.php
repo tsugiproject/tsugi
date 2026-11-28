@@ -637,46 +637,9 @@ class Quiz1Repository {
      * The stored key wins. A quiz with no link yet still uses quiz1:{id},
      * unless that legacy key already belongs to a different quiz.
      *
-    /**
-     * Take-link id when this quiz is published in the course, or 0.
-     *
-     * An unpublished quiz and a quiz with no link are 0. No database
-     * connection is opened when this process does not already have one.
-     *
      * @param int|string $quiz_id
      * @param int|string $context_id
      */
-    public static function publishedTakeLinkId($quiz_id, $context_id) {
-        global $CFG, $PDOX;
-        $quiz_id = (int) $quiz_id;
-        $context_id = (int) $context_id;
-        if ( $quiz_id < 1 || $context_id < 1 ) {
-            return 0;
-        }
-        if ( ! isset($PDOX) || ! is_object($PDOX) || ! isset($CFG) || ! method_exists($PDOX, 'rowDie') ) {
-            return 0;
-        }
-        try {
-            $row = $PDOX->rowDie(
-                "SELECT Q.link_id, L.published AS published
-                 FROM {$CFG->dbprefix}quiz1_quiz Q
-                 LEFT JOIN {$CFG->dbprefix}lti_link L ON L.link_id = Q.link_id
-                 WHERE Q.quiz_id = :QID AND Q.context_id = :CID",
-                array(':QID' => $quiz_id, ':CID' => $context_id)
-            );
-        } catch ( \Throwable $e ) {
-            return 0;
-        }
-        if ( ! is_array($row) ) {
-            return 0;
-        }
-        $linkId = isset($row['link_id']) ? (int) $row['link_id'] : 0;
-        if ( $linkId < 1 || (int) ($row['published'] ?? 0) !== 1 ) {
-            return 0;
-        }
-        return $linkId;
-    }
-
     public static function resourceLinkId($quiz_id, $context_id) {
         $quiz_id = (int) $quiz_id;
         $context_id = (int) $context_id;

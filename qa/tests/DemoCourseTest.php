@@ -22,14 +22,6 @@ final class DemoCourseTest extends TsugiPantherTestCase
         $this->captureScreenshot($client, 'demo-page-from-lessons');
     }
 
-    private function clickInView($driver, $element): void
-    {
-        $driver->executeScript(
-            'arguments[0].scrollIntoView({block:"center", inline:"nearest"}); arguments[0].click();',
-            array($element)
-        );
-    }
-
     private function saveCourseNavigation(\Symfony\Component\Panther\Client $client, string $courseHome): void
     {
         $driver = $client->getWebDriver();
@@ -39,11 +31,10 @@ final class DemoCourseTest extends TsugiPantherTestCase
         foreach (array('assignments', 'discussions') as $tool) {
             $box = $driver->findElement(WebDriverBy::cssSelector('input[name="nav['.$tool.'][left]"]'));
             if (!$box->isSelected()) {
-                $this->clickInView($driver, $box);
+                $box->click();
             }
         }
-        $save = $driver->findElement(WebDriverBy::xpath("//button[@type='submit' and contains(., 'Save navigation')]"));
-        $this->clickInView($driver, $save);
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Save navigation')]"))->click();
         $this->waitForPageText($client, 'Navigation saved.');
         $this->assertTrue(
             $driver->findElement(WebDriverBy::cssSelector('input[name="nav[assignments][left]"]'))->isSelected()

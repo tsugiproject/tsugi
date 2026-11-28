@@ -22,35 +22,6 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(is_object($OUTPUT));
     }
 
-    public function testMenuNavAddsModalChromeForANavLink() {
-        global $CFG;
-        $original = $CFG ?? null;
-        $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost/tsugi');
-        $set = new \Tsugi\UI\MenuSet();
-        $set->setHome('Home', '/courses/1/home');
-        $set->addLeft('Notes', '/courses/1/files/notes.pdf', false, false);
-        $plain = (new Output())->menuNav($set);
-        $this->assertStringNotContainsString('tsugi-nav-link-modal', $plain);
-
-        $set->addLeft(
-            'Tool',
-            '/courses/1/launch/tool_1',
-            false,
-            'target="_self" data-tsugi-nav-modal="1" onclick="return tsugiNavOpenModal(this);"'
-        );
-        $html = (new Output())->menuNav($set);
-        $this->assertStringContainsString('data-tsugi-nav-modal="1"', $html);
-        $this->assertStringContainsString('id="tsugi-nav-link-modal"', $html);
-        $this->assertStringContainsString('tsugi-link-modal-frame', $html);
-        $this->assertStringContainsString('function tsugiNavOpenModal', $html);
-
-        $set->addLeft('Copy', 'https://example.com/a?q=&copy;', false, false);
-        $escaped = (new Output())->menuNav($set);
-        $this->assertStringContainsString('href="https://example.com/a?q=&amp;copy;"', $escaped);
-        $this->assertStringNotContainsString('href="https://example.com/a?q=&copy;"', $escaped);
-        $CFG = $original;
-    }
-
     /**
      * Test suppressSiteNav and enableSiteNav methods
      */

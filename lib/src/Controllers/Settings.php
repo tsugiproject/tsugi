@@ -2838,10 +2838,6 @@ re-check your login status.
 
         $doc = Manifest::navigationDocumentForContext(ReqScope::currentContextId());
         $nav_rows = CourseNav::editorRows($doc);
-        $course_prefix = Courses::courseUrlPrefix(ReqScope::currentContextId());
-        $nav_pages_json_url = U::addSession($course_prefix.'/pages/json');
-        $nav_lessons_json_url = U::addSession($course_prefix.'/pages/lessons-json');
-        $nav_files_json_url = U::addSession($course_prefix.'/files/json');
         $save_url = $navigation_url;
         $setup_tab = 'navigation';
         $steps_on = true;
@@ -2900,15 +2896,14 @@ re-check your login status.
         }
 
         $context_id = ReqScope::currentContextId();
+        $nav = CourseNav::fromPost($_POST);
+        if ( ! Courses::isGoogleLoginSession() ) {
+            $nav = CourseNav::retainSiteAccountItems(
+                Manifest::navigationDocumentForContext($context_id),
+                $nav
+            );
+        }
         try {
-            CourseNav::guardNavLinkLimit($_POST);
-            $nav = CourseNav::fromPost($_POST);
-            if ( ! Courses::isGoogleLoginSession() ) {
-                $nav = CourseNav::retainSiteAccountItems(
-                    Manifest::navigationDocumentForContext($context_id),
-                    $nav
-                );
-            }
             Manifest::saveNewVersion(
                 $context_id,
                 $decoded,
