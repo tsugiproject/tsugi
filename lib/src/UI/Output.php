@@ -1130,7 +1130,7 @@ $('a').each(function (x) {
             if ( count($li_class_parts) > 0 ) {
                 $li_class_attr = ' class="'.htmlspecialchars(implode(' ', $li_class_parts), ENT_QUOTES, 'UTF-8').'"';
             }
-            $retval .= $pad.'<li'.$li_class_attr.'><a href="'.$url.'"'.$target.' '.$attr_str.'>'.$entry->link.'</a></li>'."\n";
+            $retval .= $pad.'<li'.$li_class_attr.'><a href="'.htmlspecialchars($url, ENT_QUOTES, 'UTF-8').'"'.$target.' '.$attr_str.'>'.$entry->link.'</a></li>'."\n";
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";
@@ -1211,6 +1211,9 @@ EOF;
         $retval .= "    </div> <!--/.nav-collapse -->\n";
         $retval .= "  </div> <!--container -->\n";
         $retval .= "</nav>\n";
+        if ( strpos($retval, 'data-tsugi-nav-modal') !== false ) {
+            $retval .= \Tsugi\Services\CourseNav\CourseNav::modalChrome();
+        }
 
         return $retval;
     }
