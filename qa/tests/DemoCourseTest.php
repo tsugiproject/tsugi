@@ -22,13 +22,12 @@ final class DemoCourseTest extends TsugiPantherTestCase
         $this->captureScreenshot($client, 'demo-page-from-lessons');
     }
 
-    private function clickInView(\Facebook\WebDriver\Remote\RemoteWebDriver $driver, \Facebook\WebDriver\Remote\RemoteWebElement $element): void
+    private function clickInView($driver, $element): void
     {
         $driver->executeScript(
-            'arguments[0].scrollIntoView({block:"center", inline:"nearest"});',
+            'arguments[0].scrollIntoView({block:"center", inline:"nearest"}); arguments[0].click();',
             array($element)
         );
-        $element->click();
     }
 
     private function saveCourseNavigation(\Symfony\Component\Panther\Client $client, string $courseHome): void
